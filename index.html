@@ -1,0 +1,270 @@
+
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hybridslife</title>
+  <style>
+    /* Buttons der Übungsauswahl: groß genug für den Finger */
+    .auswahl-btn {
+      min-height: 48px;
+      padding: 8px 16px;
+      margin: 4px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dein Training</h1>
+
+  <div id="muskelgruppen"></div>
+  <div id="uebungsauswahl"></div>
+
+  <input id="uebung" placeholder="Übung" oninput="letztesMalAnzeigen()">
+  <input id="gewicht" placeholder="Gewicht (kg)">
+  <input id= "wdh" placeholder="Wiederholungen">
+  <input id="saetze" placeholder="Sätze">
+  <button onclick= "speichern()">Speichern</button>
+  <p id="letztesMal"></p>
+  
+  <div id="liste"></div>
+
+
+
+<script>
+  // Übungsliste: Zum Erweitern einfach hier eine Übung oder Muskelgruppe ergänzen
+  const UEBUNGEN = {
+    "Brust": ["Bankdrücken", "Schrägbankdrücken", "Kurzhantel-Flys", "Butterfly/Pec Deck", "Dips", "Liegestütze"],
+    "Rücken": ["Klimmzüge", "Latzug", "Langhantelrudern", "Kurzhantelrudern", "Rudern am Kabelzug", "Kreuzheben", "T-Bar-Rudern"],
+    "Schultern": ["Schulterdrücken", "Military Press", "Seitheben", "Frontheben", "Reverse Flys", "Face Pulls", "Arnold Press"],
+    "Bizeps": ["Langhantelcurls", "Kurzhantelcurls", "Hammercurls", "Scottcurls", "Konzentrationscurls", "Kabelcurls"],
+    "Trizeps": ["Trizepsdrücken am Kabel", "French Press", "Enges Bankdrücken", "Trizeps-Dips", "Kickbacks", "Überkopf-Trizepsstrecken"],
+    "Beine": ["Kniebeuge", "Beinpresse", "Ausfallschritte", "Beinstrecker", "Beinbeuger", "Rumänisches Kreuzheben", "Wadenheben", "Bulgarian Split Squats"],
+    "Po": ["Hip Thrust", "Glute Bridge", "Kickbacks am Kabel", "Abduktorenmaschine", "Sumo-Kniebeuge", "Step-ups"],
+    "Bauch": ["Crunches", "Plank", "Beinheben", "Russian Twist", "Sit-ups", "Cable Crunches", "Mountain Climbers"]
+  };
+
+  // Merkt sich, welche Muskelgruppe gerade aufgeklappt ist ("" = keine)
+  let offeneGruppe = "";
+
+  // Baut für jede Muskelgruppe einen Button
+  function muskelgruppenAnzeigen() {
+    const bereich = document.getElementById("muskelgruppen");
+    const gruppen = Object.keys(UEBUNGEN);
+
+    for (let i = 0; i < gruppen.length; i++) {
+      const btn = document.createElement("button");
+      btn.className = "auswahl-btn";
+      btn.textContent = gruppen[i];
+      btn.onclick = function () {
+        gruppeUmschalten(gruppen[i]);
+      };
+      bereich.appendChild(btn);
+    }
+  }
+
+  // Klappt die Übungen einer Muskelgruppe auf, oder wieder zu, wenn sie schon offen ist
+  function gruppeUmschalten(gruppe) {
+    const bereich = document.getElementById("uebungsauswahl");
+    bereich.innerHTML = "";
+
+    if (offeneGruppe === gruppe) {
+      offeneGruppe = "";
+      return;
+    }
+    offeneGruppe = gruppe;
+
+    const uebungen = UEBUNGEN[gruppe];
+    for (let i = 0; i < uebungen.length; i++) {
+      const btn = document.createElement("button");
+      btn.className = "auswahl-btn";
+      btn.textContent = uebungen[i];
+      btn.onclick = function () {
+        uebungWaehlen(uebungen[i]);
+      };
+      bereich.appendChild(btn);
+    }
+  }
+
+  // Trägt die angetippte Übung ins Feld ein und klappt die Auswahl zu
+  function uebungWaehlen(name) {
+    document.getElementById("uebung").value = name;
+    document.getElementById("uebungsauswahl").innerHTML = "";
+    offeneGruppe = "";
+    letztesMalAnzeigen();
+  }
+
+  // Sucht die Muskelgruppe zu einem Übungsnamen. Eigene Übungen bekommen "".
+  function muskelgruppeFinden(name) {
+    const gesucht = name.trim().toLowerCase();
+    const gruppen = Object.keys(UEBUNGEN);
+
+    for (let i = 0; i < gruppen.length; i++) {
+      const uebungen = UEBUNGEN[gruppen[i]];
+      for (let j = 0; j < uebungen.length; j++) {
+        if (uebungen[j].toLowerCase() === gesucht) {
+          return gruppen[i];
+        }
+      }
+    }
+    return "";
+  }
+
+  muskelgruppenAnzeigen();
+
+  let eintraege = JSON.parse(localStorage.getItem("eintraege")) || [];
+
+    function anzeigen() {
+    const liste = document.getElementById("liste");
+    liste.innerHTML = "";
+
+    // Einträge auf Wochen verteilen. Der Index wird mitgemerkt, damit Löschen den richtigen Eintrag trifft.
+    const wochen = {};
+    const ohneDatum = [];
+
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (!e.datum || isNaN(new Date(e.datum))) {
+        ohneDatum.push({ eintrag: e, index: i });
+      } else {
+        const schluessel = montagDerWoche(new Date(e.datum)).getTime();
+        if (!wochen[schluessel]) {
+          wochen[schluessel] = [];
+        }
+        wochen[schluessel].push({ eintrag: e, index: i });
+      }
+    }
+
+    // Wochen sortieren, neueste zuerst
+    const montage = Object.keys(wochen).map(Number).sort(function (a, b) {
+      return b - a;
+    });
+
+    for (let w = 0; w < montage.length; w++) {
+      const montag = new Date(montage[w]);
+      const sonntag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 6);
+      const titel = "KW " + kalenderwoche(montag) + " · "
+        + montag.getDate() + "." + (montag.getMonth() + 1) + ". – "
+        + sonntag.getDate() + "." + (sonntag.getMonth() + 1) + "." + sonntag.getFullYear();
+
+      // Einträge der Woche sortieren, neueste zuerst
+      const gruppe = wochen[montage[w]];
+      gruppe.sort(function (a, b) {
+        return new Date(b.eintrag.datum) - new Date(a.eintrag.datum);
+      });
+
+      gruppeAnzeigen(titel, gruppe);
+    }
+
+    if (ohneDatum.length > 0) {
+      gruppeAnzeigen("Ohne Datum", ohneDatum);
+    }
+}
+
+    // Montag (0 Uhr) der Woche, in der das Datum liegt
+    function montagDerWoche(datum) {
+      const montag = new Date(datum.getFullYear(), datum.getMonth(), datum.getDate());
+      const tageSeitMontag = (montag.getDay() + 6) % 7;
+      montag.setDate(montag.getDate() - tageSeitMontag);
+      return montag;
+    }
+
+    // Kalenderwoche nach ISO-Regel: Eine Woche gehört zu dem Jahr, in dem ihr Donnerstag liegt
+    function kalenderwoche(montag) {
+      const donnerstag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 3);
+      const ersterJanuar = new Date(donnerstag.getFullYear(), 0, 1);
+      const tageImJahr = Math.round((donnerstag - ersterJanuar) / 86400000);
+      return Math.floor(tageImJahr / 7) + 1;
+    }
+
+    // Eine Überschrift und darunter die Einträge der Gruppe
+    function gruppeAnzeigen(titel, gruppe) {
+    const liste = document.getElementById("liste");
+    const h2 = document.createElement("h2");
+    h2.textContent = titel;
+    liste.appendChild(h2);
+    const ul = document.createElement("ul");
+    liste.appendChild(ul);
+
+    for (let j = 0; j < gruppe.length; j++) {
+    const e = gruppe[j].eintrag;
+    const index = gruppe[j].index;
+    const li = document.createElement("li");
+    let datumText = "";
+    if (e.datum) {
+      datumText = new Date(e.datum).toLocaleDateString("de-DE") + " – ";
+    }
+    li.textContent = datumText + e.uebung + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + e.gewicht + " kg";
+    const btn = document.createElement("button");
+    btn.textContent = "Löschen";
+    btn.onclick = function () {
+      loeschen(index);
+    };
+    li.appendChild(btn);
+    
+    ul.appendChild(li);
+  }
+}
+
+    function speichern() {
+    const eintrag = {
+        uebung: document.getElementById("uebung").value,
+        muskelgruppe: muskelgruppeFinden(document.getElementById("uebung").value),
+        gewicht: document.getElementById("gewicht").value,
+        wdh: document.getElementById("wdh").value,
+        saetze: document.getElementById("saetze").value,
+        datum: new Date().toISOString()
+  };
+
+      eintraege.push(eintrag);
+      localStorage.setItem("eintraege", JSON.stringify(eintraege));
+      anzeigen();
+
+      document.getElementById("uebung").value = "";
+      document.getElementById("gewicht").value = "";
+      document.getElementById("wdh").value = "";
+      document.getElementById("saetze").value = "";
+      letztesMalAnzeigen();
+
+}
+
+      function loeschen(index) {
+        eintraege.splice(index, 1);
+        localStorage.setItem("eintraege", JSON.stringify(eintraege));
+        anzeigen();
+        letztesMalAnzeigen();
+      }
+
+      // Zeigt unter den Eingabefeldern den letzten Eintrag zur eingetippten Übung
+      function letztesMalAnzeigen() {
+        const anzeige = document.getElementById("letztesMal");
+        const gesucht = document.getElementById("uebung").value.trim().toLowerCase();
+        anzeige.textContent = "";
+
+        if (gesucht === "") {
+          return;
+        }
+
+        // Rückwärts suchen: Der letzte passende Eintrag im Array ist der neueste
+        for (let i = eintraege.length - 1; i >= 0; i--) {
+          const e = eintraege[i];
+          if (e.uebung.trim().toLowerCase() === gesucht) {
+            let datumText = "";
+            if (e.datum) {
+              datumText = " (" + new Date(e.datum).toLocaleDateString("de-DE") + ")";
+            }
+            anzeige.textContent = "Letztes Mal" + datumText + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + e.gewicht + " kg";
+            return;
+          }
+        }
+      }
+
+anzeigen();
+
+
+</script>
+
+</body>
+</html>

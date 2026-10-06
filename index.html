@@ -4,32 +4,697 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Hybridslife</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    /* Buttons der Übungsauswahl: groß genug für den Finger */
-    .auswahl-btn {
-      min-height: 48px;
-      padding: 8px 16px;
-      margin: 4px;
+    /* Farben an einer Stelle: Hier änderst du das ganze Farbschema */
+    :root {
+      --hintergrund: #0E0E10;
+      --karte: #1A1A1E;
+      --rand: #2A2A30;
+      --text: #F2F2F3;
+      --text-leise: #8E8E96;
+      --akzent: #C6F135;
+      --akzent-leicht: rgba(198, 241, 53, 0.15);
+      --auf-akzent: #0E0E10;
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    /* Unten bleibt Platz frei, damit die Navigationsleiste nichts verdeckt */
+    body {
+      margin: 0 auto;
+      max-width: 480px;
+      padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
+      background: var(--hintergrund);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
       font-size: 16px;
+      line-height: 1.4;
+    }
+
+    /* Solange das Sheet offen ist, scrollt die Seite dahinter nicht mit */
+    body.sheet-offen {
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font-family: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Rückmeldung beim Antippen (statt Hover) */
+    button:active {
+      opacity: 0.7;
+    }
+
+    /* ---------- Seiten ---------- */
+
+    /* Sichtbar ist immer nur die Seite mit der Klasse "aktiv" */
+    .seite {
+      display: none;
+    }
+
+    .seite.aktiv {
+      display: block;
+    }
+
+    h1 {
+      margin: 8px 0 0;
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .unterzeile {
+      margin: 4px 0 20px;
+      color: var(--text-leise);
+    }
+
+    /* Kleine Abschnittsüberschrift in Großbuchstaben */
+    .abschnitt,
+    #liste h2 {
+      margin: 28px 0 10px;
+      color: var(--text-leise);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .karte {
+      padding: 20px;
+      border: 1px solid var(--rand);
+      border-radius: 20px;
+      background: var(--karte);
+    }
+
+    .kommt-bald {
+      color: var(--text-leise);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* ---------- Navigationsleiste ---------- */
+
+    #navigation {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      display: flex;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--rand);
+      background: var(--hintergrund);
+    }
+
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-height: 56px;
+      padding: 0;
+      border: none;
+      background: none;
+      color: var(--text-leise);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .nav-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
+    }
+
+    .nav-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Aktiver Tab: grün mit leicht hinterlegtem Kreis */
+    .nav-btn.aktiv {
+      color: var(--akzent);
+    }
+
+    .nav-btn.aktiv .nav-icon {
+      background: var(--akzent-leicht);
+    }
+
+    /* ---------- Wochenleiste ---------- */
+
+    .wochen-kopf {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    #wochen-titel {
+      flex: 1;
+      margin: 0;
+      text-align: center;
+    }
+
+    .wochen-kopf button {
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      background: none;
+      color: var(--text);
+      font-size: 24px;
+    }
+
+    .wochen-kopf button:disabled {
+      opacity: 0.25;
+    }
+
+    #wochenleiste {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .tag-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-height: 64px;
+      padding: 0;
+      border: 2px solid var(--rand);
+      border-radius: 16px;
+      background: var(--karte);
+      color: var(--text);
+    }
+
+    .tag-name {
+      color: var(--text-leise);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .tag-zahl {
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    /* Heute: grün umrandet */
+    .tag-btn.heute {
+      border-color: var(--akzent);
+    }
+
+    /* Angetippter Tag: grün gefüllt */
+    .tag-btn.gewaehlt {
+      border-color: var(--akzent);
+      background: var(--akzent);
+      color: var(--auf-akzent);
+    }
+
+    .tag-btn.gewaehlt .tag-name {
+      color: var(--auf-akzent);
+    }
+
+    /* Tage in der Zukunft */
+    .tag-btn:disabled {
+      opacity: 0.35;
+    }
+
+    /* ---------- Eingabe ---------- */
+
+    /* Übung-Feld: sieht aus wie ein Eingabefeld, öffnet aber das Sheet */
+    .uebung-feld {
+      width: 100%;
+      min-height: 56px;
+      padding: 12px 16px;
+      border: 1px solid var(--rand);
+      border-radius: 20px;
+      background: var(--karte);
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 600;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    .uebung-feld.leer {
+      color: var(--text-leise);
+      font-weight: 400;
+    }
+
+    /* "Letztes Mal" als Karte; ohne Text unsichtbar */
+    #letztesMal {
+      margin: 12px 0 0;
+      padding: 14px 16px;
+      border: 1px solid var(--rand);
+      border-left: 4px solid var(--akzent);
+      border-radius: 20px;
+      background: var(--karte);
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    #letztesMal:empty {
+      display: none;
+    }
+
+    /* Scroll-Räder: drei Spalten nebeneinander */
+    .raeder {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .rad-titel {
+      margin-bottom: 6px;
+      color: var(--text-leise);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .rad-rahmen {
+      position: relative;
+      border: 1px solid var(--rand);
+      border-radius: 20px;
+      background: var(--karte);
+    }
+
+    /* Markierung in der Mitte: Der Wert zwischen den Linien gilt */
+    .rad-rahmen::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 88px;
+      height: 44px;
+      border-top: 2px solid var(--akzent);
+      border-bottom: 2px solid var(--akzent);
+      pointer-events: none;
+    }
+
+    /* Das Rad zeigt 5 Werte (5 × 44px) und rastet beim Scrollen ein */
+    .rad {
+      height: 220px;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+      -webkit-mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
+      mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
+    }
+
+    .rad::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Leerraum oben und unten, damit auch der erste und letzte Wert in die Mitte passen */
+    .rad::before,
+    .rad::after {
+      content: "";
+      display: block;
+      height: 88px;
+    }
+
+    .rad-wert {
+      height: 44px;
+      color: var(--text-leise);
+      font-size: 20px;
+      line-height: 44px;
+      text-align: center;
+      scroll-snap-align: center;
+    }
+
+    .rad-wert.aktiv {
+      color: var(--text);
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .speichern-btn {
+      width: 100%;
+      min-height: 56px;
+      margin-top: 16px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background: var(--akzent);
+      color: var(--auf-akzent);
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .speichern-btn:disabled {
+      background: var(--rand);
+      color: var(--text-leise);
+    }
+
+    /* ---------- Liste der Einträge als Karten ---------- */
+
+    #liste ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    #liste li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      padding: 14px 8px 14px 16px;
+      border: 1px solid var(--rand);
+      border-radius: 20px;
+      background: var(--karte);
+      overflow-wrap: anywhere;
+    }
+
+    /* Löschen-Button: klein und dezent */
+    #liste li button {
+      flex-shrink: 0;
+      padding: 10px 8px;
+      border: none;
+      background: none;
+      color: var(--text-leise);
+      font-size: 13px;
+    }
+
+    .leer-hinweis {
+      margin: 0;
+      color: var(--text-leise);
+    }
+
+    /* ---------- Fortschritt: vier Kacheln ---------- */
+
+    .kacheln {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .kachel-zahl {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+
+    .kachel-titel {
+      margin-top: 6px;
+      color: var(--text-leise);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* ---------- Bottom Sheet ---------- */
+
+    /* Abgedunkelter Hintergrund */
+    #sheet-hintergrund {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      background: rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    #sheet-hintergrund.offen {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Das Sheet liegt unterhalb des Bildschirms und fährt mit "offen" hoch */
+    #sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      max-height: 85vh;
+      max-height: 85dvh;
+      margin: 0 auto;
+      border-radius: 24px 24px 0 0;
+      background: var(--karte);
+      transform: translateY(100%);
+      visibility: hidden;
+      transition: transform 0.3s, visibility 0.3s;
+    }
+
+    #sheet.offen {
+      transform: translateY(0);
+      visibility: visible;
+    }
+
+    .sheet-kopf {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 8px 8px;
+    }
+
+    #sheet-titel {
+      flex: 1;
+      padding-left: 8px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .sheet-kopf button {
+      width: 48px;
+      height: 48px;
+      border: none;
+      border-radius: 24px;
+      background: none;
+      color: var(--text);
+      font-size: 22px;
+    }
+
+    #sheet-zurueck.versteckt {
+      display: none;
+    }
+
+    #sheet-inhalt {
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 0 16px;
+    }
+
+    /* Eine Zeile im Sheet: Muskelgruppe oder Übung */
+    .sheet-zeile {
+      display: block;
+      width: 100%;
+      min-height: 56px;
+      padding: 12px 4px;
+      border: none;
+      border-bottom: 1px solid var(--rand);
+      background: none;
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 600;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    /* Eigene Übung: Textfeld und Button ganz unten im Sheet */
+    .sheet-eigene {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--rand);
+    }
+
+    .sheet-eigene input {
+      flex: 1;
+      min-width: 0;
+      height: 52px;
+      padding: 0 14px;
+      border: 1px solid var(--rand);
+      border-radius: 14px;
+      background: var(--hintergrund);
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    .sheet-eigene input::placeholder {
+      color: var(--text-leise);
+    }
+
+    .sheet-eigene input:focus {
+      outline: none;
+      border-color: var(--akzent);
+    }
+
+    .sheet-eigene button {
+      flex-shrink: 0;
+      height: 52px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 14px;
+      background: var(--akzent);
+      color: var(--auf-akzent);
+      font-size: 16px;
+      font-weight: 800;
     }
   </style>
 </head>
 <body>
-  <h1>Dein Training</h1>
 
-  <div id="muskelgruppen"></div>
-  <div id="uebungsauswahl"></div>
+  <!-- Seite: Log -->
+  <section id="seite-log" class="seite aktiv">
+    <h1>Log</h1>
+    <p class="unterzeile">Trag dein Training ein</p>
 
-  <input id="uebung" placeholder="Übung" oninput="letztesMalAnzeigen()">
-  <input id="gewicht" placeholder="Gewicht (kg)">
-  <input id= "wdh" placeholder="Wiederholungen">
-  <input id="saetze" placeholder="Sätze">
-  <button onclick= "speichern()">Speichern</button>
-  <p id="letztesMal"></p>
-  
-  <div id="liste"></div>
+    <div class="wochen-kopf">
+      <button onclick="wocheBlaettern(-1)" aria-label="Woche zurück">‹</button>
+      <h2 id="wochen-titel" class="abschnitt"></h2>
+      <button id="woche-vor" onclick="wocheBlaettern(1)" aria-label="Woche vor">›</button>
+    </div>
+    <div id="wochenleiste"></div>
+
+    <h2 class="abschnitt">Neuer Eintrag</h2>
+    <button id="uebung" class="uebung-feld leer" onclick="sheetOeffnen()">Übung wählen</button>
+    <p id="letztesMal"></p>
+
+    <div class="raeder">
+      <div>
+        <div class="rad-titel">Gewicht (kg)</div>
+        <div class="rad-rahmen"><div id="rad-gewicht" class="rad"></div></div>
+      </div>
+      <div>
+        <div class="rad-titel">Wdh.</div>
+        <div class="rad-rahmen"><div id="rad-wdh" class="rad"></div></div>
+      </div>
+      <div>
+        <div class="rad-titel">Sätze</div>
+        <div class="rad-rahmen"><div id="rad-saetze" class="rad"></div></div>
+      </div>
+    </div>
+
+    <button id="speichern" class="speichern-btn" onclick="speichern()" disabled>Speichern</button>
+
+    <div id="liste"></div>
+  </section>
+
+  <!-- Seite: Training -->
+  <section id="seite-training" class="seite">
+    <h1>Training</h1>
+    <p class="unterzeile">Deine Trainingspläne</p>
+    <div class="karte kommt-bald">Kommt bald</div>
+  </section>
+
+  <!-- Seite: Fortschritt -->
+  <section id="seite-fortschritt" class="seite">
+    <h1>Fortschritt</h1>
+    <p class="unterzeile">Deine Zahlen auf einen Blick</p>
+
+    <h2 class="abschnitt">Statistik</h2>
+    <div class="kacheln">
+      <div class="karte">
+        <div id="stat-workouts" class="kachel-zahl">0</div>
+        <div class="kachel-titel">Workouts gesamt</div>
+      </div>
+      <div class="karte">
+        <div id="stat-gewicht" class="kachel-zahl">0 kg</div>
+        <div class="kachel-titel">Bewegtes Gesamtgewicht</div>
+      </div>
+      <div class="karte">
+        <div id="stat-uebungen" class="kachel-zahl">0</div>
+        <div class="kachel-titel">Verschiedene Übungen</div>
+      </div>
+      <div class="karte">
+        <div id="stat-serie" class="kachel-zahl">0</div>
+        <div class="kachel-titel">Wochen in Folge mit mind. 3 Trainingstagen</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seite: Gym -->
+  <section id="seite-gym" class="seite">
+    <h1>Gym</h1>
+    <p class="unterzeile">Bau dir dein eigenes Gym</p>
+    <div class="karte kommt-bald">Kommt bald</div>
+  </section>
+
+  <!-- Seite: Profil -->
+  <section id="seite-profil" class="seite">
+    <h1>Profil</h1>
+    <p class="unterzeile">Deine Einstellungen</p>
+    <div class="karte kommt-bald">Kommt bald</div>
+  </section>
+
+  <!-- Navigationsleiste: Die Icons sind einfache, selbst gezeichnete Linien-Grafiken (SVG) -->
+  <nav id="navigation">
+    <button id="nav-log" class="nav-btn aktiv" onclick="seiteZeigen('log')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg></span>
+      Log
+    </button>
+    <button id="nav-training" class="nav-btn" onclick="seiteZeigen('training')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/></svg></span>
+      Training
+    </button>
+    <button id="nav-fortschritt" class="nav-btn" onclick="seiteZeigen('fortschritt')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20v-6M12 20V5M18 20v-10"/></svg></span>
+      Fortschritt
+    </button>
+    <button id="nav-gym" class="nav-btn" onclick="seiteZeigen('gym')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V9l7-5 7 5v11M10 20v-6h4v6"/></svg></span>
+      Gym
+    </button>
+    <button id="nav-profil" class="nav-btn" onclick="seiteZeigen('profil')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+      Profil
+    </button>
+  </nav>
+
+  <div id="sheet-hintergrund" onclick="sheetSchliessen()"></div>
+  <div id="sheet">
+    <div class="sheet-kopf">
+      <button id="sheet-zurueck" class="versteckt" onclick="sheetGruppenZeigen()" aria-label="Zurück">←</button>
+      <span id="sheet-titel">Muskelgruppe</span>
+      <button onclick="sheetSchliessen()" aria-label="Schließen">✕</button>
+    </div>
+    <div id="sheet-inhalt"></div>
+    <div class="sheet-eigene">
+      <input id="eigene-uebung" placeholder="Eigene Übung eintippen" onkeydown="if (event.key === 'Enter') eigeneUebungUebernehmen()">
+      <button onclick="eigeneUebungUebernehmen()">Übernehmen</button>
+    </div>
+  </div>
 
 
 
@@ -46,54 +711,371 @@
     "Bauch": ["Crunches", "Plank", "Beinheben", "Russian Twist", "Sit-ups", "Cable Crunches", "Mountain Climbers"]
   };
 
-  // Merkt sich, welche Muskelgruppe gerade aufgeklappt ist ("" = keine)
-  let offeneGruppe = "";
+  // Startwerte der Räder bei einer neuen Übung
+  const START_GEWICHT = 20;
+  const START_WDH = 10;
+  const START_SAETZE = 3;
 
-  // Baut für jede Muskelgruppe einen Button
-  function muskelgruppenAnzeigen() {
-    const bereich = document.getElementById("muskelgruppen");
+  // Höhe eines Wertes im Rad in Pixeln. Muss zur Höhe von .rad-wert im CSS passen.
+  const RAD_HOEHE = 44;
+
+  // So viele Trainingstage braucht eine Woche, damit sie für die Serie zählt
+  const SERIE_TAGE_PRO_WOCHE = 3;
+
+  const WOCHENTAGE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
+  // Merkt sich zu jedem Rad seine Werte und welcher gerade markiert ist
+  const raeder = {};
+
+  // Die gerade sichtbare Seite
+  let aktiveSeite = "log";
+
+  // Die gerade gewählte Übung und ihre Muskelgruppe ("" = nichts gewählt)
+  let gewaehlteUebung = "";
+  let gewaehlteGruppe = "";
+
+  // Im Sheet geöffnete Muskelgruppe ("" = Übersicht der Muskelgruppen)
+  let sheetGruppe = "";
+
+  // Wochenleiste: Montag der angezeigten Woche und der angetippte Tag (null = kein Tag gewählt)
+  let angezeigterMontag = montagDerWoche(new Date());
+  let gewaehlterTag = null;
+
+  let eintraege = JSON.parse(localStorage.getItem("eintraege")) || [];
+
+  // Macht aus einer Zahl deutschen Text: 82.5 wird "82,5"
+  function zahlText(wert) {
+    return String(wert).replace(".", ",");
+  }
+
+  // ---------- Seiten und Navigation ----------
+
+  // Zeigt eine Seite und markiert ihren Tab
+  function seiteZeigen(name) {
+    // Ausgeblendete Räder verlieren ihre Stellung, deshalb vorher merken
+    let radWerte = null;
+    if (aktiveSeite === "log") {
+      radWerte = [radWert("rad-gewicht"), radWert("rad-wdh"), radWert("rad-saetze")];
+    }
+
+    document.getElementById("seite-" + aktiveSeite).classList.remove("aktiv");
+    document.getElementById("nav-" + aktiveSeite).classList.remove("aktiv");
+    document.getElementById("seite-" + name).classList.add("aktiv");
+    document.getElementById("nav-" + name).classList.add("aktiv");
+    aktiveSeite = name;
+    window.scrollTo(0, 0);
+
+    if (name === "log") {
+      if (radWerte === null) {
+        radWerte = gemerkteRadWerte;
+      }
+      radSetzen("rad-gewicht", radWerte[0]);
+      radSetzen("rad-wdh", radWerte[1]);
+      radSetzen("rad-saetze", radWerte[2]);
+    } else if (radWerte !== null) {
+      gemerkteRadWerte = radWerte;
+    }
+
+    if (name === "fortschritt") {
+      fortschrittAnzeigen();
+    }
+  }
+
+  // Stellung der Räder, solange die Log-Seite ausgeblendet ist
+  let gemerkteRadWerte = [START_GEWICHT, START_WDH, START_SAETZE];
+
+  // ---------- Datum-Helfer ----------
+
+  // Montag (0 Uhr) der Woche, in der das Datum liegt
+  function montagDerWoche(datum) {
+    const montag = new Date(datum.getFullYear(), datum.getMonth(), datum.getDate());
+    const tageSeitMontag = (montag.getDay() + 6) % 7;
+    montag.setDate(montag.getDate() - tageSeitMontag);
+    return montag;
+  }
+
+  // Kalenderwoche nach ISO-Regel: Eine Woche gehört zu dem Jahr, in dem ihr Donnerstag liegt
+  function kalenderwoche(montag) {
+    const donnerstag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 3);
+    const ersterJanuar = new Date(donnerstag.getFullYear(), 0, 1);
+    const tageImJahr = Math.round((donnerstag - ersterJanuar) / 86400000);
+    return Math.floor(tageImJahr / 7) + 1;
+  }
+
+  // Überschrift einer Woche, z. B. "KW 41 · 5.10. – 11.10.2026"
+  function wochenTitel(montag) {
+    const sonntag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 6);
+    return "KW " + kalenderwoche(montag) + " · "
+      + montag.getDate() + "." + (montag.getMonth() + 1) + ". – "
+      + sonntag.getDate() + "." + (sonntag.getMonth() + 1) + "." + sonntag.getFullYear();
+  }
+
+  // Eine Zahl pro Kalendertag, z. B. 20261005. Damit lassen sich Tage vergleichen.
+  function tagSchluessel(datum) {
+    return datum.getFullYear() * 10000 + (datum.getMonth() + 1) * 100 + datum.getDate();
+  }
+
+  // Kurzer Text für einen Tag, z. B. "Mo, 5.10."
+  function tagText(datum) {
+    return WOCHENTAGE[(datum.getDay() + 6) % 7] + ", " + datum.getDate() + "." + (datum.getMonth() + 1) + ".";
+  }
+
+  // ---------- Wochenleiste ----------
+
+  // Baut die sieben Tage der angezeigten Woche
+  function wochenleisteAnzeigen() {
+    const heute = new Date();
+    document.getElementById("wochen-titel").textContent = wochenTitel(angezeigterMontag);
+
+    // Weiter als bis zur aktuellen Woche kann man nicht blättern
+    document.getElementById("woche-vor").disabled = angezeigterMontag.getTime() >= montagDerWoche(heute).getTime();
+
+    const leiste = document.getElementById("wochenleiste");
+    leiste.innerHTML = "";
+
+    for (let i = 0; i < 7; i++) {
+      const tag = new Date(angezeigterMontag.getFullYear(), angezeigterMontag.getMonth(), angezeigterMontag.getDate() + i);
+      const btn = document.createElement("button");
+      btn.className = "tag-btn";
+
+      const name = document.createElement("span");
+      name.className = "tag-name";
+      name.textContent = WOCHENTAGE[i];
+      btn.appendChild(name);
+
+      const zahl = document.createElement("span");
+      zahl.className = "tag-zahl";
+      zahl.textContent = tag.getDate();
+      btn.appendChild(zahl);
+
+      if (tagSchluessel(tag) === tagSchluessel(heute)) {
+        btn.classList.add("heute");
+      }
+      if (gewaehlterTag && tagSchluessel(tag) === tagSchluessel(gewaehlterTag)) {
+        btn.classList.add("gewaehlt");
+      }
+      // Tage in der Zukunft lassen sich nicht antippen
+      btn.disabled = tagSchluessel(tag) > tagSchluessel(heute);
+
+      btn.onclick = function () {
+        tagWaehlen(tag);
+      };
+      leiste.appendChild(btn);
+    }
+  }
+
+  // Wählt einen Tag aus. Nochmal antippen hebt die Auswahl wieder auf.
+  function tagWaehlen(tag) {
+    if (gewaehlterTag && tagSchluessel(tag) === tagSchluessel(gewaehlterTag)) {
+      gewaehlterTag = null;
+    } else {
+      gewaehlterTag = tag;
+    }
+    wochenleisteAnzeigen();
+    speichernButtonAktualisieren();
+    anzeigen();
+  }
+
+  // Blättert eine Woche zurück (-1) oder vor (1). Die Tagesauswahl wird dabei aufgehoben.
+  function wocheBlaettern(richtung) {
+    angezeigterMontag = new Date(angezeigterMontag.getFullYear(), angezeigterMontag.getMonth(), angezeigterMontag.getDate() + richtung * 7);
+    gewaehlterTag = null;
+    wochenleisteAnzeigen();
+    speichernButtonAktualisieren();
+    anzeigen();
+  }
+
+  // ---------- Scroll-Räder ----------
+
+  // Füllt ein Rad mit Werten
+  function radBauen(id, werte) {
+    const rad = document.getElementById(id);
+    raeder[id] = { werte: werte, aktiv: -1 };
+
+    for (let i = 0; i < werte.length; i++) {
+      const wert = document.createElement("div");
+      wert.className = "rad-wert";
+      wert.textContent = zahlText(werte[i]);
+      // Antippen eines Wertes dreht das Rad dorthin
+      wert.onclick = function () {
+        rad.scrollTo({ top: i * RAD_HOEHE, behavior: "smooth" });
+      };
+      rad.appendChild(wert);
+    }
+
+    rad.onscroll = function () {
+      // Nur auf der Log-Seite: Ausgeblendete Räder melden eine falsche Stellung
+      if (aktiveSeite === "log") {
+        radMarkieren(id);
+      }
+    };
+  }
+
+  // Position des Wertes, der gerade in der Mitte steht
+  function radIndex(id) {
+    const rad = document.getElementById(id);
+    const index = Math.round(rad.scrollTop / RAD_HOEHE);
+    return Math.max(0, Math.min(index, raeder[id].werte.length - 1));
+  }
+
+  // Hebt den Wert in der Mitte hervor
+  function radMarkieren(id) {
+    const rad = document.getElementById(id);
+    const index = radIndex(id);
+
+    if (index === raeder[id].aktiv) {
+      return;
+    }
+    if (raeder[id].aktiv >= 0) {
+      rad.children[raeder[id].aktiv].classList.remove("aktiv");
+    }
+    rad.children[index].classList.add("aktiv");
+    raeder[id].aktiv = index;
+  }
+
+  // Liest den eingestellten Wert als Zahl
+  function radWert(id) {
+    return raeder[id].werte[radIndex(id)];
+  }
+
+  // Dreht ein Rad auf einen Wert. Gibt es den Wert im Rad nicht, bleibt es stehen.
+  function radSetzen(id, wert) {
+    if (String(wert).trim() === "") {
+      return;
+    }
+    const zahl = Number(String(wert).replace(",", "."));
+    const index = raeder[id].werte.indexOf(zahl);
+    if (index === -1) {
+      return;
+    }
+    document.getElementById(id).scrollTop = index * RAD_HOEHE;
+    radMarkieren(id);
+  }
+
+  // Stellt die Räder auf die Startwerte oder, falls es die Übung schon gab, auf die Werte vom letzten Mal
+  function raederVoreinstellen() {
+    radSetzen("rad-gewicht", START_GEWICHT);
+    radSetzen("rad-wdh", START_WDH);
+    radSetzen("rad-saetze", START_SAETZE);
+
+    const letzter = letzterEintrag(gewaehlteUebung);
+    if (letzter) {
+      radSetzen("rad-gewicht", letzter.gewicht);
+      radSetzen("rad-wdh", letzter.wdh);
+      radSetzen("rad-saetze", letzter.saetze);
+    }
+  }
+
+  // ---------- Bottom Sheet für die Übungsauswahl ----------
+
+  function sheetOeffnen() {
+    sheetGruppenZeigen();
+    document.getElementById("eigene-uebung").value = "";
+    document.getElementById("sheet").classList.add("offen");
+    document.getElementById("sheet-hintergrund").classList.add("offen");
+    document.body.classList.add("sheet-offen");
+  }
+
+  function sheetSchliessen() {
+    document.getElementById("eigene-uebung").blur();
+    document.getElementById("sheet").classList.remove("offen");
+    document.getElementById("sheet-hintergrund").classList.remove("offen");
+    document.body.classList.remove("sheet-offen");
+  }
+
+  // Schritt 1: alle Muskelgruppen
+  function sheetGruppenZeigen() {
+    sheetGruppe = "";
+    document.getElementById("sheet-titel").textContent = "Muskelgruppe";
+    document.getElementById("sheet-zurueck").classList.add("versteckt");
+
+    const inhalt = document.getElementById("sheet-inhalt");
+    inhalt.innerHTML = "";
     const gruppen = Object.keys(UEBUNGEN);
 
     for (let i = 0; i < gruppen.length; i++) {
       const btn = document.createElement("button");
-      btn.className = "auswahl-btn";
+      btn.className = "sheet-zeile";
       btn.textContent = gruppen[i];
       btn.onclick = function () {
-        gruppeUmschalten(gruppen[i]);
+        sheetUebungenZeigen(gruppen[i]);
       };
-      bereich.appendChild(btn);
+      inhalt.appendChild(btn);
     }
+    inhalt.scrollTop = 0;
   }
 
-  // Klappt die Übungen einer Muskelgruppe auf, oder wieder zu, wenn sie schon offen ist
-  function gruppeUmschalten(gruppe) {
-    const bereich = document.getElementById("uebungsauswahl");
-    bereich.innerHTML = "";
+  // Schritt 2: die Übungen einer Muskelgruppe
+  function sheetUebungenZeigen(gruppe) {
+    sheetGruppe = gruppe;
+    document.getElementById("sheet-titel").textContent = gruppe;
+    document.getElementById("sheet-zurueck").classList.remove("versteckt");
 
-    if (offeneGruppe === gruppe) {
-      offeneGruppe = "";
-      return;
-    }
-    offeneGruppe = gruppe;
-
+    const inhalt = document.getElementById("sheet-inhalt");
+    inhalt.innerHTML = "";
     const uebungen = UEBUNGEN[gruppe];
+
     for (let i = 0; i < uebungen.length; i++) {
       const btn = document.createElement("button");
-      btn.className = "auswahl-btn";
+      btn.className = "sheet-zeile";
       btn.textContent = uebungen[i];
       btn.onclick = function () {
-        uebungWaehlen(uebungen[i]);
+        uebungWaehlen(uebungen[i], gruppe);
       };
-      bereich.appendChild(btn);
+      inhalt.appendChild(btn);
     }
+    inhalt.scrollTop = 0;
   }
 
-  // Trägt die angetippte Übung ins Feld ein und klappt die Auswahl zu
-  function uebungWaehlen(name) {
-    document.getElementById("uebung").value = name;
-    document.getElementById("uebungsauswahl").innerHTML = "";
-    offeneGruppe = "";
+  // Übernimmt die eingetippte eigene Übung
+  function eigeneUebungUebernehmen() {
+    const name = document.getElementById("eigene-uebung").value.trim();
+    if (name === "") {
+      return;
+    }
+
+    // Steht die Übung in der Liste, gilt deren Muskelgruppe, sonst die gerade geöffnete
+    let gruppe = muskelgruppeFinden(name);
+    if (gruppe === "") {
+      gruppe = sheetGruppe;
+    }
+    uebungWaehlen(name, gruppe);
+  }
+
+  // Merkt sich die gewählte Übung, schließt das Sheet und stellt die Räder ein
+  function uebungWaehlen(name, gruppe) {
+    gewaehlteUebung = name;
+    gewaehlteGruppe = gruppe;
+    uebungFeldAktualisieren();
+    sheetSchliessen();
     letztesMalAnzeigen();
+    raederVoreinstellen();
+  }
+
+  // Zeigt die gewählte Übung im Feld
+  function uebungFeldAktualisieren() {
+    const feld = document.getElementById("uebung");
+    const leer = gewaehlteUebung === "";
+
+    if (leer) {
+      feld.textContent = "Übung wählen";
+    } else {
+      feld.textContent = gewaehlteUebung;
+    }
+    feld.classList.toggle("leer", leer);
+    speichernButtonAktualisieren();
+  }
+
+  // Beschriftet den Speichern-Button mit dem gewählten Tag. Ohne Übung ist er gesperrt.
+  function speichernButtonAktualisieren() {
+    const btn = document.getElementById("speichern");
+
+    if (gewaehlterTag) {
+      btn.textContent = "Speichern für " + tagText(gewaehlterTag);
+    } else {
+      btn.textContent = "Speichern";
+    }
+    btn.disabled = gewaehlteUebung === "";
   }
 
   // Sucht die Muskelgruppe zu einem Übungsnamen. Eigene Übungen bekommen "".
@@ -112,13 +1094,17 @@
     return "";
   }
 
-  muskelgruppenAnzeigen();
-
-  let eintraege = JSON.parse(localStorage.getItem("eintraege")) || [];
+  // ---------- Liste ----------
 
     function anzeigen() {
     const liste = document.getElementById("liste");
     liste.innerHTML = "";
+
+    // Ist ein Tag angetippt, zeigt die Liste nur dessen Einträge
+    if (gewaehlterTag) {
+      tagesListeAnzeigen();
+      return;
+    }
 
     // Einträge auf Wochen verteilen. Der Index wird mitgemerkt, damit Löschen den richtigen Eintrag trifft.
     const wochen = {};
@@ -143,11 +1129,7 @@
     });
 
     for (let w = 0; w < montage.length; w++) {
-      const montag = new Date(montage[w]);
-      const sonntag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 6);
-      const titel = "KW " + kalenderwoche(montag) + " · "
-        + montag.getDate() + "." + (montag.getMonth() + 1) + ". – "
-        + sonntag.getDate() + "." + (sonntag.getMonth() + 1) + "." + sonntag.getFullYear();
+      const titel = wochenTitel(new Date(montage[w]));
 
       // Einträge der Woche sortieren, neueste zuerst
       const gruppe = wochen[montage[w]];
@@ -163,20 +1145,29 @@
     }
 }
 
-    // Montag (0 Uhr) der Woche, in der das Datum liegt
-    function montagDerWoche(datum) {
-      const montag = new Date(datum.getFullYear(), datum.getMonth(), datum.getDate());
-      const tageSeitMontag = (montag.getDay() + 6) % 7;
-      montag.setDate(montag.getDate() - tageSeitMontag);
-      return montag;
-    }
+    // Zeigt nur die Einträge des angetippten Tages
+    function tagesListeAnzeigen() {
+      const gruppe = [];
 
-    // Kalenderwoche nach ISO-Regel: Eine Woche gehört zu dem Jahr, in dem ihr Donnerstag liegt
-    function kalenderwoche(montag) {
-      const donnerstag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 3);
-      const ersterJanuar = new Date(donnerstag.getFullYear(), 0, 1);
-      const tageImJahr = Math.round((donnerstag - ersterJanuar) / 86400000);
-      return Math.floor(tageImJahr / 7) + 1;
+      for (let i = 0; i < eintraege.length; i++) {
+        const e = eintraege[i];
+        if (e.datum && !isNaN(new Date(e.datum)) && tagSchluessel(new Date(e.datum)) === tagSchluessel(gewaehlterTag)) {
+          gruppe.push({ eintrag: e, index: i });
+        }
+      }
+
+      gruppe.sort(function (a, b) {
+        return new Date(b.eintrag.datum) - new Date(a.eintrag.datum);
+      });
+
+      gruppeAnzeigen(tagText(gewaehlterTag) + gewaehlterTag.getFullYear(), gruppe);
+
+      if (gruppe.length === 0) {
+        const hinweis = document.createElement("p");
+        hinweis.className = "leer-hinweis";
+        hinweis.textContent = "Keine Einträge an diesem Tag.";
+        document.getElementById("liste").appendChild(hinweis);
+      }
     }
 
     // Eine Überschrift und darunter die Einträge der Gruppe
@@ -196,37 +1187,52 @@
     if (e.datum) {
       datumText = new Date(e.datum).toLocaleDateString("de-DE") + " – ";
     }
-    li.textContent = datumText + e.uebung + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + e.gewicht + " kg";
+    li.textContent = datumText + e.uebung + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + zahlText(e.gewicht) + " kg";
     const btn = document.createElement("button");
     btn.textContent = "Löschen";
     btn.onclick = function () {
       loeschen(index);
     };
     li.appendChild(btn);
-    
+
     ul.appendChild(li);
   }
 }
 
+    // Datum für einen neuen Eintrag: der angetippte Tag mit der jetzigen Uhrzeit, ohne Auswahl heute
+    function eintragDatum() {
+      const jetzt = new Date();
+      if (!gewaehlterTag) {
+        return jetzt;
+      }
+      return new Date(gewaehlterTag.getFullYear(), gewaehlterTag.getMonth(), gewaehlterTag.getDate(),
+        jetzt.getHours(), jetzt.getMinutes(), jetzt.getSeconds());
+    }
+
     function speichern() {
+    // Ohne Übung wird nichts gespeichert
+    if (gewaehlteUebung === "") {
+      return;
+    }
+
     const eintrag = {
-        uebung: document.getElementById("uebung").value,
-        muskelgruppe: muskelgruppeFinden(document.getElementById("uebung").value),
-        gewicht: document.getElementById("gewicht").value,
-        wdh: document.getElementById("wdh").value,
-        saetze: document.getElementById("saetze").value,
-        datum: new Date().toISOString()
+        uebung: gewaehlteUebung,
+        muskelgruppe: gewaehlteGruppe,
+        gewicht: radWert("rad-gewicht"),
+        wdh: radWert("rad-wdh"),
+        saetze: radWert("rad-saetze"),
+        datum: eintragDatum().toISOString()
   };
 
       eintraege.push(eintrag);
       localStorage.setItem("eintraege", JSON.stringify(eintraege));
       anzeigen();
 
-      document.getElementById("uebung").value = "";
-      document.getElementById("gewicht").value = "";
-      document.getElementById("wdh").value = "";
-      document.getElementById("saetze").value = "";
+      gewaehlteUebung = "";
+      gewaehlteGruppe = "";
+      uebungFeldAktualisieren();
       letztesMalAnzeigen();
+      raederVoreinstellen();
 
 }
 
@@ -237,30 +1243,130 @@
         letztesMalAnzeigen();
       }
 
-      // Zeigt unter den Eingabefeldern den letzten Eintrag zur eingetippten Übung
+      // Sucht den neuesten Eintrag zu einer Übung. Gibt null zurück, wenn es keinen gibt.
+      function letzterEintrag(name) {
+        const gesucht = name.trim().toLowerCase();
+        if (gesucht === "") {
+          return null;
+        }
+
+        // Der Eintrag mit dem spätesten Datum gewinnt. Einträge ohne Datum gelten als die ältesten.
+        let neuester = null;
+        let neuesteZeit = 0;
+
+        for (let i = 0; i < eintraege.length; i++) {
+          const e = eintraege[i];
+          if (e.uebung.trim().toLowerCase() === gesucht) {
+            let zeit = 0;
+            if (e.datum && !isNaN(new Date(e.datum))) {
+              zeit = new Date(e.datum).getTime();
+            }
+            if (neuester === null || zeit >= neuesteZeit) {
+              neuester = e;
+              neuesteZeit = zeit;
+            }
+          }
+        }
+        return neuester;
+      }
+
+      // Zeigt unter dem Übung-Feld den letzten Eintrag zur gewählten Übung
       function letztesMalAnzeigen() {
         const anzeige = document.getElementById("letztesMal");
-        const gesucht = document.getElementById("uebung").value.trim().toLowerCase();
         anzeige.textContent = "";
 
-        if (gesucht === "") {
+        const e = letzterEintrag(gewaehlteUebung);
+        if (!e) {
           return;
         }
 
-        // Rückwärts suchen: Der letzte passende Eintrag im Array ist der neueste
-        for (let i = eintraege.length - 1; i >= 0; i--) {
-          const e = eintraege[i];
-          if (e.uebung.trim().toLowerCase() === gesucht) {
-            let datumText = "";
-            if (e.datum) {
-              datumText = " (" + new Date(e.datum).toLocaleDateString("de-DE") + ")";
-            }
-            anzeige.textContent = "Letztes Mal" + datumText + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + e.gewicht + " kg";
-            return;
-          }
+        let datumText = "";
+        if (e.datum) {
+          datumText = " (" + new Date(e.datum).toLocaleDateString("de-DE") + ")";
         }
+        anzeige.textContent = "Letztes Mal" + datumText + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + zahlText(e.gewicht) + " kg";
       }
 
+  // ---------- Fortschritt ----------
+
+  // Berechnet die vier Kacheln aus den gespeicherten Einträgen
+  function fortschrittAnzeigen() {
+    const trainingstage = {};    // jeder Tag mit mindestens einem Eintrag
+    const tageProWoche = {};     // Anzahl Trainingstage je Woche (Schlüssel: Montag)
+    const uebungen = {};         // jeder Übungsname einmal
+    let anzahlTage = 0;
+    let anzahlUebungen = 0;
+    let gesamtgewicht = 0;
+
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+
+      const name = e.uebung.trim().toLowerCase();
+      if (name !== "" && !uebungen[name]) {
+        uebungen[name] = true;
+        anzahlUebungen++;
+      }
+
+      // Einträge, bei denen keine Zahl steht (z. B. "80kg"), ergeben NaN und werden übersprungen
+      const bewegt = Number(e.saetze) * Number(e.wdh) * Number(String(e.gewicht).replace(",", "."));
+      if (!isNaN(bewegt)) {
+        gesamtgewicht += bewegt;
+      }
+
+      if (e.datum && !isNaN(new Date(e.datum))) {
+        const datum = new Date(e.datum);
+        const tag = tagSchluessel(datum);
+        if (!trainingstage[tag]) {
+          trainingstage[tag] = true;
+          anzahlTage++;
+          const woche = montagDerWoche(datum).getTime();
+          tageProWoche[woche] = (tageProWoche[woche] || 0) + 1;
+        }
+      }
+    }
+
+    // Serie: Wochen in Folge mit genug Trainingstagen, rückwärts gezählt.
+    // Die aktuelle Woche zählt erst, wenn sie genug Tage hat. Bis dahin unterbricht sie die Serie aber nicht.
+    let montag = montagDerWoche(new Date());
+    let serie = 0;
+    if ((tageProWoche[montag.getTime()] || 0) < SERIE_TAGE_PRO_WOCHE) {
+      montag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7);
+    }
+    while ((tageProWoche[montag.getTime()] || 0) >= SERIE_TAGE_PRO_WOCHE) {
+      serie++;
+      montag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7);
+    }
+
+    document.getElementById("stat-workouts").textContent = anzahlTage;
+    document.getElementById("stat-gewicht").textContent = gesamtgewicht.toLocaleString("de-DE") + " kg";
+    document.getElementById("stat-uebungen").textContent = anzahlUebungen;
+    document.getElementById("stat-serie").textContent = serie;
+  }
+
+// Gewicht: 0 bis 400 kg in 0,5-kg-Schritten
+const gewichte = [];
+for (let i = 0; i <= 800; i++) {
+  gewichte.push(i / 2);
+}
+
+// Wiederholungen: 1 bis 30
+const wiederholungen = [];
+for (let i = 1; i <= 30; i++) {
+  wiederholungen.push(i);
+}
+
+// Sätze: 1 bis 10
+const saetze = [];
+for (let i = 1; i <= 10; i++) {
+  saetze.push(i);
+}
+
+radBauen("rad-gewicht", gewichte);
+radBauen("rad-wdh", wiederholungen);
+radBauen("rad-saetze", saetze);
+raederVoreinstellen();
+
+wochenleisteAnzeigen();
 anzeigen();
 
 

@@ -666,7 +666,7 @@
   // Der Inhalt der Backup-Datei als JSON-Text
   function backupText() {
     const backup = {
-      app: "hybridslife",
+      app: "gymstead",
       version: 1,
       exportiert: new Date().toISOString(),
       eintraege: eintraege
@@ -674,10 +674,10 @@
     return JSON.stringify(backup, null, 2);
   }
 
-  // Speichert alle Einträge als Datei, z. B. hybridslife-backup-2026-10-07.json
+  // Speichert alle Einträge als Datei, z. B. gymstead-backup-2026-10-07.json
   function backupExportieren() {
     const heute = new Date();
-    const dateiname = "hybridslife-backup-" + heute.getFullYear()
+    const dateiname = "gymstead-backup-" + heute.getFullYear()
       + "-" + String(heute.getMonth() + 1).padStart(2, "0")
       + "-" + String(heute.getDate()).padStart(2, "0") + ".json";
     const datei = new File([backupText()], dateiname, { type: "application/json" });
@@ -746,6 +746,8 @@
     }
 
     // Die Einträge stehen im Backup unter "eintraege". Eine reine Liste wird auch angenommen.
+    // Die Kennung "app" wird bewusst nicht geprüft: So lassen sich auch alte Backups
+    // mit der Kennung "hybridslife" weiter importieren.
     let liste = daten;
     if (daten && !Array.isArray(daten)) {
       liste = daten.eintraege;
@@ -843,5 +845,66 @@ raederVoreinstellen();
 
 wochenleisteAnzeigen();
 anzeigen();
+
+// ---------- Offline und Updates ----------
+
+// Die Anmeldung des Service Workers (sw.js). Darüber erreicht die App eine wartende neue Version.
+let swAnmeldung = null;
+
+// true, sobald auf den Hinweis getippt wurde. Nur dann lädt die Seite neu.
+let updateGewuenscht = false;
+
+function updateHinweisZeigen() {
+  document.getElementById("update-hinweis").classList.add("sichtbar");
+}
+
+// Tippen auf den Hinweis: Die wartende Version übernimmt, danach lädt die Seite neu
+function updateLaden() {
+  if (!swAnmeldung || !swAnmeldung.waiting) {
+    location.reload();
+    return;
+  }
+  updateGewuenscht = true;
+  swAnmeldung.waiting.postMessage("aktualisieren");
+}
+
+// Service Worker gibt es nur über https (oder localhost), nicht bei einer lokal geöffneten Datei
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker.register("sw.js").then(function (anmeldung) {
+    swAnmeldung = anmeldung;
+
+    // Eine neue Version wurde schon früher geladen und wartet noch
+    if (anmeldung.waiting && navigator.serviceWorker.controller) {
+      updateHinweisZeigen();
+    }
+
+    // Gerade wird eine neue Version geladen: Hinweis zeigen, sobald sie fertig ist.
+    // Ohne "controller" ist es die allererste Installation, dann gibt es nichts zu melden.
+    anmeldung.addEventListener("updatefound", function () {
+      const neu = anmeldung.installing;
+      neu.addEventListener("statechange", function () {
+        if (neu.state === "installed" && navigator.serviceWorker.controller) {
+          updateHinweisZeigen();
+        }
+      });
+    });
+  }).catch(function () {
+    // Ohne Service Worker läuft die App normal weiter, nur nicht offline
+  });
+
+  // Die neue Version hat übernommen: einmal neu laden, aber nur nach dem Tippen auf den Hinweis
+  navigator.serviceWorker.addEventListener("controllerchange", function () {
+    if (updateGewuenscht) {
+      location.reload();
+    }
+  });
+
+  // Die Homescreen-App bleibt oft lange offen. Beim Zurückkehren nach einer neuen Version fragen.
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && swAnmeldung) {
+      swAnmeldung.update().catch(function () {});
+    }
+  });
+}
 
 

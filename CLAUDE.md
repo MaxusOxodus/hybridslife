@@ -15,3 +15,4 @@ Trainings-App für Hybrid-Athleten (Krafttraining + Laufen).
 - Ich lerne gerade programmieren. Erklär jede Änderung kurz auf Deutsch
 - Mach bei größeren Aufgaben erst einen Plan und warte auf mein OK
 - Ändere nur das, worum ich bitte
+- Versionsnummer: `index.html` lädt `style.css?v=N` und `app.js?v=N`. Bei jeder Änderung an `style.css` oder `app.js` erhöhst du im selben Commit beide Nummern um 1 (beide bleiben gleich), sonst zeigt der Browser nach dem Push die alte Datei aus dem Cache

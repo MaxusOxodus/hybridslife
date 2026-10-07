@@ -444,6 +444,10 @@ h1 {
 }
 
 .gewicht-karte {
+  width: 100%;
+  color: var(--text);
+  font-size: 17px;
+  text-align: left;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -653,7 +657,8 @@ h1 {
 /* ---------- Bottom Sheet ---------- */
 
 /* Abgedunkelter Hintergrund */
-#sheet-hintergrund {
+#sheet-hintergrund,
+#zusatz-hintergrund {
   position: fixed;
   top: 0;
   left: 0;
@@ -666,14 +671,16 @@ h1 {
   transition: opacity 0.35s;
 }
 
-#sheet-hintergrund.offen {
+#sheet-hintergrund.offen,
+#zusatz-hintergrund.offen {
   opacity: 1;
   pointer-events: auto;
 }
 
 /* Das Sheet liegt unterhalb des Bildschirms und fährt mit "offen" hoch.
    Die cubic-bezier-Kurve startet schnell und bremst weich ab. */
-#sheet {
+#sheet,
+.zusatz-sheet {
   position: fixed;
   left: 0;
   right: 0;
@@ -695,7 +702,8 @@ h1 {
   transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.45s;
 }
 
-#sheet.offen {
+#sheet.offen,
+.zusatz-sheet.offen {
   transform: translateY(0);
   visibility: visible;
 }
@@ -717,7 +725,8 @@ h1 {
   padding: 4px 8px 8px;
 }
 
-#sheet-titel {
+#sheet-titel,
+.sheet-titel {
   flex: 1;
   padding-left: 10px;
   font-size: 22px;
@@ -885,6 +894,228 @@ h1 {
   font-size: 16px;
   font-weight: 600;
   text-align: left;
+}
+
+/* ---------- Sheets für Verlauf und Körpergewicht ---------- */
+
+/* Sie sehen aus wie das Sheet der Übungsauswahl, sind aber nur so hoch wie ihr Inhalt */
+.zusatz-sheet {
+  height: auto;
+  max-height: 85vh;
+  max-height: 85dvh;
+}
+
+.zusatz-inhalt {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 18px calc(20px + env(safe-area-inset-bottom));
+}
+
+/* Das Rad fürs Körpergewicht steht allein in der Mitte */
+.kg-rad {
+  max-width: 180px;
+  margin: 4px auto 0;
+}
+
+/* ---------- Diagramme ---------- */
+
+/* Umschalter mit mehreren Möglichkeiten nebeneinander, z. B. 1RM, Gewicht, Volumen */
+.umschalter {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--fuellung);
+}
+
+.umschalter button {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 2px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--text-leise);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.umschalter button.aktiv {
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+}
+
+/* Über dem Diagramm: links der Wert des gewählten Punktes, rechts sein Datum */
+.diagramm-info {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.diagramm-info .routine-info {
+  margin-top: 0;
+  text-align: right;
+}
+
+/* "pan-y": Wischen nach oben und unten scrollt weiter die Seite, seitlich fährt es die Punkte ab */
+.diagramm {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 6px;
+  touch-action: pan-y;
+}
+
+.diagramm text {
+  fill: var(--text-leise);
+  font-size: 12px;
+}
+
+.diagramm .gitter {
+  stroke: var(--fuellung);
+  stroke-width: 1;
+}
+
+/* Hauptlinie: kräftig und grün */
+.diagramm .linie-haupt {
+  fill: none;
+  stroke: var(--akzent-text);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Nebenlinie: dünn und grau, z. B. die einzelnen Messungen hinter dem Durchschnitt */
+.diagramm .linie-neben {
+  fill: none;
+  stroke: var(--text-leise);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  opacity: 0.5;
+}
+
+.diagramm .punkt-haupt {
+  fill: var(--akzent-text);
+}
+
+.diagramm .punkt-neben {
+  fill: var(--text-leise);
+}
+
+/* Senkrechte Linie und Ring am gewählten Punkt */
+.diagramm .faden {
+  stroke: var(--text-leise);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+.diagramm .marke {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 8px;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+.legende span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legende-linie {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--akzent-text);
+}
+
+.legende-punkt {
+  width: 7px;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--text-leise);
+}
+
+/* Eine Zeile zum Antippen oder mit Löschen-Button: Übung im Fortschritt-Tab, Messung des Körpergewichts */
+.listen-zeile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  margin-bottom: 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--rand);
+  border-radius: 16px;
+  background: var(--karte);
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.listen-zeile .routine-info {
+  flex-shrink: 0;
+  margin-top: 0;
+  font-weight: 400;
+}
+
+.listen-zeile button {
+  flex-shrink: 0;
+  margin-right: -10px;
+  padding: 10px 8px;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font-size: 14px;
+}
+
+.listen-zeile .messung-datum {
+  flex: 1;
+  color: var(--text-leise);
+  font-weight: 400;
+}
+
+/* Übungsname als Button: sieht aus wie Text, das kleine Diagramm-Zeichen zeigt, dass man ihn antippen kann */
+.name-knopf {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  text-align: left;
+}
+
+.uebung-name.name-knopf {
+  font-size: 17px;
+}
+
+.verlauf-icon {
+  width: 0.8em;
+  height: 0.8em;
+  margin-left: 4px;
+  vertical-align: -0.05em;
+  fill: none;
+  stroke: var(--akzent-text);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ---------- Profil: Daten ---------- */

@@ -262,6 +262,12 @@
     trainings = [];
   }
 
+  // Körpergewicht: eine Liste von Messungen mit Datum und Gewicht, die älteste zuerst. Pro Tag gibt es eine.
+  let koerpergewicht = gespeichertLesen("koerpergewicht", []);
+  if (!Array.isArray(koerpergewicht)) {
+    koerpergewicht = [];
+  }
+
   // Zählt bei jeder neuen id hoch, damit auch zwei ids aus derselben Millisekunde verschieden sind
   let idZaehler = 0;
 
@@ -586,8 +592,9 @@
     }
 
     rad.onscroll = function () {
-      // Nur auf der eigenen Seite: Ausgeblendete Räder melden eine falsche Stellung
-      if (aktiveSeite === seite) {
+      // Nur auf der eigenen Seite: Ausgeblendete Räder melden eine falsche Stellung.
+      // Ein Rad ohne Seite steht in einem Sheet und ist nie ausgeblendet.
+      if (!seite || aktiveSeite === seite) {
         radMarkieren(id);
       }
     };
@@ -1178,6 +1185,9 @@
     document.getElementById("stat-gewicht").textContent = gesamtgewicht.toLocaleString("de-DE") + " kg";
     document.getElementById("stat-uebungen").textContent = anzahlUebungen;
     document.getElementById("stat-serie").textContent = serie;
+
+    koerpergewichtAnzeigen();
+    fortschrittUebungenAnzeigen();
   }
 
   // ---------- Training: Helfer ----------
@@ -1593,7 +1603,13 @@
       zeile.appendChild(pfeile);
 
       const mitte = element("div", "uebung-mitte");
-      mitte.appendChild(element("div", "uebung-name", anzeigeName(u.name, u.uebungId)));
+      // Der Name ist ein Button: Antippen zeigt den Verlauf der Übung
+      const nameKnopf = element("button", "uebung-name name-knopf", anzeigeName(u.name, u.uebungId));
+      nameKnopf.insertAdjacentHTML("beforeend", VERLAUF_ICON);
+      nameKnopf.onclick = function () {
+        verlaufOeffnen(u.name, u.uebungId);
+      };
+      mitte.appendChild(nameKnopf);
       const gruppe = anzeigeGruppe(u.muskelgruppe, u.uebungId);
       if (gruppe) {
         mitte.appendChild(element("div", "uebung-gruppe", gruppe));
@@ -1952,6 +1968,23 @@
     homeHeuteAnzeigen();
     homeWocheAnzeigen();
     homeLetztesAnzeigen();
+    homeGewichtAnzeigen();
+  }
+
+  // Die Karte "Körpergewicht": das zuletzt eingetragene Gewicht mit Datum
+  function homeGewichtAnzeigen() {
+    const karte = document.getElementById("home-gewicht");
+    karte.innerHTML = "";
+    const liste = gewichtMessungen();
+
+    if (liste.length === 0) {
+      karte.appendChild(element("div", "home-zahl", "– kg"));
+      karte.appendChild(element("div", "routine-info", "Tippen zum Eintragen"));
+      return;
+    }
+    const letzte = liste[liste.length - 1];
+    karte.appendChild(element("div", "home-zahl", kgText(letzte.wert)));
+    karte.appendChild(element("div", "routine-info", tagText(new Date(letzte.zeit)) + new Date(letzte.zeit).getFullYear()));
   }
 
   // Hat der Eintrag ein gültiges Datum?
@@ -2232,6 +2265,622 @@
     }
   });
 
+  // ---------- Diagramme ----------
+
+  // Das kleine Diagramm-Zeichen hinter einem Übungsnamen, den man antippen kann
+  const VERLAUF_ICON = '<svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>';
+
+  // Eine Zahl zum Anzeigen: höchstens eine Nachkommastelle, deutsch geschrieben (1.234,5)
+  function zahlKurz(wert) {
+    return (Math.round(wert * 10) / 10).toLocaleString("de-DE");
+  }
+
+  // Ein Gewicht mit immer genau einer Nachkommastelle, z. B. "82,0 kg"
+  function kgText(wert) {
+    return wert.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " kg";
+  }
+
+  // Kurzes Datum für die Achse, z. B. "5.10." oder mit Jahr "5.10.26"
+  function datumKurz(zeit, mitJahr) {
+    const d = new Date(zeit);
+    let text = d.getDate() + "." + (d.getMonth() + 1) + ".";
+    if (mitJahr) {
+      text += String(d.getFullYear()).slice(2);
+    }
+    return text;
+  }
+
+  // Abstand der waagerechten Hilfslinien: 1, 2 oder 5 mal eine Zehnerpotenz, sodass etwa vier Linien entstehen
+  function schoenerSchritt(spanne) {
+    const roh = spanne / 4;
+    const potenz = Math.pow(10, Math.floor(Math.log10(roh)));
+    const anteil = roh / potenz;
+    let faktor = 10;
+    if (anteil <= 1) {
+      faktor = 1;
+    } else if (anteil <= 2) {
+      faktor = 2;
+    } else if (anteil <= 5) {
+      faktor = 5;
+    }
+    return faktor * potenz;
+  }
+
+  // Zeichnet ein Liniendiagramm als SVG in den Behälter.
+  // reihen: Liste von Linien, gezeichnet in dieser Reihenfolge. Jede hat
+  //   punkte: [{ zeit, wert }] (zeit in Millisekunden, die älteste zuerst),
+  //   art: "haupt" (kräftig, grün) oder "neben" (dünn, grau),
+  //   mitPunkten: true zeichnet zu jedem Wert einen Punkt,
+  //   tasten: true bei der Linie, deren Punkte man antippen kann.
+  // ablesen(punkt) liefert den Text für den angetippten Punkt.
+  // von und bis legen die Zeitachse fest. Ohne Angabe reicht sie vom ersten bis zum letzten Punkt.
+  function diagrammZeichnen(behaelter, reihen, ablesen, von, bis) {
+    // Maße der Zeichenfläche in SVG-Einheiten und die Ränder für die Beschriftung
+    const BREITE = 340;
+    const HOEHE = 190;
+    const LINKS = 46;
+    const RECHTS = 12;
+    const OBEN = 10;
+    const UNTEN = 24;
+
+    let min = Infinity;
+    let max = -Infinity;
+    let erste = Infinity;
+    let letzte = -Infinity;
+    let taster = reihen[0];
+    for (let r = 0; r < reihen.length; r++) {
+      if (reihen[r].tasten) {
+        taster = reihen[r];
+      }
+      for (let i = 0; i < reihen[r].punkte.length; i++) {
+        const p = reihen[r].punkte[i];
+        min = Math.min(min, p.wert);
+        max = Math.max(max, p.wert);
+        erste = Math.min(erste, p.zeit);
+        letzte = Math.max(letzte, p.zeit);
+      }
+    }
+    if (von === undefined) {
+      von = erste;
+      bis = letzte;
+    }
+
+    // Sind alle Werte gleich, bekommt die Achse trotzdem etwas Luft nach oben und unten
+    if (max === min) {
+      const luft = Math.max(Math.abs(max) * 0.05, 1);
+      min = Math.max(0, min - luft);
+      max = max + luft;
+    }
+    const schritt = schoenerSchritt(max - min);
+    const unten = Math.floor(min / schritt) * schritt;
+    const oben = Math.ceil(max / schritt) * schritt;
+
+    // Rechnet eine Zeit in die waagerechte und einen Wert in die senkrechte Position um
+    function x(zeit) {
+      if (bis === von) {
+        return LINKS + (BREITE - LINKS - RECHTS) / 2;
+      }
+      return LINKS + (zeit - von) / (bis - von) * (BREITE - LINKS - RECHTS);
+    }
+    function y(wert) {
+      return OBEN + (oben - wert) / (oben - unten) * (HOEHE - OBEN - UNTEN);
+    }
+
+    let svg = '<svg class="diagramm" viewBox="0 0 ' + BREITE + ' ' + HOEHE + '" role="img" aria-label="Liniendiagramm">';
+
+    // Waagerechte Hilfslinien mit ihren Werten
+    for (let i = 0; unten + i * schritt <= oben + schritt / 1000; i++) {
+      const wert = unten + i * schritt;
+      const hoehe = y(wert).toFixed(1);
+      svg += '<line class="gitter" x1="' + LINKS + '" x2="' + (BREITE - RECHTS) + '" y1="' + hoehe + '" y2="' + hoehe + '"/>';
+      svg += '<text x="' + (LINKS - 6) + '" y="' + (y(wert) + 4).toFixed(1) + '" text-anchor="end">' + zahlKurz(wert) + '</text>';
+    }
+
+    // Datum am linken und rechten Ende der Zeitachse
+    const mitJahr = bis - von > 300 * 86400000;
+    if (bis === von) {
+      svg += '<text x="' + x(von) + '" y="' + (HOEHE - 6) + '" text-anchor="middle">' + datumKurz(von, true) + '</text>';
+    } else {
+      svg += '<text x="' + LINKS + '" y="' + (HOEHE - 6) + '">' + datumKurz(von, mitJahr) + '</text>';
+      svg += '<text x="' + (BREITE - RECHTS) + '" y="' + (HOEHE - 6) + '" text-anchor="end">' + datumKurz(bis, mitJahr) + '</text>';
+    }
+
+    svg += '<line class="faden" y1="' + OBEN + '" y2="' + (HOEHE - UNTEN) + '"/>';
+
+    for (let r = 0; r < reihen.length; r++) {
+      const punkte = reihen[r].punkte;
+      if (punkte.length > 1) {
+        let weg = "";
+        for (let i = 0; i < punkte.length; i++) {
+          weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit).toFixed(1) + " " + y(punkte[i].wert).toFixed(1);
+        }
+        svg += '<path class="linie-' + reihen[r].art + '" d="' + weg + '"/>';
+      }
+      // Bei sehr vielen Werten würden die Punkte die Linie verdecken. Ein einzelner Wert braucht immer einen.
+      if ((reihen[r].mitPunkten && punkte.length <= 45) || punkte.length === 1) {
+        let radius = 4;
+        if (reihen[r].art === "neben") {
+          radius = 2.5;
+        }
+        for (let i = 0; i < punkte.length; i++) {
+          svg += '<circle class="punkt-' + reihen[r].art + '" r="' + radius + '" cx="' + x(punkte[i].zeit).toFixed(1) + '" cy="' + y(punkte[i].wert).toFixed(1) + '"/>';
+        }
+      }
+    }
+    svg += '<circle class="marke" r="6"/></svg>';
+
+    behaelter.innerHTML = "";
+    const info = element("div", "diagramm-info");
+    const infoWert = element("span", "home-zahl");
+    const infoDatum = element("span", "routine-info");
+    info.appendChild(infoWert);
+    info.appendChild(infoDatum);
+    behaelter.appendChild(info);
+    behaelter.insertAdjacentHTML("beforeend", svg);
+
+    const bild = behaelter.querySelector("svg");
+    const faden = bild.querySelector(".faden");
+    const marke = bild.querySelector(".marke");
+
+    // Markiert einen Punkt der antippbaren Linie und zeigt darüber Wert und Datum
+    function punktZeigen(index) {
+      const p = taster.punkte[index];
+      faden.setAttribute("x1", x(p.zeit));
+      faden.setAttribute("x2", x(p.zeit));
+      marke.setAttribute("cx", x(p.zeit));
+      marke.setAttribute("cy", y(p.wert));
+      infoWert.textContent = ablesen(p);
+      let datumText = new Date(p.zeit).toLocaleDateString("de-DE");
+      if (p.zusatz) {
+        datumText += " · " + p.zusatz;
+      }
+      infoDatum.textContent = datumText;
+    }
+
+    // Finger oder Maus über dem Diagramm: Der Punkt, der waagerecht am nächsten liegt, wird gezeigt
+    function beiZeiger(ereignis) {
+      const rahmen = bild.getBoundingClientRect();
+      const stelle = (ereignis.clientX - rahmen.left) / rahmen.width * BREITE;
+      let naechster = 0;
+      for (let i = 1; i < taster.punkte.length; i++) {
+        if (Math.abs(x(taster.punkte[i].zeit) - stelle) < Math.abs(x(taster.punkte[naechster].zeit) - stelle)) {
+          naechster = i;
+        }
+      }
+      punktZeigen(naechster);
+    }
+    bild.onpointerdown = beiZeiger;
+    bild.onpointermove = beiZeiger;
+
+    // Am Anfang ist der neueste Wert gewählt
+    punktZeigen(taster.punkte.length - 1);
+  }
+
+  // Füllt einen Umschalter mit Buttons. auswahl ist eine Liste von { id, text },
+  // aktiv die id des gewählten Buttons, beimWechsel(id) läuft nach dem Antippen.
+  function umschalterBauen(behaelter, auswahl, aktiv, beimWechsel) {
+    behaelter.innerHTML = "";
+    for (let i = 0; i < auswahl.length; i++) {
+      const btn = element("button", "", auswahl[i].text);
+      if (auswahl[i].id === aktiv) {
+        btn.classList.add("aktiv");
+      }
+      btn.onclick = function () {
+        beimWechsel(auswahl[i].id);
+      };
+      behaelter.appendChild(btn);
+    }
+  }
+
+  // Öffnet eines der beiden Sheets ("verlauf-sheet" oder "gewicht-sheet")
+  function zusatzSheetOeffnen(id) {
+    document.getElementById(id).classList.add("offen");
+    document.getElementById("zusatz-hintergrund").classList.add("offen");
+    document.body.classList.add("sheet-offen");
+  }
+
+  function zusatzSheetsSchliessen() {
+    document.getElementById("verlauf-sheet").classList.remove("offen");
+    document.getElementById("gewicht-sheet").classList.remove("offen");
+    document.getElementById("zusatz-hintergrund").classList.remove("offen");
+    document.body.classList.remove("sheet-offen");
+  }
+
+  // ---------- Kraftentwicklung ----------
+
+  // Die drei Ansichten des Verlaufs
+  const VERLAUF_ARTEN = [
+    { id: "1rm", text: "1RM" },
+    { id: "schwer", text: "Gewicht" },
+    { id: "volumen", text: "Volumen" }
+  ];
+
+  // Die Übung, deren Verlauf gerade offen ist, und die gewählte Ansicht
+  let verlaufName = "";
+  let verlaufId = "";
+  let verlaufArt = "1rm";
+
+  // Öffnet den Verlauf einer Übung. Er startet immer mit dem geschätzten Maximalgewicht (1RM).
+  function verlaufOeffnen(name, id) {
+    verlaufName = name;
+    verlaufId = id || "";
+    verlaufArt = "1rm";
+    document.getElementById("verlauf-titel").textContent = anzeigeName(name, id);
+    verlaufAnzeigen();
+    zusatzSheetOeffnen("verlauf-sheet");
+  }
+
+  // Im Trainingsmodus: der Verlauf der Übung, die gerade dran ist
+  function verlaufImModus() {
+    if (!laufendesTraining) {
+      return;
+    }
+    const u = laufendesTraining.uebungen[laufendesTraining.index];
+    verlaufOeffnen(u.name, u.uebungId);
+  }
+
+  // Ist das eine Übung aus dem Bereich Eigengewicht? Eigene Übungen ohne ID sind es nie.
+  function istEigengewicht(id) {
+    const u = UEBUNG_NACH_ID[id];
+    return Boolean(u) && u.bereich === "eigen";
+  }
+
+  // Die Punkte für das Diagramm einer Übung: ein Wert pro Trainingstag, der älteste Tag zuerst.
+  // art "1rm": geschätztes Maximalgewicht für eine Wiederholung nach Epley, Gewicht × (1 + Wdh. ÷ 30),
+  //            der beste Wert des Tages. Bei genau einer Wiederholung gilt das Gewicht selbst.
+  // art "schwer": das schwerste eingetragene Gewicht des Tages.
+  // art "volumen": Sätze × Wdh. × Gewicht, über den Tag zusammengezählt.
+  // Bei Eigengewicht-Übungen zählt für 1RM und Volumen das Körpergewicht des Tages zum eingetragenen Gewicht dazu.
+  function verlaufPunkte(name, id, art) {
+    const eigengewicht = istEigengewicht(id);
+    const tage = {};
+
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (!hatDatum(e) || typeof e.uebung !== "string" || !gleicheUebung(e, name, id)) {
+        continue;
+      }
+      const gewicht = Number(String(e.gewicht).replace(",", "."));
+      const wdh = Number(e.wdh);
+      const saetze = Number(e.saetze);
+      if (isNaN(gewicht) || isNaN(wdh) || isNaN(saetze)) {
+        continue;
+      }
+
+      const datum = new Date(e.datum);
+      let last = gewicht;
+      if (eigengewicht) {
+        const koerper = koerpergewichtAm(datum);
+        if (koerper !== null) {
+          last += koerper;
+        }
+      }
+
+      let wert = gewicht;
+      if (art === "1rm") {
+        wert = last;
+        if (wdh > 1) {
+          wert = last * (1 + wdh / 30);
+        }
+      } else if (art === "volumen") {
+        wert = saetze * wdh * last;
+      }
+
+      const schluessel = tagSchluessel(datum);
+      if (!tage[schluessel]) {
+        tage[schluessel] = { zeit: new Date(datum.getFullYear(), datum.getMonth(), datum.getDate()).getTime(), wert: wert };
+      } else if (art === "volumen") {
+        tage[schluessel].wert += wert;
+      } else {
+        tage[schluessel].wert = Math.max(tage[schluessel].wert, wert);
+      }
+    }
+
+    const punkte = Object.keys(tage).map(function (schluessel) {
+      return tage[schluessel];
+    });
+    punkte.sort(function (a, b) {
+      return a.zeit - b.zeit;
+    });
+    return punkte;
+  }
+
+  // Baut den Inhalt des Verlauf-Sheets: Umschalter, Diagramm und Hinweis
+  function verlaufAnzeigen() {
+    umschalterBauen(document.getElementById("verlauf-art"), VERLAUF_ARTEN, verlaufArt, function (art) {
+      verlaufArt = art;
+      verlaufAnzeigen();
+    });
+
+    const diagramm = document.getElementById("verlauf-diagramm");
+    const punkte = verlaufPunkte(verlaufName, verlaufId, verlaufArt);
+    let hinweis = "";
+
+    if (punkte.length === 0) {
+      diagramm.innerHTML = "";
+      hinweis = "Zu dieser Übung gibt es noch keine Einträge.";
+    } else {
+      diagrammZeichnen(diagramm, [{ punkte: punkte, art: "haupt", mitPunkten: true }], function (p) {
+        return zahlKurz(p.wert) + " kg";
+      });
+
+      if (verlaufArt === "1rm") {
+        hinweis = "Geschätztes Maximalgewicht für eine Wiederholung (Epley-Formel), der beste Satz je Trainingstag.";
+      } else if (verlaufArt === "schwer") {
+        hinweis = "Das schwerste eingetragene Gewicht je Trainingstag.";
+      } else {
+        hinweis = "Sätze × Wdh. × Gewicht, zusammengezählt je Trainingstag.";
+      }
+      if (istEigengewicht(verlaufId) && verlaufArt !== "schwer") {
+        if (gewichtMessungen().length > 0) {
+          hinweis += " Gerechnet mit deinem Körpergewicht plus Zusatzgewicht.";
+        } else {
+          hinweis += " Trag dein Körpergewicht ein, dann wird es bei dieser Übung mitgerechnet.";
+        }
+      }
+      if (punkte.length === 1) {
+        hinweis += " Ab dem zweiten Trainingstag entsteht eine Linie.";
+      }
+    }
+    document.getElementById("verlauf-hinweis").textContent = hinweis;
+  }
+
+  // Fortschritt-Tab: alle Übungen, zu denen es Einträge gibt, die zuletzt trainierte oben
+  function fortschrittUebungenAnzeigen() {
+    const bereich = document.getElementById("fortschritt-uebungen");
+    bereich.innerHTML = "";
+
+    // Jede Übung einmal: über ihre ID, eigene Übungen über den Namen
+    const gefunden = {};
+    const liste = [];
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (!e || typeof e.uebung !== "string" || e.uebung.trim() === "") {
+        continue;
+      }
+      let schluessel = "name:" + e.uebung.trim().toLowerCase();
+      if (e.uebungId) {
+        schluessel = "id:" + e.uebungId;
+      }
+      let zeit = 0;
+      if (hatDatum(e)) {
+        zeit = new Date(e.datum).getTime();
+      }
+      if (!gefunden[schluessel]) {
+        gefunden[schluessel] = { name: e.uebung, id: e.uebungId || "", zeit: zeit };
+        liste.push(gefunden[schluessel]);
+      } else if (zeit > gefunden[schluessel].zeit) {
+        gefunden[schluessel].zeit = zeit;
+      }
+    }
+    liste.sort(function (a, b) {
+      return b.zeit - a.zeit;
+    });
+
+    if (liste.length === 0) {
+      bereich.appendChild(element("p", "leer-hinweis", "Sobald du Übungen eingetragen hast, findest du hier ihren Verlauf."));
+      return;
+    }
+
+    for (let i = 0; i < liste.length; i++) {
+      const u = liste[i];
+      const zeile = element("button", "listen-zeile");
+      zeile.appendChild(element("span", "", anzeigeName(u.name, u.id)));
+      if (u.zeit > 0) {
+        zeile.appendChild(element("span", "routine-info", new Date(u.zeit).toLocaleDateString("de-DE")));
+      }
+      zeile.onclick = function () {
+        verlaufOeffnen(u.name, u.id);
+      };
+      bereich.appendChild(zeile);
+    }
+  }
+
+  // ---------- Körpergewicht ----------
+
+  // Startwert des Rades, solange noch kein Gewicht eingetragen ist
+  const START_KOERPERGEWICHT = 75;
+
+  // So viele Messungen zeigt die Liste unter dem Diagramm
+  const MESSUNGEN_ANZAHL = 7;
+
+  // Die Zeiträume des Diagramms in Tagen. 0 heißt: alles.
+  const KG_ZEITRAEUME = [
+    { id: 7, text: "1W" },
+    { id: 30, text: "1M" },
+    { id: 91, text: "3M" },
+    { id: 182, text: "6M" },
+    { id: 365, text: "1J" },
+    { id: 0, text: "Alle" }
+  ];
+
+  // Der gewählte Zeitraum in Tagen
+  let kgZeitraum = 30;
+
+  // Speichert die Messungen, die älteste zuerst
+  function gewichteSpeichern() {
+    koerpergewicht.sort(function (a, b) {
+      return new Date(a.datum) - new Date(b.datum);
+    });
+    localStorage.setItem("koerpergewicht", JSON.stringify(koerpergewicht));
+  }
+
+  // Alle gültigen Messungen als { zeit, wert, index }, die älteste zuerst.
+  // index ist die Stelle in der gespeicherten Liste, damit Löschen die richtige Messung trifft.
+  function gewichtMessungen() {
+    const liste = [];
+    for (let i = 0; i < koerpergewicht.length; i++) {
+      const m = koerpergewicht[i];
+      if (hatDatum(m) && typeof m.gewicht === "number" && !isNaN(m.gewicht)) {
+        liste.push({ zeit: new Date(m.datum).getTime(), wert: m.gewicht, index: i });
+      }
+    }
+    liste.sort(function (a, b) {
+      return a.zeit - b.zeit;
+    });
+    return liste;
+  }
+
+  // Das Körpergewicht an einem Tag: die Messung dieses Tages, sonst die letzte davor.
+  // Liegt der Tag vor der allerersten Messung, gilt diese. Ohne jede Messung: null.
+  function koerpergewichtAm(datum) {
+    const liste = gewichtMessungen();
+    if (liste.length === 0) {
+      return null;
+    }
+    let wert = liste[0].wert;
+    for (let i = 0; i < liste.length; i++) {
+      if (tagSchluessel(new Date(liste[i].zeit)) <= tagSchluessel(datum)) {
+        wert = liste[i].wert;
+      }
+    }
+    return wert;
+  }
+
+  // Der 7-Tage-Schnitt an einem Tag: der Mittelwert aller Messungen von diesem Tag
+  // und den sechs Tagen davor. Ohne Messung in dieser Zeit: null.
+  function schnittAm(liste, datum) {
+    const start = new Date(datum.getFullYear(), datum.getMonth(), datum.getDate() - 6).getTime();
+    const ende = new Date(datum.getFullYear(), datum.getMonth(), datum.getDate() + 1).getTime();
+    let summe = 0;
+    let anzahl = 0;
+    for (let i = 0; i < liste.length; i++) {
+      if (liste[i].zeit >= start && liste[i].zeit < ende) {
+        summe += liste[i].wert;
+        anzahl++;
+      }
+    }
+    if (anzahl === 0) {
+      return null;
+    }
+    return summe / anzahl;
+  }
+
+  // Öffnet das Eintragen. Das Rad steht auf dem letzten Gewicht.
+  function gewichtSheetOeffnen() {
+    const liste = gewichtMessungen();
+    let start = START_KOERPERGEWICHT;
+    if (liste.length > 0) {
+      start = liste[liste.length - 1].wert;
+    }
+    zusatzSheetOeffnen("gewicht-sheet");
+    radSetzen("rad-koerpergewicht", start);
+  }
+
+  // Speichert das Gewicht vom Rad für heute. Eine frühere Messung von heute wird ersetzt.
+  function gewichtSpeichern() {
+    const jetzt = new Date();
+    koerpergewicht = koerpergewicht.filter(function (m) {
+      return !hatDatum(m) || tagSchluessel(new Date(m.datum)) !== tagSchluessel(jetzt);
+    });
+    koerpergewicht.push({ datum: jetzt.toISOString(), gewicht: radWert("rad-koerpergewicht") });
+    gewichteSpeichern();
+
+    zusatzSheetsSchliessen();
+    homeGewichtAnzeigen();
+    koerpergewichtAnzeigen();
+  }
+
+  function gewichtLoeschen(index) {
+    koerpergewicht.splice(index, 1);
+    gewichteSpeichern();
+    homeGewichtAnzeigen();
+    koerpergewichtAnzeigen();
+  }
+
+  // Fortschritt-Tab: Diagramm, Kacheln und die Liste der letzten Messungen
+  function koerpergewichtAnzeigen() {
+    const liste = gewichtMessungen();
+
+    umschalterBauen(document.getElementById("kg-zeitraum"), KG_ZEITRAEUME, kgZeitraum, function (tage) {
+      kgZeitraum = tage;
+      koerpergewichtAnzeigen();
+    });
+
+    // Diagramm: die Messungen dünn und grau, darüber kräftig der 7-Tage-Schnitt
+    const diagramm = document.getElementById("kg-diagramm");
+    const jetzt = Date.now();
+    let von;
+    let bis;
+    if (kgZeitraum > 0) {
+      von = jetzt - kgZeitraum * 86400000;
+      bis = jetzt;
+    }
+    const messungen = [];
+    const schnitt = [];
+    for (let i = 0; i < liste.length; i++) {
+      if (von === undefined || liste[i].zeit >= von) {
+        const mittel = schnittAm(liste, new Date(liste[i].zeit));
+        messungen.push({ zeit: liste[i].zeit, wert: liste[i].wert, zusatz: "Schnitt " + kgText(mittel) });
+        schnitt.push({ zeit: liste[i].zeit, wert: mittel });
+      }
+    }
+
+    document.getElementById("kg-legende").classList.toggle("versteckt", messungen.length === 0);
+    if (messungen.length === 0) {
+      diagramm.innerHTML = "";
+      let text = "In diesem Zeitraum gibt es keine Messung.";
+      if (liste.length === 0) {
+        text = "Noch kein Gewicht eingetragen.";
+      }
+      diagramm.appendChild(element("p", "meldung", text));
+    } else {
+      diagrammZeichnen(diagramm, [
+        { punkte: messungen, art: "neben", mitPunkten: true, tasten: true },
+        { punkte: schnitt, art: "haupt", mitPunkten: false }
+      ], function (p) {
+        return kgText(p.wert);
+      }, von, bis);
+    }
+
+    // Kacheln: Schnitt am Tag der letzten Messung minus Schnitt so viele Tage davor
+    const kacheln = document.getElementById("kg-kacheln");
+    kacheln.innerHTML = "";
+    const abstaende = [3, 7, 14, 30];
+    for (let i = 0; i < abstaende.length; i++) {
+      let text = "–";
+      if (liste.length > 0) {
+        const letzter = new Date(liste[liste.length - 1].zeit);
+        const frueher = new Date(letzter.getFullYear(), letzter.getMonth(), letzter.getDate() - abstaende[i]);
+        const aktuell = schnittAm(liste, letzter);
+        const damals = schnittAm(liste, frueher);
+        if (damals !== null) {
+          const unterschied = Math.round((aktuell - damals) * 10) / 10;
+          let pfeil = "→";
+          if (unterschied > 0) {
+            pfeil = "↑";
+          } else if (unterschied < 0) {
+            pfeil = "↓";
+          }
+          text = pfeil + " " + kgText(Math.abs(unterschied));
+        }
+      }
+      const kachel = element("div", "karte");
+      kachel.appendChild(element("div", "home-zahl", text));
+      kachel.appendChild(element("div", "kachel-titel", abstaende[i] + " Tage"));
+      kacheln.appendChild(kachel);
+    }
+
+    // Die letzten Messungen, die neueste zuerst, jede mit Löschen
+    const bereich = document.getElementById("kg-liste");
+    bereich.innerHTML = "";
+    if (liste.length === 0) {
+      bereich.appendChild(element("p", "leer-hinweis", "Noch keine Messungen."));
+    }
+    for (let i = liste.length - 1; i >= 0 && i >= liste.length - MESSUNGEN_ANZAHL; i--) {
+      const m = liste[i];
+      const zeile = element("div", "listen-zeile");
+      zeile.appendChild(element("span", "", kgText(m.wert)));
+      zeile.appendChild(element("span", "messung-datum", tagText(new Date(m.zeit)) + new Date(m.zeit).getFullYear()));
+      const weg = element("button", "", "Löschen");
+      weg.onclick = function () {
+        gewichtLoeschen(m.index);
+      };
+      zeile.appendChild(weg);
+      bereich.appendChild(zeile);
+    }
+  }
+
   // ---------- Backup ----------
 
   // Einträge aus der gewählten Datei, die auf die Entscheidung "ergänzen oder ersetzen" warten
@@ -2243,6 +2892,9 @@
 
   // Trainingseinheiten aus der Datei. null heißt: Das Backup enthält keine (z. B. ein älteres Backup).
   let importTrainings = null;
+
+  // Messungen des Körpergewichts aus der Datei. null heißt: Das Backup enthält keine.
+  let importGewichte = null;
 
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
@@ -2370,6 +3022,41 @@
     return text;
   }
 
+  // Übernimmt das Körpergewicht aus dem Backup. Gibt den Text für die Meldung zurück.
+  // Fehlt es im Backup, bleiben die Messungen auf diesem Gerät, wie sie sind.
+  function gewichteImportieren(art) {
+    if (importGewichte === null) {
+      return "";
+    }
+
+    let text;
+    if (art === "ersetzen") {
+      koerpergewicht = importGewichte;
+      text = " " + koerpergewicht.length + " Messungen des Körpergewichts wurden wiederhergestellt.";
+    } else {
+      // Nur Tage hinzufügen, für die es hier noch keine Messung gibt
+      const vorhanden = {};
+      for (let i = 0; i < koerpergewicht.length; i++) {
+        if (hatDatum(koerpergewicht[i])) {
+          vorhanden[tagSchluessel(new Date(koerpergewicht[i].datum))] = true;
+        }
+      }
+      let hinzugefuegt = 0;
+      for (let i = 0; i < importGewichte.length; i++) {
+        const tag = tagSchluessel(new Date(importGewichte[i].datum));
+        if (!vorhanden[tag]) {
+          koerpergewicht.push(importGewichte[i]);
+          vorhanden[tag] = true;
+          hinzugefuegt++;
+        }
+      }
+      text = " " + hinzugefuegt + " Messungen des Körpergewichts hinzugefügt.";
+    }
+
+    gewichteSpeichern();
+    return text;
+  }
+
   // Zeigt eine Meldung unter den Backup-Buttons
   function datenMeldung(text) {
     document.getElementById("daten-meldung").textContent = text;
@@ -2379,12 +3066,13 @@
   function backupText() {
     const backup = {
       app: "gymstead",
-      version: 3,
+      version: 4,
       exportiert: new Date().toISOString(),
       eintraege: eintraege,
       routinen: routinen,
       wochenplan: wochenplan,
-      trainings: trainings
+      trainings: trainings,
+      koerpergewicht: koerpergewicht
     };
     return JSON.stringify(backup, null, 2);
   }
@@ -2485,6 +3173,18 @@
     // Ebenso fehlt ihnen die eigene id des Eintrags
     eintragIdsErgaenzen(importEintraege);
 
+    // Das Körpergewicht gibt es erst in neueren Backups. Übernommen wird nur, was Datum und Gewicht hat.
+    importGewichte = null;
+    if (daten && !Array.isArray(daten) && Array.isArray(daten.koerpergewicht)) {
+      importGewichte = [];
+      for (let i = 0; i < daten.koerpergewicht.length; i++) {
+        const m = daten.koerpergewicht[i];
+        if (hatDatum(m) && typeof m.gewicht === "number" && !isNaN(m.gewicht)) {
+          importGewichte.push({ datum: m.datum, gewicht: m.gewicht });
+        }
+      }
+    }
+
     // Trainingseinheiten gibt es erst in neueren Backups
     importTrainings = null;
     if (daten && !Array.isArray(daten) && Array.isArray(daten.trainings)) {
@@ -2517,6 +3217,7 @@
       importRoutinen = null;
       importWochenplan = null;
       importTrainings = null;
+      importGewichte = null;
       datenMeldung("Das Backup enthält keine Einträge.");
       return;
     }
@@ -2564,13 +3265,14 @@
       }
       meldung = hinzugefuegt + " Einträge hinzugefügt, " + uebersprungen + " waren schon vorhanden.";
     }
-    datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art));
+    datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art));
 
     localStorage.setItem("eintraege", JSON.stringify(eintraege));
     importEintraege = [];
     importRoutinen = null;
     importWochenplan = null;
     importTrainings = null;
+    importGewichte = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
     anzeigen();
     letztesMalAnzeigen();
@@ -2581,6 +3283,7 @@
     importRoutinen = null;
     importWochenplan = null;
     importTrainings = null;
+    importGewichte = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
   }
 
@@ -2606,6 +3309,13 @@ radBauen("rad-gewicht", gewichte, "home");
 radBauen("rad-wdh", wiederholungen, "home");
 radBauen("rad-saetze", saetze, "home");
 raederVoreinstellen();
+
+// Körpergewicht: 30 bis 200 kg in 0,1-kg-Schritten
+const koerpergewichte = [];
+for (let i = 300; i <= 2000; i++) {
+  koerpergewichte.push(i / 10);
+}
+radBauen("rad-koerpergewicht", koerpergewichte, null);
 
 // Die drei Räder des Trainingsmodus
 radBauen("t-rad-gewicht", gewichte, "training");

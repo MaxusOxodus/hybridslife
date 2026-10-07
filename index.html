@@ -21,7 +21,7 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -44,12 +44,9 @@
       <h2 class="abschnitt">Letztes Training</h2>
       <div id="home-letztes"></div>
 
-      <!-- Platzhalter: Das Erfassen des Körpergewichts kommt im nächsten Schritt -->
+      <!-- Aktuelles Körpergewicht: Den Inhalt füllt die app.js, ein Tipp öffnet das Eintragen -->
       <h2 class="abschnitt">Körpergewicht</h2>
-      <div class="karte gewicht-karte">
-        <div class="home-zahl">– kg</div>
-        <div class="routine-info">Noch nicht erfasst</div>
-      </div>
+      <button id="home-gewicht" class="karte gewicht-karte" onclick="gewichtSheetOeffnen()"></button>
 
       <h2 class="abschnitt">Log</h2>
       <button class="zweit-btn" onclick="logZeigen()">Einzelne Übung eintragen</button>
@@ -138,7 +135,11 @@
       <div class="modus-balken"><div id="modus-fortschritt"></div></div>
 
       <div id="modus-schritt" class="modus-schritt"></div>
-      <div id="modus-uebung" class="ansicht-titel"></div>
+      <!-- Der Name der Übung: Antippen zeigt ihren Verlauf als Diagramm -->
+      <button class="ansicht-titel name-knopf" onclick="verlaufImModus()">
+        <span id="modus-uebung"></span>
+        <svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>
+      </button>
       <p id="modus-ziel" class="modus-ziel"></p>
       <p id="modus-letztesMal" class="letztes-mal"></p>
 
@@ -209,6 +210,27 @@
         <div class="kachel-titel">Wochen in Folge mit mind. 3 Trainingstagen</div>
       </div>
     </div>
+
+    <h2 class="abschnitt">Körpergewicht</h2>
+    <div class="karte">
+      <!-- Zeitraum des Diagramms: Die Buttons baut die app.js -->
+      <div id="kg-zeitraum" class="umschalter"></div>
+      <div id="kg-diagramm"></div>
+      <div id="kg-legende" class="legende">
+        <span><i class="legende-linie"></i>7-Tage-Schnitt</span>
+        <span><i class="legende-punkt"></i>Messung</span>
+      </div>
+    </div>
+    <button class="zweit-btn" onclick="gewichtSheetOeffnen()">Gewicht eintragen</button>
+
+    <h2 class="abschnitt">Veränderung im 7-Tage-Schnitt</h2>
+    <div id="kg-kacheln" class="kacheln"></div>
+
+    <h2 class="abschnitt">Letzte Messungen</h2>
+    <div id="kg-liste"></div>
+
+    <h2 class="abschnitt">Kraftentwicklung</h2>
+    <div id="fortschritt-uebungen"></div>
   </section>
 
   <!-- Seite: Gym -->
@@ -277,6 +299,39 @@
 
 
 
+  <!-- Abgedunkelter Hintergrund für die beiden Sheets darunter -->
+  <div id="zusatz-hintergrund" onclick="zusatzSheetsSchliessen()"></div>
+
+  <!-- Sheet: Verlauf einer Übung als Diagramm -->
+  <div id="verlauf-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span id="verlauf-titel" class="sheet-titel"></span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen">✕</button>
+    </div>
+    <div class="zusatz-inhalt">
+      <div id="verlauf-art" class="umschalter"></div>
+      <div id="verlauf-diagramm"></div>
+      <p id="verlauf-hinweis" class="meldung"></p>
+    </div>
+  </div>
+
+  <!-- Sheet: Körpergewicht eintragen -->
+  <div id="gewicht-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span class="sheet-titel">Körpergewicht</span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen">✕</button>
+    </div>
+    <div class="zusatz-inhalt">
+      <div class="kg-rad">
+        <div class="rad-titel">Gewicht (kg)</div>
+        <div class="rad-rahmen"><div id="rad-koerpergewicht" class="rad"></div></div>
+      </div>
+      <button class="speichern-btn" onclick="gewichtSpeichern()">Speichern</button>
+    </div>
+  </div>
+
   <!-- Frage vor dem Import: vorhandene Einträge ergänzen oder ersetzen? -->
   <div id="dialog-hintergrund">
     <div id="dialog">
@@ -298,8 +353,8 @@
   </div>
 
 <!-- Erst die Übungsdaten, dann die App, die sie benutzt -->
-<script src="uebungen.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="uebungen.js?v=10"></script>
+<script src="app.js?v=10"></script>
 
 </body>
 </html>

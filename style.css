@@ -572,8 +572,9 @@ h1 {
   display: flex;
   flex-direction: column;
   max-width: 480px;
-  max-height: 85vh;
-  max-height: 85dvh;
+  /* Feste Höhe: Das Suchfeld bleibt oben, auch wenn die Liste kurz ist und die Tastatur offen */
+  height: 85vh;
+  height: 85dvh;
   margin: 0 auto;
   border-radius: 24px 24px 0 0;
   background: var(--glas-sheet);
@@ -627,40 +628,15 @@ h1 {
   display: none;
 }
 
-#sheet-inhalt {
-  flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 0 18px;
+/* Suchfeld oben im Sheet. Es dient auch zum Eintippen einer eigenen Übung. */
+.sheet-suche {
+  flex-shrink: 0;
+  padding: 0 16px 10px;
 }
 
-/* Eine Zeile im Sheet: Muskelgruppe oder Übung */
-.sheet-zeile {
-  display: block;
+.sheet-suche input {
   width: 100%;
-  min-height: 56px;
-  padding: 12px 0;
-  border: none;
-  border-bottom: 1px solid var(--rand);
-  background: none;
-  color: var(--text);
-  font-size: 18px;
-  font-weight: 600;
-  text-align: left;
-  overflow-wrap: anywhere;
-}
-
-/* Eigene Übung: Textfeld und Button ganz unten im Sheet */
-.sheet-eigene {
-  display: flex;
-  gap: 8px;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-}
-
-.sheet-eigene input {
-  flex: 1;
-  min-width: 0;
-  height: 52px;
+  height: 48px;
   padding: 0 16px;
   border: none;
   border-radius: 14px;
@@ -669,25 +645,136 @@ h1 {
   font-size: 17px;
 }
 
-.sheet-eigene input::placeholder {
+.sheet-suche input::placeholder {
   color: var(--text-leise);
 }
 
-.sheet-eigene input:focus {
+.sheet-suche input:focus {
   outline: none;
   box-shadow: inset 0 0 0 2px var(--akzent-text);
 }
 
-.sheet-eigene button {
-  flex-shrink: 0;
-  height: 52px;
-  padding: 0 16px;
+#sheet-inhalt {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 18px calc(16px + env(safe-area-inset-bottom));
+}
+
+/* Muskelgruppen: drei Kacheln nebeneinander */
+.muskel-raster {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.muskel-kachel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 4px 10px;
   border: none;
-  border-radius: 14px;
-  background: var(--akzent);
-  color: var(--auf-akzent);
+  border-radius: 16px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Körper-Grafik: Umriss und Muskeln sind grau, die Muskelgruppe der Kachel ist limettengrün.
+   "currentColor" übernimmt die Farbe, die bei "color" steht. */
+.koerper {
+  width: 48px;
+  height: 94px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.koerper .umriss {
+  color: var(--text-leise);
+  fill: currentColor;
+  opacity: 0.3;
+}
+
+.koerper .muskel {
+  color: var(--text-leise);
+  fill: currentColor;
+  opacity: 0.3;
+}
+
+.koerper .muskel.aktiv {
+  color: var(--akzent);
+  opacity: 1;
+}
+
+.koerper .linie {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* Überschrift eines Bereichs, z. B. "Maschine" oder "Trainiert auch" */
+.sheet-abschnitt {
+  margin: 18px 0 2px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sheet-abschnitt:first-child {
+  margin-top: 4px;
+}
+
+/* Eine Übung im Sheet: oben der Name, darunter klein der Name in der anderen Sprache */
+.sheet-zeile {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 1px solid var(--rand);
+  background: none;
+  color: var(--text);
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 600;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.sheet-zeile-name,
+.sheet-zeile-zweit {
+  display: block;
+}
+
+.sheet-zeile-zweit {
+  margin-top: 2px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* "… als eigene Übung übernehmen" am Ende der Suchergebnisse */
+.sheet-zeile.eigene {
+  border-bottom: none;
+  color: var(--akzent-text);
+}
+
+/* "Mehr anzeigen (+N)" unter den ersten Übungen eines Bereichs */
+.sheet-mehr {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--akzent-text);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
 }
 
 /* ---------- Profil: Daten ---------- */

@@ -1,17 +1,33 @@
-  // Übungsliste: Zum Erweitern einfach hier eine Übung oder Muskelgruppe ergänzen
-  const UEBUNGEN = {
-    "Brust": ["Bankdrücken", "Schrägbankdrücken", "Kurzhantel-Flys", "Butterfly/Pec Deck", "Dips", "Liegestütze"],
-    "Rücken": ["Klimmzüge", "Latzug", "Langhantelrudern", "Kurzhantelrudern", "Rudern am Kabelzug", "Kreuzheben", "T-Bar-Rudern"],
-    "Schultern": ["Schulterdrücken", "Military Press", "Seitheben", "Frontheben", "Reverse Flys", "Face Pulls", "Arnold Press"],
-    "Bizeps": ["Langhantelcurls", "Kurzhantelcurls", "Hammercurls", "Scottcurls", "Konzentrationscurls", "Kabelcurls"],
-    "Trizeps": ["Trizepsdrücken am Kabel", "French Press", "Enges Bankdrücken", "Trizeps-Dips", "Kickbacks", "Überkopf-Trizepsstrecken"],
-    "Beine": ["Kniebeuge", "Beinpresse", "Ausfallschritte", "Beinstrecker", "Beinbeuger", "Rumänisches Kreuzheben", "Wadenheben", "Bulgarian Split Squats"],
-    "Po": ["Hip Thrust", "Glute Bridge", "Kickbacks am Kabel", "Abduktorenmaschine", "Sumo-Kniebeuge", "Step-ups"],
-    "Bauch": ["Crunches", "Plank", "Beinheben", "Russian Twist", "Sit-ups", "Cable Crunches", "Mountain Climbers"]
-  };
+  // Die Übungsdaten stehen in der uebungen.js: MUSKELGRUPPEN, BEREICHE, MUSKELN, UEBUNGEN und ALTE_NAMEN.
+
+  // Sprache der Übungs- und Muskelgruppennamen: "de" oder "en".
+  // Der Umschalter kommt mit der Übersetzung der restlichen App.
+  let sprache = "de";
+
+  // So viele Übungen zeigt ein Bereich im Sheet sofort, der Rest steckt hinter "Mehr anzeigen"
+  const TOP_ANZAHL = 7;
+
+  // Nachschlagen ohne Suchen: Übung über ihre ID, Muskelgruppe über ihre ID,
+  // und Übungs-ID über einen Namen (deutsch, englisch oder früherer Name, kleingeschrieben)
+  const UEBUNG_NACH_ID = {};
+  const GRUPPE_NACH_ID = {};
+  const ID_NACH_NAME = {};
+
+  for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
+    GRUPPE_NACH_ID[MUSKELGRUPPEN[i].id] = MUSKELGRUPPEN[i];
+  }
+  for (let i = 0; i < UEBUNGEN.length; i++) {
+    const u = UEBUNGEN[i];
+    UEBUNG_NACH_ID[u.id] = u;
+    ID_NACH_NAME[u.en.toLowerCase()] = u.id;
+    ID_NACH_NAME[u.de.toLowerCase()] = u.id;
+  }
+  Object.keys(ALTE_NAMEN).forEach(function (name) {
+    ID_NACH_NAME[name] = ALTE_NAMEN[name];
+  });
 
   // Vorlagen für Trainingssplits: Zum Anpassen einfach hier Übungen, Sätze oder Wiederholungen ändern.
-  // Die Übungsnamen müssen genau so in der Übungsliste oben stehen, damit die Muskelgruppe gefunden wird.
+  // Die Übungsnamen müssen in der uebungen.js stehen (als Name oder unter ALTE_NAMEN), damit die Übung gefunden wird.
   // "wochenplan" hat sieben Plätze für Montag bis Sonntag: Die Zahl zeigt auf eine Routine
   // der Vorlage (0 = die erste), null ist ein Ruhetag.
   const VORLAGEN = [
@@ -197,11 +213,13 @@
   // Die gerade sichtbare Seite
   let aktiveSeite = "log";
 
-  // Die gerade gewählte Übung und ihre Muskelgruppe ("" = nichts gewählt)
+  // Die gerade gewählte Übung und ihre Muskelgruppe ("" = nichts gewählt).
+  // Die ID gibt es nur bei Übungen aus der Übungsliste, bei eigenen Übungen bleibt sie "".
   let gewaehlteUebung = "";
   let gewaehlteGruppe = "";
+  let gewaehlteUebungId = "";
 
-  // Im Sheet geöffnete Muskelgruppe ("" = Übersicht der Muskelgruppen)
+  // Im Sheet geöffnete Muskelgruppe als ID ("" = Übersicht der Muskelgruppen)
   let sheetGruppe = "";
 
   // Wochenleiste: Montag der angezeigten Woche und der angetippte Tag (null = kein Tag gewählt)
@@ -234,6 +252,9 @@
     laufendesTraining = null;
   }
 
+  // Gespeicherte Daten aus älteren Versionen kennen nur Übungsnamen: einmal die feste ID ergänzen
+  gespeicherteDatenZuordnen();
+
   // Die sichtbare Ansicht im Training-Tab: "uebersicht", "bearbeiten", "modus" oder "fertig"
   let trainingAnsicht = "uebersicht";
 
@@ -254,6 +275,92 @@
     } catch (fehler) {
       return ersatz;
     }
+  }
+
+  // ---------- Übungen nachschlagen ----------
+
+  // Die ID der Muskelgruppe, bei der eine Übung steht: die Gruppe ihres Hauptmuskels
+  function uebungGruppe(u) {
+    return MUSKELN[u.haupt].gruppe;
+  }
+
+  // Der Name zum Anzeigen. Bei Übungen aus der Übungsliste kommt er über die ID in der
+  // eingestellten Sprache, bei eigenen Übungen (ohne ID) gilt der gespeicherte Name.
+  function anzeigeName(name, id) {
+    return uebungName(id) || name;
+  }
+
+  // Der Name einer Übung aus der Übungsliste in der eingestellten Sprache. Unbekannte ID: "".
+  function uebungName(id) {
+    const u = UEBUNG_NACH_ID[id];
+    if (u) {
+      return u[sprache];
+    }
+    return "";
+  }
+
+  // Dasselbe für die Muskelgruppe: über die ID der Übung, sonst die gespeicherte Gruppe
+  function anzeigeGruppe(gruppe, id) {
+    const u = UEBUNG_NACH_ID[id];
+    if (u) {
+      return GRUPPE_NACH_ID[uebungGruppe(u)][sprache];
+    }
+    return gruppe;
+  }
+
+  // Ergänzt bei einem Eintrag oder einer Routinen-Übung die feste ID, wenn der Name bekannt ist.
+  // Gibt true zurück, wenn etwas ergänzt wurde. Der gespeicherte Name bleibt unverändert.
+  function idErgaenzen(objekt, name) {
+    if (!objekt || objekt.uebungId || typeof name !== "string") {
+      return false;
+    }
+    const id = ID_NACH_NAME[name.trim().toLowerCase()];
+    if (!id) {
+      return false;
+    }
+    objekt.uebungId = id;
+    return true;
+  }
+
+  // Dasselbe für eine ganze Liste von Einträgen (Feld "uebung") oder Routinen-Übungen (Feld "name")
+  function listeZuordnen(liste, feld) {
+    let geaendert = false;
+    for (let i = 0; i < liste.length; i++) {
+      if (liste[i] && idErgaenzen(liste[i], liste[i][feld])) {
+        geaendert = true;
+      }
+    }
+    return geaendert;
+  }
+
+  // Geht beim Start einmal durch Einträge, Routinen und das laufende Training.
+  // Gespeichert wird nur, wenn wirklich etwas ergänzt wurde.
+  function gespeicherteDatenZuordnen() {
+    if (listeZuordnen(eintraege, "uebung")) {
+      localStorage.setItem("eintraege", JSON.stringify(eintraege));
+    }
+
+    let routinenGeaendert = false;
+    for (let i = 0; i < routinen.length; i++) {
+      if (routinen[i] && Array.isArray(routinen[i].uebungen) && listeZuordnen(routinen[i].uebungen, "name")) {
+        routinenGeaendert = true;
+      }
+    }
+    if (routinenGeaendert) {
+      localStorage.setItem("routinen", JSON.stringify(routinen));
+    }
+
+    if (laufendesTraining && listeZuordnen(laufendesTraining.uebungen, "name")) {
+      localStorage.setItem("laufendesTraining", JSON.stringify(laufendesTraining));
+    }
+  }
+
+  // Passt ein Eintrag zu einer Übung? Mit ID zählt die ID, sonst der Name.
+  function gleicheUebung(eintrag, name, id) {
+    if (id && eintrag.uebungId) {
+      return eintrag.uebungId === id;
+    }
+    return eintrag.uebung.trim().toLowerCase() === name.trim().toLowerCase();
   }
 
   // Macht aus einer Zahl deutschen Text: 82.5 wird "82,5"
@@ -494,12 +601,65 @@
     radSetzen("rad-wdh", START_WDH);
     radSetzen("rad-saetze", START_SAETZE);
 
-    const letzter = letzterEintrag(gewaehlteUebung);
+    const letzter = letzterEintrag(gewaehlteUebung, gewaehlteUebungId);
     if (letzter) {
       radSetzen("rad-gewicht", letzter.gewicht);
       radSetzen("rad-wdh", letzter.wdh);
       radSetzen("rad-saetze", letzter.saetze);
     }
+  }
+
+  // ---------- Körper-Grafik für die Muskelgruppen-Kacheln ----------
+
+  // Die Figur ist selbst gezeichnet (SVG, 60 × 118 Einheiten). Der Umriss ist vorn und hinten gleich.
+  // Elemente mit der Klasse "linie" sind dicke Striche mit runden Enden (Arme und Beine).
+  const KOERPER_UMRISS = '<circle cx="30" cy="10" r="7"/>'
+    + '<path d="M27 15h6v8h-6z"/>'
+    + '<path d="M19 22h22q4 0 4 4l-2 24-2 13H19l-2-13-2-24q0-4 4-4z"/>'
+    + '<path class="linie" stroke-width="7" d="M12 27 10 44 7 62M48 27l2 17 3 18"/>'
+    + '<path class="linie" stroke-width="10" d="M24 65 23 88M36 65l1 23"/>'
+    + '<path class="linie" stroke-width="8" d="M23 88v24M37 88v24"/>';
+
+  // Die Muskelflächen je Ansicht. Der Name ist die ID der Muskelgruppe, die diese Fläche hervorhebt.
+  const KOERPER_ARME_OBEN = '<path class="linie" stroke-width="5" d="M11.6 31 10.4 42M48.4 31l1.2 11"/>';
+  const KOERPER_ARME_UNTEN = '<path class="linie" stroke-width="4.5" d="M9.4 48 7.6 60M50.6 48l1.8 12"/>';
+  const KOERPER_SCHULTERN = '<ellipse cx="14" cy="26" rx="4.5" ry="5"/><ellipse cx="46" cy="26" rx="4.5" ry="5"/>';
+
+  const KOERPER_MUSKELN = {
+    vorn: {
+      schultern: KOERPER_SCHULTERN,
+      brust: '<path d="M20 25h9v10q-5 3-9-1z"/><path d="M40 25h-9v10q5 3 9-1z"/>',
+      bizeps: KOERPER_ARME_OBEN,
+      unterarme: KOERPER_ARME_UNTEN,
+      bauch: '<rect x="24" y="38" width="12" height="21" rx="3"/>',
+      quadrizeps: '<path class="linie" stroke-width="8" d="M24 67 23.2 86M36 67l.8 19"/>'
+    },
+    hinten: {
+      schultern: KOERPER_SCHULTERN,
+      ruecken: '<path d="M19 24h22l-2 22-5 12h-8l-5-12z"/>',
+      trizeps: KOERPER_ARME_OBEN,
+      unterarme: KOERPER_ARME_UNTEN,
+      po: '<ellipse cx="24.5" cy="62" rx="5" ry="5"/><ellipse cx="35.5" cy="62" rx="5" ry="5"/>',
+      beinbeuger: '<path class="linie" stroke-width="8" d="M24 71 23.2 86M36 71l.8 15"/>',
+      waden: '<path class="linie" stroke-width="6.5" d="M23 93v13M37 93v13"/>'
+    }
+  };
+
+  // Baut die Figur für eine Muskelgruppe. Deren Fläche bekommt die Klasse "aktiv" und wird im CSS
+  // limettengrün. Bei "Ganzkörper" leuchten alle Flächen.
+  function koerperSvg(gruppe) {
+    const muskeln = KOERPER_MUSKELN[gruppe.ansicht];
+    const namen = Object.keys(muskeln);
+    let svg = '<svg class="koerper" viewBox="0 0 60 118" aria-hidden="true"><g class="umriss">' + KOERPER_UMRISS + '</g>';
+
+    for (let i = 0; i < namen.length; i++) {
+      let klasse = "muskel";
+      if (namen[i] === gruppe.id || gruppe.id === "ganzkoerper") {
+        klasse += " aktiv";
+      }
+      svg += '<g class="' + klasse + '">' + muskeln[namen[i]] + '</g>';
+    }
+    return svg + '</svg>';
   }
 
   // ---------- Bottom Sheet für die Übungsauswahl ----------
@@ -508,89 +668,189 @@
   function sheetOeffnen(ziel) {
     sheetZiel = ziel || "log";
     sheetGruppenZeigen();
-    document.getElementById("eigene-uebung").value = "";
     document.getElementById("sheet").classList.add("offen");
     document.getElementById("sheet-hintergrund").classList.add("offen");
     document.body.classList.add("sheet-offen");
   }
 
   function sheetSchliessen() {
-    document.getElementById("eigene-uebung").blur();
+    document.getElementById("sheet-suche").blur();
     document.getElementById("sheet").classList.remove("offen");
     document.getElementById("sheet-hintergrund").classList.remove("offen");
     document.body.classList.remove("sheet-offen");
   }
 
-  // Schritt 1: alle Muskelgruppen
+  // Setzt Titel und Zurück-Pfeil und gibt den geleerten Inhaltsbereich zurück
+  function sheetLeeren(titel, mitZurueck) {
+    document.getElementById("sheet-titel").textContent = titel;
+    document.getElementById("sheet-zurueck").classList.toggle("versteckt", !mitZurueck);
+
+    const inhalt = document.getElementById("sheet-inhalt");
+    inhalt.innerHTML = "";
+    inhalt.scrollTop = 0;
+    return inhalt;
+  }
+
+  // Schritt 1: alle Muskelgruppen als Kacheln mit Körper-Grafik
   function sheetGruppenZeigen() {
     sheetGruppe = "";
-    document.getElementById("sheet-titel").textContent = "Muskelgruppe";
-    document.getElementById("sheet-zurueck").classList.add("versteckt");
+    document.getElementById("sheet-suche").value = "";
+    const inhalt = sheetLeeren("Muskelgruppe", false);
+    const raster = element("div", "muskel-raster");
 
-    const inhalt = document.getElementById("sheet-inhalt");
-    inhalt.innerHTML = "";
-    const gruppen = Object.keys(UEBUNGEN);
-
-    for (let i = 0; i < gruppen.length; i++) {
-      const btn = document.createElement("button");
-      btn.className = "sheet-zeile";
-      btn.textContent = gruppen[i];
-      btn.onclick = function () {
-        sheetUebungenZeigen(gruppen[i]);
+    for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
+      const gruppe = MUSKELGRUPPEN[i];
+      const kachel = element("button", "muskel-kachel");
+      kachel.innerHTML = koerperSvg(gruppe);
+      kachel.appendChild(element("span", "", gruppe[sprache]));
+      kachel.onclick = function () {
+        sheetUebungenZeigen(gruppe.id);
       };
-      inhalt.appendChild(btn);
+      raster.appendChild(kachel);
     }
-    inhalt.scrollTop = 0;
+    inhalt.appendChild(raster);
   }
 
-  // Schritt 2: die Übungen einer Muskelgruppe
-  function sheetUebungenZeigen(gruppe) {
-    sheetGruppe = gruppe;
-    document.getElementById("sheet-titel").textContent = gruppe;
-    document.getElementById("sheet-zurueck").classList.remove("versteckt");
+  // Schritt 2: die Übungen einer Muskelgruppe, sortiert nach Maschine, Freie Gewichte und Eigengewicht.
+  // Darunter "Trainiert auch": Übungen anderer Gruppen, bei denen diese Gruppe stark mitarbeitet.
+  function sheetUebungenZeigen(gruppeId) {
+    sheetGruppe = gruppeId;
+    const inhalt = sheetLeeren(GRUPPE_NACH_ID[gruppeId][sprache], true);
+    let anzahl = 0;
 
-    const inhalt = document.getElementById("sheet-inhalt");
-    inhalt.innerHTML = "";
-    const uebungen = UEBUNGEN[gruppe];
-
-    for (let i = 0; i < uebungen.length; i++) {
-      const btn = document.createElement("button");
-      btn.className = "sheet-zeile";
-      btn.textContent = uebungen[i];
-      btn.onclick = function () {
-        uebungWaehlen(uebungen[i], gruppe);
-      };
-      inhalt.appendChild(btn);
+    for (let i = 0; i < BEREICHE.length; i++) {
+      const bereich = BEREICHE[i];
+      const liste = UEBUNGEN.filter(function (u) {
+        return uebungGruppe(u) === gruppeId && u.bereich === bereich.id;
+      });
+      sheetAbschnitt(inhalt, bereich[sprache], liste, false);
+      anzahl += liste.length;
     }
-    inhalt.scrollTop = 0;
+
+    const auch = UEBUNGEN.filter(function (u) {
+      return u.auch.indexOf(gruppeId) !== -1;
+    });
+    sheetAbschnitt(inhalt, "Trainiert auch", auch, true);
+
+    if (anzahl === 0) {
+      inhalt.insertBefore(element("p", "leer-hinweis", "Für diese Muskelgruppe kommen die Übungen noch. Bis dahin kannst du oben eine eigene eintippen."), inhalt.firstChild);
+    }
   }
 
-  // Übernimmt die eingetippte eigene Übung
+  // Ein Abschnitt im Sheet: Überschrift, die ersten Übungen und "Mehr anzeigen (+N)" für den Rest.
+  // Ein leerer Abschnitt wird gar nicht gezeigt.
+  function sheetAbschnitt(inhalt, titel, liste, mitGruppe) {
+    if (liste.length === 0) {
+      return;
+    }
+    inhalt.appendChild(element("h3", "sheet-abschnitt", titel));
+
+    for (let i = 0; i < liste.length && i < TOP_ANZAHL; i++) {
+      inhalt.appendChild(uebungZeile(liste[i], mitGruppe));
+    }
+
+    if (liste.length > TOP_ANZAHL) {
+      const mehr = element("button", "sheet-mehr", "Mehr anzeigen (+" + (liste.length - TOP_ANZAHL) + ")");
+      mehr.onclick = function () {
+        // Die restlichen Übungen an die Stelle des Buttons setzen
+        for (let i = TOP_ANZAHL; i < liste.length; i++) {
+          inhalt.insertBefore(uebungZeile(liste[i], mitGruppe), mehr);
+        }
+        mehr.remove();
+      };
+      inhalt.appendChild(mehr);
+    }
+  }
+
+  // Eine Übung als Zeile: oben der Name, darunter klein der Name in der anderen Sprache.
+  // mitGruppe hängt die Muskelgruppe an, z. B. in der Suche und bei "Trainiert auch".
+  function uebungZeile(u, mitGruppe) {
+    const gruppe = GRUPPE_NACH_ID[uebungGruppe(u)];
+    const btn = element("button", "sheet-zeile");
+    btn.appendChild(element("span", "sheet-zeile-name", u[sprache]));
+
+    let zweit = u.en;
+    if (sprache === "en") {
+      zweit = u.de;
+    }
+    if (mitGruppe) {
+      zweit += " · " + gruppe[sprache];
+    }
+    btn.appendChild(element("span", "sheet-zeile-zweit", zweit));
+
+    // Gespeichert wird neben der ID immer der deutsche Name, als Reserve
+    btn.onclick = function () {
+      uebungWaehlen(u.de, gruppe.de, u.id);
+    };
+    return btn;
+  }
+
+  // Wird bei jeder Eingabe im Suchfeld aufgerufen. Gesucht wird in allen Übungen, auf Deutsch und Englisch.
+  // Jedes eingetippte Wort muss im Namen vorkommen, die Reihenfolge ist egal.
+  function sheetSucheGeaendert() {
+    const eingabe = document.getElementById("sheet-suche").value.trim();
+
+    // Leeres Feld: zurück zur vorherigen Ansicht
+    if (eingabe === "") {
+      if (sheetGruppe === "") {
+        sheetGruppenZeigen();
+      } else {
+        sheetUebungenZeigen(sheetGruppe);
+      }
+      return;
+    }
+
+    const woerter = eingabe.toLowerCase().split(/\s+/);
+    const treffer = UEBUNGEN.filter(function (u) {
+      const namen = (u.de + " " + u.en).toLowerCase();
+      return woerter.every(function (wort) {
+        return namen.indexOf(wort) !== -1;
+      });
+    });
+
+    const inhalt = sheetLeeren("Suche", true);
+    for (let i = 0; i < treffer.length; i++) {
+      inhalt.appendChild(uebungZeile(treffer[i], true));
+    }
+    if (treffer.length === 0) {
+      inhalt.appendChild(element("p", "leer-hinweis", "Keine Übung gefunden."));
+    }
+
+    // Eigene Übung anbieten, außer es gibt genau diese Übung schon in der Liste
+    if (!ID_NACH_NAME[eingabe.toLowerCase()]) {
+      const eigene = element("button", "sheet-zeile eigene", "„" + eingabe + "“ als eigene Übung übernehmen");
+      eigene.onclick = eigeneUebungUebernehmen;
+      inhalt.appendChild(eigene);
+    }
+  }
+
+  // Übernimmt den Text aus dem Suchfeld als eigene Übung. Sie hat keine ID und bekommt
+  // die Muskelgruppe, die vor der Suche geöffnet war.
   function eigeneUebungUebernehmen() {
-    const name = document.getElementById("eigene-uebung").value.trim();
+    const name = document.getElementById("sheet-suche").value.trim();
     if (name === "") {
       return;
     }
 
-    // Steht die Übung in der Liste, gilt deren Muskelgruppe, sonst die gerade geöffnete
-    let gruppe = muskelgruppeFinden(name);
-    if (gruppe === "") {
-      gruppe = sheetGruppe;
+    let gruppe = "";
+    if (sheetGruppe !== "") {
+      gruppe = GRUPPE_NACH_ID[sheetGruppe].de;
     }
-    uebungWaehlen(name, gruppe);
+    uebungWaehlen(name, gruppe, "");
   }
 
   // Merkt sich die gewählte Übung, schließt das Sheet und stellt die Räder ein
-  function uebungWaehlen(name, gruppe) {
+  function uebungWaehlen(name, gruppe, id) {
     // Aus dem Routinen-Editor geöffnet: Die Übung kommt in die Routine, nicht in den neuen Eintrag
     if (sheetZiel === "routine") {
       sheetSchliessen();
-      routineUebungHinzufuegen(name, gruppe);
+      routineUebungHinzufuegen(name, gruppe, id);
       return;
     }
 
     gewaehlteUebung = name;
     gewaehlteGruppe = gruppe;
+    gewaehlteUebungId = id;
     uebungFeldAktualisieren();
     sheetSchliessen();
     letztesMalAnzeigen();
@@ -605,7 +865,7 @@
     if (leer) {
       feld.textContent = "Übung wählen";
     } else {
-      feld.textContent = gewaehlteUebung;
+      feld.textContent = anzeigeName(gewaehlteUebung, gewaehlteUebungId);
     }
     feld.classList.toggle("leer", leer);
     speichernButtonAktualisieren();
@@ -621,22 +881,6 @@
       btn.textContent = "Speichern";
     }
     btn.disabled = gewaehlteUebung === "";
-  }
-
-  // Sucht die Muskelgruppe zu einem Übungsnamen. Eigene Übungen bekommen "".
-  function muskelgruppeFinden(name) {
-    const gesucht = name.trim().toLowerCase();
-    const gruppen = Object.keys(UEBUNGEN);
-
-    for (let i = 0; i < gruppen.length; i++) {
-      const uebungen = UEBUNGEN[gruppen[i]];
-      for (let j = 0; j < uebungen.length; j++) {
-        if (uebungen[j].toLowerCase() === gesucht) {
-          return gruppen[i];
-        }
-      }
-    }
-    return "";
   }
 
   // ---------- Liste ----------
@@ -732,7 +976,7 @@
     if (e.datum) {
       datumText = new Date(e.datum).toLocaleDateString("de-DE") + " – ";
     }
-    li.textContent = datumText + e.uebung + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + zahlText(e.gewicht) + " kg";
+    li.textContent = datumText + anzeigeName(e.uebung, e.uebungId) + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + zahlText(e.gewicht) + " kg";
     const btn = document.createElement("button");
     btn.textContent = "Löschen";
     btn.onclick = function () {
@@ -762,6 +1006,7 @@
 
     const eintrag = {
         uebung: gewaehlteUebung,
+        uebungId: gewaehlteUebungId,
         muskelgruppe: gewaehlteGruppe,
         gewicht: radWert("rad-gewicht"),
         wdh: radWert("rad-wdh"),
@@ -775,6 +1020,7 @@
 
       gewaehlteUebung = "";
       gewaehlteGruppe = "";
+      gewaehlteUebungId = "";
       uebungFeldAktualisieren();
       letztesMalAnzeigen();
       raederVoreinstellen();
@@ -789,9 +1035,9 @@
       }
 
       // Sucht den neuesten Eintrag zu einer Übung. Gibt null zurück, wenn es keinen gibt.
-      function letzterEintrag(name) {
-        const gesucht = name.trim().toLowerCase();
-        if (gesucht === "") {
+      // Verglichen wird über die ID, bei eigenen Übungen (ohne ID) über den Namen.
+      function letzterEintrag(name, id) {
+        if (name.trim() === "") {
           return null;
         }
 
@@ -801,7 +1047,7 @@
 
         for (let i = 0; i < eintraege.length; i++) {
           const e = eintraege[i];
-          if (e.uebung.trim().toLowerCase() === gesucht) {
+          if (gleicheUebung(e, name, id)) {
             let zeit = 0;
             if (e.datum && !isNaN(new Date(e.datum))) {
               zeit = new Date(e.datum).getTime();
@@ -817,12 +1063,12 @@
 
       // Zeigt unter dem Übung-Feld den letzten Eintrag zur gewählten Übung
       function letztesMalAnzeigen() {
-        document.getElementById("letztesMal").textContent = letztesMalText(gewaehlteUebung);
+        document.getElementById("letztesMal").textContent = letztesMalText(gewaehlteUebung, gewaehlteUebungId);
       }
 
       // Der Text "Letztes Mal ..." zu einer Übung. Ohne früheren Eintrag ist er leer.
-      function letztesMalText(name) {
-        const e = letzterEintrag(name);
+      function letztesMalText(name, id) {
+        const e = letzterEintrag(name, id);
         if (!e) {
           return "";
         }
@@ -840,7 +1086,7 @@
   function fortschrittAnzeigen() {
     const trainingstage = {};    // jeder Tag mit mindestens einem Eintrag
     const tageProWoche = {};     // Anzahl Trainingstage je Woche (Schlüssel: Montag)
-    const uebungen = {};         // jeder Übungsname einmal
+    const uebungen = {};         // jede Übung einmal: über ihre ID, eigene Übungen über den Namen
     let anzahlTage = 0;
     let anzahlUebungen = 0;
     let gesamtgewicht = 0;
@@ -849,8 +1095,12 @@
       const e = eintraege[i];
 
       const name = e.uebung.trim().toLowerCase();
-      if (name !== "" && !uebungen[name]) {
-        uebungen[name] = true;
+      let schluessel = "name:" + name;
+      if (e.uebungId) {
+        schluessel = "id:" + e.uebungId;
+      }
+      if (name !== "" && !uebungen[schluessel]) {
+        uebungen[schluessel] = true;
         anzahlUebungen++;
       }
 
@@ -969,7 +1219,7 @@
   function routineInfo(routine) {
     const gruppen = [];
     for (let i = 0; i < routine.uebungen.length; i++) {
-      const gruppe = routine.uebungen[i].muskelgruppe;
+      const gruppe = anzeigeGruppe(routine.uebungen[i].muskelgruppe, routine.uebungen[i].uebungId);
       if (gruppe && gruppen.indexOf(gruppe) === -1) {
         gruppen.push(gruppe);
       }
@@ -1165,12 +1415,20 @@
       const kopie = { id: neueId(), name: vorlage.routinen[i].name, uebungen: [] };
       for (let j = 0; j < vorlage.routinen[i].uebungen.length; j++) {
         const u = vorlage.routinen[i].uebungen[j];
-        kopie.uebungen.push({
+        const neu = {
           name: u.name,
-          muskelgruppe: muskelgruppeFinden(u.name),
+          uebungId: "",
+          muskelgruppe: "",
           zielSaetze: zielLesen(u.saetze, 10),
           zielWdh: zielLesen(u.wdh, 30)
-        });
+        };
+        // Die Übung über ihren Namen in der Übungsliste finden, daraus ergibt sich die Muskelgruppe
+        idErgaenzen(neu, u.name);
+        const bekannt = UEBUNG_NACH_ID[neu.uebungId];
+        if (bekannt) {
+          neu.muskelgruppe = GRUPPE_NACH_ID[uebungGruppe(bekannt)].de;
+        }
+        kopie.uebungen.push(neu);
       }
       routinen.push(kopie);
       ids.push(kopie.id);
@@ -1245,7 +1503,7 @@
       bearbeiteteRoutine.name = routine.name;
       for (let i = 0; i < routine.uebungen.length; i++) {
         const u = routine.uebungen[i];
-        bearbeiteteRoutine.uebungen.push({ name: u.name, muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh });
+        bearbeiteteRoutine.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh });
       }
     }
 
@@ -1293,9 +1551,10 @@
       zeile.appendChild(pfeile);
 
       const mitte = element("div", "uebung-mitte");
-      mitte.appendChild(element("div", "uebung-name", u.name));
-      if (u.muskelgruppe) {
-        mitte.appendChild(element("div", "uebung-gruppe", u.muskelgruppe));
+      mitte.appendChild(element("div", "uebung-name", anzeigeName(u.name, u.uebungId)));
+      const gruppe = anzeigeGruppe(u.muskelgruppe, u.uebungId);
+      if (gruppe) {
+        mitte.appendChild(element("div", "uebung-gruppe", gruppe));
       }
       const ziele = element("div", "ziele");
       ziele.appendChild(zielFeld("Sätze", u, "zielSaetze", 10));
@@ -1354,8 +1613,8 @@
   }
 
   // Wird vom Sheet aufgerufen, wenn es aus dem Editor geöffnet wurde
-  function routineUebungHinzufuegen(name, gruppe) {
-    bearbeiteteRoutine.uebungen.push({ name: name, muskelgruppe: gruppe, zielSaetze: null, zielWdh: null });
+  function routineUebungHinzufuegen(name, gruppe, id) {
+    bearbeiteteRoutine.uebungen.push({ name: name, uebungId: id, muskelgruppe: gruppe, zielSaetze: null, zielWdh: null });
     document.getElementById("routine-meldung").textContent = "";
     routineUebungenAnzeigen();
   }
@@ -1429,7 +1688,7 @@
     };
     for (let i = 0; i < routine.uebungen.length; i++) {
       const u = routine.uebungen[i];
-      laufendesTraining.uebungen.push({ name: u.name, muskelgruppe: u.muskelgruppe || "", zielSaetze: u.zielSaetze, zielWdh: u.zielWdh });
+      laufendesTraining.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe || "", zielSaetze: u.zielSaetze, zielWdh: u.zielWdh });
     }
     trainingMerken();
     trainingFortsetzen();
@@ -1460,9 +1719,9 @@
     document.getElementById("modus-routine").textContent = t.routineName;
     document.getElementById("modus-schritt").textContent = "Übung " + (t.index + 1) + " von " + t.uebungen.length;
     document.getElementById("modus-fortschritt").style.width = (t.index / t.uebungen.length * 100) + "%";
-    document.getElementById("modus-uebung").textContent = u.name;
+    document.getElementById("modus-uebung").textContent = anzeigeName(u.name, u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
-    document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name) || "Letztes Mal: noch kein Eintrag";
+    document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name, u.uebungId) || "Letztes Mal: noch kein Eintrag";
 
     if (letzteUebung) {
       document.getElementById("modus-speichern").textContent = "Speichern & abschließen";
@@ -1480,7 +1739,7 @@
     if (u.zielSaetze) {
       radSetzen("t-rad-saetze", u.zielSaetze);
     }
-    const letzter = letzterEintrag(u.name);
+    const letzter = letzterEintrag(u.name, u.uebungId);
     if (letzter) {
       radSetzen("t-rad-gewicht", letzter.gewicht);
       radSetzen("t-rad-wdh", letzter.wdh);
@@ -1496,6 +1755,7 @@
 
     const eintrag = {
       uebung: u.name,
+      uebungId: u.uebungId || "",
       muskelgruppe: u.muskelgruppe,
       gewicht: radWert("t-rad-gewicht"),
       wdh: radWert("t-rad-wdh"),
@@ -1603,7 +1863,14 @@
         if (typeof u.muskelgruppe === "string") {
           gruppe = u.muskelgruppe;
         }
-        sauber.uebungen.push({ name: u.name, muskelgruppe: gruppe, zielSaetze: zielLesen(u.zielSaetze, 10), zielWdh: zielLesen(u.zielWdh, 30) });
+        // Neuere Backups bringen die ID mit, bei älteren wird sie über den Namen ergänzt
+        let id = "";
+        if (typeof u.uebungId === "string") {
+          id = u.uebungId;
+        }
+        const neu = { name: u.name, uebungId: id, muskelgruppe: gruppe, zielSaetze: zielLesen(u.zielSaetze, 10), zielWdh: zielLesen(u.zielWdh, 30) };
+        idErgaenzen(neu, u.name);
+        sauber.uebungen.push(neu);
       }
     }
     return sauber;
@@ -1760,6 +2027,8 @@
         importEintraege.push(e);
       }
     }
+    // Einträge aus älteren Backups kennen nur den Übungsnamen: die feste ID ergänzen
+    listeZuordnen(importEintraege, "uebung");
 
     // Routinen und Wochenplan gibt es erst in neueren Backups
     importRoutinen = null;

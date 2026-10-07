@@ -21,7 +21,7 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -238,11 +238,11 @@
       <span id="sheet-titel">Muskelgruppe</span>
       <button onclick="sheetSchliessen()" aria-label="Schließen">✕</button>
     </div>
-    <div id="sheet-inhalt"></div>
-    <div class="sheet-eigene">
-      <input id="eigene-uebung" placeholder="Eigene Übung eintippen" onkeydown="if (event.key === 'Enter') eigeneUebungUebernehmen()">
-      <button onclick="eigeneUebungUebernehmen()">Übernehmen</button>
+    <!-- Suche über alle Übungen. Gibt es keinen Treffer, lässt sich der Text als eigene Übung übernehmen. -->
+    <div class="sheet-suche">
+      <input id="sheet-suche" placeholder="Übung suchen oder eigene eintippen" autocomplete="off" enterkeyhint="search" oninput="sheetSucheGeaendert()" onkeydown="if (event.key === 'Enter') this.blur()">
     </div>
+    <div id="sheet-inhalt"></div>
   </div>
 
 
@@ -267,7 +267,9 @@
     </div>
   </div>
 
-<script src="app.js?v=7"></script>
+<!-- Erst die Übungsdaten, dann die App, die sie benutzt -->
+<script src="uebungen.js?v=8"></script>
+<script src="app.js?v=8"></script>
 
 </body>
 </html>

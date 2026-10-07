@@ -21,7 +21,7 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
@@ -86,6 +86,7 @@
     </div>
 
     <button id="speichern" class="speichern-btn" onclick="speichern()" disabled>Speichern</button>
+    <button class="zweit-btn" onclick="pauseStarten(pauseStandard())">Pause starten</button>
 
     <div id="liste"></div>
     </div>
@@ -140,26 +141,46 @@
         <span id="modus-uebung"></span>
         <svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>
       </button>
-      <p id="modus-ziel" class="modus-ziel"></p>
-      <p id="modus-letztesMal" class="letztes-mal"></p>
+      <div id="modus-satz" class="modus-satz"></div>
 
-      <div class="raeder">
-        <div>
-          <div class="rad-titel">Gewicht (kg)</div>
-          <div class="rad-rahmen"><div id="t-rad-gewicht" class="rad"></div></div>
+      <!-- Eingabe: die Werte des nächsten Satzes groß, darunter die Räder zum Anpassen -->
+      <div id="modus-eingabe">
+        <div id="modus-vorbei" class="heute-label versteckt">Pause vorbei</div>
+        <div class="raeder zwei">
+          <div>
+            <div class="modus-gross"><span id="modus-gewicht"></span><small>kg</small></div>
+            <div class="rad-rahmen"><div id="t-rad-gewicht" class="rad"></div></div>
+          </div>
+          <div>
+            <div class="modus-gross"><span id="modus-wdh"></span><small>Wdh.</small></div>
+            <div class="rad-rahmen"><div id="t-rad-wdh" class="rad"></div></div>
+          </div>
         </div>
-        <div>
-          <div class="rad-titel">Wdh.</div>
-          <div class="rad-rahmen"><div id="t-rad-wdh" class="rad"></div></div>
-        </div>
-        <div>
-          <div class="rad-titel">Sätze</div>
-          <div class="rad-rahmen"><div id="t-rad-saetze" class="rad"></div></div>
-        </div>
+        <button class="speichern-btn gross" onclick="satzFertig()">Satz fertig</button>
       </div>
 
-      <button id="modus-speichern" class="speichern-btn" onclick="trainingSpeichern()">Speichern &amp; weiter</button>
-      <button class="zweit-btn" onclick="trainingUeberspringen()">Überspringen</button>
+      <!-- Pause: großer Countdown. Solange er läuft, ist die Eingabe ausgeblendet. -->
+      <div id="modus-pause" class="versteckt">
+        <div class="heute-label">Pause</div>
+        <div id="modus-countdown" class="modus-countdown"></div>
+        <div class="karten-knoepfe">
+          <button class="knopf" onclick="pauseAendern(-15)">−15 s</button>
+          <button class="knopf" onclick="pauseAendern(15)">+15 s</button>
+          <button class="knopf" onclick="pauseUeberspringen()">Überspringen</button>
+        </div>
+        <p id="modus-naechstes" class="modus-ziel"></p>
+      </div>
+
+      <!-- Nach dem letzten Ziel-Satz: weiter zur nächsten Übung oder noch ein Satz -->
+      <div id="modus-wahl" class="versteckt">
+        <button id="modus-wahl-weiter" class="speichern-btn gross" onclick="uebungBeenden()">Nächste Übung</button>
+        <button class="zweit-btn" onclick="extraSatzStarten()">+ Satz</button>
+      </div>
+
+      <button id="modus-weiter" class="zweit-btn" onclick="uebungBeenden()">Übung überspringen</button>
+
+      <p id="modus-ziel" class="modus-ziel"></p>
+      <p id="modus-letztesMal" class="letztes-mal"></p>
     </div>
 
     <!-- Ansicht: Zusammenfassung nach dem Training -->
@@ -246,6 +267,19 @@
     <p class="unterzeile">Deine Einstellungen</p>
     <div class="karte kommt-bald">Kommt bald</div>
 
+    <h2 class="abschnitt">Pausentimer</h2>
+    <div class="karte pause-einstellung">
+      <div>
+        <div class="uebung-name">Standard-Pause</div>
+        <div class="routine-info">Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist</div>
+      </div>
+      <div class="stufen">
+        <button onclick="pauseStandardAendern(-15)" aria-label="15 Sekunden kürzer">−</button>
+        <span id="pause-standard"></span>
+        <button onclick="pauseStandardAendern(15)" aria-label="15 Sekunden länger">+</button>
+      </div>
+    </div>
+
     <h2 class="abschnitt">Daten</h2>
     <div class="karte daten-karte">
       <button class="daten-btn" onclick="backupExportieren()">Backup exportieren</button>
@@ -278,6 +312,15 @@
       Profil
     </button>
   </nav>
+
+  <!-- Pausentimer als schmale Leiste über der Navigation, überall außer im Trainingsmodus -->
+  <div id="pause-leiste">
+    <span class="heute-label">Pause</span>
+    <span id="pause-leiste-rest"></span>
+    <button class="pause-leiste-zeit" onclick="pauseAendern(-15)">−15 s</button>
+    <button class="pause-leiste-zeit" onclick="pauseAendern(15)">+15 s</button>
+    <button onclick="pauseUeberspringen()" aria-label="Pause beenden">✕</button>
+  </div>
 
   <!-- Hinweis auf eine neue Version: erscheint über der Navigationsleiste -->
   <button id="update-hinweis" onclick="updateLaden()">Neue Version verfügbar – tippen zum Aktualisieren</button>
@@ -353,8 +396,8 @@
   </div>
 
 <!-- Erst die Übungsdaten, dann die App, die sie benutzt -->
-<script src="uebungen.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<script src="uebungen.js?v=11"></script>
+<script src="app.js?v=11"></script>
 
 </body>
 </html>

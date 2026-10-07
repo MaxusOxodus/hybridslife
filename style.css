@@ -896,6 +896,178 @@ h1 {
   text-align: left;
 }
 
+/* ---------- Trainingsmodus: große Ansicht fürs Gym ---------- */
+
+/* "Satz 2 von 4": groß genug, um es aus einem Meter Entfernung zu lesen */
+.modus-satz {
+  margin-top: 10px;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Zwei Räder nebeneinander statt drei */
+.raeder.zwei {
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+/* Der eingestellte Wert über jedem Rad, sehr groß, mit kleiner Einheit dahinter */
+.modus-gross {
+  margin-bottom: 8px;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.modus-gross small {
+  margin-left: 6px;
+  color: var(--text-leise);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.speichern-btn.gross {
+  min-height: 72px;
+  font-size: 22px;
+}
+
+#modus-pause {
+  margin-top: 22px;
+  text-align: center;
+}
+
+.modus-countdown {
+  font-size: 104px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+#modus-pause .knopf {
+  min-height: 52px;
+  font-size: 17px;
+}
+
+#modus-vorbei {
+  margin-top: 16px;
+}
+
+#modus-ziel {
+  margin-top: 22px;
+}
+
+/* ---------- Pausentimer: Leiste über der Navigation und Einstellung im Profil ---------- */
+
+#pause-leiste {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  z-index: 16;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  max-width: 448px;
+  min-height: 56px;
+  margin: 0 auto;
+  padding: 6px 6px 6px 16px;
+  border: 1px solid var(--rand);
+  border-radius: 28px;
+  background: var(--glas);
+  -webkit-backdrop-filter: var(--glas-filter);
+  backdrop-filter: var(--glas-filter);
+}
+
+#pause-leiste.sichtbar {
+  display: flex;
+}
+
+#pause-leiste-rest {
+  flex: 1;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+#pause-leiste button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 22px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Ist die Pause vorbei, bleibt nur der Hinweis mit dem Schließen-Button */
+#pause-leiste.vorbei .heute-label,
+#pause-leiste.vorbei .pause-leiste-zeit {
+  display: none;
+}
+
+#pause-leiste.vorbei #pause-leiste-rest {
+  font-size: 19px;
+}
+
+.pause-einstellung {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Minus, Wert, Plus nebeneinander */
+.stufen {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.stufen span {
+  min-width: 48px;
+  text-align: center;
+}
+
+.stufen button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-size: 22px;
+}
+
+/* Auswahlfeld für die Pause einer Übung im Routinen-Editor */
+.ziel select {
+  height: 40px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 10px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.ziel select:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--akzent-text);
+}
+
 /* ---------- Sheets für Verlauf und Körpergewicht ---------- */
 
 /* Sie sehen aus wie das Sheet der Übungsauswahl, sind aber nur so hoch wie ihr Inhalt */
@@ -1093,7 +1265,9 @@ h1 {
 
 /* Übungsname als Button: sieht aus wie Text, das kleine Diagramm-Zeichen zeigt, dass man ihn antippen kann */
 .name-knopf {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   width: 100%;
   padding: 0;
   border: none;
@@ -1109,8 +1283,7 @@ h1 {
 .verlauf-icon {
   width: 0.8em;
   height: 0.8em;
-  margin-left: 4px;
-  vertical-align: -0.05em;
+  flex-shrink: 0;
   fill: none;
   stroke: var(--akzent-text);
   stroke-width: 2.5;

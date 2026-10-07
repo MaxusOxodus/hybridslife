@@ -255,6 +255,29 @@
     laufendesTraining = null;
   }
 
+  // Ein Training aus einer älteren Version kennt die Sätze der aktuellen Übung noch nicht
+  if (laufendesTraining) {
+    if (!Array.isArray(laufendesTraining.saetze)) {
+      laufendesTraining.saetze = [];
+    }
+    if (typeof laufendesTraining.eintragId !== "string") {
+      laufendesTraining.eintragId = "";
+    }
+  }
+
+  // Einstellungen der App, bisher nur die Standard-Pause in Sekunden (pauseSekunden)
+  let einstellungen = gespeichertLesen("einstellungen", {});
+  if (!einstellungen || typeof einstellungen !== "object" || Array.isArray(einstellungen)) {
+    einstellungen = {};
+  }
+
+  // Die laufende Pause (null = keine). "ende" ist der Zeitpunkt in Millisekunden, an dem sie vorbei ist.
+  // Weil das Ende feststeht, stimmt die Restzeit auch, wenn das Handy zwischendurch gesperrt war.
+  let pause = gespeichertLesen("pause", null);
+  if (!pause || typeof pause.ende !== "number") {
+    pause = null;
+  }
+
   // Trainingseinheiten: Jede entsteht, wenn ein Training im Trainingsmodus beendet wird.
   // Sie merkt sich Start, Ende, die Routine und die ids der Einträge, die dabei gespeichert wurden.
   let trainings = gespeichertLesen("trainings", []);
@@ -411,8 +434,8 @@
     if (aktiveSeite === "home" && homeAnsicht === "log") {
       logRaederMerken();
     }
-    if (aktiveSeite === "training" && trainingAnsicht === "modus") {
-      gemerkteTrainingRadWerte = [radWert("t-rad-gewicht"), radWert("t-rad-wdh"), radWert("t-rad-saetze")];
+    if (aktiveSeite === "training" && trainingAnsicht === "modus" && !document.getElementById("modus-eingabe").classList.contains("versteckt")) {
+      gemerkteTrainingRadWerte = [radWert("t-rad-gewicht"), radWert("t-rad-wdh")];
     }
 
     // Der Home-Tab führt von der Log-Ansicht zurück zur Übersicht
@@ -444,12 +467,14 @@
 
     if (name === "training") {
       trainingAnzeigen();
-      if (trainingAnsicht === "modus" && gemerkteTrainingRadWerte) {
-        radSetzen("t-rad-gewicht", gemerkteTrainingRadWerte[0]);
-        radSetzen("t-rad-wdh", gemerkteTrainingRadWerte[1]);
-        radSetzen("t-rad-saetze", gemerkteTrainingRadWerte[2]);
+      if (trainingAnsicht === "modus" && laufendesTraining) {
+        modusAnzeigen();
       }
     }
+
+    // Die Pausen-Leiste ist überall zu sehen außer im Trainingsmodus, das Display bleibt nur dort an
+    pauseAnzeigen();
+    wachSperreAktualisieren();
   }
 
   // Blendet die Kopfzeile ein, sobald der große Titel nach oben weggescrollt ist
@@ -620,6 +645,11 @@
     }
     rad.children[index].classList.add("aktiv");
     raeder[id].aktiv = index;
+
+    // Manche Räder melden jede Änderung weiter, z. B. an die große Anzeige im Trainingsmodus
+    if (raeder[id].beimWechsel) {
+      raeder[id].beimWechsel();
+    }
   }
 
   // Liest den eingestellten Wert als Zahl
@@ -1022,7 +1052,7 @@
     if (e.datum) {
       datumText = new Date(e.datum).toLocaleDateString("de-DE") + " – ";
     }
-    li.textContent = datumText + anzeigeName(e.uebung, e.uebungId) + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + zahlText(e.gewicht) + " kg";
+    li.textContent = datumText + anzeigeName(e.uebung, e.uebungId) + ": " + saetzeText(e);
     const btn = document.createElement("button");
     btn.textContent = "Löschen";
     btn.onclick = function () {
@@ -1083,7 +1113,8 @@
 
       // Sucht den neuesten Eintrag zu einer Übung. Gibt null zurück, wenn es keinen gibt.
       // Verglichen wird über die ID, bei eigenen Übungen (ohne ID) über den Namen.
-      function letzterEintrag(name, id) {
+      // ohneId lässt einen Eintrag aus: im Trainingsmodus den der Übung, die gerade läuft.
+      function letzterEintrag(name, id, ohneId) {
         if (name.trim() === "") {
           return null;
         }
@@ -1094,7 +1125,7 @@
 
         for (let i = 0; i < eintraege.length; i++) {
           const e = eintraege[i];
-          if (gleicheUebung(e, name, id)) {
+          if (gleicheUebung(e, name, id) && (!ohneId || e.id !== ohneId)) {
             let zeit = 0;
             if (e.datum && !isNaN(new Date(e.datum))) {
               zeit = new Date(e.datum).getTime();
@@ -1114,8 +1145,8 @@
       }
 
       // Der Text "Letztes Mal ..." zu einer Übung. Ohne früheren Eintrag ist er leer.
-      function letztesMalText(name, id) {
-        const e = letzterEintrag(name, id);
+      function letztesMalText(name, id, ohneId) {
+        const e = letzterEintrag(name, id, ohneId);
         if (!e) {
           return "";
         }
@@ -1124,8 +1155,97 @@
         if (e.datum) {
           datumText = " (" + new Date(e.datum).toLocaleDateString("de-DE") + ")";
         }
-        return "Letztes Mal" + datumText + ": " + e.saetze + " Sätze × " + e.wdh + " Wdh. à " + zahlText(e.gewicht) + " kg";
+        return "Letztes Mal" + datumText + ": " + saetzeText(e);
       }
+
+  // ---------- Einzelne Sätze ----------
+
+  // Die Sätze eines Eintrags als Liste von { gewicht, wdh }. Einträge aus dem Trainingsmodus
+  // haben sie einzeln gespeichert (einzelsaetze). Bei allen anderen sind alle Sätze gleich,
+  // sie entstehen aus Sätze, Wdh. und Gewicht. Steht irgendwo keine Zahl, ist die Liste leer.
+  function saetzeVon(e) {
+    const liste = [];
+    if (Array.isArray(e.einzelsaetze) && e.einzelsaetze.length > 0) {
+      for (let i = 0; i < e.einzelsaetze.length; i++) {
+        const s = e.einzelsaetze[i];
+        if (s) {
+          const gewicht = Number(String(s.gewicht).replace(",", "."));
+          const wdh = Number(s.wdh);
+          if (!isNaN(gewicht) && !isNaN(wdh)) {
+            liste.push({ gewicht: gewicht, wdh: wdh });
+          }
+        }
+      }
+      return liste;
+    }
+
+    const gewicht = Number(String(e.gewicht).replace(",", "."));
+    const wdh = Number(e.wdh);
+    const anzahl = Number(e.saetze);
+    if (isNaN(gewicht) || isNaN(wdh) || isNaN(anzahl)) {
+      return liste;
+    }
+    for (let i = 0; i < anzahl && i < 100; i++) {
+      liste.push({ gewicht: gewicht, wdh: wdh });
+    }
+    return liste;
+  }
+
+  // Das bewegte Gewicht eines Eintrags: Wdh. × Gewicht, über alle Sätze zusammengezählt.
+  // zusatz kommt bei jedem Satz zum Gewicht dazu (das Körpergewicht bei Eigengewicht-Übungen, sonst 0).
+  function eintragVolumen(e, zusatz) {
+    const saetze = saetzeVon(e);
+    let summe = 0;
+    for (let i = 0; i < saetze.length; i++) {
+      summe += saetze[i].wdh * (saetze[i].gewicht + zusatz);
+    }
+    return summe;
+  }
+
+  // Die Sätze eines Eintrags als Text. Sind alle gleich: "3 Sätze × 10 Wdh. à 80 kg".
+  // Unterscheiden sie sich: "80 kg × 10, 10, 8", bei wechselndem Gewicht "80 kg × 10 · 85 kg × 8".
+  function saetzeText(e) {
+    let saetze = [];
+    if (Array.isArray(e.einzelsaetze)) {
+      saetze = saetzeVon(e);
+    }
+    let alleGleich = true;
+    for (let i = 1; i < saetze.length; i++) {
+      if (saetze[i].gewicht !== saetze[0].gewicht || saetze[i].wdh !== saetze[0].wdh) {
+        alleGleich = false;
+      }
+    }
+    if (alleGleich) {
+      return e.saetze + " Sätze × " + e.wdh + " Wdh. à " + zahlText(e.gewicht) + " kg";
+    }
+
+    const teile = [];
+    let i = 0;
+    while (i < saetze.length) {
+      // Aufeinanderfolgende Sätze mit demselben Gewicht kommen in einen Teil
+      const wiederholungen = [];
+      const gewicht = saetze[i].gewicht;
+      while (i < saetze.length && saetze[i].gewicht === gewicht) {
+        wiederholungen.push(saetze[i].wdh);
+        i++;
+      }
+      teile.push(zahlText(gewicht) + " kg × " + wiederholungen.join(", "));
+    }
+    return teile.join(" · ");
+  }
+
+  // Sucht einen Eintrag über seine id. Gibt null zurück, wenn es ihn nicht (mehr) gibt.
+  function eintragFinden(id) {
+    if (!id) {
+      return null;
+    }
+    for (let i = 0; i < eintraege.length; i++) {
+      if (eintraege[i] && eintraege[i].id === id) {
+        return eintraege[i];
+      }
+    }
+    return null;
+  }
 
   // ---------- Fortschritt ----------
 
@@ -1152,10 +1272,7 @@
       }
 
       // Einträge, bei denen keine Zahl steht (z. B. "80kg"), ergeben NaN und werden übersprungen
-      const bewegt = Number(e.saetze) * Number(e.wdh) * Number(String(e.gewicht).replace(",", "."));
-      if (!isNaN(bewegt)) {
-        gesamtgewicht += bewegt;
-      }
+      gesamtgewicht += eintragVolumen(e, 0);
 
       if (e.datum && !isNaN(new Date(e.datum))) {
         const datum = new Date(e.datum);
@@ -1302,6 +1419,8 @@
     trainingAnsicht = name;
     window.scrollTo(0, 0);
     kopfzeileAktualisieren();
+    pauseAnzeigen();
+    wachSperreAktualisieren();
   }
 
   // ---------- Training: Rückfrage-Dialog ----------
@@ -1472,7 +1591,8 @@
           uebungId: "",
           muskelgruppe: "",
           zielSaetze: zielLesen(u.saetze, 10),
-          zielWdh: zielLesen(u.wdh, 30)
+          zielWdh: zielLesen(u.wdh, 30),
+          pause: null
         };
         // Die Übung über ihren Namen in der Übungsliste finden, daraus ergibt sich die Muskelgruppe
         idErgaenzen(neu, u.name);
@@ -1555,7 +1675,7 @@
       bearbeiteteRoutine.name = routine.name;
       for (let i = 0; i < routine.uebungen.length; i++) {
         const u = routine.uebungen[i];
-        bearbeiteteRoutine.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh });
+        bearbeiteteRoutine.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, pause: pauseLesen(u.pause) });
       }
     }
 
@@ -1617,6 +1737,7 @@
       const ziele = element("div", "ziele");
       ziele.appendChild(zielFeld("Sätze", u, "zielSaetze", 10));
       ziele.appendChild(zielFeld("Wdh.", u, "zielWdh", 30));
+      ziele.appendChild(pauseFeld(u));
       mitte.appendChild(ziele);
       zeile.appendChild(mitte);
 
@@ -1657,6 +1778,26 @@
     return rahmen;
   }
 
+  // Auswahlfeld für die Pause nach jedem Satz dieser Übung. "Standard" heißt: die Zeit aus dem Profil.
+  function pauseFeld(uebung) {
+    const rahmen = element("label", "ziel");
+    rahmen.appendChild(element("span", "", "Pause"));
+
+    const auswahl = document.createElement("select");
+    auswahl.appendChild(new Option("Standard", ""));
+    for (let sekunden = PAUSE_SCHRITT; sekunden <= PAUSE_MAX; sekunden += PAUSE_SCHRITT) {
+      auswahl.appendChild(new Option(pauseText(sekunden), sekunden));
+    }
+    if (uebung.pause) {
+      auswahl.value = uebung.pause;
+    }
+    auswahl.onchange = function () {
+      uebung.pause = pauseLesen(auswahl.value);
+    };
+    rahmen.appendChild(auswahl);
+    return rahmen;
+  }
+
   // Tauscht eine Übung mit der darüber (-1) oder darunter (1)
   function routineUebungVerschieben(index, richtung) {
     const uebungen = bearbeiteteRoutine.uebungen;
@@ -1672,7 +1813,7 @@
 
   // Wird vom Sheet aufgerufen, wenn es aus dem Editor geöffnet wurde
   function routineUebungHinzufuegen(name, gruppe, id) {
-    bearbeiteteRoutine.uebungen.push({ name: name, uebungId: id, muskelgruppe: gruppe, zielSaetze: null, zielWdh: null });
+    bearbeiteteRoutine.uebungen.push({ name: name, uebungId: id, muskelgruppe: gruppe, zielSaetze: null, zielWdh: null, pause: null });
     document.getElementById("routine-meldung").textContent = "";
     routineUebungenAnzeigen();
   }
@@ -1742,12 +1883,16 @@
       index: 0,
       erledigt: [],
       uebersprungen: 0,
-      gestartet: new Date().toISOString()
+      gestartet: new Date().toISOString(),
+      // Die Sätze der aktuellen Übung und die id des Eintrags, in dem sie gespeichert sind
+      saetze: [],
+      eintragId: ""
     };
     for (let i = 0; i < routine.uebungen.length; i++) {
       const u = routine.uebungen[i];
-      laufendesTraining.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe || "", zielSaetze: u.zielSaetze, zielWdh: u.zielWdh });
+      laufendesTraining.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe || "", zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, pause: pauseLesen(u.pause) });
     }
+    gemerkteTrainingRadWerte = null;
     trainingMerken();
     trainingFortsetzen();
   }
@@ -1773,75 +1918,197 @@
   function modusAnzeigen() {
     const t = laufendesTraining;
     const u = t.uebungen[t.index];
-    const letzteUebung = t.index === t.uebungen.length - 1;
 
     document.getElementById("modus-routine").textContent = t.routineName;
     document.getElementById("modus-schritt").textContent = "Übung " + (t.index + 1) + " von " + t.uebungen.length;
     document.getElementById("modus-fortschritt").style.width = (t.index / t.uebungen.length * 100) + "%";
     document.getElementById("modus-uebung").textContent = anzeigeName(u.name, u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
-    document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name, u.uebungId) || "Letztes Mal: noch kein Eintrag";
+    document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name, u.uebungId, t.eintragId) || "Letztes Mal: noch kein Eintrag";
 
+    modusZustandAnzeigen(true);
+  }
+
+  // Zeigt im Trainingsmodus den passenden Teil: die Eingabe für den nächsten Satz, den Countdown
+  // der Pause oder nach dem letzten Ziel-Satz die Wahl zwischen "Nächste Übung" und "+ Satz".
+  // Läuft jede Viertelsekunde, solange eine Pause läuft. raederNeu = true stellt die Räder in jedem Fall neu ein.
+  function modusZustandAnzeigen(raederNeu) {
+    const t = laufendesTraining;
+    if (!t || !t.uebungen[t.index]) {
+      return;
+    }
+    const u = t.uebungen[t.index];
+    const ziel = u.zielSaetze || 0;
+    const gemacht = t.saetze.length;
+    const letzteUebung = t.index === t.uebungen.length - 1;
+    const pauseLaeuft = pauseRest() > 0;
+    const zielErreicht = ziel > 0 && gemacht >= ziel && !t.extraSatz;
+
+    // "Satz 2 von 4". Ohne Ziel und bei einem zusätzlichen Satz nur "Satz 5".
+    let satzText = "Satz " + (gemacht + 1);
+    if (zielErreicht && gemacht === ziel) {
+      satzText = gemacht + " von " + ziel + " Sätzen geschafft";
+    } else if (zielErreicht) {
+      satzText = gemacht + " Sätze geschafft";
+    } else if (gemacht < ziel) {
+      satzText += " von " + ziel;
+    }
+    document.getElementById("modus-satz").textContent = satzText;
+
+    let weiterText = "Nächste Übung";
     if (letzteUebung) {
-      document.getElementById("modus-speichern").textContent = "Speichern & abschließen";
-    } else {
-      document.getElementById("modus-speichern").textContent = "Speichern & weiter";
+      weiterText = "Training abschließen";
     }
+    document.getElementById("modus-wahl-weiter").textContent = weiterText;
 
-    // Räder: erst die Startwerte, dann die Ziele der Routine, und das letzte Mal gewinnt
-    radSetzen("t-rad-gewicht", START_GEWICHT);
-    radSetzen("t-rad-wdh", START_WDH);
-    radSetzen("t-rad-saetze", START_SAETZE);
-    if (u.zielWdh) {
-      radSetzen("t-rad-wdh", u.zielWdh);
+    // Der kleine Button unten: Ohne einen einzigen Satz wird die Übung übersprungen
+    const weiter = document.getElementById("modus-weiter");
+    if (gemacht === 0) {
+      weiter.textContent = "Übung überspringen";
+    } else {
+      weiter.textContent = weiterText;
     }
-    if (u.zielSaetze) {
-      radSetzen("t-rad-saetze", u.zielSaetze);
+    weiter.classList.toggle("versteckt", zielErreicht);
+
+    // Pause: Countdown und was danach kommt
+    document.getElementById("modus-pause").classList.toggle("versteckt", !pauseLaeuft);
+    document.getElementById("modus-countdown").textContent = pauseText(Math.ceil(pauseRest() / 1000));
+    let danach = "Als Nächstes: " + satzText;
+    if (zielErreicht && letzteUebung) {
+      danach = "Das war die letzte Übung.";
+    } else if (zielErreicht) {
+      const naechste = t.uebungen[t.index + 1];
+      danach = "Danach: " + anzeigeName(naechste.name, naechste.uebungId);
     }
-    const letzter = letzterEintrag(u.name, u.uebungId);
-    if (letzter) {
-      radSetzen("t-rad-gewicht", letzter.gewicht);
-      radSetzen("t-rad-wdh", letzter.wdh);
-      radSetzen("t-rad-saetze", letzter.saetze);
+    document.getElementById("modus-naechstes").textContent = danach;
+
+    document.getElementById("modus-wahl").classList.toggle("versteckt", !zielErreicht);
+    document.getElementById("modus-vorbei").classList.toggle("versteckt", Date.now() - pauseVorbeiSeit >= PAUSE_VORBEI_ANZEIGE);
+
+    // Die Eingabe war ausgeblendet: Dabei verlieren die Räder ihre Stellung, also neu einstellen
+    const eingabe = document.getElementById("modus-eingabe");
+    const zeigen = !pauseLaeuft && !zielErreicht;
+    const warVersteckt = eingabe.classList.contains("versteckt");
+    eingabe.classList.toggle("versteckt", !zeigen);
+    if (zeigen && (warVersteckt || raederNeu)) {
+      modusRaederSetzen();
     }
   }
 
-  // Speichert die aktuelle Übung als normalen Eintrag im Log und geht zur nächsten.
+  // Die Werte, mit denen die Räder für den nächsten Satz starten: die des Satzes davor,
+  // beim ersten Satz die vom letzten Mal, sonst die Startwerte und das Wdh.-Ziel der Routine
+  function modusStartWerte() {
+    const t = laufendesTraining;
+    const u = t.uebungen[t.index];
+    if (t.saetze.length > 0) {
+      const davor = t.saetze[t.saetze.length - 1];
+      return [davor.gewicht, davor.wdh];
+    }
+
+    const werte = [START_GEWICHT, u.zielWdh || START_WDH];
+    const letzter = letzterEintrag(u.name, u.uebungId, t.eintragId);
+    if (letzter) {
+      const saetze = saetzeVon(letzter);
+      if (saetze.length > 0) {
+        werte[0] = saetze[0].gewicht;
+        werte[1] = saetze[0].wdh;
+      }
+    }
+    return werte;
+  }
+
+  // Stellt die zwei Räder ein: auf die gemerkte Stellung (nach einem Tab-Wechsel), sonst auf die Startwerte
+  function modusRaederSetzen() {
+    const werte = gemerkteTrainingRadWerte || modusStartWerte();
+    radSetzen("t-rad-gewicht", START_GEWICHT);
+    radSetzen("t-rad-wdh", START_WDH);
+    radSetzen("t-rad-gewicht", werte[0]);
+    radSetzen("t-rad-wdh", werte[1]);
+    modusGrossAnzeigen();
+  }
+
+  // Die großen Zahlen über den Rädern zeigen, was gerade eingestellt ist
+  function modusGrossAnzeigen() {
+    document.getElementById("modus-gewicht").textContent = zahlText(radWert("t-rad-gewicht"));
+    document.getElementById("modus-wdh").textContent = radWert("t-rad-wdh");
+  }
+
+  // "Satz fertig": Der Satz kommt in den Eintrag der Übung, danach startet die Pause.
+  // Der Eintrag entsteht mit dem ersten Satz und wächst mit jedem weiteren. So geht nichts verloren,
+  // wenn das Handy die App mitten in der Übung schließt.
   // routineId und routineName halten fest, aus welcher Routine der Eintrag stammt.
-  function trainingSpeichern() {
+  function satzFertig() {
     const t = laufendesTraining;
     const u = t.uebungen[t.index];
 
-    const eintrag = {
-      id: neueId("e"),
-      uebung: u.name,
-      uebungId: u.uebungId || "",
-      muskelgruppe: u.muskelgruppe,
-      gewicht: radWert("t-rad-gewicht"),
-      wdh: radWert("t-rad-wdh"),
-      saetze: radWert("t-rad-saetze"),
-      datum: new Date().toISOString(),
-      routineId: t.routineId,
-      routineName: t.routineName
-    };
+    t.saetze.push({ gewicht: radWert("t-rad-gewicht"), wdh: radWert("t-rad-wdh") });
+    t.extraSatz = false;
 
-    eintraege.push(eintrag);
+    let eintrag = eintragFinden(t.eintragId);
+    if (!eintrag) {
+      eintrag = {
+        id: neueId("e"),
+        uebung: u.name,
+        uebungId: u.uebungId || "",
+        muskelgruppe: u.muskelgruppe,
+        datum: new Date().toISOString(),
+        routineId: t.routineId,
+        routineName: t.routineName
+      };
+      eintraege.push(eintrag);
+      t.eintragId = eintrag.id;
+      t.erledigt.push({ id: eintrag.id, uebung: eintrag.uebung });
+    }
+
+    // Die einzelnen Sätze, dazu wie bei jedem Eintrag Sätze, Wdh. und Gewicht:
+    // die Anzahl der Sätze und die Werte des schwersten Satzes (bei gleichem Gewicht der mit mehr Wdh.)
+    let schwerster = t.saetze[0];
+    eintrag.einzelsaetze = [];
+    for (let i = 0; i < t.saetze.length; i++) {
+      const s = t.saetze[i];
+      eintrag.einzelsaetze.push({ gewicht: s.gewicht, wdh: s.wdh });
+      if (s.gewicht > schwerster.gewicht || (s.gewicht === schwerster.gewicht && s.wdh > schwerster.wdh)) {
+        schwerster = s;
+      }
+    }
+    eintrag.saetze = t.saetze.length;
+    eintrag.gewicht = schwerster.gewicht;
+    eintrag.wdh = schwerster.wdh;
+
     localStorage.setItem("eintraege", JSON.stringify(eintraege));
     anzeigen();
     letztesMalAnzeigen();
 
-    t.erledigt.push({ id: eintrag.id, uebung: eintrag.uebung, gewicht: eintrag.gewicht, wdh: eintrag.wdh, saetze: eintrag.saetze });
+    gemerkteTrainingRadWerte = null;
+    trainingMerken();
+    pauseStarten(pauseDauer(u));
+    modusZustandAnzeigen(false);
+    window.scrollTo(0, 0);
+  }
+
+  // "+ Satz" nach dem letzten Ziel-Satz: noch ein Satz derselben Übung
+  function extraSatzStarten() {
+    laufendesTraining.extraSatz = true;
+    gemerkteTrainingRadWerte = null;
+    trainingMerken();
+    modusZustandAnzeigen(true);
+  }
+
+  // "Nächste Übung" oder "Übung überspringen": Ohne einen einzigen Satz zählt die Übung als übersprungen
+  function uebungBeenden() {
+    if (laufendesTraining.saetze.length === 0) {
+      laufendesTraining.uebersprungen++;
+    }
     trainingWeiter();
   }
 
-  function trainingUeberspringen() {
-    laufendesTraining.uebersprungen++;
-    trainingWeiter();
-  }
-
-  // Nächste Übung, oder nach der letzten die Zusammenfassung
+  // Nächste Übung, oder nach der letzten die Zusammenfassung. Eine laufende Pause läuft weiter.
   function trainingWeiter() {
     laufendesTraining.index++;
+    laufendesTraining.saetze = [];
+    laufendesTraining.eintragId = "";
+    laufendesTraining.extraSatz = false;
+    gemerkteTrainingRadWerte = null;
     if (laufendesTraining.index >= laufendesTraining.uebungen.length) {
       trainingAbschliessen();
       return;
@@ -1864,8 +2131,10 @@
     let anzahlSaetze = 0;
     let bewegt = 0;
     for (let i = 0; i < t.erledigt.length; i++) {
-      anzahlSaetze += t.erledigt[i].saetze;
-      bewegt += t.erledigt[i].saetze * t.erledigt[i].wdh * t.erledigt[i].gewicht;
+      // Gezählt wird, was im Eintrag steht. Gibt es ihn nicht mehr, gelten die gemerkten Werte.
+      const eintrag = eintragFinden(t.erledigt[i].id) || t.erledigt[i];
+      anzahlSaetze += saetzeVon(eintrag).length;
+      bewegt += eintragVolumen(eintrag, 0);
     }
 
     let text = t.routineName + " · " + t.erledigt.length + " von " + uebungenText(t.uebungen.length) + " gespeichert";
@@ -1878,6 +2147,11 @@
     document.getElementById("fertig-gewicht").textContent = bewegt.toLocaleString("de-DE") + " kg";
 
     trainingseinheitSpeichern(t);
+
+    // Nach dem Training braucht es keine Pause mehr
+    pause = null;
+    pauseVorbeiSeit = 0;
+    localStorage.removeItem("pause");
 
     laufendesTraining = null;
     gemerkteTrainingRadWerte = null;
@@ -2227,13 +2501,8 @@
         anzahlUebungen++;
       }
       // Einträge, bei denen keine Zahl steht, werden wie auf der Fortschritt-Seite übersprungen
-      const gewicht = Number(String(e.gewicht).replace(",", "."));
-      if (!isNaN(Number(e.saetze))) {
-        anzahlSaetze += Number(e.saetze);
-      }
-      if (!isNaN(Number(e.saetze) * Number(e.wdh) * gewicht)) {
-        bewegt += Number(e.saetze) * Number(e.wdh) * gewicht;
-      }
+      anzahlSaetze += saetzeVon(e).length;
+      bewegt += eintragVolumen(e, 0);
     }
 
     let info = tagText(training.datum) + training.datum.getFullYear();
@@ -2263,6 +2532,249 @@
     if (document.visibilityState === "visible" && aktiveSeite === "home") {
       homeAnzeigen();
     }
+  });
+
+  // ---------- Pausentimer ----------
+
+  // Die Pause lässt sich in diesen Schritten einstellen, bis zu diesem Höchstwert (alles in Sekunden)
+  const PAUSE_SCHRITT = 15;
+  const PAUSE_MAX = 600;
+  const PAUSE_STANDARD = 120;
+
+  // So lange steht nach dem Ende "Pause vorbei" da (in Millisekunden)
+  const PAUSE_VORBEI_ANZEIGE = 5000;
+
+  // Wann die letzte Pause abgelaufen ist (0 = keine oder übersprungen)
+  let pauseVorbeiSeit = 0;
+
+  // Der Takt, der die Anzeige viermal pro Sekunde auffrischt (null = läuft nicht)
+  let pauseTakt = null;
+
+  // Macht aus einer Eingabe eine Pause in Sekunden: auf 15 Sekunden gerundet, höchstens 10 Minuten.
+  // Leer oder keine Zahl ergibt null, das heißt "Standard".
+  function pauseLesen(wert) {
+    const zahl = Math.round(Number(wert) / PAUSE_SCHRITT) * PAUSE_SCHRITT;
+    if (wert === null || wert === undefined || wert === "" || isNaN(zahl) || zahl < PAUSE_SCHRITT) {
+      return null;
+    }
+    return Math.min(zahl, PAUSE_MAX);
+  }
+
+  // Sekunden als Text, z. B. 105 wird "1:45"
+  function pauseText(sekunden) {
+    return Math.floor(sekunden / 60) + ":" + String(sekunden % 60).padStart(2, "0");
+  }
+
+  // Die Standard-Pause aus dem Profil
+  function pauseStandard() {
+    return pauseLesen(einstellungen.pauseSekunden) || PAUSE_STANDARD;
+  }
+
+  // Die Pause für eine Übung: ihre eigene aus der Routine, sonst die Standard-Pause
+  function pauseDauer(uebung) {
+    return pauseLesen(uebung.pause) || pauseStandard();
+  }
+
+  // Profil: zeigt die Standard-Pause
+  function pauseStandardAnzeigen() {
+    document.getElementById("pause-standard").textContent = pauseText(pauseStandard());
+  }
+
+  // Profil: macht die Standard-Pause um 15 Sekunden kürzer oder länger
+  function pauseStandardAendern(sekunden) {
+    einstellungen.pauseSekunden = Math.max(PAUSE_SCHRITT, Math.min(PAUSE_MAX, pauseStandard() + sekunden));
+    localStorage.setItem("einstellungen", JSON.stringify(einstellungen));
+    pauseStandardAnzeigen();
+  }
+
+  // Restzeit der laufenden Pause in Millisekunden. Ohne Pause oder nach ihrem Ende: 0.
+  function pauseRest() {
+    if (!pause) {
+      return 0;
+    }
+    return Math.max(0, pause.ende - Date.now());
+  }
+
+  function pauseMerken() {
+    if (pause) {
+      localStorage.setItem("pause", JSON.stringify(pause));
+    } else {
+      localStorage.removeItem("pause");
+    }
+  }
+
+  // Startet eine Pause. Gemerkt wird nur ihr Ende, die Restzeit wird daraus immer neu berechnet.
+  function pauseStarten(sekunden) {
+    pause = { ende: Date.now() + sekunden * 1000 };
+    pauseVorbeiSeit = 0;
+    pauseMerken();
+    tonVorbereiten();
+    pauseTaktStarten();
+  }
+
+  // Verlängert (+) oder verkürzt (−) die laufende Pause
+  function pauseAendern(sekunden) {
+    if (pauseRest() === 0) {
+      return;
+    }
+    pause.ende += sekunden * 1000;
+    if (pauseRest() === 0) {
+      pauseUeberspringen();
+      return;
+    }
+    pauseMerken();
+    pauseAnzeigen();
+  }
+
+  // Beendet die Pause sofort, ohne Ton
+  function pauseUeberspringen() {
+    pause = null;
+    pauseVorbeiSeit = 0;
+    pauseMerken();
+    pauseAnzeigen();
+  }
+
+  function pauseTaktStarten() {
+    if (pauseTakt === null) {
+      pauseTakt = setInterval(pauseTick, 250);
+    }
+    pauseTick();
+  }
+
+  // Läuft viermal pro Sekunde und beim Zurückkehren zur App: bemerkt das Ende der Pause und frischt die Anzeige auf
+  function pauseTick() {
+    if (pause && pauseRest() === 0) {
+      // Ton und Vibration nur, wenn die Pause gerade eben abgelaufen ist, also die App dabei offen war
+      if (Date.now() - pause.ende < 2000) {
+        tonSpielen();
+        if (navigator.vibrate) {
+          navigator.vibrate([200, 100, 200]);
+        }
+      }
+      pause = null;
+      pauseVorbeiSeit = Date.now();
+      pauseMerken();
+    }
+    pauseAnzeigen();
+  }
+
+  // Zeigt die Pause: im Trainingsmodus als großen Countdown, überall sonst als Leiste über der Navigation
+  function pauseAnzeigen() {
+    const laeuft = pauseRest() > 0;
+    const vorbei = !laeuft && Date.now() - pauseVorbeiSeit < PAUSE_VORBEI_ANZEIGE;
+    const imModus = aktiveSeite === "training" && trainingAnsicht === "modus";
+
+    const leiste = document.getElementById("pause-leiste");
+    leiste.classList.toggle("sichtbar", !imModus && (laeuft || vorbei));
+    leiste.classList.toggle("vorbei", !laeuft);
+    if (laeuft) {
+      document.getElementById("pause-leiste-rest").textContent = pauseText(Math.ceil(pauseRest() / 1000));
+    } else {
+      document.getElementById("pause-leiste-rest").textContent = "Pause vorbei";
+    }
+
+    if (imModus) {
+      modusZustandAnzeigen(false);
+    }
+
+    // Gibt es nichts mehr zu zeigen, hört der Takt auf
+    if (!laeuft && !vorbei && pauseTakt !== null) {
+      clearInterval(pauseTakt);
+      pauseTakt = null;
+    }
+  }
+
+  // Der Ton am Ende der Pause wird von der App selbst erzeugt, es gibt keine Sounddatei.
+  // Browser erlauben Ton erst nach einem Tippen. Deshalb wird er beim Start der Pause vorbereitet.
+  let tonKontext = null;
+
+  function tonVorbereiten() {
+    try {
+      const Klasse = window.AudioContext || window.webkitAudioContext;
+      if (!Klasse) {
+        return;
+      }
+      if (!tonKontext) {
+        tonKontext = new Klasse();
+      }
+      if (tonKontext.state === "suspended") {
+        tonKontext.resume();
+      }
+    } catch (fehler) {
+      // Ohne Ton läuft der Timer normal weiter
+    }
+  }
+
+  // Drei kurze Pieptöne
+  function tonSpielen() {
+    if (!tonKontext) {
+      return;
+    }
+    try {
+      for (let i = 0; i < 3; i++) {
+        const start = tonKontext.currentTime + i * 0.25;
+        const ton = tonKontext.createOscillator();
+        const lautstaerke = tonKontext.createGain();
+        ton.frequency.value = 880;
+        lautstaerke.gain.setValueAtTime(0.0001, start);
+        lautstaerke.gain.exponentialRampToValueAtTime(0.4, start + 0.02);
+        lautstaerke.gain.exponentialRampToValueAtTime(0.0001, start + 0.18);
+        ton.connect(lautstaerke);
+        lautstaerke.connect(tonKontext.destination);
+        ton.start(start);
+        ton.stop(start + 0.2);
+      }
+    } catch (fehler) {
+      // Kein Ton möglich
+    }
+  }
+
+  // ---------- Display anlassen ----------
+
+  // Die Sperre, die das Display anlässt (null = keine), und ob gerade eine angefragt wird
+  let wachSperre = null;
+  let wachSperreAngefragt = false;
+
+  // Das Display bleibt an, solange der Trainingsmodus zu sehen ist. Sonst gibt die App es wieder frei.
+  // Nicht jedes Gerät kann das (Screen Wake Lock API). Dann passiert einfach nichts.
+  function wachSperreAktualisieren() {
+    const soll = Boolean(laufendesTraining) && aktiveSeite === "training" && trainingAnsicht === "modus"
+      && document.visibilityState === "visible";
+
+    if (!soll) {
+      if (wachSperre) {
+        wachSperre.release().catch(function () {});
+        wachSperre = null;
+      }
+      return;
+    }
+    if (wachSperre || wachSperreAngefragt || !("wakeLock" in navigator)) {
+      return;
+    }
+
+    wachSperreAngefragt = true;
+    navigator.wakeLock.request("screen").then(function (sperre) {
+      wachSperreAngefragt = false;
+      wachSperre = sperre;
+      // Das Handy nimmt die Sperre von selbst zurück, sobald die App in den Hintergrund geht
+      sperre.addEventListener("release", function () {
+        if (wachSperre === sperre) {
+          wachSperre = null;
+        }
+      });
+      // Hat sich inzwischen etwas geändert, wird sie gleich wieder freigegeben
+      wachSperreAktualisieren();
+    }).catch(function () {
+      wachSperreAngefragt = false;
+    });
+  }
+
+  // Beim Zurückkehren zur App: Restzeit der Pause neu berechnen und das Display wieder anlassen
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") {
+      pauseTick();
+    }
+    wachSperreAktualisieren();
   });
 
   // ---------- Diagramme ----------
@@ -2540,30 +3052,35 @@
       if (!hatDatum(e) || typeof e.uebung !== "string" || !gleicheUebung(e, name, id)) {
         continue;
       }
-      const gewicht = Number(String(e.gewicht).replace(",", "."));
-      const wdh = Number(e.wdh);
-      const saetze = Number(e.saetze);
-      if (isNaN(gewicht) || isNaN(wdh) || isNaN(saetze)) {
+      const saetze = saetzeVon(e);
+      if (saetze.length === 0) {
         continue;
       }
 
       const datum = new Date(e.datum);
-      let last = gewicht;
+      let koerper = 0;
       if (eigengewicht) {
-        const koerper = koerpergewichtAm(datum);
-        if (koerper !== null) {
-          last += koerper;
+        const gemessen = koerpergewichtAm(datum);
+        if (gemessen !== null) {
+          koerper = gemessen;
         }
       }
 
-      let wert = gewicht;
-      if (art === "1rm") {
-        wert = last;
-        if (wdh > 1) {
-          wert = last * (1 + wdh / 30);
+      // Der Wert des Eintrags: der beste Satz (1RM, schwerstes Gewicht) oder die Summe aller Sätze (Volumen)
+      let wert = 0;
+      for (let j = 0; j < saetze.length; j++) {
+        const last = saetze[j].gewicht + koerper;
+        if (art === "1rm") {
+          let geschaetzt = last;
+          if (saetze[j].wdh > 1) {
+            geschaetzt = last * (1 + saetze[j].wdh / 30);
+          }
+          wert = Math.max(wert, geschaetzt);
+        } else if (art === "volumen") {
+          wert += saetze[j].wdh * last;
+        } else {
+          wert = Math.max(wert, saetze[j].gewicht);
         }
-      } else if (art === "volumen") {
-        wert = saetze * wdh * last;
       }
 
       const schluessel = tagSchluessel(datum);
@@ -2896,6 +3413,9 @@
   // Messungen des Körpergewichts aus der Datei. null heißt: Das Backup enthält keine.
   let importGewichte = null;
 
+  // Die Standard-Pause aus der Datei in Sekunden. null heißt: Das Backup enthält keine.
+  let importPause = null;
+
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
     if (!r || typeof r !== "object" || typeof r.name !== "string" || !Array.isArray(r.uebungen)) {
@@ -2918,7 +3438,7 @@
         if (typeof u.uebungId === "string") {
           id = u.uebungId;
         }
-        const neu = { name: u.name, uebungId: id, muskelgruppe: gruppe, zielSaetze: zielLesen(u.zielSaetze, 10), zielWdh: zielLesen(u.zielWdh, 30) };
+        const neu = { name: u.name, uebungId: id, muskelgruppe: gruppe, zielSaetze: zielLesen(u.zielSaetze, 10), zielWdh: zielLesen(u.zielWdh, 30), pause: pauseLesen(u.pause) };
         idErgaenzen(neu, u.name);
         sauber.uebungen.push(neu);
       }
@@ -3066,13 +3586,14 @@
   function backupText() {
     const backup = {
       app: "gymstead",
-      version: 4,
+      version: 5,
       exportiert: new Date().toISOString(),
       eintraege: eintraege,
       routinen: routinen,
       wochenplan: wochenplan,
       trainings: trainings,
-      koerpergewicht: koerpergewicht
+      koerpergewicht: koerpergewicht,
+      einstellungen: einstellungen
     };
     return JSON.stringify(backup, null, 2);
   }
@@ -3173,6 +3694,12 @@
     // Ebenso fehlt ihnen die eigene id des Eintrags
     eintragIdsErgaenzen(importEintraege);
 
+    // Die Standard-Pause gibt es erst in neueren Backups
+    importPause = null;
+    if (daten && !Array.isArray(daten) && daten.einstellungen && typeof daten.einstellungen === "object") {
+      importPause = pauseLesen(daten.einstellungen.pauseSekunden);
+    }
+
     // Das Körpergewicht gibt es erst in neueren Backups. Übernommen wird nur, was Datum und Gewicht hat.
     importGewichte = null;
     if (daten && !Array.isArray(daten) && Array.isArray(daten.koerpergewicht)) {
@@ -3267,6 +3794,13 @@
     }
     datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art));
 
+    // Die Standard-Pause wird nur beim Ersetzen übernommen
+    if (art === "ersetzen" && importPause !== null) {
+      einstellungen.pauseSekunden = importPause;
+      localStorage.setItem("einstellungen", JSON.stringify(einstellungen));
+      pauseStandardAnzeigen();
+    }
+
     localStorage.setItem("eintraege", JSON.stringify(eintraege));
     importEintraege = [];
     importRoutinen = null;
@@ -3317,15 +3851,22 @@ for (let i = 300; i <= 2000; i++) {
 }
 radBauen("rad-koerpergewicht", koerpergewichte, null);
 
-// Die drei Räder des Trainingsmodus
+// Die zwei Räder des Trainingsmodus. Jede Änderung landet in den großen Zahlen darüber.
 radBauen("t-rad-gewicht", gewichte, "training");
 radBauen("t-rad-wdh", wiederholungen, "training");
-radBauen("t-rad-saetze", saetze, "training");
+raeder["t-rad-gewicht"].beimWechsel = modusGrossAnzeigen;
+raeder["t-rad-wdh"].beimWechsel = modusGrossAnzeigen;
 
 wochenleisteAnzeigen();
 anzeigen();
 homeAnzeigen();
 trainingAnzeigen();
+pauseStandardAnzeigen();
+
+// Lief beim Schließen der App noch eine Pause, geht sie mit der richtigen Restzeit weiter
+if (pause) {
+  pauseTaktStarten();
+}
 trainingBeimStartPruefen();
 
 // ---------- Offline und Updates ----------

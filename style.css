@@ -372,7 +372,8 @@ h1 {
 }
 
 /* "Letztes Mal" als Karte; ohne Text unsichtbar */
-#letztesMal {
+#letztesMal,
+.letztes-mal {
   margin: 10px 0 0;
   padding: 14px 18px;
   border-left: 3px solid var(--akzent-text);
@@ -382,7 +383,8 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-#letztesMal:empty {
+#letztesMal:empty,
+.letztes-mal:empty {
   display: none;
 }
 
@@ -730,7 +732,8 @@ h1 {
 
 /* ---------- Dialog: Frage vor dem Import ---------- */
 
-#dialog-hintergrund {
+#dialog-hintergrund,
+#frage-hintergrund {
   position: fixed;
   top: 0;
   left: 0;
@@ -744,11 +747,21 @@ h1 {
   background: var(--abdunklung-stark);
 }
 
-#dialog-hintergrund.offen {
+#dialog-hintergrund.offen,
+#frage-hintergrund.offen {
   display: flex;
 }
 
-#dialog {
+#dialog,
+#frage,
+#frage-knoepfe {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#dialog,
+#frage {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -759,15 +772,22 @@ h1 {
   background: var(--karte);
 }
 
-#dialog h2 {
+#dialog h2,
+#frage h2 {
   margin: 0;
   font-size: 22px;
   font-weight: 700;
 }
 
-#dialog-text {
+#dialog-text,
+#frage-text {
   margin: 0 0 8px;
   color: var(--text-leise);
+}
+
+/* Zeilenumbrüche im Text der Rückfrage bleiben erhalten (z. B. die sieben Tage des Wochenplans) */
+#frage-text {
+  white-space: pre-line;
 }
 
 .dialog-btn.haupt {
@@ -779,6 +799,338 @@ h1 {
 .dialog-btn.leise {
   background: none;
   color: var(--text-leise);
+}
+
+/* ---------- Training: Ansichten ---------- */
+
+/* Im Training-Tab ist immer nur eine Ansicht sichtbar, die anderen sind versteckt */
+.versteckt {
+  display: none !important;
+}
+
+.ansicht {
+  animation: seite-einblenden 0.3s ease-out;
+}
+
+/* Großer Titel einer Unteransicht, etwas kleiner als der Seitentitel */
+.ansicht-titel {
+  margin: 8px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+/* Reiner Text-Button, z. B. "Abbrechen" oder "Beenden" */
+.text-btn {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--akzent-text);
+  font-size: 17px;
+}
+
+/* Zweitwichtigster Button: volle Breite, aber ohne grüne Fläche */
+.zweit-btn {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 10px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 16px;
+  background: var(--karte);
+  color: var(--akzent-text);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.meldung {
+  margin: 14px 4px 0;
+  color: var(--text-leise);
+  font-size: 15px;
+}
+
+.meldung:empty {
+  display: none;
+}
+
+/* ---------- Training: Wochenplan ---------- */
+
+.wochenplan {
+  padding: 4px 12px 4px 18px;
+}
+
+.plan-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  border-bottom: 1px solid var(--rand);
+}
+
+.plan-zeile:last-child {
+  border-bottom: none;
+}
+
+.plan-tag {
+  width: 30px;
+  font-weight: 700;
+}
+
+/* Der heutige Tag ist grün */
+.plan-zeile.heute .plan-tag {
+  color: var(--akzent-text);
+}
+
+.plan-zeile select {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 12px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 17px;
+}
+
+/* ---------- Training: Karten für Routinen und Vorlagen ---------- */
+
+.routine-karte,
+.laufend {
+  margin-bottom: 10px;
+}
+
+/* Laufendes Training: grüner Streifen wie bei "Letztes Mal" */
+.laufend {
+  border-left: 3px solid var(--akzent-text);
+}
+
+.routine-name {
+  font-size: 20px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.routine-info {
+  margin-top: 4px;
+  color: var(--text-leise);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.vorlage-oft {
+  margin-top: 4px;
+  color: var(--akzent-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.karten-knoepfe {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.knopf {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 12px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.knopf.haupt {
+  background: var(--akzent);
+  color: var(--auf-akzent);
+  font-weight: 700;
+}
+
+.knopf.leise {
+  flex: 0 0 auto;
+  background: none;
+  color: var(--text-leise);
+}
+
+/* ---------- Training: Routine bearbeiten ---------- */
+
+.text-feld {
+  width: 100%;
+  height: 58px;
+  margin-top: 16px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 16px;
+  background: var(--karte);
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.text-feld::placeholder {
+  color: var(--text-leise);
+  font-weight: 400;
+}
+
+.text-feld:focus,
+.ziel input:focus,
+.plan-zeile select:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--akzent-text);
+}
+
+/* Eine Übung im Editor: links die Pfeile, in der Mitte Name und Ziele, rechts Entfernen */
+.uebung-zeile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 12px 6px 12px 10px;
+  border-radius: 16px;
+}
+
+.pfeile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pfeile button,
+.entfernen {
+  width: 44px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-size: 18px;
+}
+
+.pfeile button:disabled {
+  opacity: 0.25;
+}
+
+.entfernen {
+  flex-shrink: 0;
+  align-self: flex-start;
+  background: none;
+  color: var(--text-leise);
+}
+
+.uebung-mitte {
+  flex: 1;
+  min-width: 0;
+}
+
+.uebung-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.uebung-gruppe {
+  color: var(--text-leise);
+  font-size: 14px;
+}
+
+.ziele {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.ziel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-leise);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ziel input {
+  width: 54px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Die kleinen Pfeile im Zahlenfeld ausblenden */
+.ziel input::-webkit-inner-spin-button,
+.ziel input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ---------- Training: Trainingsmodus und Zusammenfassung ---------- */
+
+.modus-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-leise);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Fortschrittsbalken: füllt sich mit jeder Übung */
+.modus-balken {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--fuellung);
+  overflow: hidden;
+}
+
+#modus-fortschritt {
+  width: 0;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--akzent-text);
+  transition: width 0.3s;
+}
+
+.modus-schritt {
+  margin-top: 22px;
+  color: var(--akzent-text);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modus-ziel {
+  margin: 6px 0 0;
+  color: var(--text-leise);
+}
+
+.modus-ziel:empty {
+  display: none;
+}
+
+.letztes-mal {
+  margin-top: 14px;
+}
+
+/* Kachel über die ganze Breite */
+.kachel-breit {
+  grid-column: 1 / -1;
 }
 
 /* Wer am Gerät "Bewegung reduzieren" eingestellt hat, bekommt keine Animationen */

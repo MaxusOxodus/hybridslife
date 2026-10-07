@@ -21,7 +21,7 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -66,9 +66,93 @@
 
   <!-- Seite: Training -->
   <section id="seite-training" class="seite">
-    <h1>Training</h1>
-    <p class="unterzeile">Deine Trainingspläne</p>
-    <div class="karte kommt-bald">Kommt bald</div>
+
+    <!-- Ansicht: Übersicht mit Wochenplan, Routinen und Vorlagen -->
+    <div id="ansicht-uebersicht" class="ansicht">
+      <h1>Training</h1>
+      <p class="unterzeile">Deine Trainingspläne</p>
+
+      <div id="laufend-karte"></div>
+
+      <h2 class="abschnitt">Wochenplan</h2>
+      <div id="wochenplan" class="karte wochenplan"></div>
+
+      <h2 class="abschnitt">Meine Routinen</h2>
+      <div id="routinen-liste"></div>
+      <button class="zweit-btn" onclick="routineNeu()">Neue Routine</button>
+
+      <h2 class="abschnitt">Vorlagen</h2>
+      <div id="vorlagen-liste"></div>
+    </div>
+
+    <!-- Ansicht: Routine erstellen oder bearbeiten -->
+    <div id="ansicht-bearbeiten" class="ansicht versteckt">
+      <button class="text-btn" onclick="routineBearbeitenAbbrechen()">‹ Abbrechen</button>
+      <div id="bearbeiten-titel" class="ansicht-titel">Neue Routine</div>
+      <input id="routine-name" class="text-feld" placeholder="Name, z. B. Push-Tag" maxlength="40">
+
+      <h2 class="abschnitt">Übungen</h2>
+      <div id="routine-uebungen"></div>
+      <button class="zweit-btn" onclick="sheetOeffnen('routine')">Übung hinzufügen</button>
+
+      <p id="routine-meldung" class="meldung"></p>
+      <button class="speichern-btn" onclick="routineSpeichern()">Routine speichern</button>
+    </div>
+
+    <!-- Ansicht: Trainingsmodus, eine Übung nach der anderen -->
+    <div id="ansicht-modus" class="ansicht versteckt">
+      <div class="modus-kopf">
+        <span id="modus-routine"></span>
+        <button class="text-btn" onclick="trainingBeendenFragen()">Beenden</button>
+      </div>
+      <div class="modus-balken"><div id="modus-fortschritt"></div></div>
+
+      <div id="modus-schritt" class="modus-schritt"></div>
+      <div id="modus-uebung" class="ansicht-titel"></div>
+      <p id="modus-ziel" class="modus-ziel"></p>
+      <p id="modus-letztesMal" class="letztes-mal"></p>
+
+      <div class="raeder">
+        <div>
+          <div class="rad-titel">Gewicht (kg)</div>
+          <div class="rad-rahmen"><div id="t-rad-gewicht" class="rad"></div></div>
+        </div>
+        <div>
+          <div class="rad-titel">Wdh.</div>
+          <div class="rad-rahmen"><div id="t-rad-wdh" class="rad"></div></div>
+        </div>
+        <div>
+          <div class="rad-titel">Sätze</div>
+          <div class="rad-rahmen"><div id="t-rad-saetze" class="rad"></div></div>
+        </div>
+      </div>
+
+      <button id="modus-speichern" class="speichern-btn" onclick="trainingSpeichern()">Speichern &amp; weiter</button>
+      <button class="zweit-btn" onclick="trainingUeberspringen()">Überspringen</button>
+    </div>
+
+    <!-- Ansicht: Zusammenfassung nach dem Training -->
+    <div id="ansicht-fertig" class="ansicht versteckt">
+      <div class="ansicht-titel">Geschafft!</div>
+      <p id="fertig-text" class="unterzeile"></p>
+
+      <div class="kacheln">
+        <div class="karte">
+          <div id="fertig-uebungen" class="kachel-zahl">0</div>
+          <div class="kachel-titel">Übungen</div>
+        </div>
+        <div class="karte">
+          <div id="fertig-saetze" class="kachel-zahl">0</div>
+          <div class="kachel-titel">Sätze</div>
+        </div>
+        <div class="karte kachel-breit">
+          <div id="fertig-gewicht" class="kachel-zahl">0 kg</div>
+          <div class="kachel-titel">Bewegtes Gewicht</div>
+        </div>
+      </div>
+
+      <button class="speichern-btn" onclick="trainingAnsichtZeigen('uebersicht')">Fertig</button>
+    </div>
   </section>
 
   <!-- Seite: Fortschritt -->
@@ -174,7 +258,16 @@
     </div>
   </div>
 
-<script src="app.js?v=6"></script>
+  <!-- Allgemeine Rückfrage, z. B. vor dem Löschen einer Routine. Text und Buttons setzt die app.js. -->
+  <div id="frage-hintergrund">
+    <div id="frage">
+      <h2 id="frage-titel"></h2>
+      <p id="frage-text"></p>
+      <div id="frage-knoepfe"></div>
+    </div>
+  </div>
+
+<script src="app.js?v=7"></script>
 
 </body>
 </html>

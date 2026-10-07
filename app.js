@@ -211,7 +211,10 @@
   const raeder = {};
 
   // Die gerade sichtbare Seite
-  let aktiveSeite = "log";
+  let aktiveSeite = "home";
+
+  // Die sichtbare Ansicht auf der Home-Seite: "home" (Übersicht) oder "log" (Eintragen und Liste)
+  let homeAnsicht = "home";
 
   // Die gerade gewählte Übung und ihre Muskelgruppe ("" = nichts gewählt).
   // Die ID gibt es nur bei Übungen aus der Übungsliste, bei eigenen Übungen bleibt sie "".
@@ -251,6 +254,16 @@
     || !(laufendesTraining.index >= 0 && laufendesTraining.index < laufendesTraining.uebungen.length)) {
     laufendesTraining = null;
   }
+
+  // Trainingseinheiten: Jede entsteht, wenn ein Training im Trainingsmodus beendet wird.
+  // Sie merkt sich Start, Ende, die Routine und die ids der Einträge, die dabei gespeichert wurden.
+  let trainings = gespeichertLesen("trainings", []);
+  if (!Array.isArray(trainings)) {
+    trainings = [];
+  }
+
+  // Zählt bei jeder neuen id hoch, damit auch zwei ids aus derselben Millisekunde verschieden sind
+  let idZaehler = 0;
 
   // Gespeicherte Daten aus älteren Versionen kennen nur Übungsnamen: einmal die feste ID ergänzen
   gespeicherteDatenZuordnen();
@@ -333,10 +346,26 @@
     return geaendert;
   }
 
+  // Gibt jedem Eintrag ohne eigene id eine. Über diese id merkt sich eine Trainingseinheit ihre Einträge.
+  // Gibt true zurück, wenn etwas ergänzt wurde.
+  function eintragIdsErgaenzen(liste) {
+    let geaendert = false;
+    for (let i = 0; i < liste.length; i++) {
+      if (liste[i] && (typeof liste[i].id !== "string" || liste[i].id === "")) {
+        liste[i].id = neueId("e");
+        geaendert = true;
+      }
+    }
+    return geaendert;
+  }
+
   // Geht beim Start einmal durch Einträge, Routinen und das laufende Training.
   // Gespeichert wird nur, wenn wirklich etwas ergänzt wurde.
   function gespeicherteDatenZuordnen() {
-    if (listeZuordnen(eintraege, "uebung")) {
+    // Beide Schritte laufen immer, gespeichert wird einmal
+    const uebungenErgaenzt = listeZuordnen(eintraege, "uebung");
+    const idsErgaenzt = eintragIdsErgaenzen(eintraege);
+    if (uebungenErgaenzt || idsErgaenzt) {
       localStorage.setItem("eintraege", JSON.stringify(eintraege));
     }
 
@@ -373,12 +402,16 @@
   // Zeigt eine Seite und markiert ihren Tab
   function seiteZeigen(name) {
     // Ausgeblendete Räder verlieren ihre Stellung, deshalb vorher merken
-    let radWerte = null;
-    if (aktiveSeite === "log") {
-      radWerte = [radWert("rad-gewicht"), radWert("rad-wdh"), radWert("rad-saetze")];
+    if (aktiveSeite === "home" && homeAnsicht === "log") {
+      logRaederMerken();
     }
     if (aktiveSeite === "training" && trainingAnsicht === "modus") {
       gemerkteTrainingRadWerte = [radWert("t-rad-gewicht"), radWert("t-rad-wdh"), radWert("t-rad-saetze")];
+    }
+
+    // Der Home-Tab führt von der Log-Ansicht zurück zur Übersicht
+    if (name === "home" && aktiveSeite === "home") {
+      homeAnsichtZeigen("home");
     }
 
     document.getElementById("seite-" + aktiveSeite).classList.remove("aktiv");
@@ -392,15 +425,11 @@
     document.getElementById("kopfzeile").textContent = document.querySelector("#seite-" + name + " h1").textContent;
     kopfzeileAktualisieren();
 
-    if (name === "log") {
-      if (radWerte === null) {
-        radWerte = gemerkteRadWerte;
+    if (name === "home") {
+      homeAnzeigen();
+      if (homeAnsicht === "log") {
+        logRaederSetzen();
       }
-      radSetzen("rad-gewicht", radWerte[0]);
-      radSetzen("rad-wdh", radWerte[1]);
-      radSetzen("rad-saetze", radWerte[2]);
-    } else if (radWerte !== null) {
-      gemerkteRadWerte = radWerte;
     }
 
     if (name === "fortschritt") {
@@ -424,8 +453,18 @@
 
   window.addEventListener("scroll", kopfzeileAktualisieren);
 
-  // Stellung der Räder, solange die Log-Seite ausgeblendet ist
+  // Stellung der Räder, solange die Log-Ansicht ausgeblendet ist
   let gemerkteRadWerte = [START_GEWICHT, START_WDH, START_SAETZE];
+
+  function logRaederMerken() {
+    gemerkteRadWerte = [radWert("rad-gewicht"), radWert("rad-wdh"), radWert("rad-saetze")];
+  }
+
+  function logRaederSetzen() {
+    radSetzen("rad-gewicht", gemerkteRadWerte[0]);
+    radSetzen("rad-wdh", gemerkteRadWerte[1]);
+    radSetzen("rad-saetze", gemerkteRadWerte[2]);
+  }
 
   // ---------- Datum-Helfer ----------
 
@@ -1005,6 +1044,7 @@
     }
 
     const eintrag = {
+        id: neueId("e"),
         uebung: gewaehlteUebung,
         uebungId: gewaehlteUebungId,
         muskelgruppe: gewaehlteGruppe,
@@ -1169,9 +1209,11 @@
     }
   }
 
-  // Eine neue, eindeutige id für eine Routine
-  function neueId() {
-    return "r" + Date.now() + "-" + Math.floor(Math.random() * 1000000);
+  // Eine neue, eindeutige id. Der Anfangsbuchstabe zeigt, wofür sie ist:
+  // "r" für eine Routine (gilt ohne Angabe), "e" für einen Eintrag, "t" für eine Trainingseinheit.
+  function neueId(anfang) {
+    idZaehler++;
+    return (anfang || "r") + Date.now() + "-" + idZaehler + "-" + Math.floor(Math.random() * 1000000);
   }
 
   // Sucht eine Routine über ihre id. Gibt null zurück, wenn es sie nicht gibt.
@@ -1708,6 +1750,7 @@
     laufendesTraining = null;
     trainingMerken();
     trainingAnzeigen();
+    homeAnzeigen();
   }
 
   // Zeigt die aktuelle Übung und stellt die Räder ein
@@ -1754,6 +1797,7 @@
     const u = t.uebungen[t.index];
 
     const eintrag = {
+      id: neueId("e"),
       uebung: u.name,
       uebungId: u.uebungId || "",
       muskelgruppe: u.muskelgruppe,
@@ -1770,7 +1814,7 @@
     anzeigen();
     letztesMalAnzeigen();
 
-    t.erledigt.push({ uebung: eintrag.uebung, gewicht: eintrag.gewicht, wdh: eintrag.wdh, saetze: eintrag.saetze });
+    t.erledigt.push({ id: eintrag.id, uebung: eintrag.uebung, gewicht: eintrag.gewicht, wdh: eintrag.wdh, saetze: eintrag.saetze });
     trainingWeiter();
   }
 
@@ -1817,11 +1861,38 @@
     document.getElementById("fertig-saetze").textContent = anzahlSaetze;
     document.getElementById("fertig-gewicht").textContent = bewegt.toLocaleString("de-DE") + " kg";
 
+    trainingseinheitSpeichern(t);
+
     laufendesTraining = null;
     gemerkteTrainingRadWerte = null;
     trainingMerken();
     trainingAnzeigen();
     trainingAnsichtZeigen("fertig");
+  }
+
+  // Hält das beendete Training als Einheit fest: Startzeit, Endzeit, Routine und die ids der Einträge.
+  // Wurde keine einzige Übung gespeichert, entsteht keine Einheit.
+  function trainingseinheitSpeichern(t) {
+    const eintragIds = [];
+    for (let i = 0; i < t.erledigt.length; i++) {
+      if (t.erledigt[i].id) {
+        eintragIds.push(t.erledigt[i].id);
+      }
+    }
+    if (eintragIds.length === 0) {
+      return;
+    }
+
+    const ende = new Date().toISOString();
+    trainings.push({
+      id: neueId("t"),
+      start: t.gestartet || ende,
+      ende: ende,
+      routineId: t.routineId || "",
+      routineName: t.routineName || "",
+      eintragIds: eintragIds
+    });
+    localStorage.setItem("trainings", JSON.stringify(trainings));
   }
 
   // Beim Öffnen der App: Wartet noch ein Training, wird gefragt, ob es weitergehen soll
@@ -1837,6 +1908,330 @@
     ]);
   }
 
+  // ---------- Home ----------
+
+  // Wechselt auf der Home-Seite zwischen Übersicht ("home") und Log ("log")
+  function homeAnsichtZeigen(name) {
+    document.getElementById("ansicht-home").classList.toggle("versteckt", name !== "home");
+    document.getElementById("ansicht-log").classList.toggle("versteckt", name !== "log");
+    homeAnsicht = name;
+    window.scrollTo(0, 0);
+    kopfzeileAktualisieren();
+  }
+
+  // Öffnet das Log. Mit zurListe = true springt die Seite gleich zur Liste der Einträge.
+  function logZeigen(zurListe) {
+    homeAnsichtZeigen("log");
+    logRaederSetzen();
+    if (zurListe) {
+      document.getElementById("liste").scrollIntoView();
+      kopfzeileAktualisieren();
+    }
+  }
+
+  // Zurück vom Log zur Übersicht
+  function homeZeigen() {
+    logRaederMerken();
+    homeAnzeigen();
+    homeAnsichtZeigen("home");
+  }
+
+  // Öffnet das Log mit einem Tag der aktuellen Woche, so als wäre er dort angetippt worden
+  function logFuerTagZeigen(tag) {
+    angezeigterMontag = montagDerWoche(tag);
+    gewaehlterTag = tag;
+    wochenleisteAnzeigen();
+    speichernButtonAktualisieren();
+    anzeigen();
+    logZeigen();
+  }
+
+  // Baut die ganze Übersicht neu auf
+  function homeAnzeigen() {
+    document.getElementById("home-datum").textContent = new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+    homeHeuteAnzeigen();
+    homeWocheAnzeigen();
+    homeLetztesAnzeigen();
+  }
+
+  // Hat der Eintrag ein gültiges Datum?
+  function hatDatum(e) {
+    return Boolean(e && e.datum) && !isNaN(new Date(e.datum));
+  }
+
+  // Die Karte ganz oben: das laufende Training, sonst das, was laut Wochenplan heute dran ist
+  function homeHeuteAnzeigen() {
+    const bereich = document.getElementById("home-heute");
+    bereich.innerHTML = "";
+    const karte = element("div", "karte heute-karte");
+    bereich.appendChild(karte);
+
+    if (laufendesTraining) {
+      karte.appendChild(element("div", "heute-label", "Läuft gerade"));
+      karte.appendChild(element("div", "ansicht-titel", laufendesTraining.routineName));
+      karte.appendChild(element("div", "routine-info", "Übung " + (laufendesTraining.index + 1) + " von " + laufendesTraining.uebungen.length));
+      const weiter = element("button", "speichern-btn", "Training fortsetzen");
+      weiter.onclick = trainingFortsetzen;
+      karte.appendChild(weiter);
+      return;
+    }
+
+    const heute = new Date();
+    const plan = wochenplan[(heute.getDay() + 6) % 7];
+    const routine = routineFinden(plan);
+
+    if (routine) {
+      // Schon erledigt ist die Routine, wenn es heute einen Eintrag aus ihr gibt
+      let erledigt = false;
+      for (let i = 0; i < eintraege.length; i++) {
+        const e = eintraege[i];
+        if (hatDatum(e) && e.routineId === routine.id && tagSchluessel(new Date(e.datum)) === tagSchluessel(heute)) {
+          erledigt = true;
+        }
+      }
+
+      if (erledigt) {
+        karte.appendChild(element("div", "heute-label", "Heute erledigt"));
+      } else {
+        karte.appendChild(element("div", "heute-label", "Heute geplant"));
+      }
+      karte.appendChild(element("div", "ansicht-titel", routine.name));
+      karte.appendChild(element("div", "routine-info", routineInfo(routine)));
+
+      let start;
+      if (erledigt) {
+        start = element("button", "knopf heute-knopf", "Nochmal starten");
+      } else {
+        start = element("button", "speichern-btn", "Training starten");
+      }
+      start.onclick = function () {
+        routineStarten(routine);
+      };
+      karte.appendChild(start);
+      return;
+    }
+
+    if (plan === "ruhe") {
+      karte.appendChild(element("div", "heute-label", "Heute"));
+      karte.appendChild(element("div", "ansicht-titel", "Ruhetag"));
+      karte.appendChild(element("div", "routine-info", "Heute ist Pause. Erhol dich gut."));
+      return;
+    }
+
+    karte.appendChild(element("div", "heute-label", "Heute"));
+    karte.appendChild(element("div", "ansicht-titel", "Nichts geplant"));
+    karte.appendChild(element("div", "routine-info", "Für heute steht nichts im Wochenplan."));
+    const zumPlan = element("button", "knopf heute-knopf", "Zum Wochenplan");
+    zumPlan.onclick = function () {
+      seiteZeigen("training");
+    };
+    karte.appendChild(zumPlan);
+  }
+
+  // Die sieben Tage der aktuellen Woche: geplante Routine und ein grüner Punkt, wenn trainiert wurde
+  function homeWocheAnzeigen() {
+    const heute = new Date();
+    const montag = montagDerWoche(heute);
+
+    // Jeder Tag mit mindestens einem Eintrag gilt als trainiert
+    const trainiert = {};
+    for (let i = 0; i < eintraege.length; i++) {
+      if (hatDatum(eintraege[i])) {
+        trainiert[tagSchluessel(new Date(eintraege[i].datum))] = true;
+      }
+    }
+
+    const leiste = document.getElementById("home-woche");
+    leiste.innerHTML = "";
+
+    for (let i = 0; i < 7; i++) {
+      const tag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + i);
+      const btn = element("button", "home-tag");
+      btn.appendChild(element("span", "tag-name", WOCHENTAGE[i]));
+      btn.appendChild(element("span", "tag-zahl", tag.getDate()));
+
+      let plan = "–";
+      let ansage = "nichts geplant";
+      const routine = routineFinden(wochenplan[i]);
+      if (routine) {
+        plan = routine.name;
+        ansage = routine.name;
+      } else if (wochenplan[i] === "ruhe") {
+        plan = "Ruhe";
+        ansage = "Ruhetag";
+      }
+      btn.appendChild(element("span", "tag-plan", plan));
+
+      const punkt = element("span", "tag-punkt");
+      if (trainiert[tagSchluessel(tag)]) {
+        punkt.classList.add("trainiert");
+        ansage += ", trainiert";
+      }
+      btn.appendChild(punkt);
+      btn.setAttribute("aria-label", tagText(tag) + " " + ansage);
+
+      if (tagSchluessel(tag) === tagSchluessel(heute)) {
+        btn.classList.add("heute");
+      }
+      // Tage in der Zukunft lassen sich nicht antippen
+      btn.disabled = tagSchluessel(tag) > tagSchluessel(heute);
+      btn.onclick = function () {
+        logFuerTagZeigen(tag);
+      };
+      leiste.appendChild(btn);
+    }
+  }
+
+  // Sucht das letzte Training. Gibt null zurück, wenn es noch keins gibt, sonst
+  // { name, datum, eintraege, minuten }. minuten ist null, wenn keine Dauer bekannt ist.
+  function letztesTraining() {
+    // Der Tag mit den neuesten Einträgen
+    let letzterTag = null;
+    for (let i = 0; i < eintraege.length; i++) {
+      if (hatDatum(eintraege[i])) {
+        const datum = new Date(eintraege[i].datum);
+        if (letzterTag === null || datum > letzterTag) {
+          letzterTag = datum;
+        }
+      }
+    }
+
+    // Die neueste gespeicherte Trainingseinheit, von der es noch Einträge gibt
+    const nachId = {};
+    for (let i = 0; i < eintraege.length; i++) {
+      if (eintraege[i] && eintraege[i].id) {
+        nachId[eintraege[i].id] = eintraege[i];
+      }
+    }
+    let einheit = null;
+    let einheitEintraege = [];
+    for (let i = 0; i < trainings.length; i++) {
+      const t = trainings[i];
+      if (!t || !Array.isArray(t.eintragIds) || isNaN(new Date(t.ende)) || isNaN(new Date(t.start))) {
+        continue;
+      }
+      const liste = [];
+      for (let j = 0; j < t.eintragIds.length; j++) {
+        if (nachId[t.eintragIds[j]]) {
+          liste.push(nachId[t.eintragIds[j]]);
+        }
+      }
+      if (liste.length > 0 && (einheit === null || new Date(t.ende) > new Date(einheit.ende))) {
+        einheit = t;
+        einheitEintraege = liste;
+      }
+    }
+
+    // Die Einheit gilt, außer an einem späteren Tag wurde noch etwas frei eingetragen
+    if (einheit && (letzterTag === null || tagSchluessel(letzterTag) <= tagSchluessel(new Date(einheit.ende)))) {
+      return {
+        name: einheit.routineName || "Freies Training",
+        datum: new Date(einheit.start),
+        eintraege: einheitEintraege,
+        minuten: Math.max(1, Math.round((new Date(einheit.ende) - new Date(einheit.start)) / 60000))
+      };
+    }
+
+    if (letzterTag === null) {
+      return null;
+    }
+
+    // Ohne Einheit: alle Einträge des letzten Tages. Der Name kommt von den Routinen, aus denen sie stammen.
+    const liste = [];
+    const namen = [];
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (hatDatum(e) && tagSchluessel(new Date(e.datum)) === tagSchluessel(letzterTag)) {
+        liste.push(e);
+        if (e.routineName && namen.indexOf(e.routineName) === -1) {
+          namen.push(e.routineName);
+        }
+      }
+    }
+    return {
+      name: namen.join(" + ") || "Freies Training",
+      datum: letzterTag,
+      eintraege: liste,
+      minuten: null
+    };
+  }
+
+  // Macht aus Minuten einen Text: "45 Min." oder "1 Std. 5 Min."
+  function dauerText(minuten) {
+    if (minuten < 60) {
+      return minuten + " Min.";
+    }
+    return Math.floor(minuten / 60) + " Std. " + (minuten % 60) + " Min.";
+  }
+
+  // Die Karte "Letztes Training": Routine, Datum, Dauer und die drei Zahlen
+  function homeLetztesAnzeigen() {
+    const bereich = document.getElementById("home-letztes");
+    bereich.innerHTML = "";
+    const karte = element("div", "karte");
+    bereich.appendChild(karte);
+
+    const training = letztesTraining();
+    if (!training) {
+      karte.classList.add("kommt-bald");
+      karte.textContent = "Noch kein Training eingetragen";
+      return;
+    }
+
+    // Jede Übung zählt einmal: über ihre ID, eigene Übungen über den Namen
+    const uebungen = {};
+    let anzahlUebungen = 0;
+    let anzahlSaetze = 0;
+    let bewegt = 0;
+    for (let i = 0; i < training.eintraege.length; i++) {
+      const e = training.eintraege[i];
+      let schluessel = "name:" + String(e.uebung).trim().toLowerCase();
+      if (e.uebungId) {
+        schluessel = "id:" + e.uebungId;
+      }
+      if (!uebungen[schluessel]) {
+        uebungen[schluessel] = true;
+        anzahlUebungen++;
+      }
+      // Einträge, bei denen keine Zahl steht, werden wie auf der Fortschritt-Seite übersprungen
+      const gewicht = Number(String(e.gewicht).replace(",", "."));
+      if (!isNaN(Number(e.saetze))) {
+        anzahlSaetze += Number(e.saetze);
+      }
+      if (!isNaN(Number(e.saetze) * Number(e.wdh) * gewicht)) {
+        bewegt += Number(e.saetze) * Number(e.wdh) * gewicht;
+      }
+    }
+
+    let info = tagText(training.datum) + training.datum.getFullYear();
+    if (training.minuten !== null) {
+      info += " · " + dauerText(training.minuten);
+    }
+    karte.appendChild(element("div", "routine-name", training.name));
+    karte.appendChild(element("div", "routine-info", info));
+
+    const zahlen = element("div", "home-zahlen");
+    zahlen.appendChild(homeZahl(anzahlUebungen, "Übungen"));
+    zahlen.appendChild(homeZahl(anzahlSaetze, "Sätze"));
+    zahlen.appendChild(homeZahl(bewegt.toLocaleString("de-DE") + " kg", "Bewegt"));
+    karte.appendChild(zahlen);
+  }
+
+  // Eine Zahl mit Beschriftung darunter
+  function homeZahl(zahl, titel) {
+    const feld = element("div", "");
+    feld.appendChild(element("div", "home-zahl", zahl));
+    feld.appendChild(element("div", "kachel-titel", titel));
+    return feld;
+  }
+
+  // Die App bleibt oft tagelang offen: beim Zurückkehren stimmt "heute" sonst nicht mehr
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && aktiveSeite === "home") {
+      homeAnzeigen();
+    }
+  });
+
   // ---------- Backup ----------
 
   // Einträge aus der gewählten Datei, die auf die Entscheidung "ergänzen oder ersetzen" warten
@@ -1845,6 +2240,9 @@
   // Routinen und Wochenplan aus der Datei. null heißt: Das Backup enthält keine (z. B. ein älteres Backup).
   let importRoutinen = null;
   let importWochenplan = null;
+
+  // Trainingseinheiten aus der Datei. null heißt: Das Backup enthält keine (z. B. ein älteres Backup).
+  let importTrainings = null;
 
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
@@ -1918,6 +2316,60 @@
     return text;
   }
 
+  // Prüft eine Trainingseinheit aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
+  function trainingBereinigen(t) {
+    if (!t || typeof t !== "object" || typeof t.start !== "string" || typeof t.ende !== "string" || !Array.isArray(t.eintragIds)) {
+      return null;
+    }
+
+    const sauber = { id: neueId("t"), start: t.start, ende: t.ende, routineId: "", routineName: "", eintragIds: [] };
+    if (typeof t.id === "string" && t.id !== "") {
+      sauber.id = t.id;
+    }
+    if (typeof t.routineId === "string") {
+      sauber.routineId = t.routineId;
+    }
+    if (typeof t.routineName === "string") {
+      sauber.routineName = t.routineName;
+    }
+    for (let i = 0; i < t.eintragIds.length; i++) {
+      if (typeof t.eintragIds[i] === "string") {
+        sauber.eintragIds.push(t.eintragIds[i]);
+      }
+    }
+    return sauber;
+  }
+
+  // Übernimmt die Trainingseinheiten aus dem Backup. Gibt den Text für die Meldung zurück.
+  function trainingsImportieren(art) {
+    let text = "";
+    if (art === "ersetzen") {
+      // Die bisherigen Einheiten gehören zu den ersetzten Einträgen und gehen mit ihnen
+      trainings = importTrainings || [];
+      if (importTrainings !== null) {
+        text = " " + trainings.length + " Trainingseinheiten wurden wiederhergestellt.";
+      }
+    } else if (importTrainings !== null) {
+      // Nur Einheiten hinzufügen, die es hier noch nicht gibt (erkannt an der id)
+      const vorhanden = {};
+      for (let i = 0; i < trainings.length; i++) {
+        vorhanden[trainings[i].id] = true;
+      }
+      let hinzugefuegt = 0;
+      for (let i = 0; i < importTrainings.length; i++) {
+        if (!vorhanden[importTrainings[i].id]) {
+          trainings.push(importTrainings[i]);
+          vorhanden[importTrainings[i].id] = true;
+          hinzugefuegt++;
+        }
+      }
+      text = " " + hinzugefuegt + " Trainingseinheiten hinzugefügt.";
+    }
+
+    localStorage.setItem("trainings", JSON.stringify(trainings));
+    return text;
+  }
+
   // Zeigt eine Meldung unter den Backup-Buttons
   function datenMeldung(text) {
     document.getElementById("daten-meldung").textContent = text;
@@ -1927,11 +2379,12 @@
   function backupText() {
     const backup = {
       app: "gymstead",
-      version: 2,
+      version: 3,
       exportiert: new Date().toISOString(),
       eintraege: eintraege,
       routinen: routinen,
-      wochenplan: wochenplan
+      wochenplan: wochenplan,
+      trainings: trainings
     };
     return JSON.stringify(backup, null, 2);
   }
@@ -2029,6 +2482,20 @@
     }
     // Einträge aus älteren Backups kennen nur den Übungsnamen: die feste ID ergänzen
     listeZuordnen(importEintraege, "uebung");
+    // Ebenso fehlt ihnen die eigene id des Eintrags
+    eintragIdsErgaenzen(importEintraege);
+
+    // Trainingseinheiten gibt es erst in neueren Backups
+    importTrainings = null;
+    if (daten && !Array.isArray(daten) && Array.isArray(daten.trainings)) {
+      importTrainings = [];
+      for (let i = 0; i < daten.trainings.length; i++) {
+        const training = trainingBereinigen(daten.trainings[i]);
+        if (training) {
+          importTrainings.push(training);
+        }
+      }
+    }
 
     // Routinen und Wochenplan gibt es erst in neueren Backups
     importRoutinen = null;
@@ -2049,6 +2516,7 @@
     if (importEintraege.length === 0 && (importRoutinen === null || importRoutinen.length === 0)) {
       importRoutinen = null;
       importWochenplan = null;
+      importTrainings = null;
       datenMeldung("Das Backup enthält keine Einträge.");
       return;
     }
@@ -2096,12 +2564,13 @@
       }
       meldung = hinzugefuegt + " Einträge hinzugefügt, " + uebersprungen + " waren schon vorhanden.";
     }
-    datenMeldung(meldung + routinenImportieren(art));
+    datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art));
 
     localStorage.setItem("eintraege", JSON.stringify(eintraege));
     importEintraege = [];
     importRoutinen = null;
     importWochenplan = null;
+    importTrainings = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
     anzeigen();
     letztesMalAnzeigen();
@@ -2111,6 +2580,7 @@
     importEintraege = [];
     importRoutinen = null;
     importWochenplan = null;
+    importTrainings = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
   }
 
@@ -2132,9 +2602,9 @@ for (let i = 1; i <= 10; i++) {
   saetze.push(i);
 }
 
-radBauen("rad-gewicht", gewichte, "log");
-radBauen("rad-wdh", wiederholungen, "log");
-radBauen("rad-saetze", saetze, "log");
+radBauen("rad-gewicht", gewichte, "home");
+radBauen("rad-wdh", wiederholungen, "home");
+radBauen("rad-saetze", saetze, "home");
 raederVoreinstellen();
 
 // Die drei Räder des Trainingsmodus
@@ -2144,6 +2614,7 @@ radBauen("t-rad-saetze", saetze, "training");
 
 wochenleisteAnzeigen();
 anzeigen();
+homeAnzeigen();
 trainingAnzeigen();
 trainingBeimStartPruefen();
 

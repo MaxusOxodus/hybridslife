@@ -2,7 +2,7 @@
 
 // Dieselbe Nummer wie bei style.css?v=N, uebungen.js?v=N und app.js?v=N in der index.html.
 // Erst wenn sich diese Zahl ändert, bemerkt der Browser eine neue Version.
-const VERSION = 8;
+const VERSION = 9;
 
 const CACHE = "gymstead-v" + VERSION;
 

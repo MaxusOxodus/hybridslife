@@ -5,13 +5,46 @@
   --rand: rgba(255, 255, 255, 0.07);
   --text: #FFFFFF;
   --text-leise: #98989F;
+  /* Akzent für gefüllte Flächen (Buttons), darauf steht dunkle Schrift */
   --akzent: #C6F135;
+  /* Akzent für Text und dünne Linien: muss sich vom Hintergrund abheben */
+  --akzent-text: #C6F135;
   --akzent-leicht: rgba(198, 241, 53, 0.15);
   --auf-akzent: #000000;
+  /* Dezente Fläche für Felder und Buttons, die auf einer Karte liegen */
+  --fuellung: rgba(255, 255, 255, 0.09);
+  --griff: rgba(255, 255, 255, 0.3);
+  --text-aus: rgba(255, 255, 255, 0.3);
+  /* Schleier hinter Sheet und Dialog */
+  --abdunklung: rgba(0, 0, 0, 0.5);
+  --abdunklung-stark: rgba(0, 0, 0, 0.6);
   /* Milchglas: halbtransparente Fläche, der Inhalt dahinter wird weichgezeichnet */
   --glas: rgba(22, 22, 24, 0.72);
+  --glas-sheet: rgba(30, 30, 32, 0.78);
   --glas-filter: saturate(180%) blur(24px);
   color-scheme: dark;
+}
+
+/* Helles Design: greift nur, wenn das Gerät auf "hell" steht, und überschreibt die Farben von oben */
+@media (prefers-color-scheme: light) {
+  :root {
+    --hintergrund: #F2F2F7;
+    --karte: #FFFFFF;
+    --rand: rgba(60, 60, 67, 0.12);
+    --text: #000000;
+    --text-leise: #6C6C70;
+    /* Limettengrün wäre auf Weiß kaum lesbar, deshalb hier ein dunkles Grün */
+    --akzent-text: #3F6B0B;
+    --akzent-leicht: rgba(63, 107, 11, 0.12);
+    --fuellung: rgba(120, 120, 128, 0.12);
+    --griff: rgba(60, 60, 67, 0.3);
+    --text-aus: rgba(60, 60, 67, 0.3);
+    --abdunklung: rgba(0, 0, 0, 0.3);
+    --abdunklung-stark: rgba(0, 0, 0, 0.4);
+    --glas: rgba(249, 249, 249, 0.78);
+    --glas-sheet: rgba(255, 255, 255, 0.8);
+    color-scheme: light;
+  }
 }
 
 * {
@@ -201,7 +234,7 @@ h1 {
 
 /* Aktiver Tab: grün mit leicht hinterlegtem Kreis */
 .nav-btn.aktiv {
-  color: var(--akzent);
+  color: var(--akzent-text);
 }
 
 .nav-btn.aktiv .nav-icon {
@@ -270,7 +303,7 @@ h1 {
 
 /* Heute: grün umrandet */
 .tag-btn.heute {
-  box-shadow: inset 0 0 0 2px var(--akzent);
+  box-shadow: inset 0 0 0 2px var(--akzent-text);
 }
 
 /* Angetippter Tag: grün gefüllt */
@@ -314,7 +347,7 @@ h1 {
 #letztesMal {
   margin: 10px 0 0;
   padding: 14px 18px;
-  border-left: 3px solid var(--akzent);
+  border-left: 3px solid var(--akzent-text);
   border-radius: 16px;
   background: var(--karte);
   font-weight: 600;
@@ -356,7 +389,7 @@ h1 {
   top: 88px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--fuellung);
   pointer-events: none;
 }
 
@@ -393,7 +426,7 @@ h1 {
   scroll-snap-align: center;
 }
 
-/* Der gewählte Wert: groß und weiß, auch bei schnellem Blick lesbar */
+/* Der gewählte Wert: groß und kräftig, auch bei schnellem Blick lesbar */
 .rad-wert.aktiv {
   color: var(--text);
   font-size: 26px;
@@ -415,7 +448,7 @@ h1 {
 
 .speichern-btn:disabled {
   background: var(--karte);
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-aus);
 }
 
 /* ---------- Liste der Einträge als Karten ---------- */
@@ -487,7 +520,7 @@ h1 {
   right: 0;
   bottom: 0;
   z-index: 20;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--abdunklung);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s;
@@ -513,7 +546,7 @@ h1 {
   max-height: 85dvh;
   margin: 0 auto;
   border-radius: 24px 24px 0 0;
-  background: rgba(30, 30, 32, 0.78);
+  background: var(--glas-sheet);
   -webkit-backdrop-filter: var(--glas-filter);
   backdrop-filter: var(--glas-filter);
   transform: translateY(100%);
@@ -533,7 +566,7 @@ h1 {
   height: 5px;
   margin: 8px auto 0;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--griff);
 }
 
 .sheet-kopf {
@@ -601,7 +634,7 @@ h1 {
   padding: 0 16px;
   border: none;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--fuellung);
   color: var(--text);
   font-size: 17px;
 }
@@ -612,7 +645,7 @@ h1 {
 
 .sheet-eigene input:focus {
   outline: none;
-  box-shadow: inset 0 0 0 2px var(--akzent);
+  box-shadow: inset 0 0 0 2px var(--akzent-text);
 }
 
 .sheet-eigene button {
@@ -642,7 +675,7 @@ h1 {
   padding: 8px 16px;
   border: none;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--fuellung);
   color: var(--text);
   font-size: 17px;
   font-weight: 600;
@@ -680,7 +713,7 @@ h1 {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--abdunklung-stark);
 }
 
 #dialog-hintergrund.offen {

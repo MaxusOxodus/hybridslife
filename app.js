@@ -653,6 +653,171 @@
     document.getElementById("stat-serie").textContent = serie;
   }
 
+  // ---------- Backup ----------
+
+  // Einträge aus der gewählten Datei, die auf die Entscheidung "ergänzen oder ersetzen" warten
+  let importEintraege = [];
+
+  // Zeigt eine Meldung unter den Backup-Buttons
+  function datenMeldung(text) {
+    document.getElementById("daten-meldung").textContent = text;
+  }
+
+  // Der Inhalt der Backup-Datei als JSON-Text
+  function backupText() {
+    const backup = {
+      app: "hybridslife",
+      version: 1,
+      exportiert: new Date().toISOString(),
+      eintraege: eintraege
+    };
+    return JSON.stringify(backup, null, 2);
+  }
+
+  // Speichert alle Einträge als Datei, z. B. hybridslife-backup-2026-10-07.json
+  function backupExportieren() {
+    const heute = new Date();
+    const dateiname = "hybridslife-backup-" + heute.getFullYear()
+      + "-" + String(heute.getMonth() + 1).padStart(2, "0")
+      + "-" + String(heute.getDate()).padStart(2, "0") + ".json";
+    const datei = new File([backupText()], dateiname, { type: "application/json" });
+
+    // iPhone und iPad: das Teilen-Menü öffnen ("In Dateien sichern"), weil ein normaler
+    // Download in der Homescreen-App nicht zuverlässig ankommt. "standalone" gibt es nur dort.
+    const istIOS = "standalone" in navigator;
+    if (istIOS && navigator.canShare && navigator.canShare({ files: [datei] })) {
+      navigator.share({ files: [datei] }).then(function () {
+        datenMeldung("Backup mit " + eintraege.length + " Einträgen exportiert.");
+      }).catch(function (fehler) {
+        // AbortError heißt nur: Das Teilen-Menü wurde ohne Auswahl geschlossen
+        if (fehler.name !== "AbortError") {
+          dateiHerunterladen(datei);
+        }
+      });
+      return;
+    }
+
+    dateiHerunterladen(datei);
+  }
+
+  // Normaler Download über einen unsichtbaren Link
+  function dateiHerunterladen(datei) {
+    const adresse = URL.createObjectURL(datei);
+    const link = document.createElement("a");
+    link.href = adresse;
+    link.download = datei.name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () {
+      URL.revokeObjectURL(adresse);
+    }, 60000);
+    datenMeldung("Backup mit " + eintraege.length + " Einträgen exportiert.");
+  }
+
+  // Wird aufgerufen, sobald im Datei-Feld eine Datei gewählt wurde
+  function backupDateiGewaehlt(feld) {
+    const datei = feld.files[0];
+    if (!datei) {
+      return;
+    }
+
+    const leser = new FileReader();
+    leser.onload = function () {
+      backupLesen(leser.result);
+    };
+    leser.onerror = function () {
+      datenMeldung("Die Datei konnte nicht gelesen werden.");
+    };
+    leser.readAsText(datei);
+
+    // Feld leeren, damit dieselbe Datei später nochmal gewählt werden kann
+    feld.value = "";
+  }
+
+  // Prüft den Inhalt der Datei und fragt dann, ob ergänzt oder ersetzt werden soll
+  function backupLesen(text) {
+    let daten;
+    try {
+      daten = JSON.parse(text);
+    } catch (fehler) {
+      datenMeldung("Das ist keine gültige Backup-Datei.");
+      return;
+    }
+
+    // Die Einträge stehen im Backup unter "eintraege". Eine reine Liste wird auch angenommen.
+    let liste = daten;
+    if (daten && !Array.isArray(daten)) {
+      liste = daten.eintraege;
+    }
+    if (!Array.isArray(liste)) {
+      datenMeldung("Das ist keine gültige Backup-Datei.");
+      return;
+    }
+
+    // Nur Einträge übernehmen, die einen Übungsnamen haben
+    importEintraege = [];
+    for (let i = 0; i < liste.length; i++) {
+      const e = liste[i];
+      if (e && typeof e === "object" && typeof e.uebung === "string") {
+        importEintraege.push(e);
+      }
+    }
+    if (importEintraege.length === 0) {
+      datenMeldung("Das Backup enthält keine Einträge.");
+      return;
+    }
+
+    document.getElementById("dialog-text").textContent = "Das Backup enthält " + importEintraege.length
+      + " Einträge. Auf diesem Gerät sind " + eintraege.length + " Einträge gespeichert.";
+    document.getElementById("dialog-hintergrund").classList.add("offen");
+  }
+
+  // Woran zwei gleiche Einträge erkannt werden: Übung, Werte und Zeitpunkt stimmen überein
+  function eintragSchluessel(e) {
+    return JSON.stringify([e.uebung, String(e.gewicht), String(e.wdh), String(e.saetze), e.datum || ""]);
+  }
+
+  // Übernimmt die Einträge aus dem Backup. art ist "ergaenzen" oder "ersetzen".
+  function importAusfuehren(art) {
+    if (art === "ersetzen") {
+      eintraege = importEintraege;
+      datenMeldung(eintraege.length + " Einträge aus dem Backup wiederhergestellt. Die vorherigen wurden ersetzt.");
+    } else {
+      // Zählen, wie oft es jeden Eintrag schon gibt. Nur was darüber hinausgeht, kommt dazu.
+      const vorhanden = {};
+      for (let i = 0; i < eintraege.length; i++) {
+        const schluessel = eintragSchluessel(eintraege[i]);
+        vorhanden[schluessel] = (vorhanden[schluessel] || 0) + 1;
+      }
+
+      let hinzugefuegt = 0;
+      let uebersprungen = 0;
+      for (let i = 0; i < importEintraege.length; i++) {
+        const schluessel = eintragSchluessel(importEintraege[i]);
+        if (vorhanden[schluessel] > 0) {
+          vorhanden[schluessel]--;
+          uebersprungen++;
+        } else {
+          eintraege.push(importEintraege[i]);
+          hinzugefuegt++;
+        }
+      }
+      datenMeldung(hinzugefuegt + " Einträge hinzugefügt, " + uebersprungen + " waren schon vorhanden.");
+    }
+
+    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+    importEintraege = [];
+    document.getElementById("dialog-hintergrund").classList.remove("offen");
+    anzeigen();
+    letztesMalAnzeigen();
+  }
+
+  function importAbbrechen() {
+    importEintraege = [];
+    document.getElementById("dialog-hintergrund").classList.remove("offen");
+  }
+
 // Gewicht: 0 bis 400 kg in 0,5-kg-Schritten
 const gewichte = [];
 for (let i = 0; i <= 800; i++) {

@@ -627,6 +627,99 @@ h1 {
   font-weight: 700;
 }
 
+/* ---------- Profil: Daten ---------- */
+
+.daten-karte {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.daten-btn,
+.dialog-btn {
+  width: 100%;
+  min-height: 54px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* Das Datei-Feld selbst bleibt unsichtbar, geöffnet wird es über den Button */
+.unsichtbar {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#daten-meldung {
+  margin: 4px 0 0;
+  color: var(--text-leise);
+  font-size: 15px;
+}
+
+#daten-meldung:empty {
+  display: none;
+}
+
+/* ---------- Dialog: Frage vor dem Import ---------- */
+
+#dialog-hintergrund {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+#dialog-hintergrund.offen {
+  display: flex;
+}
+
+#dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  padding: 24px 20px 16px;
+  border-radius: 24px;
+  background: var(--karte);
+}
+
+#dialog h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+#dialog-text {
+  margin: 0 0 8px;
+  color: var(--text-leise);
+}
+
+.dialog-btn.haupt {
+  background: var(--akzent);
+  color: var(--auf-akzent);
+  font-weight: 700;
+}
+
+.dialog-btn.leise {
+  background: none;
+  color: var(--text-leise);
+}
+
 /* Wer am Gerät "Bewegung reduzieren" eingestellt hat, bekommt keine Animationen */
 @media (prefers-reduced-motion: reduce) {
   * {

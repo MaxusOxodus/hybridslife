@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Hybridslife</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -94,6 +94,14 @@
     <h1>Profil</h1>
     <p class="unterzeile">Deine Einstellungen</p>
     <div class="karte kommt-bald">Kommt bald</div>
+
+    <h2 class="abschnitt">Daten</h2>
+    <div class="karte daten-karte">
+      <button class="daten-btn" onclick="backupExportieren()">Backup exportieren</button>
+      <button class="daten-btn" onclick="document.getElementById('backup-datei').click()">Backup importieren</button>
+      <input id="backup-datei" class="unsichtbar" type="file" accept=".json,application/json" onchange="backupDateiGewaehlt(this)">
+      <p id="daten-meldung"></p>
+    </div>
   </section>
 
   <!-- Navigationsleiste: Die Icons sind einfache, selbst gezeichnete Linien-Grafiken (SVG) -->
@@ -137,7 +145,18 @@
 
 
 
-<script src="app.js?v=3"></script>
+  <!-- Frage vor dem Import: vorhandene Einträge ergänzen oder ersetzen? -->
+  <div id="dialog-hintergrund">
+    <div id="dialog">
+      <h2>Backup importieren</h2>
+      <p id="dialog-text"></p>
+      <button class="dialog-btn haupt" onclick="importAusfuehren('ergaenzen')">Ergänzen (vorhandene behalten)</button>
+      <button class="dialog-btn" onclick="importAusfuehren('ersetzen')">Ersetzen (vorhandene löschen)</button>
+      <button class="dialog-btn leise" onclick="importAbbrechen()">Abbrechen</button>
+    </div>
+  </div>
+
+<script src="app.js?v=4"></script>
 
 </body>
 </html>

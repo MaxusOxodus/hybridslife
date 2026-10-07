@@ -64,6 +64,10 @@
     aktiveSeite = name;
     window.scrollTo(0, 0);
 
+    // Die Kopfzeile zeigt den Titel der Seite
+    document.getElementById("kopfzeile").textContent = document.querySelector("#seite-" + name + " h1").textContent;
+    kopfzeileAktualisieren();
+
     if (name === "log") {
       if (radWerte === null) {
         radWerte = gemerkteRadWerte;
@@ -79,6 +83,13 @@
       fortschrittAnzeigen();
     }
   }
+
+  // Blendet die Kopfzeile ein, sobald der große Titel nach oben weggescrollt ist
+  function kopfzeileAktualisieren() {
+    document.getElementById("kopfzeile").classList.toggle("sichtbar", window.scrollY > 52);
+  }
+
+  window.addEventListener("scroll", kopfzeileAktualisieren);
 
   // Stellung der Räder, solange die Log-Seite ausgeblendet ist
   let gemerkteRadWerte = [START_GEWICHT, START_WDH, START_SAETZE];

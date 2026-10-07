@@ -6,12 +6,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Hybridslife</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- Schmale Kopfzeile: erscheint, sobald der große Titel weggescrollt ist -->
+  <header id="kopfzeile">Log</header>
 
   <!-- Seite: Log -->
   <section id="seite-log" class="seite aktiv">
@@ -122,6 +122,7 @@
 
   <div id="sheet-hintergrund" onclick="sheetSchliessen()"></div>
   <div id="sheet">
+    <div class="sheet-griff"></div>
     <div class="sheet-kopf">
       <button id="sheet-zurueck" class="versteckt" onclick="sheetGruppenZeigen()" aria-label="Zurück">←</button>
       <span id="sheet-titel">Muskelgruppe</span>

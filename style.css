@@ -1,13 +1,16 @@
 /* Farben an einer Stelle: Hier änderst du das ganze Farbschema */
 :root {
-  --hintergrund: #0E0E10;
-  --karte: #1A1A1E;
-  --rand: #2A2A30;
-  --text: #F2F2F3;
-  --text-leise: #8E8E96;
+  --hintergrund: #000000;
+  --karte: #1C1C1E;
+  --rand: rgba(255, 255, 255, 0.07);
+  --text: #FFFFFF;
+  --text-leise: #98989F;
   --akzent: #C6F135;
   --akzent-leicht: rgba(198, 241, 53, 0.15);
-  --auf-akzent: #0E0E10;
+  --auf-akzent: #000000;
+  /* Milchglas: halbtransparente Fläche, der Inhalt dahinter wird weichgezeichnet */
+  --glas: rgba(22, 22, 24, 0.72);
+  --glas-filter: saturate(180%) blur(24px);
   color-scheme: dark;
 }
 
@@ -19,12 +22,16 @@
 body {
   margin: 0 auto;
   max-width: 480px;
-  padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(104px + env(safe-area-inset-bottom));
   background: var(--hintergrund);
   color: var(--text);
-  font-family: "Inter", system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 1.4;
+  /* Systemschrift: SF Pro auf iPhone und Mac, Roboto auf Android, Segoe UI unter Windows */
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: 17px;
+  line-height: 1.35;
+  /* Ziffern gleich breit, damit Zahlen nicht springen */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Solange das Sheet offen ist, scrollt die Seite dahinter nicht mit */
@@ -35,16 +42,18 @@ body.sheet-offen {
 button,
 input {
   font-family: inherit;
+  font-variant-numeric: inherit;
 }
 
 button {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s;
 }
 
 /* Rückmeldung beim Antippen (statt Hover) */
 button:active {
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 /* ---------- Seiten ---------- */
@@ -54,30 +63,44 @@ button:active {
   display: none;
 }
 
+/* Beim Tab-Wechsel blendet die neue Seite sanft ein */
 .seite.aktiv {
   display: block;
+  animation: seite-einblenden 0.3s ease-out;
+}
+
+@keyframes seite-einblenden {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 h1 {
   margin: 8px 0 0;
   font-size: 34px;
-  font-weight: 800;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.15;
 }
 
 .unterzeile {
-  margin: 4px 0 20px;
+  margin: 4px 0 28px;
   color: var(--text-leise);
 }
 
 /* Kleine Abschnittsüberschrift in Großbuchstaben */
 .abschnitt,
 #liste h2 {
-  margin: 28px 0 10px;
+  margin: 36px 0 10px 4px;
   color: var(--text-leise);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -94,6 +117,35 @@ h1 {
   text-align: center;
 }
 
+/* ---------- Kopfzeile: erscheint erst, wenn der große Titel weggescrollt ist ---------- */
+
+#kopfzeile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 480px;
+  height: calc(44px + env(safe-area-inset-top));
+  margin: 0 auto;
+  padding-top: env(safe-area-inset-top);
+  border-bottom: 1px solid var(--rand);
+  background: var(--glas);
+  -webkit-backdrop-filter: var(--glas-filter);
+  backdrop-filter: var(--glas-filter);
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+#kopfzeile.sichtbar {
+  opacity: 1;
+}
+
 /* ---------- Navigationsleiste ---------- */
 
 #navigation {
@@ -107,7 +159,9 @@ h1 {
   margin: 0 auto;
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--rand);
-  background: var(--hintergrund);
+  background: var(--glas);
+  -webkit-backdrop-filter: var(--glas-filter);
+  backdrop-filter: var(--glas-filter);
 }
 
 .nav-btn {
@@ -132,6 +186,7 @@ h1 {
   width: 40px;
   height: 40px;
   border-radius: 20px;
+  transition: background 0.25s;
 }
 
 .nav-icon svg {
@@ -175,7 +230,7 @@ h1 {
   border-radius: 22px;
   background: none;
   color: var(--text);
-  font-size: 24px;
+  font-size: 26px;
 }
 
 .wochen-kopf button:disabled {
@@ -196,7 +251,7 @@ h1 {
   gap: 2px;
   min-height: 64px;
   padding: 0;
-  border: 2px solid var(--rand);
+  border: none;
   border-radius: 16px;
   background: var(--karte);
   color: var(--text);
@@ -209,18 +264,17 @@ h1 {
 }
 
 .tag-zahl {
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 700;
 }
 
 /* Heute: grün umrandet */
 .tag-btn.heute {
-  border-color: var(--akzent);
+  box-shadow: inset 0 0 0 2px var(--akzent);
 }
 
 /* Angetippter Tag: grün gefüllt */
 .tag-btn.gewaehlt {
-  border-color: var(--akzent);
   background: var(--akzent);
   color: var(--auf-akzent);
 }
@@ -239,13 +293,13 @@ h1 {
 /* Übung-Feld: sieht aus wie ein Eingabefeld, öffnet aber das Sheet */
 .uebung-feld {
   width: 100%;
-  min-height: 56px;
-  padding: 12px 16px;
-  border: 1px solid var(--rand);
-  border-radius: 20px;
+  min-height: 58px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 16px;
   background: var(--karte);
   color: var(--text);
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 600;
   text-align: left;
   overflow-wrap: anywhere;
@@ -258,11 +312,10 @@ h1 {
 
 /* "Letztes Mal" als Karte; ohne Text unsichtbar */
 #letztesMal {
-  margin: 12px 0 0;
-  padding: 14px 16px;
-  border: 1px solid var(--rand);
-  border-left: 4px solid var(--akzent);
-  border-radius: 20px;
+  margin: 10px 0 0;
+  padding: 14px 18px;
+  border-left: 3px solid var(--akzent);
+  border-radius: 16px;
   background: var(--karte);
   font-weight: 600;
   overflow-wrap: anywhere;
@@ -277,11 +330,11 @@ h1 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 .rad-titel {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: var(--text-leise);
   font-size: 13px;
   font-weight: 600;
@@ -290,26 +343,26 @@ h1 {
 
 .rad-rahmen {
   position: relative;
-  border: 1px solid var(--rand);
   border-radius: 20px;
   background: var(--karte);
 }
 
-/* Markierung in der Mitte: Der Wert zwischen den Linien gilt */
+/* Markierung in der Mitte: Der Wert auf dem hellen Band gilt */
 .rad-rahmen::before {
   content: "";
   position: absolute;
-  left: 8px;
-  right: 8px;
+  left: 6px;
+  right: 6px;
   top: 88px;
   height: 44px;
-  border-top: 2px solid var(--akzent);
-  border-bottom: 2px solid var(--akzent);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.09);
   pointer-events: none;
 }
 
 /* Das Rad zeigt 5 Werte (5 × 44px) und rastet beim Scrollen ein */
 .rad {
+  position: relative;
   height: 220px;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
@@ -340,28 +393,29 @@ h1 {
   scroll-snap-align: center;
 }
 
+/* Der gewählte Wert: groß und weiß, auch bei schnellem Blick lesbar */
 .rad-wert.aktiv {
   color: var(--text);
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 26px;
+  font-weight: 700;
 }
 
 .speichern-btn {
   width: 100%;
-  min-height: 56px;
-  margin-top: 16px;
+  min-height: 58px;
+  margin-top: 20px;
   padding: 8px 16px;
   border: none;
-  border-radius: 20px;
+  border-radius: 16px;
   background: var(--akzent);
   color: var(--auf-akzent);
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 700;
 }
 
 .speichern-btn:disabled {
-  background: var(--rand);
-  color: var(--text-leise);
+  background: var(--karte);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* ---------- Liste der Einträge als Karten ---------- */
@@ -378,9 +432,9 @@ h1 {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
-  padding: 14px 8px 14px 16px;
+  padding: 14px 8px 14px 18px;
   border: 1px solid var(--rand);
-  border-radius: 20px;
+  border-radius: 16px;
   background: var(--karte);
   overflow-wrap: anywhere;
 }
@@ -392,11 +446,11 @@ h1 {
   border: none;
   background: none;
   color: var(--text-leise);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .leer-hinweis {
-  margin: 0;
+  margin: 0 0 0 4px;
   color: var(--text-leise);
 }
 
@@ -405,12 +459,13 @@ h1 {
 .kacheln {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 
 .kachel-zahl {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.15;
   overflow-wrap: anywhere;
 }
@@ -418,7 +473,7 @@ h1 {
 .kachel-titel {
   margin-top: 6px;
   color: var(--text-leise);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -432,10 +487,10 @@ h1 {
   right: 0;
   bottom: 0;
   z-index: 20;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s;
+  transition: opacity 0.35s;
 }
 
 #sheet-hintergrund.offen {
@@ -443,7 +498,8 @@ h1 {
   pointer-events: auto;
 }
 
-/* Das Sheet liegt unterhalb des Bildschirms und fährt mit "offen" hoch */
+/* Das Sheet liegt unterhalb des Bildschirms und fährt mit "offen" hoch.
+   Die cubic-bezier-Kurve startet schnell und bremst weich ab. */
 #sheet {
   position: fixed;
   left: 0;
@@ -457,10 +513,12 @@ h1 {
   max-height: 85dvh;
   margin: 0 auto;
   border-radius: 24px 24px 0 0;
-  background: var(--karte);
+  background: rgba(30, 30, 32, 0.78);
+  -webkit-backdrop-filter: var(--glas-filter);
+  backdrop-filter: var(--glas-filter);
   transform: translateY(100%);
   visibility: hidden;
-  transition: transform 0.3s, visibility 0.3s;
+  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.45s;
 }
 
 #sheet.offen {
@@ -468,18 +526,28 @@ h1 {
   visibility: visible;
 }
 
+/* Kleiner Griff-Balken oben am Sheet */
+.sheet-griff {
+  flex-shrink: 0;
+  width: 36px;
+  height: 5px;
+  margin: 8px auto 0;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .sheet-kopf {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 12px 8px 8px;
+  padding: 4px 8px 8px;
 }
 
 #sheet-titel {
   flex: 1;
-  padding-left: 8px;
-  font-size: 20px;
-  font-weight: 800;
+  padding-left: 10px;
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .sheet-kopf button {
@@ -500,7 +568,7 @@ h1 {
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0 16px;
+  padding: 0 18px;
 }
 
 /* Eine Zeile im Sheet: Muskelgruppe oder Übung */
@@ -508,12 +576,12 @@ h1 {
   display: block;
   width: 100%;
   min-height: 56px;
-  padding: 12px 4px;
+  padding: 12px 0;
   border: none;
   border-bottom: 1px solid var(--rand);
   background: none;
   color: var(--text);
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
   text-align: left;
   overflow-wrap: anywhere;
@@ -524,19 +592,18 @@ h1 {
   display: flex;
   gap: 8px;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--rand);
 }
 
 .sheet-eigene input {
   flex: 1;
   min-width: 0;
   height: 52px;
-  padding: 0 14px;
-  border: 1px solid var(--rand);
+  padding: 0 16px;
+  border: none;
   border-radius: 14px;
-  background: var(--hintergrund);
+  background: rgba(255, 255, 255, 0.09);
   color: var(--text);
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .sheet-eigene input::placeholder {
@@ -545,7 +612,7 @@ h1 {
 
 .sheet-eigene input:focus {
   outline: none;
-  border-color: var(--akzent);
+  box-shadow: inset 0 0 0 2px var(--akzent);
 }
 
 .sheet-eigene button {
@@ -556,6 +623,14 @@ h1 {
   border-radius: 14px;
   background: var(--akzent);
   color: var(--auf-akzent);
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Wer am Gerät "Bewegung reduzieren" eingestellt hat, bekommt keine Animationen */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

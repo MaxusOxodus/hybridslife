@@ -1,0 +1,561 @@
+/* Farben an einer Stelle: Hier änderst du das ganze Farbschema */
+:root {
+  --hintergrund: #0E0E10;
+  --karte: #1A1A1E;
+  --rand: #2A2A30;
+  --text: #F2F2F3;
+  --text-leise: #8E8E96;
+  --akzent: #C6F135;
+  --akzent-leicht: rgba(198, 241, 53, 0.15);
+  --auf-akzent: #0E0E10;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Unten bleibt Platz frei, damit die Navigationsleiste nichts verdeckt */
+body {
+  margin: 0 auto;
+  max-width: 480px;
+  padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
+  background: var(--hintergrund);
+  color: var(--text);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* Solange das Sheet offen ist, scrollt die Seite dahinter nicht mit */
+body.sheet-offen {
+  overflow: hidden;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Rückmeldung beim Antippen (statt Hover) */
+button:active {
+  opacity: 0.7;
+}
+
+/* ---------- Seiten ---------- */
+
+/* Sichtbar ist immer nur die Seite mit der Klasse "aktiv" */
+.seite {
+  display: none;
+}
+
+.seite.aktiv {
+  display: block;
+}
+
+h1 {
+  margin: 8px 0 0;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.unterzeile {
+  margin: 4px 0 20px;
+  color: var(--text-leise);
+}
+
+/* Kleine Abschnittsüberschrift in Großbuchstaben */
+.abschnitt,
+#liste h2 {
+  margin: 28px 0 10px;
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.karte {
+  padding: 20px;
+  border: 1px solid var(--rand);
+  border-radius: 20px;
+  background: var(--karte);
+}
+
+.kommt-bald {
+  color: var(--text-leise);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---------- Navigationsleiste ---------- */
+
+#navigation {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--rand);
+  background: var(--hintergrund);
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+}
+
+.nav-icon svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Aktiver Tab: grün mit leicht hinterlegtem Kreis */
+.nav-btn.aktiv {
+  color: var(--akzent);
+}
+
+.nav-btn.aktiv .nav-icon {
+  background: var(--akzent-leicht);
+}
+
+/* ---------- Wochenleiste ---------- */
+
+.wochen-kopf {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+#wochen-titel {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+}
+
+.wochen-kopf button {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 22px;
+  background: none;
+  color: var(--text);
+  font-size: 24px;
+}
+
+.wochen-kopf button:disabled {
+  opacity: 0.25;
+}
+
+#wochenleiste {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.tag-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 64px;
+  padding: 0;
+  border: 2px solid var(--rand);
+  border-radius: 16px;
+  background: var(--karte);
+  color: var(--text);
+}
+
+.tag-name {
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tag-zahl {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+/* Heute: grün umrandet */
+.tag-btn.heute {
+  border-color: var(--akzent);
+}
+
+/* Angetippter Tag: grün gefüllt */
+.tag-btn.gewaehlt {
+  border-color: var(--akzent);
+  background: var(--akzent);
+  color: var(--auf-akzent);
+}
+
+.tag-btn.gewaehlt .tag-name {
+  color: var(--auf-akzent);
+}
+
+/* Tage in der Zukunft */
+.tag-btn:disabled {
+  opacity: 0.35;
+}
+
+/* ---------- Eingabe ---------- */
+
+/* Übung-Feld: sieht aus wie ein Eingabefeld, öffnet aber das Sheet */
+.uebung-feld {
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 16px;
+  border: 1px solid var(--rand);
+  border-radius: 20px;
+  background: var(--karte);
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.uebung-feld.leer {
+  color: var(--text-leise);
+  font-weight: 400;
+}
+
+/* "Letztes Mal" als Karte; ohne Text unsichtbar */
+#letztesMal {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--rand);
+  border-left: 4px solid var(--akzent);
+  border-radius: 20px;
+  background: var(--karte);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+#letztesMal:empty {
+  display: none;
+}
+
+/* Scroll-Räder: drei Spalten nebeneinander */
+.raeder {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.rad-titel {
+  margin-bottom: 6px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.rad-rahmen {
+  position: relative;
+  border: 1px solid var(--rand);
+  border-radius: 20px;
+  background: var(--karte);
+}
+
+/* Markierung in der Mitte: Der Wert zwischen den Linien gilt */
+.rad-rahmen::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 88px;
+  height: 44px;
+  border-top: 2px solid var(--akzent);
+  border-bottom: 2px solid var(--akzent);
+  pointer-events: none;
+}
+
+/* Das Rad zeigt 5 Werte (5 × 44px) und rastet beim Scrollen ein */
+.rad {
+  height: 220px;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
+  mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
+}
+
+.rad::-webkit-scrollbar {
+  display: none;
+}
+
+/* Leerraum oben und unten, damit auch der erste und letzte Wert in die Mitte passen */
+.rad::before,
+.rad::after {
+  content: "";
+  display: block;
+  height: 88px;
+}
+
+.rad-wert {
+  height: 44px;
+  color: var(--text-leise);
+  font-size: 20px;
+  line-height: 44px;
+  text-align: center;
+  scroll-snap-align: center;
+}
+
+.rad-wert.aktiv {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.speichern-btn {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 16px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  background: var(--akzent);
+  color: var(--auf-akzent);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.speichern-btn:disabled {
+  background: var(--rand);
+  color: var(--text-leise);
+}
+
+/* ---------- Liste der Einträge als Karten ---------- */
+
+#liste ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#liste li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 14px 8px 14px 16px;
+  border: 1px solid var(--rand);
+  border-radius: 20px;
+  background: var(--karte);
+  overflow-wrap: anywhere;
+}
+
+/* Löschen-Button: klein und dezent */
+#liste li button {
+  flex-shrink: 0;
+  padding: 10px 8px;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+.leer-hinweis {
+  margin: 0;
+  color: var(--text-leise);
+}
+
+/* ---------- Fortschritt: vier Kacheln ---------- */
+
+.kacheln {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.kachel-zahl {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.kachel-titel {
+  margin-top: 6px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ---------- Bottom Sheet ---------- */
+
+/* Abgedunkelter Hintergrund */
+#sheet-hintergrund {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+#sheet-hintergrund.offen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Das Sheet liegt unterhalb des Bildschirms und fährt mit "offen" hoch */
+#sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  max-height: 85vh;
+  max-height: 85dvh;
+  margin: 0 auto;
+  border-radius: 24px 24px 0 0;
+  background: var(--karte);
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.3s, visibility 0.3s;
+}
+
+#sheet.offen {
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.sheet-kopf {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px 8px;
+}
+
+#sheet-titel {
+  flex: 1;
+  padding-left: 8px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.sheet-kopf button {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 24px;
+  background: none;
+  color: var(--text);
+  font-size: 22px;
+}
+
+#sheet-zurueck.versteckt {
+  display: none;
+}
+
+#sheet-inhalt {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px;
+}
+
+/* Eine Zeile im Sheet: Muskelgruppe oder Übung */
+.sheet-zeile {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 4px;
+  border: none;
+  border-bottom: 1px solid var(--rand);
+  background: none;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+/* Eigene Übung: Textfeld und Button ganz unten im Sheet */
+.sheet-eigene {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--rand);
+}
+
+.sheet-eigene input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--rand);
+  border-radius: 14px;
+  background: var(--hintergrund);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.sheet-eigene input::placeholder {
+  color: var(--text-leise);
+}
+
+.sheet-eigene input:focus {
+  outline: none;
+  border-color: var(--akzent);
+}
+
+.sheet-eigene button {
+  flex-shrink: 0;
+  height: 52px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 14px;
+  background: var(--akzent);
+  color: var(--auf-akzent);
+  font-size: 16px;
+  font-weight: 800;
+}

@@ -1,7 +1,9 @@
   // Die Übungsdaten stehen in der uebungen.js: MUSKELGRUPPEN, BEREICHE, MUSKELN, UEBUNGEN und ALTE_NAMEN.
+  // Die Texte der Oberfläche stehen in der texte.js: SPRACHEN und TEXTE.
 
-  // Sprache der Übungs- und Muskelgruppennamen: "de" oder "en".
-  // Der Umschalter kommt mit der Übersetzung der restlichen App.
+  // Die Sprache der App als Kürzel, z. B. "de" oder "en". Sie gilt für die Texte der Oberfläche
+  // und für die Namen der Übungen und Muskelgruppen. Der richtige Wert kommt weiter unten,
+  // sobald die Einstellungen gelesen sind.
   let sprache = "de";
 
   // So viele Übungen zeigt ein Bereich im Sheet sofort, der Rest steckt hinter "Mehr anzeigen"
@@ -27,18 +29,19 @@
   });
 
   // Vorlagen für Trainingssplits: Zum Anpassen einfach hier Übungen, Sätze oder Wiederholungen ändern.
+  // Name, Beschreibung und die Namen der Routinen sind Schlüssel der Tabelle TEXTE in der texte.js.
   // Die Übungsnamen müssen in der uebungen.js stehen (als Name oder unter ALTE_NAMEN), damit die Übung gefunden wird.
   // "wochenplan" hat sieben Plätze für Montag bis Sonntag: Die Zahl zeigt auf eine Routine
   // der Vorlage (0 = die erste), null ist ein Ruhetag.
   const VORLAGEN = [
     {
-      name: "Ganzkörper",
-      fuerWen: "Einsteiger und alle mit wenig Zeit. Jeder Muskel ist in jeder Einheit dran.",
-      wieOft: "3× pro Woche, immer mit einem Ruhetag dazwischen",
+      name: "vorlage.ganzkoerper.name",
+      fuerWen: "vorlage.ganzkoerper.fuerWen",
+      wieOft: "vorlage.ganzkoerper.wieOft",
       wochenplan: [0, null, 1, null, 0, null, null],
       routinen: [
         {
-          name: "Ganzkörper A",
+          name: "vorlage.routine.ganzkoerperA",
           uebungen: [
             { name: "Kniebeuge", saetze: 3, wdh: 8 },
             { name: "Bankdrücken", saetze: 3, wdh: 8 },
@@ -49,7 +52,7 @@
           ]
         },
         {
-          name: "Ganzkörper B",
+          name: "vorlage.routine.ganzkoerperB",
           uebungen: [
             { name: "Kreuzheben", saetze: 3, wdh: 6 },
             { name: "Schrägbankdrücken", saetze: 3, wdh: 10 },
@@ -62,13 +65,13 @@
       ]
     },
     {
-      name: "Oberkörper/Unterkörper",
-      fuerWen: "Wer die Grundübungen kennt und jeden Muskel zweimal pro Woche trainieren will.",
-      wieOft: "4× pro Woche",
+      name: "vorlage.obenUnten.name",
+      fuerWen: "vorlage.obenUnten.fuerWen",
+      wieOft: "vorlage.obenUnten.wieOft",
       wochenplan: [0, 1, null, 0, 1, null, null],
       routinen: [
         {
-          name: "Oberkörper",
+          name: "vorlage.routine.oberkoerper",
           uebungen: [
             { name: "Bankdrücken", saetze: 4, wdh: 8 },
             { name: "Langhantelrudern", saetze: 4, wdh: 8 },
@@ -79,7 +82,7 @@
           ]
         },
         {
-          name: "Unterkörper",
+          name: "vorlage.routine.unterkoerper",
           uebungen: [
             { name: "Kniebeuge", saetze: 4, wdh: 8 },
             { name: "Rumänisches Kreuzheben", saetze: 3, wdh: 10 },
@@ -92,13 +95,13 @@
       ]
     },
     {
-      name: "Push/Pull/Legs",
-      fuerWen: "Fortgeschrittene, die oft trainieren und pro Einheit mehr Übungen je Muskel wollen.",
-      wieOft: "6× pro Woche (oder 3× mit je einem Ruhetag dazwischen)",
+      name: "vorlage.ppl.name",
+      fuerWen: "vorlage.ppl.fuerWen",
+      wieOft: "vorlage.ppl.wieOft",
       wochenplan: [0, 1, 2, 0, 1, 2, null],
       routinen: [
         {
-          name: "Push",
+          name: "vorlage.routine.push",
           uebungen: [
             { name: "Bankdrücken", saetze: 4, wdh: 8 },
             { name: "Schrägbankdrücken", saetze: 3, wdh: 10 },
@@ -109,7 +112,7 @@
           ]
         },
         {
-          name: "Pull",
+          name: "vorlage.routine.pull",
           uebungen: [
             { name: "Kreuzheben", saetze: 3, wdh: 5 },
             { name: "Klimmzüge", saetze: 3, wdh: 8 },
@@ -120,7 +123,7 @@
           ]
         },
         {
-          name: "Legs",
+          name: "vorlage.routine.legs",
           uebungen: [
             { name: "Kniebeuge", saetze: 4, wdh: 8 },
             { name: "Rumänisches Kreuzheben", saetze: 3, wdh: 10 },
@@ -133,13 +136,13 @@
       ]
     },
     {
-      name: "Bro Split",
-      fuerWen: "Erfahrene, die pro Einheit eine Muskelgruppe mit vielen Sätzen voll auslasten wollen.",
-      wieOft: "5× pro Woche",
+      name: "vorlage.bro.name",
+      fuerWen: "vorlage.bro.fuerWen",
+      wieOft: "vorlage.bro.wieOft",
       wochenplan: [0, 1, 2, 3, 4, null, null],
       routinen: [
         {
-          name: "Brust",
+          name: "vorlage.routine.brust",
           uebungen: [
             { name: "Bankdrücken", saetze: 4, wdh: 8 },
             { name: "Schrägbankdrücken", saetze: 4, wdh: 10 },
@@ -149,7 +152,7 @@
           ]
         },
         {
-          name: "Rücken",
+          name: "vorlage.routine.ruecken",
           uebungen: [
             { name: "Kreuzheben", saetze: 3, wdh: 5 },
             { name: "Klimmzüge", saetze: 4, wdh: 8 },
@@ -159,7 +162,7 @@
           ]
         },
         {
-          name: "Schultern",
+          name: "vorlage.routine.schultern",
           uebungen: [
             { name: "Military Press", saetze: 4, wdh: 8 },
             { name: "Seitheben", saetze: 4, wdh: 15 },
@@ -169,7 +172,7 @@
           ]
         },
         {
-          name: "Arme",
+          name: "vorlage.routine.arme",
           uebungen: [
             { name: "Langhantelcurls", saetze: 4, wdh: 10 },
             { name: "Hammercurls", saetze: 3, wdh: 12 },
@@ -180,7 +183,7 @@
           ]
         },
         {
-          name: "Beine",
+          name: "vorlage.routine.beine",
           uebungen: [
             { name: "Kniebeuge", saetze: 4, wdh: 8 },
             { name: "Beinpresse", saetze: 4, wdh: 10 },
@@ -203,8 +206,6 @@
 
   // So viele Trainingstage braucht eine Woche, damit sie für die Serie zählt
   const SERIE_TAGE_PRO_WOCHE = 3;
-
-  const WOCHENTAGE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
   // Merkt sich zu jedem Rad seine Werte und welcher gerade markiert ist
   const raeder = {};
@@ -261,10 +262,12 @@
 
   // Einstellungen der App: die Standard-Pause in Sekunden (pauseSekunden),
   // die Einheit für Gewichte (gewichtEinheit: "kg" oder "lbs") und für Längen (laengeEinheit: "cm" oder "ftin")
+  // und die Sprache (sprache: "de" oder "en"). Fehlt die Sprache, gilt die des Geräts.
   let einstellungen = gespeichertLesen("einstellungen", {});
   if (!einstellungen || typeof einstellungen !== "object" || Array.isArray(einstellungen)) {
     einstellungen = {};
   }
+  sprache = spracheErmitteln();
 
   // Die laufende Pause (null = keine). "ende" ist der Zeitpunkt in Millisekunden, an dem sie vorbei ist.
   // Weil das Ende feststeht, stimmt die Restzeit auch, wenn das Handy zwischendurch gesperrt war.
@@ -420,9 +423,147 @@
     return eintrag.uebung.trim().toLowerCase() === name.trim().toLowerCase();
   }
 
-  // Macht aus einer Zahl deutschen Text: 82.5 wird "82,5"
+  // Macht aus einer Zahl Text in der Schreibweise der Sprache: 82.5 wird auf Deutsch "82,5"
   function zahlText(wert) {
-    return String(wert).replace(".", ",");
+    const komma = (1.5).toLocaleString(gebiet()).charAt(1);
+    return String(wert).replace(".", komma);
+  }
+
+  // ---------- Sprache ----------
+
+  // Gibt es diese Sprache in der Liste SPRACHEN?
+  function spracheBekannt(id) {
+    for (let i = 0; i < SPRACHEN.length; i++) {
+      if (SPRACHEN[i].id === id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Die Sprache der App: die im Profil gewählte, sonst die des Geräts.
+  // Ist das Gerät auf eine Sprache eingestellt, die die App nicht kennt, gilt Englisch.
+  function spracheErmitteln() {
+    if (spracheBekannt(einstellungen.sprache)) {
+      return einstellungen.sprache;
+    }
+    const geraet = (navigator.language || "").toLowerCase();
+    for (let i = 0; i < SPRACHEN.length; i++) {
+      if (geraet.indexOf(SPRACHEN[i].id) === 0) {
+        return SPRACHEN[i].id;
+      }
+    }
+    return "en";
+  }
+
+  // Der Eintrag der eingestellten Sprache aus der Liste SPRACHEN
+  function spracheDaten() {
+    for (let i = 0; i < SPRACHEN.length; i++) {
+      if (SPRACHEN[i].id === sprache) {
+        return SPRACHEN[i];
+      }
+    }
+    return SPRACHEN[0];
+  }
+
+  // Das Gebiet, nach dem Zahlen und Datum geschrieben werden, z. B. "de-DE" oder "en-US".
+  // Passt die Sprache des Geräts zur Sprache der App, gilt das Gebiet des Geräts.
+  function gebiet() {
+    const geraet = navigator.language || "";
+    if (geraet.toLowerCase().indexOf(sprache) === 0) {
+      return geraet;
+    }
+    return spracheDaten().gebiet;
+  }
+
+  // Holt einen Text aus der Tabelle TEXTE (texte.js) in der eingestellten Sprache.
+  // werte füllt die Platzhalter: txt("modus.satz", { n: 2 }) macht aus "Satz {n}" den Text "Satz 2".
+  // Fehlt die Übersetzung, kommt der deutsche Text. Fehlt der Schlüssel ganz, kommt der Schlüssel selbst.
+  function txt(schluessel, werte) {
+    const eintrag = TEXTE[schluessel];
+    let text = schluessel;
+    if (eintrag) {
+      text = eintrag[sprache] || eintrag.de;
+    }
+    if (werte) {
+      Object.keys(werte).forEach(function (name) {
+        text = text.split("{" + name + "}").join(String(werte[name]));
+      });
+    }
+    return text;
+  }
+
+  // Dasselbe für Texte mit Einzahl und Mehrzahl: Bei genau 1 gilt der Schlüssel mit ".eins",
+  // sonst der mit ".viele". Die Anzahl steht im Text als {n}.
+  function txtAnzahl(schluessel, anzahl, werte) {
+    const alle = { n: anzahl };
+    if (werte) {
+      Object.keys(werte).forEach(function (name) {
+        alle[name] = werte[name];
+      });
+    }
+    if (Number(anzahl) === 1) {
+      return txt(schluessel + ".eins", alle);
+    }
+    return txt(schluessel + ".viele", alle);
+  }
+
+  // Setzt die festen Texte der index.html in der eingestellten Sprache ein. Jedes Element nennt seinen
+  // Schlüssel: data-t für den Text, data-t-aria für die Ansage (aria-label), data-t-platzhalter für den Platzhalter.
+  function texteEinsetzen() {
+    document.documentElement.lang = sprache;
+    const mitText = document.querySelectorAll("[data-t]");
+    for (let i = 0; i < mitText.length; i++) {
+      mitText[i].textContent = txt(mitText[i].getAttribute("data-t"));
+    }
+    const mitAnsage = document.querySelectorAll("[data-t-aria]");
+    for (let i = 0; i < mitAnsage.length; i++) {
+      mitAnsage[i].setAttribute("aria-label", txt(mitAnsage[i].getAttribute("data-t-aria")));
+    }
+    const mitPlatzhalter = document.querySelectorAll("[data-t-platzhalter]");
+    for (let i = 0; i < mitPlatzhalter.length; i++) {
+      mitPlatzhalter[i].placeholder = txt(mitPlatzhalter[i].getAttribute("data-t-platzhalter"));
+    }
+  }
+
+  // Profil: der Umschalter für die Sprache
+  function spracheAnzeigen() {
+    const auswahl = [];
+    for (let i = 0; i < SPRACHEN.length; i++) {
+      auswahl.push({ id: SPRACHEN[i].id, text: SPRACHEN[i].name });
+    }
+    umschalterBauen(document.getElementById("sprache-auswahl"), auswahl, sprache, spracheSetzen);
+  }
+
+  // Wechselt die Sprache und baut alles neu auf, was gerade Text zeigt
+  function spracheSetzen(neu) {
+    if (neu === sprache || !spracheBekannt(neu)) {
+      return;
+    }
+    einstellungen.sprache = neu;
+    einstellungenSpeichern();
+    sprache = neu;
+
+    texteEinsetzen();
+    document.getElementById("kopfzeile").textContent = document.querySelector("#seite-" + aktiveSeite + " h1").textContent;
+    // Die Zahlenfelder schreiben ihre Werte neu, weil sich Komma und Punkt unterscheiden
+    Object.keys(felder).forEach(function (id) {
+      feldSetzen(id, felder[id].wert);
+    });
+    spracheAnzeigen();
+    einheitenAnwenden();
+    einheitenAnzeigen();
+    wochenleisteAnzeigen();
+    uebungFeldAktualisieren();
+    letztesMalAnzeigen();
+    anzeigen();
+    homeAnzeigen();
+    trainingAnzeigen();
+    pauseAnzeigen();
+    if (bearbeiteteRoutine && trainingAnsicht === "bearbeiten") {
+      bearbeitenTitelAnzeigen();
+      routineUebungenAnzeigen();
+    }
   }
 
   // ---------- Einheiten ----------
@@ -504,7 +645,7 @@
     if (einheit() === "lbs") {
       wert = Math.round(ausKg(kg));
     }
-    return wert.toLocaleString("de-DE") + " " + einheit();
+    return wert.toLocaleString(gebiet()) + " " + einheit();
   }
 
   // Der Startwert der Gewichtsfelder in kg
@@ -537,22 +678,22 @@
     const e = GEWICHT_EINHEITEN[einheit()];
     felder["feld-gewicht"].max = e.max;
     felder["t-feld-gewicht"].max = e.max;
-    document.getElementById("feld-gewicht").setAttribute("aria-label", "Gewicht in " + einheit());
-    document.getElementById("t-feld-gewicht").setAttribute("aria-label", "Gewicht in " + einheit());
+    document.getElementById("feld-gewicht").setAttribute("aria-label", txt("gewicht.in", { einheit: einheit() }));
+    document.getElementById("t-feld-gewicht").setAttribute("aria-label", txt("gewicht.in", { einheit: einheit() }));
 
     const titel = document.querySelectorAll(".gewicht-titel");
     for (let i = 0; i < titel.length; i++) {
-      titel[i].textContent = "Gewicht (" + einheit() + ")";
+      titel[i].textContent = txt("gewicht.titel", { einheit: einheit() });
     }
     const weniger = document.querySelectorAll(".gewicht-weniger");
     for (let i = 0; i < weniger.length; i++) {
       weniger[i].textContent = "−" + zahlText(e.schritt);
-      weniger[i].setAttribute("aria-label", zahlText(e.schritt) + " " + einheit() + " weniger");
+      weniger[i].setAttribute("aria-label", txt("gewicht.weniger", { schritt: zahlText(e.schritt), einheit: einheit() }));
     }
     const mehr = document.querySelectorAll(".gewicht-mehr");
     for (let i = 0; i < mehr.length; i++) {
       mehr[i].textContent = "+" + zahlText(e.schritt);
-      mehr[i].setAttribute("aria-label", zahlText(e.schritt) + " " + einheit() + " mehr");
+      mehr[i].setAttribute("aria-label", txt("gewicht.mehr", { schritt: zahlText(e.schritt), einheit: einheit() }));
     }
 
     // Körpergewicht in Schritten von 0,1
@@ -669,12 +810,26 @@
     return Math.floor(tageImJahr / 7) + 1;
   }
 
+  // Der kurze Name eines Wochentags in der eingestellten Sprache: 0 ist Montag ("Mo"), 6 ist Sonntag ("So")
+  function wochentag(index) {
+    // Der 1. Januar 2024 war ein Montag
+    return new Date(2024, 0, 1 + index).toLocaleDateString(gebiet(), { weekday: "short" });
+  }
+
+  // Tag und Monat in der Schreibweise der Sprache, z. B. "5.10." oder "5 Oct"
+  function tagMonat(datum) {
+    return datum.toLocaleDateString(gebiet(), { day: "numeric", month: spracheDaten().monat });
+  }
+
+  // Dasselbe mit Jahr, z. B. "5.10.2026" oder "5 Oct 2026"
+  function datumMitJahr(datum) {
+    return datum.toLocaleDateString(gebiet(), { day: "numeric", month: spracheDaten().monat, year: "numeric" });
+  }
+
   // Überschrift einer Woche, z. B. "KW 41 · 5.10. – 11.10.2026"
   function wochenTitel(montag) {
     const sonntag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 6);
-    return "KW " + kalenderwoche(montag) + " · "
-      + montag.getDate() + "." + (montag.getMonth() + 1) + ". – "
-      + sonntag.getDate() + "." + (sonntag.getMonth() + 1) + "." + sonntag.getFullYear();
+    return txt("woche.kw", { nr: kalenderwoche(montag) }) + " · " + tagMonat(montag) + " – " + datumMitJahr(sonntag);
   }
 
   // Eine Zahl pro Kalendertag, z. B. 20261005. Damit lassen sich Tage vergleichen.
@@ -684,7 +839,12 @@
 
   // Kurzer Text für einen Tag, z. B. "Mo, 5.10."
   function tagText(datum) {
-    return WOCHENTAGE[(datum.getDay() + 6) % 7] + ", " + datum.getDate() + "." + (datum.getMonth() + 1) + ".";
+    return wochentag((datum.getDay() + 6) % 7) + ", " + tagMonat(datum);
+  }
+
+  // Dasselbe mit Jahr, z. B. "Mo, 5.10.2026"
+  function tagTextMitJahr(datum) {
+    return wochentag((datum.getDay() + 6) % 7) + ", " + datumMitJahr(datum);
   }
 
   // ---------- Wochenleiste ----------
@@ -707,7 +867,7 @@
 
       const name = document.createElement("span");
       name.className = "tag-name";
-      name.textContent = WOCHENTAGE[i];
+      name.textContent = wochentag(i);
       btn.appendChild(name);
 
       const zahl = document.createElement("span");
@@ -990,7 +1150,7 @@
   function sheetGruppenZeigen() {
     sheetGruppe = "";
     document.getElementById("sheet-suche").value = "";
-    const inhalt = sheetLeeren("Muskelgruppe", false);
+    const inhalt = sheetLeeren(txt("sheet.muskelgruppe"), false);
     const raster = element("div", "muskel-raster");
 
     for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
@@ -1025,10 +1185,10 @@
     const auch = UEBUNGEN.filter(function (u) {
       return u.auch.indexOf(gruppeId) !== -1;
     });
-    sheetAbschnitt(inhalt, "Trainiert auch", auch, true);
+    sheetAbschnitt(inhalt, txt("sheet.trainiertAuch"), auch, true);
 
     if (anzahl === 0) {
-      inhalt.insertBefore(element("p", "leer-hinweis", "Für diese Muskelgruppe kommen die Übungen noch. Bis dahin kannst du oben eine eigene eintippen."), inhalt.firstChild);
+      inhalt.insertBefore(element("p", "leer-hinweis", txt("sheet.gruppeLeer")), inhalt.firstChild);
     }
   }
 
@@ -1045,7 +1205,7 @@
     }
 
     if (liste.length > TOP_ANZAHL) {
-      const mehr = element("button", "sheet-mehr", "Mehr anzeigen (+" + (liste.length - TOP_ANZAHL) + ")");
+      const mehr = element("button", "sheet-mehr", txt("sheet.mehr", { n: liste.length - TOP_ANZAHL }));
       mehr.onclick = function () {
         // Die restlichen Übungen an die Stelle des Buttons setzen
         for (let i = TOP_ANZAHL; i < liste.length; i++) {
@@ -1103,17 +1263,17 @@
       });
     });
 
-    const inhalt = sheetLeeren("Suche", true);
+    const inhalt = sheetLeeren(txt("sheet.suche"), true);
     for (let i = 0; i < treffer.length; i++) {
       inhalt.appendChild(uebungZeile(treffer[i], true));
     }
     if (treffer.length === 0) {
-      inhalt.appendChild(element("p", "leer-hinweis", "Keine Übung gefunden."));
+      inhalt.appendChild(element("p", "leer-hinweis", txt("sheet.keinTreffer")));
     }
 
     // Eigene Übung anbieten, außer es gibt genau diese Übung schon in der Liste
     if (!ID_NACH_NAME[eingabe.toLowerCase()]) {
-      const eigene = element("button", "sheet-zeile eigene", "„" + eingabe + "“ als eigene Übung übernehmen");
+      const eigene = element("button", "sheet-zeile eigene", txt("sheet.eigene", { name: eingabe }));
       eigene.onclick = eigeneUebungUebernehmen;
       inhalt.appendChild(eigene);
     }
@@ -1158,7 +1318,7 @@
     const leer = gewaehlteUebung === "";
 
     if (leer) {
-      feld.textContent = "Übung wählen";
+      feld.textContent = txt("log.uebungWaehlen");
     } else {
       feld.textContent = anzeigeName(gewaehlteUebung, gewaehlteUebungId);
     }
@@ -1171,9 +1331,9 @@
     const btn = document.getElementById("speichern");
 
     if (gewaehlterTag) {
-      btn.textContent = "Speichern für " + tagText(gewaehlterTag);
+      btn.textContent = txt("log.speichernFuer", { tag: tagText(gewaehlterTag) });
     } else {
-      btn.textContent = "Speichern";
+      btn.textContent = txt("speichern");
     }
     btn.disabled = gewaehlteUebung === "";
   }
@@ -1225,7 +1385,7 @@
     }
 
     if (ohneDatum.length > 0) {
-      gruppeAnzeigen("Ohne Datum", ohneDatum);
+      gruppeAnzeigen(txt("log.ohneDatum"), ohneDatum);
     }
 }
 
@@ -1244,12 +1404,12 @@
         return new Date(b.eintrag.datum) - new Date(a.eintrag.datum);
       });
 
-      gruppeAnzeigen(tagText(gewaehlterTag) + gewaehlterTag.getFullYear(), gruppe);
+      gruppeAnzeigen(tagTextMitJahr(gewaehlterTag), gruppe);
 
       if (gruppe.length === 0) {
         const hinweis = document.createElement("p");
         hinweis.className = "leer-hinweis";
-        hinweis.textContent = "Keine Einträge an diesem Tag.";
+        hinweis.textContent = txt("log.tagLeer");
         document.getElementById("liste").appendChild(hinweis);
       }
     }
@@ -1269,11 +1429,11 @@
     const li = document.createElement("li");
     let datumText = "";
     if (e.datum) {
-      datumText = new Date(e.datum).toLocaleDateString("de-DE") + " – ";
+      datumText = datumMitJahr(new Date(e.datum)) + " – ";
     }
     li.textContent = datumText + anzeigeName(e.uebung, e.uebungId) + ": " + saetzeText(e);
     const btn = document.createElement("button");
-    btn.textContent = "Löschen";
+    btn.textContent = txt("loeschen");
     btn.onclick = function () {
       loeschen(index);
     };
@@ -1372,9 +1532,9 @@
 
         let datumText = "";
         if (e.datum) {
-          datumText = " (" + new Date(e.datum).toLocaleDateString("de-DE") + ")";
+          datumText = " (" + datumMitJahr(new Date(e.datum)) + ")";
         }
-        return "Letztes Mal" + datumText + ": " + saetzeText(e);
+        return txt("letztesMal", { datum: datumText, saetze: saetzeText(e) });
       }
 
   // ---------- Einzelne Sätze ----------
@@ -1439,7 +1599,7 @@
     return summe;
   }
 
-  // Die Sätze eines Eintrags als Text. Sind alle gleich: "3 Sätze × 10 Wdh. à 80 kg".
+  // Die Sätze eines Eintrags als Text in der eingestellten Sprache. Sind alle gleich: "3 Sätze × 10 Wdh. à 80 kg".
   // Unterscheiden sie sich: "80 kg × 10, 10, 8", bei wechselndem Gewicht "80 kg × 10 · 85 kg × 8".
   // Mit Reps in Reserve steht jeder Satz einzeln da: "80 kg × 10 @ RIR 2, 10 @ RIR 1".
   function saetzeText(e) {
@@ -1454,7 +1614,7 @@
       }
     }
     if (alleGleich) {
-      return e.saetze + " Sätze × " + e.wdh + " Wdh. à " + gewichtText(e.gewicht);
+      return txtAnzahl("eintrag.gleich", e.saetze, { wdh: e.wdh, gewicht: gewichtText(e.gewicht) });
     }
 
     const teile = [];
@@ -1634,23 +1794,20 @@
       wdh += "–" + wdhBis(uebung);
     }
     if (uebung.zielSaetze && uebung.zielWdh) {
-      return "Ziel: " + uebung.zielSaetze + " Sätze × " + wdh + " Wdh.";
+      return txt("ziel.beides", { saetze: uebung.zielSaetze, wdh: wdh });
     }
     if (uebung.zielSaetze) {
-      return "Ziel: " + uebung.zielSaetze + " Sätze";
+      return txt("ziel.saetze", { saetze: uebung.zielSaetze });
     }
     if (uebung.zielWdh) {
-      return "Ziel: " + wdh + " Wdh.";
+      return txt("ziel.wdh", { wdh: wdh });
     }
     return "";
   }
 
   // "1 Übung" oder "5 Übungen"
   function uebungenText(anzahl) {
-    if (anzahl === 1) {
-      return "1 Übung";
-    }
-    return anzahl + " Übungen";
+    return txtAnzahl("anzahl.uebungen", anzahl);
   }
 
   // Die Zeile unter dem Namen einer Routine, z. B. "6 Übungen · Brust, Schultern, Trizeps"
@@ -1737,15 +1894,15 @@
     }
 
     const karte = element("div", "karte laufend");
-    karte.appendChild(element("div", "routine-name", "Training fortsetzen?"));
-    karte.appendChild(element("div", "routine-info", laufendesTraining.routineName + " · Übung "
-      + (laufendesTraining.index + 1) + " von " + laufendesTraining.uebungen.length));
+    karte.appendChild(element("div", "routine-name", txt("training.fortsetzenFrage")));
+    karte.appendChild(element("div", "routine-info", laufendesTraining.routineName + " · "
+      + txt("uebung.xVonY", { x: laufendesTraining.index + 1, y: laufendesTraining.uebungen.length })));
 
     const knoepfe = element("div", "karten-knoepfe");
-    const weiter = element("button", "knopf haupt", "Fortsetzen");
+    const weiter = element("button", "knopf haupt", txt("fortsetzen"));
     weiter.onclick = trainingFortsetzen;
     knoepfe.appendChild(weiter);
-    const weg = element("button", "knopf leise", "Verwerfen");
+    const weg = element("button", "knopf leise", txt("verwerfen"));
     weg.onclick = trainingVerwerfen;
     knoepfe.appendChild(weg);
     karte.appendChild(knoepfe);
@@ -1763,11 +1920,11 @@
       if (i === heute) {
         zeile.classList.add("heute");
       }
-      zeile.appendChild(element("span", "plan-tag", WOCHENTAGE[i]));
+      zeile.appendChild(element("span", "plan-tag", wochentag(i)));
 
       const auswahl = document.createElement("select");
-      auswahl.appendChild(new Option("Nicht geplant", ""));
-      auswahl.appendChild(new Option("Ruhetag", "ruhe"));
+      auswahl.appendChild(new Option(txt("plan.nichtGeplant"), ""));
+      auswahl.appendChild(new Option(txt("ruhetag"), "ruhe"));
       for (let j = 0; j < routinen.length; j++) {
         auswahl.appendChild(new Option(routinen[j].name, routinen[j].id));
       }
@@ -1787,7 +1944,7 @@
     liste.innerHTML = "";
 
     if (routinen.length === 0) {
-      liste.appendChild(element("p", "leer-hinweis", "Noch keine Routinen. Leg eine eigene an oder übernimm unten eine Vorlage."));
+      liste.appendChild(element("p", "leer-hinweis", txt("routinen.leer")));
       return;
     }
 
@@ -1798,17 +1955,17 @@
       karte.appendChild(element("div", "routine-info", routineInfo(routine)));
 
       const knoepfe = element("div", "karten-knoepfe");
-      const start = element("button", "knopf haupt", "Starten");
+      const start = element("button", "knopf haupt", txt("routine.starten"));
       start.onclick = function () {
         routineStarten(routine);
       };
       knoepfe.appendChild(start);
-      const aendern = element("button", "knopf", "Bearbeiten");
+      const aendern = element("button", "knopf", txt("routine.bearbeiten"));
       aendern.onclick = function () {
         routineBearbeiten(routine);
       };
       knoepfe.appendChild(aendern);
-      const weg = element("button", "knopf leise", "Löschen");
+      const weg = element("button", "knopf leise", txt("loeschen"));
       weg.onclick = function () {
         routineLoeschenFragen(routine);
       };
@@ -1827,17 +1984,17 @@
       const vorlage = VORLAGEN[i];
       const namen = [];
       for (let j = 0; j < vorlage.routinen.length; j++) {
-        namen.push(vorlage.routinen[j].name);
+        namen.push(txt(vorlage.routinen[j].name));
       }
 
       const karte = element("div", "karte routine-karte");
-      karte.appendChild(element("div", "routine-name", vorlage.name));
-      karte.appendChild(element("div", "vorlage-oft", vorlage.wieOft));
-      karte.appendChild(element("div", "routine-info", vorlage.fuerWen));
-      karte.appendChild(element("div", "routine-info", "Routinen: " + namen.join(" · ")));
+      karte.appendChild(element("div", "routine-name", txt(vorlage.name)));
+      karte.appendChild(element("div", "vorlage-oft", txt(vorlage.wieOft)));
+      karte.appendChild(element("div", "routine-info", txt(vorlage.fuerWen)));
+      karte.appendChild(element("div", "routine-info", txt("vorlage.routinen", { namen: namen.join(" · ") })));
 
       const knoepfe = element("div", "karten-knoepfe");
-      const nehmen = element("button", "knopf", "Vorlage übernehmen");
+      const nehmen = element("button", "knopf", txt("vorlage.uebernehmen"));
       nehmen.onclick = function () {
         vorlageUebernehmen(vorlage);
       };
@@ -1852,7 +2009,7 @@
   function vorlageUebernehmen(vorlage) {
     const ids = [];
     for (let i = 0; i < vorlage.routinen.length; i++) {
-      const kopie = { id: neueId(), name: vorlage.routinen[i].name, uebungen: [] };
+      const kopie = { id: neueId(), name: txt(vorlage.routinen[i].name), uebungen: [] };
       for (let j = 0; j < vorlage.routinen[i].uebungen.length; j++) {
         const u = vorlage.routinen[i].uebungen[j];
         const neu = {
@@ -1883,10 +2040,10 @@
       const platz = vorlage.wochenplan[i];
       if (platz === null) {
         vorschlag.push("ruhe");
-        zeilen.push(WOCHENTAGE[i] + ": Ruhetag");
+        zeilen.push(wochentag(i) + ": " + txt("ruhetag"));
       } else {
         vorschlag.push(ids[platz]);
-        zeilen.push(WOCHENTAGE[i] + ": " + vorlage.routinen[platz].name);
+        zeilen.push(wochentag(i) + ": " + txt(vorlage.routinen[platz].name));
       }
       if (wochenplan[i] !== "") {
         hattePlan = true;
@@ -1896,13 +2053,13 @@
     routinenSpeichern();
     trainingAnzeigen();
 
-    let text = vorlage.routinen.length + " Routinen wurden angelegt. Vorschlag für deine Woche:\n\n" + zeilen.join("\n");
+    let text = txt("vorlage.angelegt", { n: vorlage.routinen.length, plan: zeilen.join("\n") });
     if (hattePlan) {
-      text += "\n\nDein bisheriger Wochenplan wird dabei ersetzt.";
+      text += "\n\n" + txt("vorlage.planErsetzt");
     }
-    frageZeigen("Wochenplan übernehmen?", text, [
+    frageZeigen(txt("vorlage.planFrage"), text, [
       {
-        text: "Wochenplan übernehmen",
+        text: txt("vorlage.planJa"),
         art: "haupt",
         aktion: function () {
           wochenplan = vorschlag;
@@ -1910,14 +2067,14 @@
           trainingAnzeigen();
         }
       },
-      { text: "Wochenplan nicht ändern", art: "leise" }
+      { text: txt("vorlage.planNein"), art: "leise" }
     ]);
   }
 
   function routineLoeschenFragen(routine) {
-    frageZeigen("Routine löschen?", "„" + routine.name + "“ wird gelöscht und aus dem Wochenplan entfernt. Deine Einträge im Log bleiben erhalten.", [
+    frageZeigen(txt("routine.loeschenFrage"), txt("routine.loeschenText", { name: routine.name }), [
       {
-        text: "Löschen",
+        text: txt("loeschen"),
         art: "haupt",
         aktion: function () {
           routinen.splice(routinen.indexOf(routine), 1);
@@ -1926,7 +2083,7 @@
           trainingAnzeigen();
         }
       },
-      { text: "Abbrechen", art: "leise" }
+      { text: txt("abbrechen"), art: "leise" }
     ]);
   }
 
@@ -1948,15 +2105,20 @@
       }
     }
 
-    if (routine) {
-      document.getElementById("bearbeiten-titel").textContent = "Routine bearbeiten";
-    } else {
-      document.getElementById("bearbeiten-titel").textContent = "Neue Routine";
-    }
+    bearbeitenTitelAnzeigen();
     document.getElementById("routine-name").value = bearbeiteteRoutine.name;
     document.getElementById("routine-meldung").textContent = "";
     routineUebungenAnzeigen();
     trainingAnsichtZeigen("bearbeiten");
+  }
+
+  // Der Titel über dem Editor: Eine Routine, die es schon gibt, hat eine id
+  function bearbeitenTitelAnzeigen() {
+    let titel = txt("editor.neu");
+    if (bearbeiteteRoutine.id) {
+      titel = txt("editor.bearbeiten");
+    }
+    document.getElementById("bearbeiten-titel").textContent = titel;
   }
 
   // Die Übungen der bearbeiteten Routine: Pfeile zum Umsortieren, Ziel-Felder und Entfernen
@@ -1966,7 +2128,7 @@
     const uebungen = bearbeiteteRoutine.uebungen;
 
     if (uebungen.length === 0) {
-      liste.appendChild(element("p", "leer-hinweis", "Noch keine Übungen."));
+      liste.appendChild(element("p", "leer-hinweis", txt("editor.leer")));
       return;
     }
 
@@ -1976,14 +2138,14 @@
 
       const pfeile = element("div", "pfeile");
       const hoch = element("button", "", "↑");
-      hoch.setAttribute("aria-label", "Nach oben");
+      hoch.setAttribute("aria-label", txt("editor.hoch"));
       hoch.disabled = i === 0;
       hoch.onclick = function () {
         routineUebungVerschieben(i, -1);
       };
       pfeile.appendChild(hoch);
       const runter = element("button", "", "↓");
-      runter.setAttribute("aria-label", "Nach unten");
+      runter.setAttribute("aria-label", txt("editor.runter"));
       runter.disabled = i === uebungen.length - 1;
       runter.onclick = function () {
         routineUebungVerschieben(i, 1);
@@ -2004,14 +2166,14 @@
         mitte.appendChild(element("div", "uebung-gruppe", gruppe));
       }
       const ziele = element("div", "ziele");
-      ziele.appendChild(zielFeld("Sätze", u, "zielSaetze", 10));
+      ziele.appendChild(zielFeld(txt("saetze"), u, "zielSaetze", 10));
       ziele.appendChild(wdhZielFeld(u));
       ziele.appendChild(pauseFeld(u));
       mitte.appendChild(ziele);
       zeile.appendChild(mitte);
 
       const weg = element("button", "entfernen", "✕");
-      weg.setAttribute("aria-label", "Übung entfernen");
+      weg.setAttribute("aria-label", txt("editor.entfernen"));
       weg.onclick = function () {
         uebungen.splice(i, 1);
         routineUebungenAnzeigen();
@@ -2054,24 +2216,24 @@
   // Die Auswahl bestimmt, welche Zahlenfelder direkt darunter zu sehen sind.
   function wdhZielFeld(uebung) {
     const rahmen = element("div", "ziel wdh-ziel");
-    rahmen.appendChild(element("span", "", "Wdh."));
+    rahmen.appendChild(element("span", "", txt("wdh")));
     const spalte = element("div", "wdh-spalte");
     rahmen.appendChild(spalte);
 
     const auswahl = document.createElement("select");
-    auswahl.setAttribute("aria-label", "Art des Wiederholungsziels");
-    auswahl.appendChild(new Option("Feste Zahl", "fest"));
+    auswahl.setAttribute("aria-label", txt("editor.wdhArt"));
+    auswahl.appendChild(new Option(txt("editor.festeZahl"), "fest"));
     for (let i = 0; i < WDH_BEREICHE.length; i++) {
       auswahl.appendChild(new Option(WDH_BEREICHE[i][0] + "–" + WDH_BEREICHE[i][1], String(i)));
     }
-    auswahl.appendChild(new Option("Eigener Bereich", "eigen"));
+    auswahl.appendChild(new Option(txt("editor.eigenerBereich"), "eigen"));
     spalte.appendChild(auswahl);
 
     // Die Zahlenfelder stehen in einer eigenen Zeile unter der Auswahl
     const felderZeile = element("div", "wdh-felder");
-    const von = wdhZahlFeld(uebung, "zielWdh", "Wiederholungen");
+    const von = wdhZahlFeld(uebung, "zielWdh", txt("wiederholungen"));
     const strich = element("span", "", "–");
-    const bis = wdhZahlFeld(uebung, "zielWdhMax", "Wiederholungen bis");
+    const bis = wdhZahlFeld(uebung, "zielWdhMax", txt("editor.wdhBis"));
     felderZeile.appendChild(von);
     felderZeile.appendChild(strich);
     felderZeile.appendChild(bis);
@@ -2133,10 +2295,10 @@
   // Auswahlfeld für die Pause nach jedem Satz dieser Übung. "Standard" heißt: die Zeit aus dem Profil.
   function pauseFeld(uebung) {
     const rahmen = element("label", "ziel");
-    rahmen.appendChild(element("span", "", "Pause"));
+    rahmen.appendChild(element("span", "", txt("pause")));
 
     const auswahl = document.createElement("select");
-    auswahl.appendChild(new Option("Standard", ""));
+    auswahl.appendChild(new Option(txt("editor.pauseStandard"), ""));
     for (let sekunden = PAUSE_SCHRITT; sekunden <= PAUSE_MAX; sekunden += PAUSE_SCHRITT) {
       auswahl.appendChild(new Option(pauseText(sekunden), sekunden));
     }
@@ -2174,11 +2336,11 @@
   function routineSpeichern() {
     const name = document.getElementById("routine-name").value.trim();
     if (name === "") {
-      document.getElementById("routine-meldung").textContent = "Gib der Routine einen Namen.";
+      document.getElementById("routine-meldung").textContent = txt("editor.ohneName");
       return;
     }
     if (bearbeiteteRoutine.uebungen.length === 0) {
-      document.getElementById("routine-meldung").textContent = "Füge mindestens eine Übung hinzu.";
+      document.getElementById("routine-meldung").textContent = txt("editor.ohneUebung");
       return;
     }
 
@@ -2217,15 +2379,15 @@
       return;
     }
 
-    frageZeigen("Es läuft noch ein Training", "„" + laufendesTraining.routineName + "“ ist noch nicht abgeschlossen. Schon gespeicherte Übungen bleiben in jedem Fall im Log.", [
-      { text: "Laufendes Training fortsetzen", art: "haupt", aktion: trainingFortsetzen },
+    frageZeigen(txt("modus.laeuftNoch"), txt("modus.laeuftNochText", { name: laufendesTraining.routineName }), [
+      { text: txt("modus.laufendesFortsetzen"), art: "haupt", aktion: trainingFortsetzen },
       {
-        text: "„" + routine.name + "“ neu starten",
+        text: txt("modus.neuStarten", { name: routine.name }),
         aktion: function () {
           trainingBeginnen(routine);
         }
       },
-      { text: "Abbrechen", art: "leise" }
+      { text: txt("abbrechen"), art: "leise" }
     ]);
   }
 
@@ -2337,13 +2499,13 @@
     const u = t.uebungen[t.index];
 
     document.getElementById("modus-routine").textContent = t.routineName;
-    document.getElementById("modus-schritt").textContent = "Übung " + (t.index + 1) + " von " + t.uebungen.length + " ▾";
+    document.getElementById("modus-schritt").textContent = txt("uebung.xVonY", { x: t.index + 1, y: t.uebungen.length }) + " ▾";
     document.getElementById("modus-zurueck").disabled = t.index === 0;
     document.getElementById("modus-vor").disabled = t.index === t.uebungen.length - 1;
     document.getElementById("modus-uebung").textContent = anzeigeName(u.name, u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
     document.getElementById("modus-hinweis").textContent = gewichtErhoehenText(u);
-    document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name, u.uebungId, u.eintragId) || "Letztes Mal: noch kein Eintrag";
+    document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name, u.uebungId, u.eintragId) || txt("letztesMal.leer");
 
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
@@ -2381,7 +2543,7 @@
         return "";
       }
     }
-    return "Gewicht erhöhen: Letztes Mal hast du in allen Sätzen " + bis + " Wdh. erreicht.";
+    return txt("modus.erhoehen", { wdh: bis });
   }
 
   // Zeigt im Trainingsmodus den passenden Teil: die Eingabe für den nächsten Satz, den Countdown
@@ -2400,26 +2562,26 @@
     const zielErreicht = ziel > 0 && gemacht >= ziel && !u.extraSatz;
 
     // "Satz 2 von 4". Ohne Ziel und bei einem zusätzlichen Satz nur "Satz 5".
-    let satzText = "Satz " + (gemacht + 1);
+    let satzText = txt("modus.satz", { n: gemacht + 1 });
     if (zielErreicht && gemacht === ziel) {
-      satzText = gemacht + " von " + ziel + " Sätzen geschafft";
+      satzText = txt("modus.zielGeschafft", { n: gemacht, ziel: ziel });
     } else if (zielErreicht) {
-      satzText = gemacht + " Sätze geschafft";
+      satzText = txt("modus.geschafft", { n: gemacht });
     } else if (gemacht < ziel) {
-      satzText += " von " + ziel;
+      satzText = txt("modus.satzVon", { n: gemacht + 1, ziel: ziel });
     }
     document.getElementById("modus-satz").textContent = satzText;
 
-    let weiterText = "Nächste Übung";
+    let weiterText = txt("modus.naechste");
     if (letzteUebung) {
-      weiterText = "Training abschließen";
+      weiterText = txt("modus.abschliessen");
     }
     document.getElementById("modus-wahl-weiter").textContent = weiterText;
 
     // Der kleine Button unten: Ohne einen einzigen Satz wird die Übung übersprungen
     const weiter = document.getElementById("modus-weiter");
     if (gemacht === 0) {
-      weiter.textContent = "Übung überspringen";
+      weiter.textContent = txt("modus.uebungUeberspringen");
     } else {
       weiter.textContent = weiterText;
     }
@@ -2428,12 +2590,12 @@
     // Pause: Countdown und was danach kommt
     document.getElementById("modus-pause").classList.toggle("versteckt", !pauseLaeuft);
     document.getElementById("modus-countdown").textContent = pauseText(Math.ceil(pauseRest() / 1000));
-    let danach = "Als Nächstes: " + satzText;
+    let danach = txt("modus.alsNaechstes", { text: satzText });
     if (zielErreicht && letzteUebung) {
-      danach = "Das war die letzte Übung.";
+      danach = txt("modus.letzteUebung");
     } else if (zielErreicht) {
       const naechste = t.uebungen[t.index + 1];
-      danach = "Danach: " + anzeigeName(naechste.name, naechste.uebungId);
+      danach = txt("modus.danach", { name: anzeigeName(naechste.name, naechste.uebungId) });
     }
     document.getElementById("modus-naechstes").textContent = danach;
 
@@ -2594,15 +2756,15 @@
       trainingAbschliessen();
       return;
     }
-    frageZeigen("Training abschließen?", offenText(offen) + " Schon gespeicherte Übungen bleiben im Log.", [
-      { text: "Training abschließen", art: "haupt", aktion: trainingAbschliessen },
+    frageZeigen(txt("modus.abschliessenFrage"), offenText(offen) + " " + txt("modus.bleibtImLog"), [
+      { text: txt("modus.abschliessen"), art: "haupt", aktion: trainingAbschliessen },
       {
-        text: "Zur offenen Übung",
+        text: txt("modus.zurOffenen"),
         aktion: function () {
           uebungZeigen(offen[0]);
         }
       },
-      { text: "Weiter trainieren", art: "leise" }
+      { text: txt("modus.weiterTrainieren"), art: "leise" }
     ]);
   }
 
@@ -2646,29 +2808,23 @@
     for (let i = 0; i < offen.length; i++) {
       namen.push(anzeigeName(t.uebungen[offen[i]].name, t.uebungen[offen[i]].uebungId));
     }
-    if (offen.length === 1) {
-      return "1 Übung ist noch offen: " + namen[0] + ".";
-    }
-    return offen.length + " Übungen sind noch offen: " + namen.join(", ") + ".";
+    return txtAnzahl("modus.offen", offen.length, { namen: namen.join(", ") });
   }
 
   // Wie weit eine Übung im laufenden Training ist: "offen", "2 von 3 Sätzen" oder "fertig · 3 Sätze"
   function uebungStandText(u) {
     const gemacht = u.saetze.length;
     if (gemacht === 0) {
-      return "offen";
+      return txt("stand.offen");
     }
-    let saetze = gemacht + " Sätze";
-    if (gemacht === 1) {
-      saetze = "1 Satz";
-    }
+    const saetze = txtAnzahl("anzahl.saetze", gemacht);
     if (!u.zielSaetze) {
       return saetze;
     }
     if (gemacht >= u.zielSaetze) {
-      return "fertig · " + saetze;
+      return txt("stand.fertig", { saetze: saetze });
     }
-    return gemacht + " von " + u.zielSaetze + " Sätzen";
+    return txt("stand.xVonY", { x: gemacht, y: u.zielSaetze });
   }
 
   // Öffnet die Übersicht aller Übungen des Trainings. Antippen springt zu der Übung.
@@ -2699,13 +2855,13 @@
 
   function trainingBeendenFragen() {
     const offen = offeneUebungen(-1);
-    let text = "Schon gespeicherte Übungen bleiben im Log.";
+    let text = txt("modus.bleibtImLog");
     if (offen.length > 0) {
-      text = offenText(offen) + " Sie entfallen. " + text;
+      text = offenText(offen) + " " + txt("modus.entfallen") + " " + text;
     }
-    frageZeigen("Training beenden?", text, [
-      { text: "Training beenden", art: "haupt", aktion: trainingAbschliessen },
-      { text: "Weiter trainieren", art: "leise" }
+    frageZeigen(txt("modus.beendenFrage"), text, [
+      { text: txt("modus.trainingBeenden"), art: "haupt", aktion: trainingAbschliessen },
+      { text: txt("modus.weiterTrainieren"), art: "leise" }
     ]);
   }
 
@@ -2721,11 +2877,11 @@
       bewegt += eintragVolumen(eintrag, 0);
     }
 
-    let text = t.routineName + " · " + t.erledigt.length + " von " + uebungenText(t.uebungen.length) + " gespeichert";
+    let text = t.routineName + " · " + txt("fertig.gespeichert", { x: t.erledigt.length, uebungen: uebungenText(t.uebungen.length) });
     // Übersprungen ist jede Übung, die keinen einzigen Satz hat
     const uebersprungen = offeneUebungen(-1).length;
     if (uebersprungen > 0) {
-      text += ", " + uebersprungen + " übersprungen";
+      text += ", " + txt("fertig.uebersprungen", { n: uebersprungen });
     }
     document.getElementById("fertig-text").textContent = text;
     document.getElementById("fertig-uebungen").textContent = t.erledigt.length;
@@ -2776,11 +2932,13 @@
     if (!laufendesTraining) {
       return;
     }
-    frageZeigen("Training fortsetzen?", "„" + laufendesTraining.routineName + "“ ist noch nicht abgeschlossen: Übung "
-      + (laufendesTraining.index + 1) + " von " + laufendesTraining.uebungen.length + ".", [
-      { text: "Fortsetzen", art: "haupt", aktion: trainingFortsetzen },
-      { text: "Verwerfen", aktion: trainingVerwerfen },
-      { text: "Später", art: "leise" }
+    frageZeigen(txt("training.fortsetzenFrage"), txt("modus.nichtFertig", {
+      name: laufendesTraining.routineName,
+      stand: txt("uebung.xVonY", { x: laufendesTraining.index + 1, y: laufendesTraining.uebungen.length })
+    }), [
+      { text: txt("fortsetzen"), art: "haupt", aktion: trainingFortsetzen },
+      { text: txt("verwerfen"), aktion: trainingVerwerfen },
+      { text: txt("spaeter"), art: "leise" }
     ]);
   }
 
@@ -2822,7 +2980,7 @@
 
   // Baut die ganze Übersicht neu auf
   function homeAnzeigen() {
-    document.getElementById("home-datum").textContent = new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+    document.getElementById("home-datum").textContent = new Date().toLocaleDateString(gebiet(), { weekday: "long", day: "numeric", month: "long" });
     homeHeuteAnzeigen();
     homeWocheAnzeigen();
     homeLetztesAnzeigen();
@@ -2837,12 +2995,12 @@
 
     if (liste.length === 0) {
       karte.appendChild(element("div", "home-zahl", "– " + einheit()));
-      karte.appendChild(element("div", "routine-info", "Tippen zum Eintragen"));
+      karte.appendChild(element("div", "routine-info", txt("home.tippen")));
       return;
     }
     const letzte = liste[liste.length - 1];
     karte.appendChild(element("div", "home-zahl", kgText(letzte.wert)));
-    karte.appendChild(element("div", "routine-info", tagText(new Date(letzte.zeit)) + new Date(letzte.zeit).getFullYear()));
+    karte.appendChild(element("div", "routine-info", tagTextMitJahr(new Date(letzte.zeit))));
   }
 
   // Hat der Eintrag ein gültiges Datum?
@@ -2858,10 +3016,10 @@
     bereich.appendChild(karte);
 
     if (laufendesTraining) {
-      karte.appendChild(element("div", "heute-label", "Läuft gerade"));
+      karte.appendChild(element("div", "heute-label", txt("home.laeuft")));
       karte.appendChild(element("div", "ansicht-titel", laufendesTraining.routineName));
-      karte.appendChild(element("div", "routine-info", "Übung " + (laufendesTraining.index + 1) + " von " + laufendesTraining.uebungen.length));
-      const weiter = element("button", "speichern-btn", "Training fortsetzen");
+      karte.appendChild(element("div", "routine-info", txt("uebung.xVonY", { x: laufendesTraining.index + 1, y: laufendesTraining.uebungen.length })));
+      const weiter = element("button", "speichern-btn", txt("training.fortsetzen"));
       weiter.onclick = trainingFortsetzen;
       karte.appendChild(weiter);
       return;
@@ -2882,18 +3040,18 @@
       }
 
       if (erledigt) {
-        karte.appendChild(element("div", "heute-label", "Heute erledigt"));
+        karte.appendChild(element("div", "heute-label", txt("home.erledigt")));
       } else {
-        karte.appendChild(element("div", "heute-label", "Heute geplant"));
+        karte.appendChild(element("div", "heute-label", txt("home.geplant")));
       }
       karte.appendChild(element("div", "ansicht-titel", routine.name));
       karte.appendChild(element("div", "routine-info", routineInfo(routine)));
 
       let start;
       if (erledigt) {
-        start = element("button", "knopf heute-knopf", "Nochmal starten");
+        start = element("button", "knopf heute-knopf", txt("home.nochmal"));
       } else {
-        start = element("button", "speichern-btn", "Training starten");
+        start = element("button", "speichern-btn", txt("home.starten"));
       }
       start.onclick = function () {
         routineStarten(routine);
@@ -2903,16 +3061,16 @@
     }
 
     if (plan === "ruhe") {
-      karte.appendChild(element("div", "heute-label", "Heute"));
-      karte.appendChild(element("div", "ansicht-titel", "Ruhetag"));
-      karte.appendChild(element("div", "routine-info", "Heute ist Pause. Erhol dich gut."));
+      karte.appendChild(element("div", "heute-label", txt("heute")));
+      karte.appendChild(element("div", "ansicht-titel", txt("ruhetag")));
+      karte.appendChild(element("div", "routine-info", txt("home.ruheText")));
       return;
     }
 
-    karte.appendChild(element("div", "heute-label", "Heute"));
-    karte.appendChild(element("div", "ansicht-titel", "Nichts geplant"));
-    karte.appendChild(element("div", "routine-info", "Für heute steht nichts im Wochenplan."));
-    const zumPlan = element("button", "knopf heute-knopf", "Zum Wochenplan");
+    karte.appendChild(element("div", "heute-label", txt("heute")));
+    karte.appendChild(element("div", "ansicht-titel", txt("home.nichtsGeplant")));
+    karte.appendChild(element("div", "routine-info", txt("home.nichtsText")));
+    const zumPlan = element("button", "knopf heute-knopf", txt("home.zumPlan"));
     zumPlan.onclick = function () {
       seiteZeigen("training");
     };
@@ -2938,25 +3096,25 @@
     for (let i = 0; i < 7; i++) {
       const tag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + i);
       const btn = element("button", "home-tag");
-      btn.appendChild(element("span", "tag-name", WOCHENTAGE[i]));
+      btn.appendChild(element("span", "tag-name", wochentag(i)));
       btn.appendChild(element("span", "tag-zahl", tag.getDate()));
 
       let plan = "–";
-      let ansage = "nichts geplant";
+      let ansage = txt("home.tag.nichts");
       const routine = routineFinden(wochenplan[i]);
       if (routine) {
         plan = routine.name;
         ansage = routine.name;
       } else if (wochenplan[i] === "ruhe") {
-        plan = "Ruhe";
-        ansage = "Ruhetag";
+        plan = txt("home.tag.ruhe");
+        ansage = txt("ruhetag");
       }
       btn.appendChild(element("span", "tag-plan", plan));
 
       const punkt = element("span", "tag-punkt");
       if (trainiert[tagSchluessel(tag)]) {
         punkt.classList.add("trainiert");
-        ansage += ", trainiert";
+        ansage += ", " + txt("home.tag.trainiert");
       }
       btn.appendChild(punkt);
       btn.setAttribute("aria-label", tagText(tag) + " " + ansage);
@@ -3016,7 +3174,7 @@
     // Die Einheit gilt, außer an einem späteren Tag wurde noch etwas frei eingetragen
     if (einheit && (letzterTag === null || tagSchluessel(letzterTag) <= tagSchluessel(new Date(einheit.ende)))) {
       return {
-        name: einheit.routineName || "Freies Training",
+        name: einheit.routineName || txt("freiesTraining"),
         datum: new Date(einheit.start),
         eintraege: einheitEintraege,
         minuten: Math.max(1, Math.round((new Date(einheit.ende) - new Date(einheit.start)) / 60000))
@@ -3040,7 +3198,7 @@
       }
     }
     return {
-      name: namen.join(" + ") || "Freies Training",
+      name: namen.join(" + ") || txt("freiesTraining"),
       datum: letzterTag,
       eintraege: liste,
       minuten: null
@@ -3050,9 +3208,9 @@
   // Macht aus Minuten einen Text: "45 Min." oder "1 Std. 5 Min."
   function dauerText(minuten) {
     if (minuten < 60) {
-      return minuten + " Min.";
+      return txt("dauer.minuten", { m: minuten });
     }
-    return Math.floor(minuten / 60) + " Std. " + (minuten % 60) + " Min.";
+    return txt("dauer.stunden", { h: Math.floor(minuten / 60), m: minuten % 60 });
   }
 
   // Die Karte "Letztes Training": Routine, Datum, Dauer und die drei Zahlen
@@ -3065,7 +3223,7 @@
     const training = letztesTraining();
     if (!training) {
       karte.classList.add("kommt-bald");
-      karte.textContent = "Noch kein Training eingetragen";
+      karte.textContent = txt("home.keinTraining");
       return;
     }
 
@@ -3089,7 +3247,7 @@
       bewegt += eintragVolumen(e, 0);
     }
 
-    let info = tagText(training.datum) + training.datum.getFullYear();
+    let info = tagTextMitJahr(training.datum);
     if (training.minuten !== null) {
       info += " · " + dauerText(training.minuten);
     }
@@ -3097,9 +3255,9 @@
     karte.appendChild(element("div", "routine-info", info));
 
     const zahlen = element("div", "home-zahlen");
-    zahlen.appendChild(homeZahl(anzahlUebungen, "Übungen"));
-    zahlen.appendChild(homeZahl(anzahlSaetze, "Sätze"));
-    zahlen.appendChild(homeZahl(volumenText(bewegt), "Bewegt"));
+    zahlen.appendChild(homeZahl(anzahlUebungen, txt("uebungen")));
+    zahlen.appendChild(homeZahl(anzahlSaetze, txt("saetze")));
+    zahlen.appendChild(homeZahl(volumenText(bewegt), txt("home.bewegt")));
     karte.appendChild(zahlen);
   }
 
@@ -3254,7 +3412,7 @@
     if (laeuft) {
       document.getElementById("pause-leiste-rest").textContent = pauseText(Math.ceil(pauseRest() / 1000));
     } else {
-      document.getElementById("pause-leiste-rest").textContent = "Pause vorbei";
+      document.getElementById("pause-leiste-rest").textContent = txt("pause.vorbei");
     }
 
     if (imModus) {
@@ -3366,14 +3524,14 @@
   // Das kleine Diagramm-Zeichen hinter einem Übungsnamen, den man antippen kann
   const VERLAUF_ICON = '<svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>';
 
-  // Eine Zahl zum Anzeigen: höchstens eine Nachkommastelle, deutsch geschrieben (1.234,5)
+  // Eine Zahl zum Anzeigen: höchstens eine Nachkommastelle, in der Schreibweise der Sprache (1.234,5 oder 1,234.5)
   function zahlKurz(wert) {
-    return (Math.round(wert * 10) / 10).toLocaleString("de-DE");
+    return (Math.round(wert * 10) / 10).toLocaleString(gebiet());
   }
 
   // Ein Wert, der schon in der gewählten Einheit vorliegt, mit immer genau einer Nachkommastelle, z. B. "82,0 kg"
   function einheitText(wert) {
-    return wert.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " " + einheit();
+    return wert.toLocaleString(gebiet(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " " + einheit();
   }
 
   // Dasselbe für ein Gewicht in kg: Es wird vorher in die gewählte Einheit umgerechnet
@@ -3384,11 +3542,10 @@
   // Kurzes Datum für die Achse, z. B. "5.10." oder mit Jahr "5.10.26"
   function datumKurz(zeit, mitJahr) {
     const d = new Date(zeit);
-    let text = d.getDate() + "." + (d.getMonth() + 1) + ".";
     if (mitJahr) {
-      text += String(d.getFullYear()).slice(2);
+      return d.toLocaleDateString(gebiet(), { day: "numeric", month: spracheDaten().monat, year: "2-digit" });
     }
-    return text;
+    return tagMonat(d);
   }
 
   // Abstand der waagerechten Hilfslinien: 1, 2 oder 5 mal eine Zehnerpotenz, sodass etwa vier Linien entstehen
@@ -3467,7 +3624,7 @@
       return OBEN + (oben - wert) / (oben - unten) * (HOEHE - OBEN - UNTEN);
     }
 
-    let svg = '<svg class="diagramm" viewBox="0 0 ' + BREITE + ' ' + HOEHE + '" role="img" aria-label="Liniendiagramm">';
+    let svg = '<svg class="diagramm" viewBox="0 0 ' + BREITE + ' ' + HOEHE + '" role="img" aria-label="' + txt("diagramm") + '">';
 
     // Waagerechte Hilfslinien mit ihren Werten
     for (let i = 0; unten + i * schritt <= oben + schritt / 1000; i++) {
@@ -3531,7 +3688,7 @@
       marke.setAttribute("cx", x(p.zeit));
       marke.setAttribute("cy", y(p.wert));
       infoWert.textContent = ablesen(p);
-      let datumText = new Date(p.zeit).toLocaleDateString("de-DE");
+      let datumText = datumMitJahr(new Date(p.zeit));
       if (p.zusatz) {
         datumText += " · " + p.zusatz;
       }
@@ -3562,7 +3719,8 @@
   function umschalterBauen(behaelter, auswahl, aktiv, beimWechsel) {
     behaelter.innerHTML = "";
     for (let i = 0; i < auswahl.length; i++) {
-      const btn = element("button", "", auswahl[i].text);
+      // Eine Möglichkeit hat entweder einen festen Text oder den Schlüssel eines Textes aus der texte.js
+      const btn = element("button", "", auswahl[i].text || txt(auswahl[i].schluessel));
       if (auswahl[i].id === aktiv) {
         btn.classList.add("aktiv");
       }
@@ -3593,8 +3751,8 @@
   // Die drei Ansichten des Verlaufs
   const VERLAUF_ARTEN = [
     { id: "1rm", text: "1RM" },
-    { id: "schwer", text: "Gewicht" },
-    { id: "volumen", text: "Volumen" }
+    { id: "schwer", schluessel: "gewicht" },
+    { id: "volumen", schluessel: "verlauf.volumen" }
   ];
 
   // Die Übung, deren Verlauf gerade offen ist, und die gewählte Ansicht
@@ -3709,28 +3867,28 @@
 
     if (punkte.length === 0) {
       diagramm.innerHTML = "";
-      hinweis = "Zu dieser Übung gibt es noch keine Einträge.";
+      hinweis = txt("verlauf.leer");
     } else {
       diagrammZeichnen(diagramm, [{ punkte: punkte, art: "haupt", mitPunkten: true }], function (p) {
         return zahlKurz(p.wert) + " " + einheit();
       });
 
       if (verlaufArt === "1rm") {
-        hinweis = "Geschätztes Maximalgewicht für eine Wiederholung (Epley-Formel), der beste Satz je Trainingstag.";
+        hinweis = txt("verlauf.1rm");
       } else if (verlaufArt === "schwer") {
-        hinweis = "Das schwerste eingetragene Gewicht je Trainingstag.";
+        hinweis = txt("verlauf.schwer");
       } else {
-        hinweis = "Sätze × Wdh. × Gewicht, zusammengezählt je Trainingstag.";
+        hinweis = txt("verlauf.volumenText");
       }
       if (istEigengewicht(verlaufId) && verlaufArt !== "schwer") {
         if (gewichtMessungen().length > 0) {
-          hinweis += " Gerechnet mit deinem Körpergewicht plus Zusatzgewicht.";
+          hinweis += " " + txt("verlauf.mitKoerper");
         } else {
-          hinweis += " Trag dein Körpergewicht ein, dann wird es bei dieser Übung mitgerechnet.";
+          hinweis += " " + txt("verlauf.ohneKoerper");
         }
       }
       if (punkte.length === 1) {
-        hinweis += " Ab dem zweiten Trainingstag entsteht eine Linie.";
+        hinweis += " " + txt("verlauf.einPunkt");
       }
     }
     document.getElementById("verlauf-hinweis").textContent = hinweis;
@@ -3769,7 +3927,7 @@
     });
 
     if (liste.length === 0) {
-      bereich.appendChild(element("p", "leer-hinweis", "Sobald du Übungen eingetragen hast, findest du hier ihren Verlauf."));
+      bereich.appendChild(element("p", "leer-hinweis", txt("fortschritt.kraftLeer")));
       return;
     }
 
@@ -3778,7 +3936,7 @@
       const zeile = element("button", "listen-zeile");
       zeile.appendChild(element("span", "", anzeigeName(u.name, u.id)));
       if (u.zeit > 0) {
-        zeile.appendChild(element("span", "routine-info", new Date(u.zeit).toLocaleDateString("de-DE")));
+        zeile.appendChild(element("span", "routine-info", datumMitJahr(new Date(u.zeit))));
       }
       zeile.onclick = function () {
         verlaufOeffnen(u.name, u.id);
@@ -3801,8 +3959,8 @@
     { id: 30, text: "1M" },
     { id: 91, text: "3M" },
     { id: 182, text: "6M" },
-    { id: 365, text: "1J" },
-    { id: 0, text: "Alle" }
+    { id: 365, schluessel: "zeitraum.jahr" },
+    { id: 0, schluessel: "zeitraum.alle" }
   ];
 
   // Der gewählte Zeitraum in Tagen, für jedes der zwei Diagramme einzeln
@@ -3834,7 +3992,7 @@
 
   // Ein Körperfett-Wert mit immer genau einer Nachkommastelle, z. B. "15,0 %"
   function fettText(wert) {
-    return wert.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %";
+    return wert.toLocaleString(gebiet(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %";
   }
 
   // Schreibt einen Wert ins Körperfett-Feld. null leert es.
@@ -3989,7 +4147,7 @@
     for (let i = 0; i < liste.length; i++) {
       if (von === undefined || liste[i].zeit >= von) {
         const mittel = umrechnen(schnittAm(liste, new Date(liste[i].zeit)));
-        messungen.push({ zeit: liste[i].zeit, wert: umrechnen(liste[i].wert), zusatz: "Schnitt " + text(mittel) });
+        messungen.push({ zeit: liste[i].zeit, wert: umrechnen(liste[i].wert), zusatz: txt("messung.schnitt", { wert: text(mittel) }) });
         schnitt.push({ zeit: liste[i].zeit, wert: mittel });
       }
     }
@@ -3997,7 +4155,7 @@
     document.getElementById(kennung + "-legende").classList.toggle("versteckt", messungen.length === 0);
     if (messungen.length === 0) {
       diagramm.innerHTML = "";
-      let hinweis = "In diesem Zeitraum gibt es keine Messung.";
+      let hinweis = txt("messung.zeitraumLeer");
       if (liste.length === 0) {
         hinweis = leerText;
       }
@@ -4020,7 +4178,7 @@
     });
     messungenZeichnen("fett", fettMessungen(), fettZeitraum, function (wert) {
       return wert;
-    }, fettText, "Noch kein Körperfett eingetragen. Du kannst es beim Körpergewicht mit angeben.");
+    }, fettText, txt("messung.fettLeer"));
   }
 
   // Fortschritt-Tab: Diagramm, Kacheln und die Liste der letzten Messungen
@@ -4031,7 +4189,7 @@
       kgZeitraum = tage;
       koerpergewichtAnzeigen();
     });
-    messungenZeichnen("kg", liste, kgZeitraum, ausKg, einheitText, "Noch kein Gewicht eingetragen.");
+    messungenZeichnen("kg", liste, kgZeitraum, ausKg, einheitText, txt("messung.gewichtLeer"));
     koerperfettAnzeigen();
 
     // Kacheln: Schnitt am Tag der letzten Messung minus Schnitt so viele Tage davor
@@ -4058,7 +4216,7 @@
       }
       const kachel = element("div", "karte");
       kachel.appendChild(element("div", "home-zahl", text));
-      kachel.appendChild(element("div", "kachel-titel", abstaende[i] + " Tage"));
+      kachel.appendChild(element("div", "kachel-titel", txt("fortschritt.tage", { n: abstaende[i] })));
       kacheln.appendChild(kachel);
     }
 
@@ -4066,19 +4224,19 @@
     const bereich = document.getElementById("kg-liste");
     bereich.innerHTML = "";
     if (liste.length === 0) {
-      bereich.appendChild(element("p", "leer-hinweis", "Noch keine Messungen."));
+      bereich.appendChild(element("p", "leer-hinweis", txt("fortschritt.keineMessungen")));
     }
     for (let i = liste.length - 1; i >= 0 && i >= liste.length - MESSUNGEN_ANZAHL; i--) {
       const m = liste[i];
       const zeile = element("div", "listen-zeile");
       // Unter dem Datum steht das Körperfett, wenn es angegeben wurde
       zeile.appendChild(element("span", "", kgText(m.wert)));
-      const datum = element("span", "messung-datum", tagText(new Date(m.zeit)) + new Date(m.zeit).getFullYear());
+      const datum = element("span", "messung-datum", tagTextMitJahr(new Date(m.zeit)));
       if (m.fett !== null) {
-        datum.appendChild(element("div", "", "Körperfett " + fettText(m.fett)));
+        datum.appendChild(element("div", "", txt("messung.fett", { wert: fettText(m.fett) })));
       }
       zeile.appendChild(datum);
-      const weg = element("button", "", "Löschen");
+      const weg = element("button", "", txt("loeschen"));
       weg.onclick = function () {
         gewichtLoeschen(m.index);
       };
@@ -4102,7 +4260,7 @@
   // Messungen des Körpergewichts aus der Datei. null heißt: Das Backup enthält keine.
   let importGewichte = null;
 
-  // Die Einstellungen aus der Datei (Standard-Pause, Einheiten). null heißt: Das Backup enthält keine.
+  // Die Einstellungen aus der Datei (Standard-Pause, Einheiten, Sprache). null heißt: Das Backup enthält keine.
   let importEinstellungen = null;
 
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
@@ -4151,7 +4309,7 @@
           wochenplan[i] = String(importWochenplan[i] || "");
         }
       }
-      text = " " + routinen.length + " Routinen und der Wochenplan wurden wiederhergestellt.";
+      text = " " + txt("backup.routinenErsetzt", { n: routinen.length });
     } else {
       // Nur Routinen hinzufügen, die es hier noch nicht gibt (erkannt an der id)
       let hinzugefuegt = 0;
@@ -4169,7 +4327,7 @@
           }
         }
       }
-      text = " " + hinzugefuegt + " Routinen hinzugefügt.";
+      text = " " + txt("backup.routinenErgaenzt", { n: hinzugefuegt });
     }
 
     wochenplanBereinigen();
@@ -4209,7 +4367,7 @@
       // Die bisherigen Einheiten gehören zu den ersetzten Einträgen und gehen mit ihnen
       trainings = importTrainings || [];
       if (importTrainings !== null) {
-        text = " " + trainings.length + " Trainingseinheiten wurden wiederhergestellt.";
+        text = " " + txt("backup.trainingsErsetzt", { n: trainings.length });
       }
     } else if (importTrainings !== null) {
       // Nur Einheiten hinzufügen, die es hier noch nicht gibt (erkannt an der id)
@@ -4225,7 +4383,7 @@
           hinzugefuegt++;
         }
       }
-      text = " " + hinzugefuegt + " Trainingseinheiten hinzugefügt.";
+      text = " " + txt("backup.trainingsErgaenzt", { n: hinzugefuegt });
     }
 
     localStorage.setItem("trainings", JSON.stringify(trainings));
@@ -4242,7 +4400,7 @@
     let text;
     if (art === "ersetzen") {
       koerpergewicht = importGewichte;
-      text = " " + koerpergewicht.length + " Messungen des Körpergewichts wurden wiederhergestellt.";
+      text = " " + txt("backup.gewichteErsetzt", { n: koerpergewicht.length });
     } else {
       // Nur Tage hinzufügen, für die es hier noch keine Messung gibt
       const vorhanden = {};
@@ -4260,7 +4418,7 @@
           hinzugefuegt++;
         }
       }
-      text = " " + hinzugefuegt + " Messungen des Körpergewichts hinzugefügt.";
+      text = " " + txt("backup.gewichteErgaenzt", { n: hinzugefuegt });
     }
 
     gewichteSpeichern();
@@ -4279,6 +4437,9 @@
     if (e.laengeEinheit === "cm" || e.laengeEinheit === "ftin") {
       sauber.laengeEinheit = e.laengeEinheit;
     }
+    if (spracheBekannt(e.sprache)) {
+      sauber.sprache = e.sprache;
+    }
     return sauber;
   }
 
@@ -4296,6 +4457,9 @@
     }
     pauseStandardAnzeigen();
     einheitenAnzeigen();
+    if (neu.sprache) {
+      spracheSetzen(neu.sprache);
+    }
   }
 
   // Zeigt eine Meldung unter den Backup-Buttons
@@ -4332,7 +4496,7 @@
     const istIOS = "standalone" in navigator;
     if (istIOS && navigator.canShare && navigator.canShare({ files: [datei] })) {
       navigator.share({ files: [datei] }).then(function () {
-        datenMeldung("Backup mit " + eintraege.length + " Einträgen exportiert.");
+        datenMeldung(txt("backup.exportiert", { n: eintraege.length }));
       }).catch(function (fehler) {
         // AbortError heißt nur: Das Teilen-Menü wurde ohne Auswahl geschlossen
         if (fehler.name !== "AbortError") {
@@ -4357,7 +4521,7 @@
     setTimeout(function () {
       URL.revokeObjectURL(adresse);
     }, 60000);
-    datenMeldung("Backup mit " + eintraege.length + " Einträgen exportiert.");
+    datenMeldung(txt("backup.exportiert", { n: eintraege.length }));
   }
 
   // Wird aufgerufen, sobald im Datei-Feld eine Datei gewählt wurde
@@ -4372,7 +4536,7 @@
       backupLesen(leser.result);
     };
     leser.onerror = function () {
-      datenMeldung("Die Datei konnte nicht gelesen werden.");
+      datenMeldung(txt("backup.nichtLesbar"));
     };
     leser.readAsText(datei);
 
@@ -4386,7 +4550,7 @@
     try {
       daten = JSON.parse(text);
     } catch (fehler) {
-      datenMeldung("Das ist keine gültige Backup-Datei.");
+      datenMeldung(txt("backup.ungueltig"));
       return;
     }
 
@@ -4398,7 +4562,7 @@
       liste = daten.eintraege;
     }
     if (!Array.isArray(liste)) {
-      datenMeldung("Das ist keine gültige Backup-Datei.");
+      datenMeldung(txt("backup.ungueltig"));
       return;
     }
 
@@ -4471,15 +4635,13 @@
       importWochenplan = null;
       importTrainings = null;
       importGewichte = null;
-      datenMeldung("Das Backup enthält keine Einträge.");
+      datenMeldung(txt("backup.leer"));
       return;
     }
 
-    let dialogText = "Das Backup enthält " + importEintraege.length
-      + " Einträge. Auf diesem Gerät sind " + eintraege.length + " Einträge gespeichert.";
+    let dialogText = txt("backup.frage", { neu: importEintraege.length, hier: eintraege.length });
     if (importRoutinen !== null) {
-      dialogText += " Außerdem enthält es " + importRoutinen.length + " Routinen und den Wochenplan, hier sind "
-        + routinen.length + " Routinen gespeichert.";
+      dialogText += " " + txt("backup.frageRoutinen", { neu: importRoutinen.length, hier: routinen.length });
     }
     document.getElementById("dialog-text").textContent = dialogText;
     document.getElementById("dialog-hintergrund").classList.add("offen");
@@ -4492,10 +4654,16 @@
 
   // Übernimmt die Einträge aus dem Backup. art ist "ergaenzen" oder "ersetzen".
   function importAusfuehren(art) {
+    // Die Einstellungen werden nur beim Ersetzen übernommen. Sie kommen zuerst,
+    // damit die Meldung danach schon in der Sprache aus dem Backup erscheint.
+    if (art === "ersetzen" && importEinstellungen !== null) {
+      einstellungenUebernehmen(importEinstellungen);
+    }
+
     let meldung;
     if (art === "ersetzen") {
       eintraege = importEintraege;
-      meldung = eintraege.length + " Einträge aus dem Backup wiederhergestellt. Die vorherigen wurden ersetzt.";
+      meldung = txt("backup.ersetzt", { n: eintraege.length });
     } else {
       // Zählen, wie oft es jeden Eintrag schon gibt. Nur was darüber hinausgeht, kommt dazu.
       const vorhanden = {};
@@ -4516,14 +4684,9 @@
           hinzugefuegt++;
         }
       }
-      meldung = hinzugefuegt + " Einträge hinzugefügt, " + uebersprungen + " waren schon vorhanden.";
+      meldung = txt("backup.ergaenzt", { neu: hinzugefuegt, alt: uebersprungen });
     }
     datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art));
-
-    // Die Einstellungen werden nur beim Ersetzen übernommen
-    if (art === "ersetzen" && importEinstellungen !== null) {
-      einstellungenUebernehmen(importEinstellungen);
-    }
 
     localStorage.setItem("eintraege", JSON.stringify(eintraege));
     importEintraege = [];
@@ -4553,6 +4716,10 @@ feldBauen("feld-saetze", 1, 10, false, START_SAETZE);
 // Die zwei Zahlenfelder des Trainingsmodus
 feldBauen("t-feld-gewicht", 0, GEWICHT_EINHEITEN[einheit()].max, true, GEWICHT_EINHEITEN[einheit()].start);
 feldBauen("t-feld-wdh", 1, 100, false, START_WDH);
+
+// Die festen Texte der Seite in der eingestellten Sprache
+texteEinsetzen();
+spracheAnzeigen();
 
 // Beschriftungen und Schnellbuttons in der gewählten Einheit, dazu das Rad für das Körpergewicht
 // (30 bis 200 kg oder 66 bis 440 lbs)

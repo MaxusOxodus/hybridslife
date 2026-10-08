@@ -21,7 +21,7 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 
@@ -33,41 +33,41 @@
 
     <!-- Ansicht: Übersicht. Die Karten füllt die app.js. -->
     <div id="ansicht-home" class="ansicht">
-      <h1>Home</h1>
+      <h1 data-t="nav.home">Home</h1>
       <p id="home-datum" class="unterzeile"></p>
 
       <div id="home-heute"></div>
 
-      <h2 class="abschnitt">Diese Woche</h2>
+      <h2 class="abschnitt" data-t="home.dieseWoche">Diese Woche</h2>
       <div id="home-woche"></div>
 
-      <h2 class="abschnitt">Letztes Training</h2>
+      <h2 class="abschnitt" data-t="home.letztesTraining">Letztes Training</h2>
       <div id="home-letztes"></div>
 
       <!-- Aktuelles Körpergewicht: Den Inhalt füllt die app.js, ein Tipp öffnet das Eintragen -->
-      <h2 class="abschnitt">Körpergewicht</h2>
+      <h2 class="abschnitt" data-t="koerpergewicht">Körpergewicht</h2>
       <button id="home-gewicht" class="karte gewicht-karte" onclick="gewichtSheetOeffnen()"></button>
 
-      <h2 class="abschnitt">Log</h2>
-      <button class="zweit-btn" onclick="logZeigen()">Einzelne Übung eintragen</button>
-      <button class="zweit-btn" onclick="logZeigen(true)">Alle Einträge</button>
+      <h2 class="abschnitt" data-t="home.log">Log</h2>
+      <button class="zweit-btn" onclick="logZeigen()" data-t="home.einzeln">Einzelne Übung eintragen</button>
+      <button class="zweit-btn" onclick="logZeigen(true)" data-t="home.alleEintraege">Alle Einträge</button>
     </div>
 
     <!-- Ansicht: Log, einzelne Übungen eintragen und die Liste der Einträge nach Wochen -->
     <div id="ansicht-log" class="ansicht versteckt">
-    <button class="text-btn" onclick="homeZeigen()">‹ Zurück</button>
-    <div class="ansicht-titel">Log</div>
-    <p class="unterzeile">Trag dein Training ein</p>
+    <button class="text-btn" onclick="homeZeigen()" data-t="zurueck.pfeil">‹ Zurück</button>
+    <div class="ansicht-titel" data-t="home.log">Log</div>
+    <p class="unterzeile" data-t="log.unterzeile">Trag dein Training ein</p>
 
     <div class="wochen-kopf">
-      <button onclick="wocheBlaettern(-1)" aria-label="Woche zurück">‹</button>
+      <button onclick="wocheBlaettern(-1)" aria-label="Woche zurück" data-t-aria="log.wocheZurueck">‹</button>
       <h2 id="wochen-titel" class="abschnitt"></h2>
-      <button id="woche-vor" onclick="wocheBlaettern(1)" aria-label="Woche vor">›</button>
+      <button id="woche-vor" onclick="wocheBlaettern(1)" aria-label="Woche vor" data-t-aria="log.wocheVor">›</button>
     </div>
     <div id="wochenleiste"></div>
 
-    <h2 class="abschnitt">Neuer Eintrag</h2>
-    <button id="uebung" class="uebung-feld leer" onclick="sheetOeffnen()">Übung wählen</button>
+    <h2 class="abschnitt" data-t="log.neuerEintrag">Neuer Eintrag</h2>
+    <button id="uebung" class="uebung-feld leer" onclick="sheetOeffnen()" data-t="log.uebungWaehlen">Übung wählen</button>
     <p id="letztesMal"></p>
 
     <!-- Zahlenfelder: Antippen öffnet die Zahlentastatur, die Buttons darunter ändern den Wert in Schritten -->
@@ -81,25 +81,25 @@
         </div>
       </div>
       <div>
-        <div class="rad-titel">Wdh.</div>
-        <input id="feld-wdh" class="zahl-feld" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen">
+        <div class="rad-titel" data-t="wdh">Wdh.</div>
+        <input id="feld-wdh" class="zahl-feld" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen" data-t-aria="wiederholungen">
         <div class="schnell">
-          <button onclick="feldAendern('feld-wdh', -1)" aria-label="Eine Wiederholung weniger">−1</button>
-          <button onclick="feldAendern('feld-wdh', 1)" aria-label="Eine Wiederholung mehr">+1</button>
+          <button onclick="feldAendern('feld-wdh', -1)" aria-label="Eine Wiederholung weniger" data-t-aria="wdh.weniger">−1</button>
+          <button onclick="feldAendern('feld-wdh', 1)" aria-label="Eine Wiederholung mehr" data-t-aria="wdh.mehr">+1</button>
         </div>
       </div>
       <div>
-        <div class="rad-titel">Sätze</div>
-        <input id="feld-saetze" class="zahl-feld" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Sätze">
+        <div class="rad-titel" data-t="saetze">Sätze</div>
+        <input id="feld-saetze" class="zahl-feld" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Sätze" data-t-aria="saetze">
         <div class="schnell">
-          <button onclick="feldAendern('feld-saetze', -1)" aria-label="Ein Satz weniger">−1</button>
-          <button onclick="feldAendern('feld-saetze', 1)" aria-label="Ein Satz mehr">+1</button>
+          <button onclick="feldAendern('feld-saetze', -1)" aria-label="Ein Satz weniger" data-t-aria="satz.weniger">−1</button>
+          <button onclick="feldAendern('feld-saetze', 1)" aria-label="Ein Satz mehr" data-t-aria="satz.mehr">+1</button>
         </div>
       </div>
     </div>
 
-    <button id="speichern" class="speichern-btn" onclick="speichern()" disabled>Speichern</button>
-    <button class="zweit-btn" onclick="pauseStarten(pauseStandard())">Pause starten</button>
+    <button id="speichern" class="speichern-btn" onclick="speichern()" disabled data-t="speichern">Speichern</button>
+    <button class="zweit-btn" onclick="pauseStarten(pauseStandard())" data-t="log.pauseStarten">Pause starten</button>
 
     <div id="liste"></div>
     </div>
@@ -110,49 +110,49 @@
 
     <!-- Ansicht: Übersicht mit Wochenplan, Routinen und Vorlagen -->
     <div id="ansicht-uebersicht" class="ansicht">
-      <h1>Training</h1>
-      <p class="unterzeile">Deine Trainingspläne</p>
+      <h1 data-t="nav.training">Training</h1>
+      <p class="unterzeile" data-t="training.unterzeile">Deine Trainingspläne</p>
 
       <div id="laufend-karte"></div>
 
-      <h2 class="abschnitt">Wochenplan</h2>
+      <h2 class="abschnitt" data-t="wochenplan">Wochenplan</h2>
       <div id="wochenplan" class="karte wochenplan"></div>
 
-      <h2 class="abschnitt">Meine Routinen</h2>
+      <h2 class="abschnitt" data-t="training.meineRoutinen">Meine Routinen</h2>
       <div id="routinen-liste"></div>
-      <button class="zweit-btn" onclick="routineNeu()">Neue Routine</button>
+      <button class="zweit-btn" onclick="routineNeu()" data-t="editor.neu">Neue Routine</button>
 
-      <h2 class="abschnitt">Vorlagen</h2>
+      <h2 class="abschnitt" data-t="training.vorlagen">Vorlagen</h2>
       <div id="vorlagen-liste"></div>
     </div>
 
     <!-- Ansicht: Routine erstellen oder bearbeiten -->
     <div id="ansicht-bearbeiten" class="ansicht versteckt">
-      <button class="text-btn" onclick="routineBearbeitenAbbrechen()">‹ Abbrechen</button>
+      <button class="text-btn" onclick="routineBearbeitenAbbrechen()" data-t="abbrechen.pfeil">‹ Abbrechen</button>
       <div id="bearbeiten-titel" class="ansicht-titel">Neue Routine</div>
-      <input id="routine-name" class="text-feld" placeholder="Name, z. B. Push-Tag" maxlength="40">
+      <input id="routine-name" class="text-feld" placeholder="Name, z. B. Push-Tag" data-t-platzhalter="editor.name" maxlength="40">
 
-      <h2 class="abschnitt">Übungen</h2>
+      <h2 class="abschnitt" data-t="uebungen">Übungen</h2>
       <div id="routine-uebungen"></div>
-      <button class="zweit-btn" onclick="sheetOeffnen('routine')">Übung hinzufügen</button>
+      <button class="zweit-btn" onclick="sheetOeffnen('routine')" data-t="editor.hinzufuegen">Übung hinzufügen</button>
 
       <p id="routine-meldung" class="meldung"></p>
-      <button class="speichern-btn" onclick="routineSpeichern()">Routine speichern</button>
+      <button class="speichern-btn" onclick="routineSpeichern()" data-t="editor.speichern">Routine speichern</button>
     </div>
 
     <!-- Ansicht: Trainingsmodus, eine Übung nach der anderen -->
     <div id="ansicht-modus" class="ansicht versteckt">
       <div class="modus-kopf">
         <span id="modus-routine"></span>
-        <button class="text-btn" onclick="trainingBeendenFragen()">Beenden</button>
+        <button class="text-btn" onclick="trainingBeendenFragen()" data-t="modus.beenden">Beenden</button>
       </div>
       <div class="modus-balken"><div id="modus-fortschritt"></div></div>
 
       <!-- Übung wechseln: Pfeile für vorherige und nächste, die Mitte öffnet die Übersicht aller Übungen -->
       <div class="modus-wechsel">
-        <button id="modus-zurueck" onclick="uebungWechseln(-1)" aria-label="Vorherige Übung">‹</button>
+        <button id="modus-zurueck" onclick="uebungWechseln(-1)" aria-label="Vorherige Übung" data-t-aria="modus.vorherige">‹</button>
         <button id="modus-schritt" class="modus-schritt" onclick="uebersichtOeffnen()"></button>
-        <button id="modus-vor" onclick="uebungWechseln(1)" aria-label="Nächste Übung">›</button>
+        <button id="modus-vor" onclick="uebungWechseln(1)" aria-label="Nächste Übung" data-t-aria="modus.naechste">›</button>
       </div>
       <!-- Der Name der Übung: Antippen zeigt ihren Verlauf als Diagramm -->
       <button class="ansicht-titel name-knopf" onclick="verlaufImModus()">
@@ -163,7 +163,7 @@
 
       <!-- Eingabe: die Werte des nächsten Satzes als große Zahlenfelder, darunter Buttons zum Anpassen -->
       <div id="modus-eingabe">
-        <div id="modus-vorbei" class="heute-label versteckt">Pause vorbei</div>
+        <div id="modus-vorbei" class="heute-label versteckt" data-t="pause.vorbei">Pause vorbei</div>
         <div class="eingaben zwei">
           <div>
             <div class="rad-titel gewicht-titel">Gewicht (kg)</div>
@@ -174,30 +174,30 @@
             </div>
           </div>
           <div>
-            <div class="rad-titel">Wdh.</div>
-            <input id="t-feld-wdh" class="zahl-feld gross" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen">
+            <div class="rad-titel" data-t="wdh">Wdh.</div>
+            <input id="t-feld-wdh" class="zahl-feld gross" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen" data-t-aria="wiederholungen">
             <div class="schnell">
-              <button onclick="feldAendern('t-feld-wdh', -1)" aria-label="Eine Wiederholung weniger">−1</button>
-              <button onclick="feldAendern('t-feld-wdh', 1)" aria-label="Eine Wiederholung mehr">+1</button>
+              <button onclick="feldAendern('t-feld-wdh', -1)" aria-label="Eine Wiederholung weniger" data-t-aria="wdh.weniger">−1</button>
+              <button onclick="feldAendern('t-feld-wdh', 1)" aria-label="Eine Wiederholung mehr" data-t-aria="wdh.mehr">+1</button>
             </div>
           </div>
         </div>
         <!-- Reps in Reserve: wie viele Wiederholungen noch gegangen wären. Die Angabe ist freiwillig. -->
         <div class="rir">
-          <div class="rad-titel">Reps in Reserve (optional)</div>
+          <div class="rad-titel" data-t="modus.rir">Reps in Reserve (optional)</div>
           <div id="modus-rir" class="umschalter"></div>
         </div>
-        <button class="speichern-btn gross" onclick="satzFertig()">Satz fertig</button>
+        <button class="speichern-btn gross" onclick="satzFertig()" data-t="modus.satzFertig">Satz fertig</button>
       </div>
 
       <!-- Pause: großer Countdown. Solange er läuft, ist die Eingabe ausgeblendet. -->
       <div id="modus-pause" class="versteckt">
-        <div class="heute-label">Pause</div>
+        <div class="heute-label" data-t="pause">Pause</div>
         <div id="modus-countdown" class="modus-countdown"></div>
         <div class="karten-knoepfe">
           <button class="knopf" onclick="pauseAendern(-15)">−15 s</button>
           <button class="knopf" onclick="pauseAendern(15)">+15 s</button>
-          <button class="knopf" onclick="pauseUeberspringen()">Überspringen</button>
+          <button class="knopf" onclick="pauseUeberspringen()" data-t="ueberspringen">Überspringen</button>
         </div>
         <p id="modus-naechstes" class="modus-ziel"></p>
       </div>
@@ -205,7 +205,7 @@
       <!-- Nach dem letzten Ziel-Satz: weiter zur nächsten Übung oder noch ein Satz -->
       <div id="modus-wahl" class="versteckt">
         <button id="modus-wahl-weiter" class="speichern-btn gross" onclick="uebungBeenden()">Nächste Übung</button>
-        <button class="zweit-btn" onclick="extraSatzStarten()">+ Satz</button>
+        <button class="zweit-btn" onclick="extraSatzStarten()" data-t="modus.extraSatz">+ Satz</button>
       </div>
 
       <button id="modus-weiter" class="zweit-btn" onclick="uebungBeenden()">Übung überspringen</button>
@@ -217,155 +217,163 @@
 
     <!-- Ansicht: Zusammenfassung nach dem Training -->
     <div id="ansicht-fertig" class="ansicht versteckt">
-      <div class="ansicht-titel">Geschafft!</div>
+      <div class="ansicht-titel" data-t="fertig.titel">Geschafft!</div>
       <p id="fertig-text" class="unterzeile"></p>
 
       <div class="kacheln">
         <div class="karte">
           <div id="fertig-uebungen" class="kachel-zahl">0</div>
-          <div class="kachel-titel">Übungen</div>
+          <div class="kachel-titel" data-t="uebungen">Übungen</div>
         </div>
         <div class="karte">
           <div id="fertig-saetze" class="kachel-zahl">0</div>
-          <div class="kachel-titel">Sätze</div>
+          <div class="kachel-titel" data-t="saetze">Sätze</div>
         </div>
         <div class="karte kachel-breit">
           <div id="fertig-gewicht" class="kachel-zahl">0 kg</div>
-          <div class="kachel-titel">Bewegtes Gewicht</div>
+          <div class="kachel-titel" data-t="fertig.bewegt">Bewegtes Gewicht</div>
         </div>
       </div>
 
-      <button class="speichern-btn" onclick="trainingAnsichtZeigen('uebersicht')">Fertig</button>
+      <button class="speichern-btn" onclick="trainingAnsichtZeigen('uebersicht')" data-t="fertig.knopf">Fertig</button>
     </div>
   </section>
 
   <!-- Seite: Fortschritt -->
   <section id="seite-fortschritt" class="seite">
-    <h1>Fortschritt</h1>
-    <p class="unterzeile">Deine Zahlen auf einen Blick</p>
+    <h1 data-t="nav.fortschritt">Fortschritt</h1>
+    <p class="unterzeile" data-t="fortschritt.unterzeile">Deine Zahlen auf einen Blick</p>
 
-    <h2 class="abschnitt">Statistik</h2>
+    <h2 class="abschnitt" data-t="fortschritt.statistik">Statistik</h2>
     <div class="kacheln">
       <div class="karte">
         <div id="stat-workouts" class="kachel-zahl">0</div>
-        <div class="kachel-titel">Workouts gesamt</div>
+        <div class="kachel-titel" data-t="fortschritt.workouts">Workouts gesamt</div>
       </div>
       <div class="karte">
         <div id="stat-gewicht" class="kachel-zahl">0 kg</div>
-        <div class="kachel-titel">Bewegtes Gesamtgewicht</div>
+        <div class="kachel-titel" data-t="fortschritt.gesamtgewicht">Bewegtes Gesamtgewicht</div>
       </div>
       <div class="karte">
         <div id="stat-uebungen" class="kachel-zahl">0</div>
-        <div class="kachel-titel">Verschiedene Übungen</div>
+        <div class="kachel-titel" data-t="fortschritt.verschiedene">Verschiedene Übungen</div>
       </div>
       <div class="karte">
         <div id="stat-serie" class="kachel-zahl">0</div>
-        <div class="kachel-titel">Wochen in Folge mit mind. 3 Trainingstagen</div>
+        <div class="kachel-titel" data-t="fortschritt.serie">Wochen in Folge mit mind. 3 Trainingstagen</div>
       </div>
     </div>
 
-    <h2 class="abschnitt">Körpergewicht</h2>
+    <h2 class="abschnitt" data-t="koerpergewicht">Körpergewicht</h2>
     <div class="karte">
       <!-- Zeitraum des Diagramms: Die Buttons baut die app.js -->
       <div id="kg-zeitraum" class="umschalter"></div>
       <div id="kg-diagramm"></div>
       <div id="kg-legende" class="legende">
-        <span><i class="legende-linie"></i>7-Tage-Schnitt</span>
-        <span><i class="legende-punkt"></i>Messung</span>
+        <span><i class="legende-linie"></i><span data-t="fortschritt.schnitt">7-Tage-Schnitt</span></span>
+        <span><i class="legende-punkt"></i><span data-t="fortschritt.messung">Messung</span></span>
       </div>
     </div>
-    <button class="zweit-btn" onclick="gewichtSheetOeffnen()">Gewicht eintragen</button>
+    <button class="zweit-btn" onclick="gewichtSheetOeffnen()" data-t="fortschritt.gewichtEintragen">Gewicht eintragen</button>
 
-    <h2 class="abschnitt">Veränderung im 7-Tage-Schnitt</h2>
+    <h2 class="abschnitt" data-t="fortschritt.veraenderung">Veränderung im 7-Tage-Schnitt</h2>
     <div id="kg-kacheln" class="kacheln"></div>
 
-    <h2 class="abschnitt">Letzte Messungen</h2>
+    <h2 class="abschnitt" data-t="fortschritt.letzteMessungen">Letzte Messungen</h2>
     <div id="kg-liste"></div>
 
     <!-- Körperfett: wird beim Körpergewicht mit eingetragen und hat ein eigenes Diagramm -->
-    <h2 class="abschnitt">Körperfett</h2>
+    <h2 class="abschnitt" data-t="koerperfett">Körperfett</h2>
     <div class="karte">
       <div id="fett-zeitraum" class="umschalter"></div>
       <div id="fett-diagramm"></div>
       <div id="fett-legende" class="legende">
-        <span><i class="legende-linie"></i>7-Tage-Schnitt</span>
-        <span><i class="legende-punkt"></i>Messung</span>
+        <span><i class="legende-linie"></i><span data-t="fortschritt.schnitt">7-Tage-Schnitt</span></span>
+        <span><i class="legende-punkt"></i><span data-t="fortschritt.messung">Messung</span></span>
       </div>
     </div>
 
-    <h2 class="abschnitt">Kraftentwicklung</h2>
+    <h2 class="abschnitt" data-t="fortschritt.kraft">Kraftentwicklung</h2>
     <div id="fortschritt-uebungen"></div>
   </section>
 
   <!-- Seite: Gym -->
   <section id="seite-gym" class="seite">
-    <h1>Gym</h1>
-    <p class="unterzeile">Bau dir dein eigenes Gym</p>
-    <div class="karte kommt-bald">Kommt bald</div>
+    <h1 data-t="nav.gym">Gym</h1>
+    <p class="unterzeile" data-t="gym.unterzeile">Bau dir dein eigenes Gym</p>
+    <div class="karte kommt-bald" data-t="kommtBald">Kommt bald</div>
   </section>
 
   <!-- Seite: Profil -->
   <section id="seite-profil" class="seite">
-    <h1>Profil</h1>
-    <p class="unterzeile">Deine Einstellungen</p>
+    <h1 data-t="nav.profil">Profil</h1>
+    <p class="unterzeile" data-t="profil.unterzeile">Deine Einstellungen</p>
 
     <!-- Jeder Abschnitt ist eine Liste von Zeilen: links, worum es geht, rechts der Wert oder die Auswahl -->
-    <h2 class="abschnitt">Konto</h2>
+    <h2 class="abschnitt" data-t="profil.konto">Konto</h2>
     <div class="karte einst-liste">
       <div class="einst-zeile">
-        <span class="einst-titel">Login und Cloud-Speicher</span>
-        <span class="einst-wert">Kommt bald</span>
+        <span class="einst-titel" data-t="profil.login">Login und Cloud-Speicher</span>
+        <span class="einst-wert" data-t="kommtBald">Kommt bald</span>
       </div>
     </div>
 
-    <h2 class="abschnitt">Abo</h2>
+    <h2 class="abschnitt" data-t="profil.abo">Abo</h2>
     <div class="karte einst-liste">
       <div class="einst-zeile">
-        <span class="einst-titel">Abo</span>
-        <span class="einst-wert">Kommt bald</span>
+        <span class="einst-titel" data-t="profil.abo">Abo</span>
+        <span class="einst-wert" data-t="kommtBald">Kommt bald</span>
       </div>
     </div>
 
-    <h2 class="abschnitt">Integrationen</h2>
+    <h2 class="abschnitt" data-t="profil.integrationen">Integrationen</h2>
     <div class="karte einst-liste">
       <div class="einst-zeile">
         <span class="einst-titel">Apple Health</span>
-        <span class="einst-wert">Kommt bald</span>
+        <span class="einst-wert" data-t="kommtBald">Kommt bald</span>
       </div>
     </div>
-    <p class="einst-fuss">Apple Health kommt mit der App-Store-Version.</p>
+    <p class="einst-fuss" data-t="profil.health">Apple Health kommt mit der App-Store-Version.</p>
 
-    <h2 class="abschnitt">Training</h2>
+    <h2 class="abschnitt" data-t="nav.training">Training</h2>
     <div class="karte einst-liste">
       <div class="einst-zeile">
-        <span class="einst-titel">Standard-Pause</span>
+        <span class="einst-titel" data-t="profil.standardPause">Standard-Pause</span>
         <div class="stufen">
-          <button onclick="pauseStandardAendern(-15)" aria-label="15 Sekunden kürzer">−</button>
+          <button onclick="pauseStandardAendern(-15)" aria-label="15 Sekunden kürzer" data-t-aria="profil.pauseKuerzer">−</button>
           <span id="pause-standard"></span>
-          <button onclick="pauseStandardAendern(15)" aria-label="15 Sekunden länger">+</button>
+          <button onclick="pauseStandardAendern(15)" aria-label="15 Sekunden länger" data-t-aria="profil.pauseLaenger">+</button>
         </div>
       </div>
     </div>
-    <p class="einst-fuss">Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist.</p>
+    <p class="einst-fuss" data-t="profil.pauseHinweis">Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist.</p>
 
     <!-- Die Umschalter baut die app.js -->
-    <h2 class="abschnitt">Einheiten</h2>
+    <h2 class="abschnitt" data-t="profil.einheiten">Einheiten</h2>
     <div class="karte einst-liste">
       <div class="einst-zeile">
-        <span class="einst-titel">Gewicht</span>
+        <span class="einst-titel" data-t="gewicht">Gewicht</span>
         <div id="einheit-gewicht" class="umschalter"></div>
       </div>
       <div class="einst-zeile">
-        <span class="einst-titel">Länge</span>
+        <span class="einst-titel" data-t="profil.laenge">Länge</span>
         <div id="einheit-laenge" class="umschalter"></div>
       </div>
     </div>
-    <p class="einst-fuss">Deine Daten bleiben beim Umschalten unverändert, nur Anzeige und Eingabe werden umgerechnet. Die Länge gilt für spätere Körpermaße.</p>
+    <p class="einst-fuss" data-t="profil.einheitenHinweis">Deine Daten bleiben beim Umschalten unverändert, nur Anzeige und Eingabe werden umgerechnet. Die Länge gilt für spätere Körpermaße.</p>
 
-    <h2 class="abschnitt">Daten</h2>
+    <h2 class="abschnitt" data-t="profil.sprache">Sprache</h2>
     <div class="karte einst-liste">
-      <button class="einst-zeile" onclick="backupExportieren()">Backup exportieren</button>
-      <button class="einst-zeile" onclick="document.getElementById('backup-datei').click()">Backup importieren</button>
+      <div class="einst-zeile">
+        <span class="einst-titel" data-t="profil.sprache">Sprache</span>
+        <div id="sprache-auswahl" class="umschalter"></div>
+      </div>
+    </div>
+
+    <h2 class="abschnitt" data-t="profil.daten">Daten</h2>
+    <div class="karte einst-liste">
+      <button class="einst-zeile" onclick="backupExportieren()" data-t="backup.exportieren">Backup exportieren</button>
+      <button class="einst-zeile" onclick="document.getElementById('backup-datei').click()" data-t="backup.importieren">Backup importieren</button>
       <input id="backup-datei" class="unsichtbar" type="file" accept=".json,application/json" onchange="backupDateiGewaehlt(this)">
     </div>
     <p id="daten-meldung" class="einst-fuss"></p>
@@ -375,49 +383,49 @@
   <nav id="navigation">
     <button id="nav-home" class="nav-btn aktiv" onclick="seiteZeigen('home')">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V9l7-5 7 5v11M10 20v-6h4v6"/></svg></span>
-      Home
+      <span data-t="nav.home">Home</span>
     </button>
     <button id="nav-training" class="nav-btn" onclick="seiteZeigen('training')">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/></svg></span>
-      Training
+      <span data-t="nav.training">Training</span>
     </button>
     <button id="nav-fortschritt" class="nav-btn" onclick="seiteZeigen('fortschritt')">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20v-6M12 20V5M18 20v-10"/></svg></span>
-      Fortschritt
+      <span data-t="nav.fortschritt">Fortschritt</span>
     </button>
     <button id="nav-gym" class="nav-btn" onclick="seiteZeigen('gym')">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V5h14v15M9 9h2M13 9h2M9 13h2M13 13h2M10 20v-3h4v3"/></svg></span>
-      Gym
+      <span data-t="nav.gym">Gym</span>
     </button>
     <button id="nav-profil" class="nav-btn" onclick="seiteZeigen('profil')">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>
-      Profil
+      <span data-t="nav.profil">Profil</span>
     </button>
   </nav>
 
   <!-- Pausentimer als schmale Leiste über der Navigation, überall außer im Trainingsmodus -->
   <div id="pause-leiste">
-    <span class="heute-label">Pause</span>
+    <span class="heute-label" data-t="pause">Pause</span>
     <span id="pause-leiste-rest"></span>
     <button class="pause-leiste-zeit" onclick="pauseAendern(-15)">−15 s</button>
     <button class="pause-leiste-zeit" onclick="pauseAendern(15)">+15 s</button>
-    <button onclick="pauseUeberspringen()" aria-label="Pause beenden">✕</button>
+    <button onclick="pauseUeberspringen()" aria-label="Pause beenden" data-t-aria="pause.beenden">✕</button>
   </div>
 
   <!-- Hinweis auf eine neue Version: erscheint über der Navigationsleiste -->
-  <button id="update-hinweis" onclick="updateLaden()">Neue Version verfügbar – tippen zum Aktualisieren</button>
+  <button id="update-hinweis" onclick="updateLaden()" data-t="update">Neue Version verfügbar – tippen zum Aktualisieren</button>
 
   <div id="sheet-hintergrund" onclick="sheetSchliessen()"></div>
   <div id="sheet">
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">
-      <button id="sheet-zurueck" class="versteckt" onclick="sheetGruppenZeigen()" aria-label="Zurück">←</button>
+      <button id="sheet-zurueck" class="versteckt" onclick="sheetGruppenZeigen()" aria-label="Zurück" data-t-aria="zurueck">←</button>
       <span id="sheet-titel">Muskelgruppe</span>
-      <button onclick="sheetSchliessen()" aria-label="Schließen">✕</button>
+      <button onclick="sheetSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
     <!-- Suche über alle Übungen. Gibt es keinen Treffer, lässt sich der Text als eigene Übung übernehmen. -->
     <div class="sheet-suche">
-      <input id="sheet-suche" placeholder="Übung suchen oder eigene eintippen" autocomplete="off" enterkeyhint="search" oninput="sheetSucheGeaendert()" onkeydown="if (event.key === 'Enter') this.blur()">
+      <input id="sheet-suche" placeholder="Übung suchen oder eigene eintippen" data-t-platzhalter="sheet.suchfeld" autocomplete="off" enterkeyhint="search" oninput="sheetSucheGeaendert()" onkeydown="if (event.key === 'Enter') this.blur()">
     </div>
     <div id="sheet-inhalt"></div>
   </div>
@@ -432,7 +440,7 @@
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">
       <span id="verlauf-titel" class="sheet-titel"></span>
-      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen">✕</button>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
     <div class="zusatz-inhalt">
       <div id="verlauf-art" class="umschalter"></div>
@@ -445,8 +453,8 @@
   <div id="gewicht-sheet" class="zusatz-sheet">
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">
-      <span class="sheet-titel">Körpergewicht</span>
-      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen">✕</button>
+      <span class="sheet-titel" data-t="koerpergewicht">Körpergewicht</span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
     <div class="zusatz-inhalt">
       <div class="kg-rad">
@@ -455,10 +463,10 @@
       </div>
       <!-- Körperfett: freiwillig. Bleibt das Feld leer, wird nur das Gewicht gespeichert. -->
       <div class="fett-eingabe">
-        <label class="rad-titel" for="feld-koerperfett">Körperfett in % (optional)</label>
+        <label class="rad-titel" for="feld-koerperfett" data-t="messung.fettFeld">Körperfett in % (optional)</label>
         <input id="feld-koerperfett" class="zahl-feld" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="–" onblur="koerperfettFeldPruefen()" onkeydown="if (event.key === 'Enter') this.blur()">
       </div>
-      <button class="speichern-btn" onclick="gewichtSpeichern()">Speichern</button>
+      <button class="speichern-btn" onclick="gewichtSpeichern()" data-t="speichern">Speichern</button>
     </div>
   </div>
 
@@ -466,8 +474,8 @@
   <div id="uebungen-sheet" class="zusatz-sheet">
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">
-      <span class="sheet-titel">Übungen</span>
-      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen">✕</button>
+      <span class="sheet-titel" data-t="uebungen">Übungen</span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
     <div id="uebungen-sheet-liste" class="zusatz-inhalt"></div>
   </div>
@@ -475,11 +483,11 @@
   <!-- Frage vor dem Import: vorhandene Einträge ergänzen oder ersetzen? -->
   <div id="dialog-hintergrund">
     <div id="dialog">
-      <h2>Backup importieren</h2>
+      <h2 data-t="backup.importieren">Backup importieren</h2>
       <p id="dialog-text"></p>
-      <button class="dialog-btn haupt" onclick="importAusfuehren('ergaenzen')">Ergänzen (vorhandene behalten)</button>
-      <button class="dialog-btn" onclick="importAusfuehren('ersetzen')">Ersetzen (vorhandene löschen)</button>
-      <button class="dialog-btn leise" onclick="importAbbrechen()">Abbrechen</button>
+      <button class="dialog-btn haupt" onclick="importAusfuehren('ergaenzen')" data-t="backup.ergaenzen">Ergänzen (vorhandene behalten)</button>
+      <button class="dialog-btn" onclick="importAusfuehren('ersetzen')" data-t="backup.ersetzen">Ersetzen (vorhandene löschen)</button>
+      <button class="dialog-btn leise" onclick="importAbbrechen()" data-t="abbrechen">Abbrechen</button>
     </div>
   </div>
 
@@ -492,9 +500,10 @@
     </div>
   </div>
 
-<!-- Erst die Übungsdaten, dann die App, die sie benutzt -->
-<script src="uebungen.js?v=15"></script>
-<script src="app.js?v=15"></script>
+<!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
+<script src="texte.js?v=16"></script>
+<script src="uebungen.js?v=16"></script>
+<script src="app.js?v=16"></script>
 
 </body>
 </html>

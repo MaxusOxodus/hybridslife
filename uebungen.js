@@ -171,10 +171,9 @@ const UEBUNGEN = [
   { id: "machine-assisted-chin-up", de: "Klimmzüge im Untergriff an der Unterstützungsmaschine", en: "Machine-Assisted Chin-Up", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
 
   // ---------- Latissimus: Freie Gewichte ----------
-  { id: "kurzhantelrudern", de: "Kurzhantelrudern", en: "Dumbbell Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben", "bizeps"], auch: [] },
+  { id: "kurzhantelrudern", de: "Kurzhantelrudern", en: "Dumbbell Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben", "bizeps"], auch: [], alias: ["One-Arm Dumbbell Row", "Kurzhantelrudern einarmig"] },
   { id: "dumbbell-pullover", de: "Überzüge (Kurzhantel)", en: "Dumbbell Pullover", bereich: "frei", haupt: "lat", hilfs: [], auch: [] },
   { id: "barbell-pullover", de: "Überzüge (Langhantel)", en: "Barbell Pullover", bereich: "frei", haupt: "lat", hilfs: [], auch: [] },
-  { id: "one-arm-dumbbell-row", de: "Kurzhantelrudern einarmig", en: "One-Arm Dumbbell Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
   { id: "meadows-row", de: "Meadows Row", en: "Meadows Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
   { id: "pendlay-row", de: "Pendlay Row", en: "Pendlay Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
   { id: "underhand-barbell-row", de: "Langhantelrudern im Untergriff", en: "Underhand Barbell Row", bereich: "frei", haupt: "lat", hilfs: [], auch: [] },
@@ -192,7 +191,7 @@ const UEBUNGEN = [
   { id: "archer-pull-up", de: "Archer-Klimmzüge", en: "Archer Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
   { id: "typewriter-pull-up", de: "Typewriter-Klimmzüge", en: "Typewriter Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
   { id: "muscle-up", de: "Muscle-Up", en: "Muscle-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
-  { id: "australian-pull-up", de: "Australian Pull-Up", en: "Australian Pull-Up", bereich: "eigen", haupt: "lat", hilfs: ["ruecken-oben"], auch: [], alias: ["Inverted Row"] },
+  { id: "australian-pull-up", de: "Inverted Row", en: "Inverted Row", bereich: "eigen", haupt: "lat", hilfs: ["ruecken-oben"], auch: [], alias: ["Australian Pull-Up"] },
   { id: "ring-row", de: "Rudern an den Ringen", en: "Ring Row", bereich: "eigen", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
   { id: "feet-elevated-inverted-row", de: "Inverted Row mit erhöhten Füßen", en: "Feet-Elevated Inverted Row", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
   { id: "towel-pull-up", de: "Klimmzüge am Handtuch", en: "Towel Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
@@ -727,8 +726,8 @@ const UEBUNGSLISTEN = {
     ],
     frei: [
       "langhantelrudern", "kurzhantelrudern", "t-bar-rudern", "dumbbell-pullover", "barbell-pullover",
-      "one-arm-dumbbell-row", "meadows-row", "pendlay-row", "underhand-barbell-row", "landmine-row",
-      "seal-row", "chest-supported-dumbbell-row"
+      "meadows-row", "pendlay-row", "underhand-barbell-row", "landmine-row", "seal-row",
+      "chest-supported-dumbbell-row"
     ],
     eigen: [
       "klimmzuege", "wide-grip-pull-up", "neutral-grip-pull-up", "chin-up", "close-grip-chin-up",
@@ -750,8 +749,7 @@ const UEBUNGSLISTEN = {
     ],
     frei: [
       "langhantelrudern", "kurzhantelrudern", "t-bar-rudern", "pendlay-row", "chest-supported-dumbbell-row",
-      "one-arm-dumbbell-row", "seal-row", "wide-grip-barbell-row", "landmine-row", "meadows-row",
-      "dumbbell-rear-delt-row"
+      "seal-row", "wide-grip-barbell-row", "landmine-row", "meadows-row", "dumbbell-rear-delt-row"
     ],
     eigen: [
       "australian-pull-up", "wide-grip-inverted-row", "scapular-pull-up", "scapular-push-up", "prone-y-raise",
@@ -1035,6 +1033,7 @@ const ALTE_NAMEN = {
 // Frühere IDs und die ID der Übung, die heute dafür steht. Hier landen Übungen, die mit einer anderen
 // zusammengelegt wurden. Einträge und Routinen mit einer alten ID werden beim Start umgestellt.
 const ALTE_IDS = {
+  "one-arm-dumbbell-row": "kurzhantelrudern",
   "dumbbell-seal-row": "seal-row",
   "inverted-row": "australian-pull-up",
   "single-leg-romanian-deadlift-ohne-gewicht": "single-leg-romanian-deadlift-eigen",

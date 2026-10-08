@@ -255,14 +255,9 @@
     laufendesTraining = null;
   }
 
-  // Ein Training aus einer älteren Version kennt die Sätze der aktuellen Übung noch nicht
+  // Ein Training aus einer älteren Version merkt sich die Sätze noch nicht bei jeder Übung einzeln
   if (laufendesTraining) {
-    if (!Array.isArray(laufendesTraining.saetze)) {
-      laufendesTraining.saetze = [];
-    }
-    if (typeof laufendesTraining.eintragId !== "string") {
-      laufendesTraining.eintragId = "";
-    }
+    trainingUmwandeln(laufendesTraining);
   }
 
   // Einstellungen der App, bisher nur die Standard-Pause in Sekunden (pauseSekunden)
@@ -303,8 +298,11 @@
   // Arbeitskopie der Routine, die gerade bearbeitet wird. Erst "Routine speichern" übernimmt sie.
   let bearbeiteteRoutine = null;
 
-  // Stellung der Räder im Trainingsmodus, solange die Training-Seite ausgeblendet ist
-  let gemerkteTrainingRadWerte = null;
+  // Eingabe im Trainingsmodus (Gewicht, Wdh., RIR), solange die Training-Seite ausgeblendet ist
+  let gemerkteTrainingWerte = null;
+
+  // Die im Trainingsmodus gewählten Reps in Reserve für den nächsten Satz: 0 bis 4 (4 heißt "4 oder mehr"), null = keine Angabe
+  let gewaehlterRir = null;
 
   // Liest einen gespeicherten Wert. Fehlt er oder ist er kaputt, gilt der Ersatzwert.
   function gespeichertLesen(schluessel, ersatz) {
@@ -430,12 +428,9 @@
 
   // Zeigt eine Seite und markiert ihren Tab
   function seiteZeigen(name) {
-    // Ausgeblendete Räder verlieren ihre Stellung, deshalb vorher merken
-    if (aktiveSeite === "home" && homeAnsicht === "log") {
-      logRaederMerken();
-    }
+    // Beim Zurückkommen wird der Trainingsmodus neu aufgebaut, deshalb die Eingabe vorher merken
     if (aktiveSeite === "training" && trainingAnsicht === "modus" && !document.getElementById("modus-eingabe").classList.contains("versteckt")) {
-      gemerkteTrainingRadWerte = [radWert("t-rad-gewicht"), radWert("t-rad-wdh")];
+      gemerkteTrainingWerte = [feldWert("t-feld-gewicht"), feldWert("t-feld-wdh"), gewaehlterRir];
     }
 
     // Der Home-Tab führt von der Log-Ansicht zurück zur Übersicht
@@ -456,9 +451,6 @@
 
     if (name === "home") {
       homeAnzeigen();
-      if (homeAnsicht === "log") {
-        logRaederSetzen();
-      }
     }
 
     if (name === "fortschritt") {
@@ -483,19 +475,6 @@
   }
 
   window.addEventListener("scroll", kopfzeileAktualisieren);
-
-  // Stellung der Räder, solange die Log-Ansicht ausgeblendet ist
-  let gemerkteRadWerte = [START_GEWICHT, START_WDH, START_SAETZE];
-
-  function logRaederMerken() {
-    gemerkteRadWerte = [radWert("rad-gewicht"), radWert("rad-wdh"), radWert("rad-saetze")];
-  }
-
-  function logRaederSetzen() {
-    radSetzen("rad-gewicht", gemerkteRadWerte[0]);
-    radSetzen("rad-wdh", gemerkteRadWerte[1]);
-    radSetzen("rad-saetze", gemerkteRadWerte[2]);
-  }
 
   // ---------- Datum-Helfer ----------
 
@@ -645,11 +624,6 @@
     }
     rad.children[index].classList.add("aktiv");
     raeder[id].aktiv = index;
-
-    // Manche Räder melden jede Änderung weiter, z. B. an die große Anzeige im Trainingsmodus
-    if (raeder[id].beimWechsel) {
-      raeder[id].beimWechsel();
-    }
   }
 
   // Liest den eingestellten Wert als Zahl
@@ -671,17 +645,85 @@
     radMarkieren(id);
   }
 
-  // Stellt die Räder auf die Startwerte oder, falls es die Übung schon gab, auf die Werte vom letzten Mal
-  function raederVoreinstellen() {
-    radSetzen("rad-gewicht", START_GEWICHT);
-    radSetzen("rad-wdh", START_WDH);
-    radSetzen("rad-saetze", START_SAETZE);
+  // ---------- Zahlenfelder ----------
+
+  // Merkt sich zu jedem Zahlenfeld seine Grenzen und den letzten gültigen Wert
+  const felder = {};
+
+  // Richtet ein Zahlenfeld ein. Mit komma = true sind Nachkommastellen erlaubt (z. B. 82,5 kg).
+  function feldBauen(id, min, max, komma, start) {
+    const feld = document.getElementById(id);
+    felder[id] = { min: min, max: max, komma: komma, wert: start };
+    feld.value = zahlText(start);
+
+    // Antippen markiert den ganzen Wert: Die erste getippte Ziffer ersetzt ihn.
+    // Etwas verzögert, weil das iPhone die Markierung beim Antippen sonst gleich wieder aufhebt.
+    feld.onfocus = function () {
+      setTimeout(function () {
+        feld.setSelectionRange(0, feld.value.length);
+      }, 0);
+    };
+    // Nach dem Verlassen steht im Feld, was wirklich gilt (z. B. 400 statt 999)
+    feld.onblur = function () {
+      feldSetzen(id, feldWert(id));
+    };
+    feld.onkeydown = function (ereignis) {
+      if (ereignis.key === "Enter") {
+        feld.blur();
+      }
+    };
+  }
+
+  // Macht aus einem Text oder einer Zahl einen gültigen Wert für das Feld: innerhalb der Grenzen,
+  // das Gewicht auf zwei Nachkommastellen, alles andere ganzzahlig. Ist es keine Zahl: null.
+  function feldLesen(id, wert) {
+    const text = String(wert).trim().replace(",", ".");
+    const zahl = Number(text);
+    if (text === "" || isNaN(zahl)) {
+      return null;
+    }
+    let gerundet = Math.round(zahl);
+    if (felder[id].komma) {
+      gerundet = Math.round(zahl * 100) / 100;
+    }
+    return Math.max(felder[id].min, Math.min(gerundet, felder[id].max));
+  }
+
+  // Der Wert des Feldes als Zahl. Steht gerade nichts Gültiges darin, gilt der letzte gültige Wert.
+  function feldWert(id) {
+    const zahl = feldLesen(id, document.getElementById(id).value);
+    if (zahl !== null) {
+      felder[id].wert = zahl;
+    }
+    return felder[id].wert;
+  }
+
+  // Schreibt einen Wert ins Feld. Ist er keine Zahl, bleibt das Feld, wie es war.
+  function feldSetzen(id, wert) {
+    const zahl = feldLesen(id, wert);
+    if (zahl === null) {
+      return;
+    }
+    felder[id].wert = zahl;
+    document.getElementById(id).value = zahlText(zahl);
+  }
+
+  // Die Schnellbuttons: erhöhen oder verringern den Wert um einen Schritt
+  function feldAendern(id, schritt) {
+    feldSetzen(id, feldWert(id) + schritt);
+  }
+
+  // Stellt die Felder im Log auf die Startwerte oder, falls es die Übung schon gab, auf die Werte vom letzten Mal
+  function felderVoreinstellen() {
+    feldSetzen("feld-gewicht", START_GEWICHT);
+    feldSetzen("feld-wdh", START_WDH);
+    feldSetzen("feld-saetze", START_SAETZE);
 
     const letzter = letzterEintrag(gewaehlteUebung, gewaehlteUebungId);
     if (letzter) {
-      radSetzen("rad-gewicht", letzter.gewicht);
-      radSetzen("rad-wdh", letzter.wdh);
-      radSetzen("rad-saetze", letzter.saetze);
+      feldSetzen("feld-gewicht", letzter.gewicht);
+      feldSetzen("feld-wdh", letzter.wdh);
+      feldSetzen("feld-saetze", letzter.saetze);
     }
   }
 
@@ -915,7 +957,7 @@
     uebungWaehlen(name, gruppe, "");
   }
 
-  // Merkt sich die gewählte Übung, schließt das Sheet und stellt die Räder ein
+  // Merkt sich die gewählte Übung, schließt das Sheet und stellt die Zahlenfelder ein
   function uebungWaehlen(name, gruppe, id) {
     // Aus dem Routinen-Editor geöffnet: Die Übung kommt in die Routine, nicht in den neuen Eintrag
     if (sheetZiel === "routine") {
@@ -930,7 +972,7 @@
     uebungFeldAktualisieren();
     sheetSchliessen();
     letztesMalAnzeigen();
-    raederVoreinstellen();
+    felderVoreinstellen();
   }
 
   // Zeigt die gewählte Übung im Feld
@@ -1085,9 +1127,9 @@
         uebung: gewaehlteUebung,
         uebungId: gewaehlteUebungId,
         muskelgruppe: gewaehlteGruppe,
-        gewicht: radWert("rad-gewicht"),
-        wdh: radWert("rad-wdh"),
-        saetze: radWert("rad-saetze"),
+        gewicht: feldWert("feld-gewicht"),
+        wdh: feldWert("feld-wdh"),
+        saetze: feldWert("feld-saetze"),
         datum: eintragDatum().toISOString()
   };
 
@@ -1100,7 +1142,7 @@
       gewaehlteUebungId = "";
       uebungFeldAktualisieren();
       letztesMalAnzeigen();
-      raederVoreinstellen();
+      felderVoreinstellen();
 
 }
 
@@ -1160,9 +1202,27 @@
 
   // ---------- Einzelne Sätze ----------
 
-  // Die Sätze eines Eintrags als Liste von { gewicht, wdh }. Einträge aus dem Trainingsmodus
+  // Reps in Reserve eines Satzes: eine ganze Zahl von 0 bis 4 (4 heißt "4 oder mehr").
+  // Alles andere, auch ein fehlender Wert bei älteren Einträgen, ergibt null (keine Angabe).
+  function rirLesen(wert) {
+    if (typeof wert !== "number" || Math.round(wert) !== wert || wert < 0 || wert > 4) {
+      return null;
+    }
+    return wert;
+  }
+
+  // "RIR 2", bei 4 "RIR 4+"
+  function rirText(rir) {
+    if (rir === 4) {
+      return "RIR 4+";
+    }
+    return "RIR " + rir;
+  }
+
+  // Die Sätze eines Eintrags als Liste von { gewicht, wdh, rir }. Einträge aus dem Trainingsmodus
   // haben sie einzeln gespeichert (einzelsaetze). Bei allen anderen sind alle Sätze gleich,
   // sie entstehen aus Sätze, Wdh. und Gewicht. Steht irgendwo keine Zahl, ist die Liste leer.
+  // rir ist null, wenn beim Satz keine Reps in Reserve angegeben wurden.
   function saetzeVon(e) {
     const liste = [];
     if (Array.isArray(e.einzelsaetze) && e.einzelsaetze.length > 0) {
@@ -1172,7 +1232,7 @@
           const gewicht = Number(String(s.gewicht).replace(",", "."));
           const wdh = Number(s.wdh);
           if (!isNaN(gewicht) && !isNaN(wdh)) {
-            liste.push({ gewicht: gewicht, wdh: wdh });
+            liste.push({ gewicht: gewicht, wdh: wdh, rir: rirLesen(s.rir) });
           }
         }
       }
@@ -1186,7 +1246,7 @@
       return liste;
     }
     for (let i = 0; i < anzahl && i < 100; i++) {
-      liste.push({ gewicht: gewicht, wdh: wdh });
+      liste.push({ gewicht: gewicht, wdh: wdh, rir: null });
     }
     return liste;
   }
@@ -1204,14 +1264,15 @@
 
   // Die Sätze eines Eintrags als Text. Sind alle gleich: "3 Sätze × 10 Wdh. à 80 kg".
   // Unterscheiden sie sich: "80 kg × 10, 10, 8", bei wechselndem Gewicht "80 kg × 10 · 85 kg × 8".
+  // Mit Reps in Reserve steht jeder Satz einzeln da: "80 kg × 10 @ RIR 2, 10 @ RIR 1".
   function saetzeText(e) {
     let saetze = [];
     if (Array.isArray(e.einzelsaetze)) {
       saetze = saetzeVon(e);
     }
     let alleGleich = true;
-    for (let i = 1; i < saetze.length; i++) {
-      if (saetze[i].gewicht !== saetze[0].gewicht || saetze[i].wdh !== saetze[0].wdh) {
+    for (let i = 0; i < saetze.length; i++) {
+      if (saetze[i].gewicht !== saetze[0].gewicht || saetze[i].wdh !== saetze[0].wdh || saetze[i].rir !== null) {
         alleGleich = false;
       }
     }
@@ -1226,7 +1287,11 @@
       const wiederholungen = [];
       const gewicht = saetze[i].gewicht;
       while (i < saetze.length && saetze[i].gewicht === gewicht) {
-        wiederholungen.push(saetze[i].wdh);
+        let text = String(saetze[i].wdh);
+        if (saetze[i].rir !== null) {
+          text += " @ " + rirText(saetze[i].rir);
+        }
+        wiederholungen.push(text);
         i++;
       }
       teile.push(zahlText(gewicht) + " kg × " + wiederholungen.join(", "));
@@ -1362,16 +1427,43 @@
     return Math.min(zahl, hoechstwert);
   }
 
-  // Der Text zum Ziel einer Übung, z. B. "Ziel: 3 Sätze × 10 Wdh.". Ohne Ziel ist er leer.
+  // Das obere Ende des Wiederholungsbereichs einer Übung, z. B. 12 bei 8–12.
+  // Bei einer festen Zahl oder ohne Ziel: null. So sind auch alle älteren Routinen gespeichert.
+  function wdhBis(uebung) {
+    if (uebung.zielWdh && uebung.zielWdhMax > uebung.zielWdh) {
+      return uebung.zielWdhMax;
+    }
+    return null;
+  }
+
+  // Bringt das Wdh.-Ziel einer Übung in Ordnung: Ein Bereich braucht ein unteres und ein größeres oberes Ende.
+  // Vertauschte Enden werden getauscht, alles andere wird zu einer festen Zahl (zielWdhMax = null).
+  function wdhZielBereinigen(uebung) {
+    const von = zielLesen(uebung.zielWdh, 30);
+    const bis = zielLesen(uebung.zielWdhMax, 30);
+    uebung.zielWdh = von || bis;
+    uebung.zielWdhMax = null;
+    if (von && bis && von !== bis) {
+      uebung.zielWdh = Math.min(von, bis);
+      uebung.zielWdhMax = Math.max(von, bis);
+    }
+  }
+
+  // Der Text zum Ziel einer Übung, z. B. "Ziel: 3 Sätze × 10 Wdh." oder mit Bereich "Ziel: 3 Sätze × 8–12 Wdh.".
+  // Ohne Ziel ist er leer.
   function zielText(uebung) {
+    let wdh = uebung.zielWdh;
+    if (wdhBis(uebung)) {
+      wdh += "–" + wdhBis(uebung);
+    }
     if (uebung.zielSaetze && uebung.zielWdh) {
-      return "Ziel: " + uebung.zielSaetze + " Sätze × " + uebung.zielWdh + " Wdh.";
+      return "Ziel: " + uebung.zielSaetze + " Sätze × " + wdh + " Wdh.";
     }
     if (uebung.zielSaetze) {
       return "Ziel: " + uebung.zielSaetze + " Sätze";
     }
     if (uebung.zielWdh) {
-      return "Ziel: " + uebung.zielWdh + " Wdh.";
+      return "Ziel: " + wdh + " Wdh.";
     }
     return "";
   }
@@ -1675,7 +1767,7 @@
       bearbeiteteRoutine.name = routine.name;
       for (let i = 0; i < routine.uebungen.length; i++) {
         const u = routine.uebungen[i];
-        bearbeiteteRoutine.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, pause: pauseLesen(u.pause) });
+        bearbeiteteRoutine.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, zielWdhMax: wdhBis(u), pause: pauseLesen(u.pause) });
       }
     }
 
@@ -1736,7 +1828,7 @@
       }
       const ziele = element("div", "ziele");
       ziele.appendChild(zielFeld("Sätze", u, "zielSaetze", 10));
-      ziele.appendChild(zielFeld("Wdh.", u, "zielWdh", 30));
+      ziele.appendChild(wdhZielFeld(u));
       ziele.appendChild(pauseFeld(u));
       mitte.appendChild(ziele);
       zeile.appendChild(mitte);
@@ -1778,6 +1870,84 @@
     return rahmen;
   }
 
+  // Die Vorgaben für den Wiederholungsbereich im Routinen-Editor
+  const WDH_BEREICHE = [[5, 9], [6, 8], [6, 10], [8, 12]];
+
+  // Das Wdh.-Ziel einer Übung: eine feste Zahl, einer der vorgegebenen Bereiche oder ein eigener Bereich.
+  // Die Auswahl bestimmt, welche Zahlenfelder daneben zu sehen sind.
+  function wdhZielFeld(uebung) {
+    const rahmen = element("div", "ziel");
+    rahmen.appendChild(element("span", "", "Wdh."));
+
+    const auswahl = document.createElement("select");
+    auswahl.setAttribute("aria-label", "Art des Wiederholungsziels");
+    auswahl.appendChild(new Option("Feste Zahl", "fest"));
+    for (let i = 0; i < WDH_BEREICHE.length; i++) {
+      auswahl.appendChild(new Option(WDH_BEREICHE[i][0] + "–" + WDH_BEREICHE[i][1], String(i)));
+    }
+    auswahl.appendChild(new Option("Eigener Bereich", "eigen"));
+    rahmen.appendChild(auswahl);
+
+    const von = wdhZahlFeld(uebung, "zielWdh", "Wiederholungen");
+    const strich = element("span", "", "–");
+    const bis = wdhZahlFeld(uebung, "zielWdhMax", "Wiederholungen bis");
+    rahmen.appendChild(von);
+    rahmen.appendChild(strich);
+    rahmen.appendChild(bis);
+
+    // Was beim Öffnen gewählt ist, ergibt sich aus den gespeicherten Zahlen
+    let art = "fest";
+    if (wdhBis(uebung)) {
+      art = "eigen";
+      for (let i = 0; i < WDH_BEREICHE.length; i++) {
+        if (WDH_BEREICHE[i][0] === uebung.zielWdh && WDH_BEREICHE[i][1] === uebung.zielWdhMax) {
+          art = String(i);
+        }
+      }
+    }
+    auswahl.value = art;
+
+    // Feste Zahl: ein Feld. Eigener Bereich: zwei Felder. Vorgabe: keins, die Zahlen stehen schon in der Auswahl.
+    function felderZeigen() {
+      von.value = uebung.zielWdh || "";
+      bis.value = uebung.zielWdhMax || "";
+      von.classList.toggle("versteckt", art !== "fest" && art !== "eigen");
+      strich.classList.toggle("versteckt", art !== "eigen");
+      bis.classList.toggle("versteckt", art !== "eigen");
+    }
+    felderZeigen();
+
+    auswahl.onchange = function () {
+      art = auswahl.value;
+      if (art === "fest") {
+        uebung.zielWdhMax = null;
+      } else if (art !== "eigen") {
+        uebung.zielWdh = WDH_BEREICHE[Number(art)][0];
+        uebung.zielWdhMax = WDH_BEREICHE[Number(art)][1];
+      }
+      felderZeigen();
+    };
+    return rahmen;
+  }
+
+  // Ein Zahlenfeld für das untere oder obere Ende des Wdh.-Ziels. Leer heißt: keine Angabe.
+  function wdhZahlFeld(uebung, feldName, beschriftung) {
+    const feld = document.createElement("input");
+    feld.type = "number";
+    feld.inputMode = "numeric";
+    feld.min = 1;
+    feld.max = 30;
+    feld.placeholder = "–";
+    feld.setAttribute("aria-label", beschriftung);
+    feld.oninput = function () {
+      uebung[feldName] = zielLesen(feld.value, 30);
+    };
+    feld.onchange = function () {
+      feld.value = uebung[feldName] || "";
+    };
+    return feld;
+  }
+
   // Auswahlfeld für die Pause nach jedem Satz dieser Übung. "Standard" heißt: die Zeit aus dem Profil.
   function pauseFeld(uebung) {
     const rahmen = element("label", "ziel");
@@ -1813,7 +1983,7 @@
 
   // Wird vom Sheet aufgerufen, wenn es aus dem Editor geöffnet wurde
   function routineUebungHinzufuegen(name, gruppe, id) {
-    bearbeiteteRoutine.uebungen.push({ name: name, uebungId: id, muskelgruppe: gruppe, zielSaetze: null, zielWdh: null, pause: null });
+    bearbeiteteRoutine.uebungen.push({ name: name, uebungId: id, muskelgruppe: gruppe, zielSaetze: null, zielWdh: null, zielWdhMax: null, pause: null });
     document.getElementById("routine-meldung").textContent = "";
     routineUebungenAnzeigen();
   }
@@ -1828,6 +1998,10 @@
     if (bearbeiteteRoutine.uebungen.length === 0) {
       document.getElementById("routine-meldung").textContent = "Füge mindestens eine Übung hinzu.";
       return;
+    }
+
+    for (let i = 0; i < bearbeiteteRoutine.uebungen.length; i++) {
+      wdhZielBereinigen(bearbeiteteRoutine.uebungen[i]);
     }
 
     const vorhandene = routineFinden(bearbeiteteRoutine.id);
@@ -1882,19 +2056,80 @@
       uebungen: [],
       index: 0,
       erledigt: [],
-      uebersprungen: 0,
-      gestartet: new Date().toISOString(),
-      // Die Sätze der aktuellen Übung und die id des Eintrags, in dem sie gespeichert sind
-      saetze: [],
-      eintragId: ""
+      gestartet: new Date().toISOString()
     };
     for (let i = 0; i < routine.uebungen.length; i++) {
       const u = routine.uebungen[i];
-      laufendesTraining.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe || "", zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, pause: pauseLesen(u.pause) });
+      laufendesTraining.uebungen.push({
+        name: u.name,
+        uebungId: u.uebungId || "",
+        muskelgruppe: u.muskelgruppe || "",
+        zielSaetze: u.zielSaetze,
+        zielWdh: u.zielWdh,
+        zielWdhMax: wdhBis(u),
+        pause: pauseLesen(u.pause),
+        // Jede Übung merkt sich ihre Sätze und die id des Eintrags, in dem sie gespeichert sind.
+        // So bleibt alles erhalten, wenn man zwischen den Übungen wechselt.
+        saetze: [],
+        eintragId: "",
+        extraSatz: false
+      });
     }
-    gemerkteTrainingRadWerte = null;
+    gemerkteTrainingWerte = null;
     trainingMerken();
     trainingFortsetzen();
+  }
+
+  // Bringt ein gespeichertes Training in die heutige Form. Ältere Versionen kannten nur die Sätze
+  // der aktuellen Übung (t.saetze, t.eintragId), jetzt hat jede Übung ihre eigenen.
+  function trainingUmwandeln(t) {
+    const alt = !Array.isArray(t.uebungen[t.index].saetze);
+
+    for (let i = 0; i < t.uebungen.length; i++) {
+      const u = t.uebungen[i];
+      if (!Array.isArray(u.saetze)) {
+        u.saetze = [];
+      }
+      if (typeof u.eintragId !== "string") {
+        u.eintragId = "";
+      }
+      u.extraSatz = Boolean(u.extraSatz);
+    }
+    if (!alt) {
+      return;
+    }
+
+    // Die aktuelle Übung übernimmt, was bisher am Training selbst hing
+    const aktuell = t.uebungen[t.index];
+    if (Array.isArray(t.saetze)) {
+      aktuell.saetze = t.saetze;
+    }
+    if (typeof t.eintragId === "string") {
+      aktuell.eintragId = t.eintragId;
+    }
+    aktuell.extraSatz = Boolean(t.extraSatz);
+
+    // Die Übungen davor bekommen ihre Sätze aus den Einträgen zurück, die schon im Log stehen
+    for (let i = 0; i < t.erledigt.length; i++) {
+      const eintrag = eintragFinden(t.erledigt[i].id);
+      if (!eintrag || eintrag.id === aktuell.eintragId) {
+        continue;
+      }
+      for (let j = 0; j < t.index; j++) {
+        const u = t.uebungen[j];
+        if (u.eintragId === "" && u.name === eintrag.uebung) {
+          u.eintragId = eintrag.id;
+          u.saetze = saetzeVon(eintrag);
+          break;
+        }
+      }
+    }
+
+    delete t.saetze;
+    delete t.eintragId;
+    delete t.extraSatz;
+    delete t.uebersprungen;
+    localStorage.setItem("laufendesTraining", JSON.stringify(t));
   }
 
   // Öffnet den Trainingsmodus an der Stelle, an der das Training steht
@@ -1920,29 +2155,67 @@
     const u = t.uebungen[t.index];
 
     document.getElementById("modus-routine").textContent = t.routineName;
-    document.getElementById("modus-schritt").textContent = "Übung " + (t.index + 1) + " von " + t.uebungen.length;
-    document.getElementById("modus-fortschritt").style.width = (t.index / t.uebungen.length * 100) + "%";
+    document.getElementById("modus-schritt").textContent = "Übung " + (t.index + 1) + " von " + t.uebungen.length + " ▾";
+    document.getElementById("modus-zurueck").disabled = t.index === 0;
+    document.getElementById("modus-vor").disabled = t.index === t.uebungen.length - 1;
     document.getElementById("modus-uebung").textContent = anzeigeName(u.name, u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
-    document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name, u.uebungId, t.eintragId) || "Letztes Mal: noch kein Eintrag";
+    document.getElementById("modus-hinweis").textContent = gewichtErhoehenText(u);
+    document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name, u.uebungId, u.eintragId) || "Letztes Mal: noch kein Eintrag";
 
+    modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
+  }
+
+  // Der Balken oben füllt sich mit jeder Übung, die mindestens einen Satz hat
+  function modusFortschrittAnzeigen() {
+    const t = laufendesTraining;
+    let begonnen = 0;
+    for (let i = 0; i < t.uebungen.length; i++) {
+      if (t.uebungen[i].saetze.length > 0) {
+        begonnen++;
+      }
+    }
+    document.getElementById("modus-fortschritt").style.width = (begonnen / t.uebungen.length * 100) + "%";
+  }
+
+  // Der Hinweis "Gewicht erhöhen": Die Übung hat einen Wiederholungsbereich, und beim letzten Mal
+  // wurde in allen Sätzen das obere Ende erreicht. Sonst ist der Text leer.
+  function gewichtErhoehenText(u) {
+    const bis = wdhBis(u);
+    if (!bis) {
+      return "";
+    }
+    const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
+    if (!letzter) {
+      return "";
+    }
+    const saetze = saetzeVon(letzter);
+    if (saetze.length === 0) {
+      return "";
+    }
+    for (let i = 0; i < saetze.length; i++) {
+      if (saetze[i].wdh < bis) {
+        return "";
+      }
+    }
+    return "Gewicht erhöhen: Letztes Mal hast du in allen Sätzen " + bis + " Wdh. erreicht.";
   }
 
   // Zeigt im Trainingsmodus den passenden Teil: die Eingabe für den nächsten Satz, den Countdown
   // der Pause oder nach dem letzten Ziel-Satz die Wahl zwischen "Nächste Übung" und "+ Satz".
-  // Läuft jede Viertelsekunde, solange eine Pause läuft. raederNeu = true stellt die Räder in jedem Fall neu ein.
-  function modusZustandAnzeigen(raederNeu) {
+  // Läuft jede Viertelsekunde, solange eine Pause läuft. felderNeu = true stellt die Zahlenfelder in jedem Fall neu ein.
+  function modusZustandAnzeigen(felderNeu) {
     const t = laufendesTraining;
     if (!t || !t.uebungen[t.index]) {
       return;
     }
     const u = t.uebungen[t.index];
     const ziel = u.zielSaetze || 0;
-    const gemacht = t.saetze.length;
+    const gemacht = u.saetze.length;
     const letzteUebung = t.index === t.uebungen.length - 1;
     const pauseLaeuft = pauseRest() > 0;
-    const zielErreicht = ziel > 0 && gemacht >= ziel && !t.extraSatz;
+    const zielErreicht = ziel > 0 && gemacht >= ziel && !u.extraSatz;
 
     // "Satz 2 von 4". Ohne Ziel und bei einem zusätzlichen Satz nur "Satz 5".
     let satzText = "Satz " + (gemacht + 1);
@@ -1985,28 +2258,28 @@
     document.getElementById("modus-wahl").classList.toggle("versteckt", !zielErreicht);
     document.getElementById("modus-vorbei").classList.toggle("versteckt", Date.now() - pauseVorbeiSeit >= PAUSE_VORBEI_ANZEIGE);
 
-    // Die Eingabe war ausgeblendet: Dabei verlieren die Räder ihre Stellung, also neu einstellen
+    // Die Eingabe erscheint wieder (z. B. nach der Pause): die Zahlenfelder für den nächsten Satz einstellen
     const eingabe = document.getElementById("modus-eingabe");
     const zeigen = !pauseLaeuft && !zielErreicht;
     const warVersteckt = eingabe.classList.contains("versteckt");
     eingabe.classList.toggle("versteckt", !zeigen);
-    if (zeigen && (warVersteckt || raederNeu)) {
-      modusRaederSetzen();
+    if (zeigen && (warVersteckt || felderNeu)) {
+      modusFelderSetzen();
     }
   }
 
-  // Die Werte, mit denen die Räder für den nächsten Satz starten: die des Satzes davor,
+  // Die Werte, mit denen die Zahlenfelder für den nächsten Satz starten: die des Satzes davor,
   // beim ersten Satz die vom letzten Mal, sonst die Startwerte und das Wdh.-Ziel der Routine
   function modusStartWerte() {
     const t = laufendesTraining;
     const u = t.uebungen[t.index];
-    if (t.saetze.length > 0) {
-      const davor = t.saetze[t.saetze.length - 1];
+    if (u.saetze.length > 0) {
+      const davor = u.saetze[u.saetze.length - 1];
       return [davor.gewicht, davor.wdh];
     }
 
     const werte = [START_GEWICHT, u.zielWdh || START_WDH];
-    const letzter = letzterEintrag(u.name, u.uebungId, t.eintragId);
+    const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
     if (letzter) {
       const saetze = saetzeVon(letzter);
       if (saetze.length > 0) {
@@ -2017,20 +2290,41 @@
     return werte;
   }
 
-  // Stellt die zwei Räder ein: auf die gemerkte Stellung (nach einem Tab-Wechsel), sonst auf die Startwerte
-  function modusRaederSetzen() {
-    const werte = gemerkteTrainingRadWerte || modusStartWerte();
-    radSetzen("t-rad-gewicht", START_GEWICHT);
-    radSetzen("t-rad-wdh", START_WDH);
-    radSetzen("t-rad-gewicht", werte[0]);
-    radSetzen("t-rad-wdh", werte[1]);
-    modusGrossAnzeigen();
+  // Stellt die zwei Zahlenfelder ein: auf die gemerkte Eingabe (nach einem Tab-Wechsel), sonst auf die Startwerte.
+  // Die Reps in Reserve sind bei jedem neuen Satz erst einmal nicht gewählt.
+  function modusFelderSetzen() {
+    const werte = gemerkteTrainingWerte || modusStartWerte();
+    feldSetzen("t-feld-gewicht", START_GEWICHT);
+    feldSetzen("t-feld-wdh", START_WDH);
+    feldSetzen("t-feld-gewicht", werte[0]);
+    feldSetzen("t-feld-wdh", werte[1]);
+
+    gewaehlterRir = null;
+    if (gemerkteTrainingWerte) {
+      gewaehlterRir = rirLesen(gemerkteTrainingWerte[2]);
+    }
+    rirAnzeigen();
   }
 
-  // Die großen Zahlen über den Rädern zeigen, was gerade eingestellt ist
-  function modusGrossAnzeigen() {
-    document.getElementById("modus-gewicht").textContent = zahlText(radWert("t-rad-gewicht"));
-    document.getElementById("modus-wdh").textContent = radWert("t-rad-wdh");
+  // Die Auswahl der Reps in Reserve
+  const RIR_AUSWAHL = [
+    { id: 0, text: "0" },
+    { id: 1, text: "1" },
+    { id: 2, text: "2" },
+    { id: 3, text: "3" },
+    { id: 4, text: "4+" }
+  ];
+
+  // Baut die Auswahl der Reps in Reserve. Ein Tipp auf den gewählten Wert nimmt die Angabe wieder zurück.
+  function rirAnzeigen() {
+    umschalterBauen(document.getElementById("modus-rir"), RIR_AUSWAHL, gewaehlterRir, function (rir) {
+      if (gewaehlterRir === rir) {
+        gewaehlterRir = null;
+      } else {
+        gewaehlterRir = rir;
+      }
+      rirAnzeigen();
+    });
   }
 
   // "Satz fertig": Der Satz kommt in den Eintrag der Übung, danach startet die Pause.
@@ -2041,10 +2335,15 @@
     const t = laufendesTraining;
     const u = t.uebungen[t.index];
 
-    t.saetze.push({ gewicht: radWert("t-rad-gewicht"), wdh: radWert("t-rad-wdh") });
-    t.extraSatz = false;
+    // rir steht nur im Satz, wenn es angegeben wurde
+    const satz = { gewicht: feldWert("t-feld-gewicht"), wdh: feldWert("t-feld-wdh") };
+    if (gewaehlterRir !== null) {
+      satz.rir = gewaehlterRir;
+    }
+    u.saetze.push(satz);
+    u.extraSatz = false;
 
-    let eintrag = eintragFinden(t.eintragId);
+    let eintrag = eintragFinden(u.eintragId);
     if (!eintrag) {
       eintrag = {
         id: neueId("e"),
@@ -2056,22 +2355,26 @@
         routineName: t.routineName
       };
       eintraege.push(eintrag);
-      t.eintragId = eintrag.id;
+      u.eintragId = eintrag.id;
       t.erledigt.push({ id: eintrag.id, uebung: eintrag.uebung });
     }
 
     // Die einzelnen Sätze, dazu wie bei jedem Eintrag Sätze, Wdh. und Gewicht:
     // die Anzahl der Sätze und die Werte des schwersten Satzes (bei gleichem Gewicht der mit mehr Wdh.)
-    let schwerster = t.saetze[0];
+    let schwerster = u.saetze[0];
     eintrag.einzelsaetze = [];
-    for (let i = 0; i < t.saetze.length; i++) {
-      const s = t.saetze[i];
-      eintrag.einzelsaetze.push({ gewicht: s.gewicht, wdh: s.wdh });
+    for (let i = 0; i < u.saetze.length; i++) {
+      const s = u.saetze[i];
+      const einzeln = { gewicht: s.gewicht, wdh: s.wdh };
+      if (rirLesen(s.rir) !== null) {
+        einzeln.rir = s.rir;
+      }
+      eintrag.einzelsaetze.push(einzeln);
       if (s.gewicht > schwerster.gewicht || (s.gewicht === schwerster.gewicht && s.wdh > schwerster.wdh)) {
         schwerster = s;
       }
     }
-    eintrag.saetze = t.saetze.length;
+    eintrag.saetze = u.saetze.length;
     eintrag.gewicht = schwerster.gewicht;
     eintrag.wdh = schwerster.wdh;
 
@@ -2079,47 +2382,146 @@
     anzeigen();
     letztesMalAnzeigen();
 
-    gemerkteTrainingRadWerte = null;
+    gemerkteTrainingWerte = null;
     trainingMerken();
     pauseStarten(pauseDauer(u));
+    modusFortschrittAnzeigen();
     modusZustandAnzeigen(false);
     window.scrollTo(0, 0);
   }
 
   // "+ Satz" nach dem letzten Ziel-Satz: noch ein Satz derselben Übung
   function extraSatzStarten() {
-    laufendesTraining.extraSatz = true;
-    gemerkteTrainingRadWerte = null;
+    laufendesTraining.uebungen[laufendesTraining.index].extraSatz = true;
+    gemerkteTrainingWerte = null;
     trainingMerken();
     modusZustandAnzeigen(true);
   }
 
-  // "Nächste Übung" oder "Übung überspringen": Ohne einen einzigen Satz zählt die Übung als übersprungen
+  // "Nächste Übung" oder "Übung überspringen": weiter zur nächsten Übung der Routine.
+  // Nach der letzten Übung endet das Training. Sind dann noch Übungen offen, wird erst gefragt.
   function uebungBeenden() {
-    if (laufendesTraining.saetze.length === 0) {
-      laufendesTraining.uebersprungen++;
+    const t = laufendesTraining;
+    if (t.index < t.uebungen.length - 1) {
+      uebungZeigen(t.index + 1);
+      return;
     }
-    trainingWeiter();
-  }
 
-  // Nächste Übung, oder nach der letzten die Zusammenfassung. Eine laufende Pause läuft weiter.
-  function trainingWeiter() {
-    laufendesTraining.index++;
-    laufendesTraining.saetze = [];
-    laufendesTraining.eintragId = "";
-    laufendesTraining.extraSatz = false;
-    gemerkteTrainingRadWerte = null;
-    if (laufendesTraining.index >= laufendesTraining.uebungen.length) {
+    const offen = offeneUebungen(t.index);
+    if (offen.length === 0) {
       trainingAbschliessen();
       return;
     }
+    frageZeigen("Training abschließen?", offenText(offen) + " Schon gespeicherte Übungen bleiben im Log.", [
+      { text: "Training abschließen", art: "haupt", aktion: trainingAbschliessen },
+      {
+        text: "Zur offenen Übung",
+        aktion: function () {
+          uebungZeigen(offen[0]);
+        }
+      },
+      { text: "Weiter trainieren", art: "leise" }
+    ]);
+  }
+
+  // Die Pfeile neben "Übung 2 von 6": zur vorherigen (-1) oder nächsten (1) Übung
+  function uebungWechseln(richtung) {
+    uebungZeigen(laufendesTraining.index + richtung);
+  }
+
+  // Springt zu einer Übung des laufenden Trainings. Ihre schon gemachten Sätze sind noch da,
+  // es geht mit dem nächsten Satz weiter. Eine laufende Pause läuft weiter.
+  function uebungZeigen(index) {
+    const t = laufendesTraining;
+    if (!t || index < 0 || index >= t.uebungen.length) {
+      return;
+    }
+    // Ein angefangener, aber nicht gemachter Zusatz-Satz verfällt beim Verlassen der Übung
+    t.uebungen[t.index].extraSatz = false;
+    t.index = index;
+    gemerkteTrainingWerte = null;
     trainingMerken();
     modusAnzeigen();
     window.scrollTo(0, 0);
   }
 
+  // Die Plätze aller Übungen, die noch keinen Satz haben. ohne lässt eine Übung aus.
+  function offeneUebungen(ohne) {
+    const t = laufendesTraining;
+    const liste = [];
+    for (let i = 0; i < t.uebungen.length; i++) {
+      if (i !== ohne && t.uebungen[i].saetze.length === 0) {
+        liste.push(i);
+      }
+    }
+    return liste;
+  }
+
+  // "2 Übungen sind noch offen: Kniebeuge, Latzug."
+  function offenText(offen) {
+    const t = laufendesTraining;
+    const namen = [];
+    for (let i = 0; i < offen.length; i++) {
+      namen.push(anzeigeName(t.uebungen[offen[i]].name, t.uebungen[offen[i]].uebungId));
+    }
+    if (offen.length === 1) {
+      return "1 Übung ist noch offen: " + namen[0] + ".";
+    }
+    return offen.length + " Übungen sind noch offen: " + namen.join(", ") + ".";
+  }
+
+  // Wie weit eine Übung im laufenden Training ist: "offen", "2 von 3 Sätzen" oder "fertig · 3 Sätze"
+  function uebungStandText(u) {
+    const gemacht = u.saetze.length;
+    if (gemacht === 0) {
+      return "offen";
+    }
+    let saetze = gemacht + " Sätze";
+    if (gemacht === 1) {
+      saetze = "1 Satz";
+    }
+    if (!u.zielSaetze) {
+      return saetze;
+    }
+    if (gemacht >= u.zielSaetze) {
+      return "fertig · " + saetze;
+    }
+    return gemacht + " von " + u.zielSaetze + " Sätzen";
+  }
+
+  // Öffnet die Übersicht aller Übungen des Trainings. Antippen springt zu der Übung.
+  function uebersichtOeffnen() {
+    const t = laufendesTraining;
+    if (!t) {
+      return;
+    }
+    const liste = document.getElementById("uebungen-sheet-liste");
+    liste.innerHTML = "";
+
+    for (let i = 0; i < t.uebungen.length; i++) {
+      const u = t.uebungen[i];
+      const zeile = element("button", "sheet-zeile");
+      if (i === t.index) {
+        zeile.classList.add("aktuell");
+      }
+      zeile.appendChild(element("span", "sheet-zeile-name", (i + 1) + ". " + anzeigeName(u.name, u.uebungId)));
+      zeile.appendChild(element("span", "sheet-zeile-zweit", uebungStandText(u)));
+      zeile.onclick = function () {
+        zusatzSheetsSchliessen();
+        uebungZeigen(i);
+      };
+      liste.appendChild(zeile);
+    }
+    zusatzSheetOeffnen("uebungen-sheet");
+  }
+
   function trainingBeendenFragen() {
-    frageZeigen("Training beenden?", "Die restlichen Übungen entfallen. Schon gespeicherte Übungen bleiben im Log.", [
+    const offen = offeneUebungen(-1);
+    let text = "Schon gespeicherte Übungen bleiben im Log.";
+    if (offen.length > 0) {
+      text = offenText(offen) + " Sie entfallen. " + text;
+    }
+    frageZeigen("Training beenden?", text, [
       { text: "Training beenden", art: "haupt", aktion: trainingAbschliessen },
       { text: "Weiter trainieren", art: "leise" }
     ]);
@@ -2138,8 +2540,10 @@
     }
 
     let text = t.routineName + " · " + t.erledigt.length + " von " + uebungenText(t.uebungen.length) + " gespeichert";
-    if (t.uebersprungen > 0) {
-      text += ", " + t.uebersprungen + " übersprungen";
+    // Übersprungen ist jede Übung, die keinen einzigen Satz hat
+    const uebersprungen = offeneUebungen(-1).length;
+    if (uebersprungen > 0) {
+      text += ", " + uebersprungen + " übersprungen";
     }
     document.getElementById("fertig-text").textContent = text;
     document.getElementById("fertig-uebungen").textContent = t.erledigt.length;
@@ -2154,7 +2558,7 @@
     localStorage.removeItem("pause");
 
     laufendesTraining = null;
-    gemerkteTrainingRadWerte = null;
+    gemerkteTrainingWerte = null;
     trainingMerken();
     trainingAnzeigen();
     trainingAnsichtZeigen("fertig");
@@ -2212,7 +2616,6 @@
   // Öffnet das Log. Mit zurListe = true springt die Seite gleich zur Liste der Einträge.
   function logZeigen(zurListe) {
     homeAnsichtZeigen("log");
-    logRaederSetzen();
     if (zurListe) {
       document.getElementById("liste").scrollIntoView();
       kopfzeileAktualisieren();
@@ -2221,7 +2624,6 @@
 
   // Zurück vom Log zur Übersicht
   function homeZeigen() {
-    logRaederMerken();
     homeAnzeigen();
     homeAnsichtZeigen("home");
   }
@@ -2984,7 +3386,7 @@
     }
   }
 
-  // Öffnet eines der beiden Sheets ("verlauf-sheet" oder "gewicht-sheet")
+  // Öffnet eines der Sheets ("verlauf-sheet", "gewicht-sheet" oder "uebungen-sheet")
   function zusatzSheetOeffnen(id) {
     document.getElementById(id).classList.add("offen");
     document.getElementById("zusatz-hintergrund").classList.add("offen");
@@ -2992,6 +3394,7 @@
   }
 
   function zusatzSheetsSchliessen() {
+    document.getElementById("uebungen-sheet").classList.remove("offen");
     document.getElementById("verlauf-sheet").classList.remove("offen");
     document.getElementById("gewicht-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
@@ -3438,7 +3841,8 @@
         if (typeof u.uebungId === "string") {
           id = u.uebungId;
         }
-        const neu = { name: u.name, uebungId: id, muskelgruppe: gruppe, zielSaetze: zielLesen(u.zielSaetze, 10), zielWdh: zielLesen(u.zielWdh, 30), pause: pauseLesen(u.pause) };
+        const neu = { name: u.name, uebungId: id, muskelgruppe: gruppe, zielSaetze: zielLesen(u.zielSaetze, 10), zielWdh: u.zielWdh, zielWdhMax: u.zielWdhMax, pause: pauseLesen(u.pause) };
+        wdhZielBereinigen(neu);
         idErgaenzen(neu, u.name);
         sauber.uebungen.push(neu);
       }
@@ -3821,28 +4225,11 @@
     document.getElementById("dialog-hintergrund").classList.remove("offen");
   }
 
-// Gewicht: 0 bis 400 kg in 0,5-kg-Schritten
-const gewichte = [];
-for (let i = 0; i <= 800; i++) {
-  gewichte.push(i / 2);
-}
-
-// Wiederholungen: 1 bis 30
-const wiederholungen = [];
-for (let i = 1; i <= 30; i++) {
-  wiederholungen.push(i);
-}
-
-// Sätze: 1 bis 10
-const saetze = [];
-for (let i = 1; i <= 10; i++) {
-  saetze.push(i);
-}
-
-radBauen("rad-gewicht", gewichte, "home");
-radBauen("rad-wdh", wiederholungen, "home");
-radBauen("rad-saetze", saetze, "home");
-raederVoreinstellen();
+// Die Zahlenfelder im Log: Gewicht 0 bis 400 kg, Wiederholungen 1 bis 100, Sätze 1 bis 10
+feldBauen("feld-gewicht", 0, 400, true, START_GEWICHT);
+feldBauen("feld-wdh", 1, 100, false, START_WDH);
+feldBauen("feld-saetze", 1, 10, false, START_SAETZE);
+felderVoreinstellen();
 
 // Körpergewicht: 30 bis 200 kg in 0,1-kg-Schritten
 const koerpergewichte = [];
@@ -3851,11 +4238,9 @@ for (let i = 300; i <= 2000; i++) {
 }
 radBauen("rad-koerpergewicht", koerpergewichte, null);
 
-// Die zwei Räder des Trainingsmodus. Jede Änderung landet in den großen Zahlen darüber.
-radBauen("t-rad-gewicht", gewichte, "training");
-radBauen("t-rad-wdh", wiederholungen, "training");
-raeder["t-rad-gewicht"].beimWechsel = modusGrossAnzeigen;
-raeder["t-rad-wdh"].beimWechsel = modusGrossAnzeigen;
+// Die zwei Zahlenfelder des Trainingsmodus
+feldBauen("t-feld-gewicht", 0, 400, true, START_GEWICHT);
+feldBauen("t-feld-wdh", 1, 100, false, START_WDH);
 
 wochenleisteAnzeigen();
 anzeigen();

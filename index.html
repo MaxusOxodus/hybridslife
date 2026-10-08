@@ -21,7 +21,7 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=11">
+  <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
@@ -70,18 +70,31 @@
     <button id="uebung" class="uebung-feld leer" onclick="sheetOeffnen()">Übung wählen</button>
     <p id="letztesMal"></p>
 
-    <div class="raeder">
+    <!-- Zahlenfelder: Antippen öffnet die Zahlentastatur, die Buttons darunter ändern den Wert in Schritten -->
+    <div class="eingaben">
       <div>
         <div class="rad-titel">Gewicht (kg)</div>
-        <div class="rad-rahmen"><div id="rad-gewicht" class="rad"></div></div>
+        <input id="feld-gewicht" class="zahl-feld" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" aria-label="Gewicht in kg">
+        <div class="schnell">
+          <button onclick="feldAendern('feld-gewicht', -2.5)" aria-label="2,5 kg weniger">−2,5</button>
+          <button onclick="feldAendern('feld-gewicht', 2.5)" aria-label="2,5 kg mehr">+2,5</button>
+        </div>
       </div>
       <div>
         <div class="rad-titel">Wdh.</div>
-        <div class="rad-rahmen"><div id="rad-wdh" class="rad"></div></div>
+        <input id="feld-wdh" class="zahl-feld" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen">
+        <div class="schnell">
+          <button onclick="feldAendern('feld-wdh', -1)" aria-label="Eine Wiederholung weniger">−1</button>
+          <button onclick="feldAendern('feld-wdh', 1)" aria-label="Eine Wiederholung mehr">+1</button>
+        </div>
       </div>
       <div>
         <div class="rad-titel">Sätze</div>
-        <div class="rad-rahmen"><div id="rad-saetze" class="rad"></div></div>
+        <input id="feld-saetze" class="zahl-feld" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Sätze">
+        <div class="schnell">
+          <button onclick="feldAendern('feld-saetze', -1)" aria-label="Ein Satz weniger">−1</button>
+          <button onclick="feldAendern('feld-saetze', 1)" aria-label="Ein Satz mehr">+1</button>
+        </div>
       </div>
     </div>
 
@@ -135,7 +148,12 @@
       </div>
       <div class="modus-balken"><div id="modus-fortschritt"></div></div>
 
-      <div id="modus-schritt" class="modus-schritt"></div>
+      <!-- Übung wechseln: Pfeile für vorherige und nächste, die Mitte öffnet die Übersicht aller Übungen -->
+      <div class="modus-wechsel">
+        <button id="modus-zurueck" onclick="uebungWechseln(-1)" aria-label="Vorherige Übung">‹</button>
+        <button id="modus-schritt" class="modus-schritt" onclick="uebersichtOeffnen()"></button>
+        <button id="modus-vor" onclick="uebungWechseln(1)" aria-label="Nächste Übung">›</button>
+      </div>
       <!-- Der Name der Übung: Antippen zeigt ihren Verlauf als Diagramm -->
       <button class="ansicht-titel name-knopf" onclick="verlaufImModus()">
         <span id="modus-uebung"></span>
@@ -143,18 +161,31 @@
       </button>
       <div id="modus-satz" class="modus-satz"></div>
 
-      <!-- Eingabe: die Werte des nächsten Satzes groß, darunter die Räder zum Anpassen -->
+      <!-- Eingabe: die Werte des nächsten Satzes als große Zahlenfelder, darunter Buttons zum Anpassen -->
       <div id="modus-eingabe">
         <div id="modus-vorbei" class="heute-label versteckt">Pause vorbei</div>
-        <div class="raeder zwei">
+        <div class="eingaben zwei">
           <div>
-            <div class="modus-gross"><span id="modus-gewicht"></span><small>kg</small></div>
-            <div class="rad-rahmen"><div id="t-rad-gewicht" class="rad"></div></div>
+            <div class="rad-titel">Gewicht (kg)</div>
+            <input id="t-feld-gewicht" class="zahl-feld gross" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" aria-label="Gewicht in kg">
+            <div class="schnell">
+              <button onclick="feldAendern('t-feld-gewicht', -2.5)" aria-label="2,5 kg weniger">−2,5</button>
+              <button onclick="feldAendern('t-feld-gewicht', 2.5)" aria-label="2,5 kg mehr">+2,5</button>
+            </div>
           </div>
           <div>
-            <div class="modus-gross"><span id="modus-wdh"></span><small>Wdh.</small></div>
-            <div class="rad-rahmen"><div id="t-rad-wdh" class="rad"></div></div>
+            <div class="rad-titel">Wdh.</div>
+            <input id="t-feld-wdh" class="zahl-feld gross" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen">
+            <div class="schnell">
+              <button onclick="feldAendern('t-feld-wdh', -1)" aria-label="Eine Wiederholung weniger">−1</button>
+              <button onclick="feldAendern('t-feld-wdh', 1)" aria-label="Eine Wiederholung mehr">+1</button>
+            </div>
           </div>
+        </div>
+        <!-- Reps in Reserve: wie viele Wiederholungen noch gegangen wären. Die Angabe ist freiwillig. -->
+        <div class="rir">
+          <div class="rad-titel">Reps in Reserve (optional)</div>
+          <div id="modus-rir" class="umschalter"></div>
         </div>
         <button class="speichern-btn gross" onclick="satzFertig()">Satz fertig</button>
       </div>
@@ -180,6 +211,7 @@
       <button id="modus-weiter" class="zweit-btn" onclick="uebungBeenden()">Übung überspringen</button>
 
       <p id="modus-ziel" class="modus-ziel"></p>
+      <p id="modus-hinweis" class="modus-hinweis"></p>
       <p id="modus-letztesMal" class="letztes-mal"></p>
     </div>
 
@@ -375,6 +407,16 @@
     </div>
   </div>
 
+  <!-- Sheet: alle Übungen des laufenden Trainings, Antippen springt zu der Übung -->
+  <div id="uebungen-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span class="sheet-titel">Übungen</span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen">✕</button>
+    </div>
+    <div id="uebungen-sheet-liste" class="zusatz-inhalt"></div>
+  </div>
+
   <!-- Frage vor dem Import: vorhandene Einträge ergänzen oder ersetzen? -->
   <div id="dialog-hintergrund">
     <div id="dialog">
@@ -396,8 +438,8 @@
   </div>
 
 <!-- Erst die Übungsdaten, dann die App, die sie benutzt -->
-<script src="uebungen.js?v=11"></script>
-<script src="app.js?v=11"></script>
+<script src="uebungen.js?v=12"></script>
+<script src="app.js?v=12"></script>
 
 </body>
 </html>

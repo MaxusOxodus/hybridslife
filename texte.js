@@ -109,15 +109,66 @@ const TEXTE = {
   // ---------- Übungsauswahl ----------
   "sheet.muskelgruppe": { de: "Muskelgruppe", en: "Muscle Group" },
   "sheet.suche": { de: "Suche", en: "Search" },
-  "sheet.suchfeld": { de: "Übung suchen oder eigene eintippen", en: "Search exercises or type your own" },
+  "sheet.suchfeld": { de: "Übung suchen oder eigene anlegen", en: "Search exercises or create your own" },
   "sheet.trainiertAuch": { de: "Trainiert auch", en: "Also trains" },
   "sheet.gruppeLeer": {
-    de: "Für diese Muskelgruppe kommen die Übungen noch. Bis dahin kannst du oben eine eigene eintippen.",
-    en: "Exercises for this muscle group are still to come. Until then you can type your own above."
+    de: "Für diese Muskelgruppe kommen die Übungen noch. Bis dahin kannst du eine eigene anlegen.",
+    en: "Exercises for this muscle group are still to come. Until then you can create your own."
   },
   "sheet.mehr": { de: "Mehr anzeigen (+{n})", en: "Show more (+{n})" },
   "sheet.keinTreffer": { de: "Keine Übung gefunden.", en: "No exercise found." },
-  "sheet.eigene": { de: "„{name}“ als eigene Übung übernehmen", en: "Use “{name}” as your own exercise" },
+  "sheet.eigene": { de: "„{name}“ als eigene Übung anlegen", en: "Create “{name}” as your own exercise" },
+
+  // ---------- Eigene Übungen ----------
+  "selbst.kachel": { de: "Eigene", en: "My Own" },
+  "selbst.zeichen": { de: "Eigene", en: "Own" },
+  "selbst.neu": { de: "+ Eigene Übung hinzufügen", en: "+ Add your own exercise" },
+  "selbst.leer": {
+    de: "Du hast noch keine eigene Übung angelegt.",
+    en: "You have not created an exercise of your own yet."
+  },
+  "selbst.bearbeitenAnsage": { de: "{name} bearbeiten", en: "Edit {name}" },
+  "selbst.titelNeu": { de: "Eigene Übung", en: "Your Own Exercise" },
+  "selbst.titelBearbeiten": { de: "Übung bearbeiten", en: "Edit Exercise" },
+  "selbst.name": { de: "Name", en: "Name" },
+  "selbst.namePlatzhalter": { de: "z. B. Landmine Press", en: "e.g. Landmine Press" },
+  "selbst.haupt": { de: "Hauptmuskelgruppe", en: "Main muscle group" },
+  "selbst.bitteWaehlen": { de: "Bitte wählen", en: "Please choose" },
+  "selbst.hilfs": { de: "Hilfsmuskeln (optional)", en: "Supporting muscles (optional)" },
+  "selbst.art": { de: "Art", en: "Type" },
+  "selbst.artEigengewicht": {
+    de: "Eigengewicht: Es zählen die Wiederholungen, Zusatzgewicht ist möglich.",
+    en: "Bodyweight: reps count, added weight is optional."
+  },
+  "selbst.loeschen": { de: "Übung löschen", en: "Delete exercise" },
+  "selbst.gibtEs": { de: "Gibt es schon. Tippe die Übung an, um sie zu nehmen:", en: "Already exists. Tap the exercise to use it:" },
+  "selbst.nameFehlt": { de: "Bitte gib einen Namen ein.", en: "Please enter a name." },
+  "selbst.nameZuLang": { de: "Der Name darf höchstens {n} Zeichen haben.", en: "The name can have at most {n} characters." },
+  "selbst.hauptFehlt": { de: "Bitte wähle eine Hauptmuskelgruppe.", en: "Please choose a main muscle group." },
+  "selbst.verknuepfenFrage": { de: "Alte Einträge verknüpfen?", en: "Link old entries?" },
+  "selbst.alteEintraege.eins": { de: "1 alter Eintrag mit diesem Namen gefunden.", en: "Found 1 old entry with this name." },
+  "selbst.alteEintraege.viele": { de: "{n} alte Einträge mit diesem Namen gefunden.", en: "Found {n} old entries with this name." },
+  "selbst.alteRoutinen.eins": { de: "1 Übung in deinen Routinen trägt diesen Namen.", en: "1 exercise in your routines has this name." },
+  "selbst.alteRoutinen.viele": { de: "{n} Übungen in deinen Routinen tragen diesen Namen.", en: "{n} exercises in your routines have this name." },
+  "selbst.verknuepfenText": {
+    de: "Mit „{name}“ verknüpfen? Dann gehören sie zu dieser Übung und erscheinen in ihrem Diagramm.",
+    en: "Link them to “{name}”? They will then belong to this exercise and show up in its chart."
+  },
+  "selbst.verknuepfen": { de: "Verknüpfen", en: "Link" },
+  "selbst.nichtVerknuepfen": { de: "Nicht verknüpfen", en: "Don't link" },
+  "selbst.loeschenFrage": { de: "Übung löschen?", en: "Delete exercise?" },
+  "selbst.loeschenTextLeer": {
+    de: "„{name}“ verschwindet aus der Übungsauswahl.",
+    en: "“{name}” will be removed from the exercise picker."
+  },
+  "selbst.loeschenText.eins": {
+    de: "„{name}“ verschwindet aus der Übungsauswahl. Der 1 Trainingseintrag dazu bleibt erhalten und zeigt weiter diesen Namen.",
+    en: "“{name}” will be removed from the exercise picker. Its 1 workout entry is kept and still shows this name."
+  },
+  "selbst.loeschenText.viele": {
+    de: "„{name}“ verschwindet aus der Übungsauswahl. Die {n} Trainingseinträge dazu bleiben erhalten und zeigen weiter diesen Namen.",
+    en: "“{name}” will be removed from the exercise picker. Its {n} workout entries are kept and still show this name."
+  },
 
   // ---------- Training: Übersicht ----------
   "training.unterzeile": { de: "Deine Trainingspläne", en: "Your training plans" },
@@ -357,5 +408,7 @@ const TEXTE = {
   "backup.trainingsErsetzt": { de: "{n} Trainingseinheiten wurden wiederhergestellt.", en: "{n} workouts were restored." },
   "backup.trainingsErgaenzt": { de: "{n} Trainingseinheiten hinzugefügt.", en: "{n} workouts added." },
   "backup.gewichteErsetzt": { de: "{n} Messungen des Körpergewichts wurden wiederhergestellt.", en: "{n} body weight measurements were restored." },
-  "backup.gewichteErgaenzt": { de: "{n} Messungen des Körpergewichts hinzugefügt.", en: "{n} body weight measurements added." }
+  "backup.gewichteErgaenzt": { de: "{n} Messungen des Körpergewichts hinzugefügt.", en: "{n} body weight measurements added." },
+  "backup.eigeneErsetzt": { de: "{n} eigene Übungen wurden wiederhergestellt.", en: "{n} exercises of your own were restored." },
+  "backup.eigeneErgaenzt": { de: "{n} eigene Übungen hinzugefügt.", en: "{n} exercises of your own added." }
 };

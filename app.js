@@ -49,6 +49,32 @@
     ID_NACH_NAME[name] = ALTE_NAMEN[name];
   });
 
+  // Eigene Übungen legt man in der App selbst an. Ihre ID beginnt mit "selbst-", damit sie nie
+  // mit einer festen Übung verwechselt wird. ("eigen" heißt im Code schon der Bereich Eigengewicht.)
+  const SELBST_PRAEFIX = "selbst-";
+
+  // Die Kachel "Eigene" in der Übungsauswahl. Steht dieser Wert in sheetGruppe, ist sie geöffnet.
+  const KACHEL_SELBST = "selbst";
+
+  // So lang darf der Name einer eigenen Übung höchstens sein
+  const SELBST_NAME_MAX = 60;
+
+  // Macht aus einem Namen den Schlüssel zum Vergleichen: Groß-/Kleinschreibung, Bindestriche
+  // und Leerzeichen zählen nicht. "Pull-up", "Pull up" und "pullup" ergeben alle "pullup".
+  function nameSchluessel(name) {
+    return String(name).toLowerCase().replace(/[\s\-‐‑‒–—]+/g, "");
+  }
+
+  // Alle Namen der festen Übungen (deutsch, englisch, Alias, früherer Name) als Schlüssel, dazu die ID.
+  // Object.create(null) ist ein ganz leeres Objekt: Auch ein Name wie "constructor" findet darin nichts.
+  const FESTER_NAME = Object.create(null);
+  Object.keys(ID_NACH_NAME).forEach(function (name) {
+    const schluessel = nameSchluessel(name);
+    if (!FESTER_NAME[schluessel]) {
+      FESTER_NAME[schluessel] = ID_NACH_NAME[name];
+    }
+  });
+
   // Vorlagen für Trainingssplits: Zum Anpassen einfach hier Übungen, Sätze oder Wiederholungen ändern.
   // Name, Beschreibung und die Namen der Routinen sind Schlüssel der Tabelle TEXTE in der texte.js.
   // Die Übungsnamen müssen in der uebungen.js stehen (als Name oder unter ALTE_NAMEN), damit die Übung gefunden wird.
@@ -238,12 +264,12 @@
   let homeAnsicht = "home";
 
   // Die gerade gewählte Übung und ihre Muskelgruppe ("" = nichts gewählt).
-  // Die ID gibt es nur bei Übungen aus der Übungsliste, bei eigenen Übungen bleibt sie "".
+  // Die ID fehlt nur bei frei eingetippten Übungen aus älteren Versionen, dort bleibt sie "".
   let gewaehlteUebung = "";
   let gewaehlteGruppe = "";
   let gewaehlteUebungId = "";
 
-  // Im Sheet geöffnete Muskelgruppe als ID ("" = Übersicht der Muskelgruppen)
+  // Im Sheet geöffnete Muskelgruppe als ID ("" = Übersicht der Muskelgruppen, KACHEL_SELBST = die eigenen Übungen)
   let sheetGruppe = "";
 
   // Wochenleiste: Montag der angezeigten Woche und der angetippte Tag (null = kein Tag gewählt)
@@ -314,6 +340,14 @@
   // Zählt bei jeder neuen id hoch, damit auch zwei ids aus derselben Millisekunde verschieden sind
   let idZaehler = 0;
 
+  // Eigene Übungen: Jede hat eine id ("selbst-…"), einen Namen, den Bereich ("maschine", "frei" oder "eigen"),
+  // die Hauptmuskelgruppe (haupt) und eine Liste von Hilfsmuskelgruppen (hilfs).
+  // selbstListe enthält dieselben Übungen in der Form der festen Übungen aus UEBUNGEN (mit "de" und "en"),
+  // damit der Rest der App sie genauso behandeln kann.
+  let eigeneUebungen = [];
+  let selbstListe = [];
+  eigeneUebungenAufnehmen(gespeichertLesen("eigeneUebungen", []));
+
   // Gespeicherte Daten aus älteren Versionen kennen nur Übungsnamen: einmal die feste ID ergänzen
   gespeicherteDatenZuordnen();
 
@@ -349,8 +383,191 @@
     return MUSKELN[u.haupt].gruppe;
   }
 
-  // Der Name zum Anzeigen. Bei Übungen aus der Übungsliste kommt er über die ID in der
-  // eingestellten Sprache, bei eigenen Übungen (ohne ID) gilt der gespeicherte Name.
+  // Ist das die ID einer festen Übung, einer heutigen oder einer früheren?
+  function istFesteId(id) {
+    const u = UEBUNG_NACH_ID[id];
+    return (Boolean(u) && !u.selbst) || Object.prototype.hasOwnProperty.call(ALTE_IDS, id);
+  }
+
+  // Entfernt Leerzeichen am Rand eines Namens und macht aus mehreren hintereinander eins
+  function nameSaeubern(name) {
+    return String(name).trim().replace(/\s+/g, " ");
+  }
+
+  // Prüft eine eigene Übung aus dem Speicher oder einem Backup und gibt eine saubere Kopie zurück,
+  // oder null, wenn sie unbrauchbar ist
+  function eigeneUebungBereinigen(u) {
+    if (!u || typeof u !== "object" || typeof u.id !== "string" || typeof u.name !== "string") {
+      return null;
+    }
+    const name = nameSaeubern(u.name);
+    if (u.id.indexOf(SELBST_PRAEFIX) !== 0 || u.id.length === SELBST_PRAEFIX.length || istFesteId(u.id)
+      || nameSchluessel(name) === "" || name.length > SELBST_NAME_MAX
+      || bereichName(u.bereich) === "" || !GRUPPE_NACH_ID[u.haupt]) {
+      return null;
+    }
+
+    const sauber = { id: u.id, name: name, bereich: u.bereich, haupt: u.haupt, hilfs: [] };
+    if (Array.isArray(u.hilfs)) {
+      for (let i = 0; i < u.hilfs.length; i++) {
+        if (GRUPPE_NACH_ID[u.hilfs[i]] && u.hilfs[i] !== u.haupt && sauber.hilfs.indexOf(u.hilfs[i]) === -1) {
+          sauber.hilfs.push(u.hilfs[i]);
+        }
+      }
+    }
+    return sauber;
+  }
+
+  // Nimmt eigene Übungen aus einer Liste auf (aus dem Speicher oder einem Backup). Übersprungen wird,
+  // was unbrauchbar ist, wessen ID es schon gibt und wessen Name schon vergeben ist: Die vorhandene Übung bleibt.
+  // Gibt zurück, wie viele dazugekommen sind.
+  function eigeneUebungenAufnehmen(liste) {
+    if (!Array.isArray(liste)) {
+      return 0;
+    }
+    let anzahl = 0;
+    for (let i = 0; i < liste.length; i++) {
+      const u = eigeneUebungBereinigen(liste[i]);
+      if (u && !UEBUNG_NACH_ID[u.id] && !uebungMitNamen(u.name, "")) {
+        eigeneUebungen.push(u);
+        eigeneUebungenEintragen();
+        anzahl++;
+      }
+    }
+    return anzahl;
+  }
+
+  // Führt die eigenen Übungen mit den festen zusammen: Sie kommen in UEBUNG_NACH_ID und in selbstListe.
+  // Muss nach jeder Änderung an eigeneUebungen laufen.
+  function eigeneUebungenEintragen() {
+    for (let i = 0; i < selbstListe.length; i++) {
+      delete UEBUNG_NACH_ID[selbstListe[i].id];
+    }
+
+    selbstListe = [];
+    for (let i = 0; i < eigeneUebungen.length; i++) {
+      const e = eigeneUebungen[i];
+      // Eigene Übungen haben nur einen Namen, er gilt in jeder Sprache.
+      // Die ID der Muskelgruppe ist zugleich ein Muskel aus MUSKELN.
+      const u = { id: e.id, de: e.name, en: e.name, bereich: e.bereich, haupt: e.haupt, hilfs: e.hilfs, auch: [], selbst: true };
+      selbstListe.push(u);
+      UEBUNG_NACH_ID[u.id] = u;
+    }
+    selbstListe.sort(function (a, b) {
+      return a.de.localeCompare(b.de);
+    });
+  }
+
+  // Speichert die eigenen Übungen und führt sie neu mit den festen zusammen
+  function eigeneUebungenSpeichern() {
+    localStorage.setItem("eigeneUebungen", JSON.stringify(eigeneUebungen));
+    eigeneUebungenEintragen();
+  }
+
+  // Sucht eine eigene Übung über ihre id. Gibt null zurück, wenn es sie nicht gibt.
+  function eigeneUebungFinden(id) {
+    for (let i = 0; i < eigeneUebungen.length; i++) {
+      if (eigeneUebungen[i].id === id) {
+        return eigeneUebungen[i];
+      }
+    }
+    return null;
+  }
+
+  // Die Übung, die diesen Namen schon trägt: eine feste (Name, Alias oder früherer Name) oder eine eigene.
+  // ohneId lässt eine eigene Übung aus, nämlich die, die gerade bearbeitet wird. Ist der Name frei: null.
+  function uebungMitNamen(name, ohneId) {
+    const schluessel = nameSchluessel(name);
+    if (FESTER_NAME[schluessel] && UEBUNG_NACH_ID[FESTER_NAME[schluessel]]) {
+      return UEBUNG_NACH_ID[FESTER_NAME[schluessel]];
+    }
+    for (let i = 0; i < selbstListe.length; i++) {
+      if (selbstListe[i].id !== ohneId && nameSchluessel(selbstListe[i].de) === schluessel) {
+        return selbstListe[i];
+      }
+    }
+    return null;
+  }
+
+  // Eine neue ID für eine eigene Übung. Sie beginnt mit "selbst-" und wird trotzdem gegen
+  // die festen Übungen, die früheren IDs und die vorhandenen eigenen Übungen geprüft.
+  function neueSelbstId() {
+    let id;
+    do {
+      idZaehler++;
+      id = SELBST_PRAEFIX + Date.now().toString(36) + "-" + idZaehler + "-" + Math.floor(Math.random() * 1000000);
+    } while (istFesteId(id) || UEBUNG_NACH_ID[id]);
+    return id;
+  }
+
+  // Ruft die Funktion für jede Stelle auf, an der eine Übung gespeichert ist: für jeden Eintrag,
+  // jede Übung einer Routine (auch der gerade bearbeiteten) und des laufenden Trainings.
+  // Die Funktion bekommt das Objekt und den Namen des Feldes, in dem der Übungsname steht.
+  function jedeGespeicherteUebung(funktion) {
+    for (let i = 0; i < eintraege.length; i++) {
+      if (eintraege[i] && typeof eintraege[i].uebung === "string") {
+        funktion(eintraege[i], "uebung");
+      }
+    }
+
+    const listen = [];
+    for (let i = 0; i < routinen.length; i++) {
+      if (routinen[i] && Array.isArray(routinen[i].uebungen)) {
+        listen.push(routinen[i].uebungen);
+      }
+    }
+    if (bearbeiteteRoutine) {
+      listen.push(bearbeiteteRoutine.uebungen);
+    }
+    if (laufendesTraining) {
+      listen.push(laufendesTraining.uebungen);
+    }
+    for (let i = 0; i < listen.length; i++) {
+      for (let j = 0; j < listen[i].length; j++) {
+        if (listen[i][j] && typeof listen[i][j].name === "string") {
+          funktion(listen[i][j], "name");
+        }
+      }
+    }
+  }
+
+  // Speichert alles, was jedeGespeicherteUebung durchgeht
+  function gespeicherteUebungenSichern() {
+    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+    routinenSpeichern();
+    trainingMerken();
+  }
+
+  // Schreibt Name und Muskelgruppe einer eigenen Übung an eine gespeicherte Stelle und hängt sie über die ID an.
+  // Angezeigt wird der Name über die ID. Der gespeicherte Name ist die Reserve, falls die Übung gelöscht wird.
+  function eigeneUebungZuweisen(objekt, feld, uebung) {
+    objekt.uebungId = uebung.id;
+    objekt[feld] = uebung.name;
+    objekt.muskelgruppe = GRUPPE_NACH_ID[uebung.haupt].de;
+  }
+
+  // Gehört diese gespeicherte Stelle zu keiner Übung? Das gilt ohne ID und mit der ID einer gelöschten eigenen Übung.
+  function ohneUebung(objekt) {
+    if (!objekt.uebungId) {
+      return true;
+    }
+    return String(objekt.uebungId).indexOf(SELBST_PRAEFIX) === 0 && !UEBUNG_NACH_ID[objekt.uebungId];
+  }
+
+  // Baut alles neu auf, was Übungsnamen zeigt, z. B. nach dem Umbenennen einer eigenen Übung
+  function uebungenNeuAnzeigen() {
+    uebungFeldAktualisieren();
+    letztesMalAnzeigen();
+    anzeigen();
+    homeAnzeigen();
+    trainingAnzeigen();
+    if (bearbeiteteRoutine && trainingAnsicht === "bearbeiten") {
+      routineUebungenAnzeigen();
+    }
+  }
+
+  // Der Name zum Anzeigen. Bei festen und eigenen Übungen kommt er über die ID (bei festen in der
+  // eingestellten Sprache). Ohne ID oder nach dem Löschen einer eigenen Übung gilt der gespeicherte Name.
   function anzeigeName(name, id) {
     return uebungName(id) || name;
   }
@@ -1164,6 +1381,7 @@
   }
 
   function sheetSchliessen() {
+    selbstFormSchliessen();
     document.getElementById("sheet-suche").blur();
     document.getElementById("sheet").classList.remove("offen");
     document.getElementById("sheet-hintergrund").classList.remove("offen");
@@ -1181,12 +1399,44 @@
     return inhalt;
   }
 
-  // Schritt 1: alle Muskelgruppen als Kacheln mit Körper-Grafik
+  // Zeigt die Ansicht, die in sheetGruppe steht: die Kacheln, die eigenen Übungen oder eine Muskelgruppe
+  function sheetAnsichtZeigen() {
+    if (sheetGruppe === "") {
+      sheetGruppenZeigen();
+    } else if (sheetGruppe === KACHEL_SELBST) {
+      sheetSelbstZeigen();
+    } else {
+      sheetUebungenZeigen(sheetGruppe);
+    }
+  }
+
+  // Der Button "Eigene Übung hinzufügen". Er öffnet das Formular.
+  function selbstNeuKnopf() {
+    const knopf = element("button", "sheet-neu", txt("selbst.neu"));
+    knopf.onclick = function () {
+      selbstFormOeffnen(null, "");
+    };
+    return knopf;
+  }
+
+  // Die Kachel "Eigene": dieselbe Figur wie bei den Muskelgruppen, mit einem Stern statt eines Muskels
+  function kachelSelbst() {
+    const kachel = element("button", "muskel-kachel");
+    kachel.innerHTML = '<svg class="koerper" viewBox="0 0 60 118" aria-hidden="true"><g class="umriss">' + KOERPER_UMRISS + '</g>'
+      + '<g class="muskel aktiv"><path d="M30 30l2.9 8 8.5.3-6.6 5.3 2.3 8.1L30 47l-7.1 4.7 2.3-8.1-6.6-5.3 8.5-.3z"/></g></svg>';
+    kachel.appendChild(element("span", "", txt("selbst.kachel")));
+    kachel.onclick = sheetSelbstZeigen;
+    return kachel;
+  }
+
+  // Schritt 1: alle Muskelgruppen als Kacheln mit Körper-Grafik, davor die Kachel für die eigenen Übungen
   function sheetGruppenZeigen() {
     sheetGruppe = "";
     document.getElementById("sheet-suche").value = "";
     const inhalt = sheetLeeren(txt("sheet.muskelgruppe"), false);
+    inhalt.appendChild(selbstNeuKnopf());
     const raster = element("div", "muskel-raster");
+    raster.appendChild(kachelSelbst());
 
     for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
       const gruppe = MUSKELGRUPPEN[i];
@@ -1201,8 +1451,35 @@
     inhalt.appendChild(raster);
   }
 
+  // Die Kachel "Eigene": alle eigenen Übungen nach Namen sortiert, jede mit einem Stift zum Bearbeiten
+  function sheetSelbstZeigen() {
+    sheetGruppe = KACHEL_SELBST;
+    document.getElementById("sheet-suche").value = "";
+    const inhalt = sheetLeeren(txt("selbst.kachel"), true);
+    inhalt.appendChild(selbstNeuKnopf());
+
+    if (selbstListe.length === 0) {
+      inhalt.appendChild(element("p", "leer-hinweis", txt("selbst.leer")));
+      return;
+    }
+
+    for (let i = 0; i < selbstListe.length; i++) {
+      const u = selbstListe[i];
+      const zeile = element("div", "selbst-zeile");
+      zeile.appendChild(uebungZeile(u, true));
+      const stift = element("button", "selbst-stift", "✎");
+      stift.setAttribute("aria-label", txt("selbst.bearbeitenAnsage", { name: u.de }));
+      stift.onclick = function () {
+        selbstFormOeffnen(eigeneUebungFinden(u.id), "");
+      };
+      zeile.appendChild(stift);
+      inhalt.appendChild(zeile);
+    }
+  }
+
   // Schritt 2: die Übungen einer Muskelgruppe, sortiert nach Maschine, Freie Gewichte und Eigengewicht.
-  // Welche Übungen das sind und in welcher Reihenfolge, steht in UEBUNGSLISTEN.
+  // Welche festen Übungen das sind und in welcher Reihenfolge, steht in UEBUNGSLISTEN.
+  // Die eigenen Übungen der Gruppe stehen in ihrem Bereich ganz oben, damit sie nicht hinter "Mehr anzeigen" landen.
   // Darunter "Trainiert auch": Übungen anderer Gruppen, bei denen diese Gruppe stark mitarbeitet.
   function sheetUebungenZeigen(gruppeId) {
     sheetGruppe = gruppeId;
@@ -1213,7 +1490,9 @@
     for (let i = 0; i < BEREICHE.length; i++) {
       const bereich = BEREICHE[i];
       const ids = UEBUNGSLISTEN[gruppeId][bereich.id];
-      const liste = [];
+      const liste = selbstListe.filter(function (u) {
+        return uebungGruppe(u) === gruppeId && u.bereich === bereich.id;
+      });
       for (let j = 0; j < ids.length; j++) {
         if (UEBUNG_NACH_ID[ids[j]]) {
           liste.push(UEBUNG_NACH_ID[ids[j]]);
@@ -1233,6 +1512,9 @@
     if (anzahl === 0) {
       inhalt.insertBefore(element("p", "leer-hinweis", txt("sheet.gruppeLeer")), inhalt.firstChild);
     }
+
+    // Ganz unten: eine eigene Übung für diese Muskelgruppe anlegen
+    inhalt.appendChild(selbstNeuKnopf());
   }
 
   // Ein Abschnitt im Sheet: Überschrift, die ersten Übungen und "Mehr anzeigen (+N)" für den Rest.
@@ -1271,24 +1553,35 @@
   }
 
   // Eine Übung als Zeile: oben der Name, darunter klein der Name in der anderen Sprache.
+  // Eine eigene Übung hat nur einen Namen, bei ihr steht dort das Zeichen "Eigene".
   // mitGruppe hängt die Muskelgruppe an, z. B. in der Suche und bei "Trainiert auch".
   function uebungZeile(u, mitGruppe) {
     const gruppe = GRUPPE_NACH_ID[uebungGruppe(u)];
     const btn = element("button", "sheet-zeile");
     btn.appendChild(element("span", "sheet-zeile-name", u[sprache]));
 
-    let zweit = u.en;
-    if (sprache === "en") {
-      zweit = u.de;
-    }
-    if (mitGruppe) {
-      zweit += " · " + gruppe[sprache];
-      // Gibt es den Namen zweimal, zeigt der Bereich, welche Übung gemeint ist
-      if (NAME_MEHRFACH[u.de.toLowerCase()] || NAME_MEHRFACH[u.en.toLowerCase()]) {
-        zweit += " · " + bereichName(u.bereich);
+    const teile = [];
+    if (!u.selbst) {
+      if (sprache === "en") {
+        teile.push(u.de);
+      } else {
+        teile.push(u.en);
       }
     }
-    btn.appendChild(element("span", "sheet-zeile-zweit", zweit));
+    if (mitGruppe) {
+      teile.push(gruppe[sprache]);
+      // Gibt es den Namen zweimal, zeigt der Bereich, welche Übung gemeint ist.
+      // Bei eigenen Übungen steht er immer dabei.
+      if (u.selbst || NAME_MEHRFACH[u.de.toLowerCase()] || NAME_MEHRFACH[u.en.toLowerCase()]) {
+        teile.push(bereichName(u.bereich));
+      }
+    }
+    const zweit = element("span", "sheet-zeile-zweit");
+    if (u.selbst) {
+      zweit.appendChild(element("span", "selbst-zeichen", txt("selbst.zeichen")));
+    }
+    zweit.appendChild(document.createTextNode(teile.join(" · ")));
+    btn.appendChild(zweit);
 
     // Gespeichert wird neben der ID immer der deutsche Name, als Reserve
     btn.onclick = function () {
@@ -1298,22 +1591,19 @@
   }
 
   // Wird bei jeder Eingabe im Suchfeld aufgerufen. Gesucht wird in allen Übungen, auf Deutsch und Englisch
-  // und in den Aliasen. Jedes eingetippte Wort muss im Namen vorkommen, die Reihenfolge ist egal.
+  // und in den Aliasen, die eigenen Übungen stehen vorn. Jedes eingetippte Wort muss im Namen vorkommen,
+  // die Reihenfolge ist egal.
   function sheetSucheGeaendert() {
     const eingabe = document.getElementById("sheet-suche").value.trim();
 
     // Leeres Feld: zurück zur vorherigen Ansicht
     if (eingabe === "") {
-      if (sheetGruppe === "") {
-        sheetGruppenZeigen();
-      } else {
-        sheetUebungenZeigen(sheetGruppe);
-      }
+      sheetAnsichtZeigen();
       return;
     }
 
     const woerter = eingabe.toLowerCase().split(/\s+/);
-    const treffer = UEBUNGEN.filter(function (u) {
+    const treffer = selbstListe.concat(UEBUNGEN).filter(function (u) {
       const namen = (u.de + " " + u.en + " " + (u.alias || []).join(" ")).toLowerCase();
       return woerter.every(function (wort) {
         return namen.indexOf(wort) !== -1;
@@ -1328,27 +1618,312 @@
       inhalt.appendChild(element("p", "leer-hinweis", txt("sheet.keinTreffer")));
     }
 
-    // Eigene Übung anbieten, außer es gibt genau diese Übung schon in der Liste
-    if (!ID_NACH_NAME[eingabe.toLowerCase()]) {
+    // Eigene Übung anbieten, außer es gibt schon eine Übung mit genau diesem Namen.
+    // Der Button öffnet das Formular, der Name ist dort schon eingetragen.
+    if (nameSchluessel(eingabe) !== "" && !uebungMitNamen(eingabe, "")) {
       const eigene = element("button", "sheet-zeile eigene", txt("sheet.eigene", { name: eingabe }));
-      eigene.onclick = eigeneUebungUebernehmen;
+      eigene.onclick = function () {
+        selbstFormOeffnen(null, eingabe);
+      };
       inhalt.appendChild(eigene);
     }
   }
 
-  // Übernimmt den Text aus dem Suchfeld als eigene Übung. Sie hat keine ID und bekommt
-  // die Muskelgruppe, die vor der Suche geöffnet war.
-  function eigeneUebungUebernehmen() {
-    const name = document.getElementById("sheet-suche").value.trim();
-    if (name === "") {
+  // ---------- Eigene Übungen: Formular ----------
+
+  // Die eigene Übung, die das Formular gerade bearbeitet (null = eine neue wird angelegt)
+  let selbstBearbeitet = null;
+
+  // Die im Formular gewählte Art ("maschine", "frei" oder "eigen") und die angetippten Hilfsmuskelgruppen
+  let selbstArt = "maschine";
+  let selbstHilfs = {};
+
+  // Öffnet das Formular über der Übungsauswahl. uebung ist die eigene Übung, die bearbeitet wird,
+  // oder null für eine neue. name füllt bei einer neuen Übung das Namensfeld vor.
+  function selbstFormOeffnen(uebung, name) {
+    selbstBearbeitet = uebung;
+    selbstArt = "maschine";
+    selbstHilfs = {};
+    let haupt = "";
+    // Eine neue Übung startet mit der Muskelgruppe, die in der Auswahl gerade offen ist
+    if (GRUPPE_NACH_ID[sheetGruppe]) {
+      haupt = sheetGruppe;
+    }
+
+    if (uebung) {
+      name = uebung.name;
+      haupt = uebung.haupt;
+      selbstArt = uebung.bereich;
+      for (let i = 0; i < uebung.hilfs.length; i++) {
+        selbstHilfs[uebung.hilfs[i]] = true;
+      }
+    }
+
+    let titel = txt("selbst.titelNeu");
+    if (uebung) {
+      titel = txt("selbst.titelBearbeiten");
+    }
+    document.getElementById("selbst-titel").textContent = titel;
+    document.getElementById("selbst-loeschen").classList.toggle("versteckt", !uebung);
+    document.getElementById("selbst-name").value = name;
+    document.getElementById("selbst-haupt-meldung").textContent = "";
+
+    // Die Auswahl der Hauptmuskelgruppe: zuerst "Bitte wählen", dann alle Gruppen
+    const auswahl = document.getElementById("selbst-haupt");
+    auswahl.innerHTML = "";
+    const leer = element("option", "", txt("selbst.bitteWaehlen"));
+    leer.value = "";
+    auswahl.appendChild(leer);
+    for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
+      const option = element("option", "", MUSKELGRUPPEN[i][sprache]);
+      option.value = MUSKELGRUPPEN[i].id;
+      auswahl.appendChild(option);
+    }
+    auswahl.value = haupt;
+
+    selbstHilfsAnzeigen();
+    selbstArtAnzeigen();
+    selbstNameGeaendert();
+
+    document.getElementById("selbst-sheet").querySelector(".zusatz-inhalt").scrollTop = 0;
+    document.getElementById("sheet-suche").blur();
+    document.getElementById("selbst-sheet").classList.add("offen");
+  }
+
+  function selbstFormSchliessen() {
+    document.getElementById("selbst-name").blur();
+    document.getElementById("selbst-sheet").classList.remove("offen");
+  }
+
+  // Die Hilfsmuskeln als Knöpfe zum An- und Abwählen. Die Hauptmuskelgruppe fehlt in der Reihe.
+  function selbstHilfsAnzeigen() {
+    const bereich = document.getElementById("selbst-hilfs");
+    const haupt = document.getElementById("selbst-haupt").value;
+    bereich.innerHTML = "";
+
+    for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
+      const gruppe = MUSKELGRUPPEN[i];
+      if (gruppe.id === haupt) {
+        continue;
+      }
+      const knopf = element("button", "wahl-knopf", gruppe[sprache]);
+      knopf.classList.toggle("aktiv", Boolean(selbstHilfs[gruppe.id]));
+      knopf.setAttribute("aria-pressed", String(Boolean(selbstHilfs[gruppe.id])));
+      knopf.onclick = function () {
+        selbstHilfs[gruppe.id] = !selbstHilfs[gruppe.id];
+        selbstHilfsAnzeigen();
+      };
+      bereich.appendChild(knopf);
+    }
+  }
+
+  // Wird aufgerufen, wenn eine andere Hauptmuskelgruppe gewählt wurde
+  function selbstHauptGeaendert() {
+    document.getElementById("selbst-haupt-meldung").textContent = "";
+    selbstHilfsAnzeigen();
+  }
+
+  // Der Umschalter für die Art und darunter der Hinweis, was sie bedeutet
+  function selbstArtAnzeigen() {
+    const auswahl = [];
+    for (let i = 0; i < BEREICHE.length; i++) {
+      auswahl.push({ id: BEREICHE[i].id, text: BEREICHE[i][sprache] });
+    }
+    umschalterBauen(document.getElementById("selbst-art"), auswahl, selbstArt, function (art) {
+      selbstArt = art;
+      selbstArtAnzeigen();
+    });
+
+    let hinweis = "";
+    if (selbstArt === "eigen") {
+      hinweis = txt("selbst.artEigengewicht");
+    }
+    document.getElementById("selbst-art-hinweis").textContent = hinweis;
+  }
+
+  // Wird bei jeder Eingabe im Namensfeld aufgerufen. Gibt es den Namen schon, erscheint der Hinweis
+  // "Gibt es schon" und darunter die vorhandene Übung zum Antippen. Gibt die vorhandene Übung zurück oder null.
+  function selbstNameGeaendert() {
+    const name = nameSaeubern(document.getElementById("selbst-name").value);
+    let ohneId = "";
+    if (selbstBearbeitet) {
+      ohneId = selbstBearbeitet.id;
+    }
+
+    let vorhanden = null;
+    if (nameSchluessel(name) !== "") {
+      vorhanden = uebungMitNamen(name, ohneId);
+    }
+
+    const bereich = document.getElementById("selbst-vorhanden");
+    bereich.innerHTML = "";
+    let meldung = "";
+    if (vorhanden) {
+      meldung = txt("selbst.gibtEs");
+      bereich.appendChild(uebungZeile(vorhanden, true));
+    }
+    document.getElementById("selbst-name-meldung").textContent = meldung;
+    return vorhanden;
+  }
+
+  // Prüft das Formular und legt die Übung an oder übernimmt die Änderungen
+  function selbstSpeichern() {
+    const name = nameSaeubern(document.getElementById("selbst-name").value);
+    const haupt = document.getElementById("selbst-haupt").value;
+
+    if (selbstNameGeaendert()) {
+      return;
+    }
+    if (nameSchluessel(name) === "") {
+      document.getElementById("selbst-name-meldung").textContent = txt("selbst.nameFehlt");
+      return;
+    }
+    if (name.length > SELBST_NAME_MAX) {
+      document.getElementById("selbst-name-meldung").textContent = txt("selbst.nameZuLang", { n: SELBST_NAME_MAX });
+      return;
+    }
+    if (!GRUPPE_NACH_ID[haupt]) {
+      document.getElementById("selbst-haupt-meldung").textContent = txt("selbst.hauptFehlt");
       return;
     }
 
-    let gruppe = "";
-    if (sheetGruppe !== "") {
-      gruppe = GRUPPE_NACH_ID[sheetGruppe].de;
+    const hilfs = [];
+    for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
+      if (selbstHilfs[MUSKELGRUPPEN[i].id] && MUSKELGRUPPEN[i].id !== haupt) {
+        hilfs.push(MUSKELGRUPPEN[i].id);
+      }
     }
-    uebungWaehlen(name, gruppe, "");
+
+    let uebung = selbstBearbeitet;
+    const neu = !uebung;
+    if (neu) {
+      uebung = { id: neueSelbstId(), name: name, bereich: selbstArt, haupt: haupt, hilfs: hilfs };
+      eigeneUebungen.push(uebung);
+    } else {
+      uebung.name = name;
+      uebung.bereich = selbstArt;
+      uebung.haupt = haupt;
+      uebung.hilfs = hilfs;
+    }
+    eigeneUebungenSpeichern();
+    if (!neu) {
+      // Der neue Name erscheint über die ID von selbst überall. Er wird zusätzlich
+      // an jeder Stelle gespeichert, damit er nach einem späteren Löschen sichtbar bleibt.
+      selbstNameUebertragen(uebung);
+    }
+    selbstFormSchliessen();
+
+    alteVerknuepfenFragen(uebung, function () {
+      uebungenNeuAnzeigen();
+      if (neu) {
+        // Die neue Übung ist gleich gewählt, wie eine angetippte aus der Liste
+        uebungWaehlen(uebung.name, GRUPPE_NACH_ID[uebung.haupt].de, uebung.id);
+      } else {
+        sheetAnsichtZeigen();
+      }
+    });
+  }
+
+  // Schreibt den Namen und die Muskelgruppe einer eigenen Übung an alle Stellen, die zu ihr gehören
+  function selbstNameUebertragen(uebung) {
+    jedeGespeicherteUebung(function (objekt, feld) {
+      if (objekt.uebungId === uebung.id) {
+        eigeneUebungZuweisen(objekt, feld, uebung);
+      }
+    });
+    gespeicherteUebungenSichern();
+
+    if (gewaehlteUebungId === uebung.id) {
+      gewaehlteUebung = uebung.name;
+      gewaehlteGruppe = GRUPPE_NACH_ID[uebung.haupt].de;
+    }
+  }
+
+  // Sucht alte Einträge und Routinen-Übungen, die genau so heißen wie die eigene Übung, aber zu keiner Übung
+  // gehören (Groß-/Kleinschreibung, Bindestriche und Leerzeichen sind egal). Gibt es welche, fragt die App,
+  // ob sie verknüpft werden sollen. Ohne Zustimmung wird nichts umgehängt. danach läuft in jedem Fall.
+  function alteVerknuepfenFragen(uebung, danach) {
+    const schluessel = nameSchluessel(uebung.name);
+    const treffer = [];
+    let anzahlEintraege = 0;
+    let anzahlRoutinen = 0;
+
+    jedeGespeicherteUebung(function (objekt, feld) {
+      if (ohneUebung(objekt) && nameSchluessel(objekt[feld]) === schluessel) {
+        treffer.push({ objekt: objekt, feld: feld });
+        if (feld === "uebung") {
+          anzahlEintraege++;
+        } else {
+          anzahlRoutinen++;
+        }
+      }
+    });
+
+    if (treffer.length === 0) {
+      danach();
+      return;
+    }
+
+    const saetze = [];
+    if (anzahlEintraege > 0) {
+      saetze.push(txtAnzahl("selbst.alteEintraege", anzahlEintraege));
+    }
+    if (anzahlRoutinen > 0) {
+      saetze.push(txtAnzahl("selbst.alteRoutinen", anzahlRoutinen));
+    }
+    saetze.push(txt("selbst.verknuepfenText", { name: uebung.name }));
+
+    frageZeigen(txt("selbst.verknuepfenFrage"), saetze.join(" "), [
+      {
+        text: txt("selbst.verknuepfen"),
+        art: "haupt",
+        aktion: function () {
+          for (let i = 0; i < treffer.length; i++) {
+            eigeneUebungZuweisen(treffer[i].objekt, treffer[i].feld, uebung);
+          }
+          gespeicherteUebungenSichern();
+          danach();
+        }
+      },
+      { text: txt("selbst.nichtVerknuepfen"), art: "leise", aktion: danach }
+    ]);
+  }
+
+  // Fragt nach, bevor die bearbeitete eigene Übung gelöscht wird. Ihre Einträge bleiben erhalten:
+  // Sie behalten den gespeicherten Namen und zeigen ihn weiter an.
+  function selbstLoeschenFragen() {
+    const uebung = selbstBearbeitet;
+    if (!uebung) {
+      return;
+    }
+
+    let anzahl = 0;
+    for (let i = 0; i < eintraege.length; i++) {
+      if (eintraege[i] && eintraege[i].uebungId === uebung.id) {
+        anzahl++;
+      }
+    }
+    let text = txt("selbst.loeschenTextLeer", { name: uebung.name });
+    if (anzahl > 0) {
+      text = txtAnzahl("selbst.loeschenText", anzahl, { name: uebung.name });
+    }
+
+    frageZeigen(txt("selbst.loeschenFrage"), text, [
+      {
+        text: txt("loeschen"),
+        art: "haupt",
+        aktion: function () {
+          // Zur Sicherheit den heutigen Namen noch einmal an alle Stellen schreiben
+          selbstNameUebertragen(uebung);
+          eigeneUebungen.splice(eigeneUebungen.indexOf(uebung), 1);
+          eigeneUebungenSpeichern();
+          selbstFormSchliessen();
+          uebungenNeuAnzeigen();
+          sheetAnsichtZeigen();
+        }
+      },
+      { text: txt("abbrechen"), art: "leise" }
+    ]);
   }
 
   // Merkt sich die gewählte Übung, schließt das Sheet und stellt die Zahlenfelder ein
@@ -1548,7 +2123,7 @@
       }
 
       // Sucht den neuesten Eintrag zu einer Übung. Gibt null zurück, wenn es keinen gibt.
-      // Verglichen wird über die ID, bei eigenen Übungen (ohne ID) über den Namen.
+      // Verglichen wird über die ID, bei Übungen ohne ID über den Namen.
       // ohneId lässt einen Eintrag aus: im Trainingsmodus den der Übung, die gerade läuft.
       function letzterEintrag(name, id, ohneId) {
         if (name.trim() === "") {
@@ -3836,7 +4411,7 @@
     verlaufOeffnen(u.name, u.uebungId);
   }
 
-  // Ist das eine Übung aus dem Bereich Eigengewicht? Eigene Übungen ohne ID sind es nie.
+  // Ist das eine Übung aus dem Bereich Eigengewicht? Übungen ohne ID sind es nie.
   function istEigengewicht(id) {
     const u = UEBUNG_NACH_ID[id];
     return Boolean(u) && u.bereich === "eigen";
@@ -3956,7 +4531,7 @@
     const bereich = document.getElementById("fortschritt-uebungen");
     bereich.innerHTML = "";
 
-    // Jede Übung einmal: über ihre ID, eigene Übungen über den Namen
+    // Jede Übung einmal: über ihre ID, Übungen ohne ID über den Namen
     const gefunden = {};
     const liste = [];
     for (let i = 0; i < eintraege.length; i++) {
@@ -4320,6 +4895,9 @@
   // Die Einstellungen aus der Datei (Standard-Pause, Einheiten, Sprache). null heißt: Das Backup enthält keine.
   let importEinstellungen = null;
 
+  // Die eigenen Übungen aus der Datei. null heißt: Das Backup enthält keine (z. B. ein älteres Backup).
+  let importEigene = null;
+
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
     if (!r || typeof r !== "object" || typeof r.name !== "string" || !Array.isArray(r.uebungen)) {
@@ -4482,6 +5060,26 @@
     return text;
   }
 
+  // Übernimmt die eigenen Übungen aus dem Backup. Gibt den Text für die Meldung zurück.
+  // Fehlen sie im Backup (älteres Backup), bleiben die eigenen Übungen auf diesem Gerät, wie sie sind.
+  function eigeneImportieren(art) {
+    if (importEigene === null) {
+      return "";
+    }
+
+    let schluessel = "backup.eigeneErgaenzt";
+    if (art === "ersetzen") {
+      eigeneUebungen = [];
+      eigeneUebungenEintragen();
+      schluessel = "backup.eigeneErsetzt";
+    }
+    // Dazu kommt nur, wessen ID es hier noch nicht gibt. Bei gleicher ID bleibt die vorhandene Übung,
+    // auch wenn sie im Backup anders heißt.
+    const anzahl = eigeneUebungenAufnehmen(importEigene);
+    eigeneUebungenSpeichern();
+    return " " + txt(schluessel, { n: anzahl });
+  }
+
   // Prüft die Einstellungen aus einem Backup und gibt nur zurück, was gültig ist
   function einstellungenBereinigen(e) {
     const sauber = {};
@@ -4528,9 +5126,10 @@
   function backupText() {
     const backup = {
       app: "gymstead",
-      version: 5,
+      version: 6,
       exportiert: new Date().toISOString(),
       eintraege: eintraege,
+      eigeneUebungen: eigeneUebungen,
       routinen: routinen,
       wochenplan: wochenplan,
       trainings: trainings,
@@ -4636,6 +5235,12 @@
     // Ebenso fehlt ihnen die eigene id des Eintrags
     eintragIdsErgaenzen(importEintraege);
 
+    // Eigene Übungen gibt es erst in neueren Backups. Geprüft werden sie beim Übernehmen.
+    importEigene = null;
+    if (daten && !Array.isArray(daten) && Array.isArray(daten.eigeneUebungen)) {
+      importEigene = daten.eigeneUebungen;
+    }
+
     // Einstellungen gibt es erst in neueren Backups
     importEinstellungen = null;
     if (daten && !Array.isArray(daten) && daten.einstellungen && typeof daten.einstellungen === "object") {
@@ -4692,6 +5297,7 @@
       importWochenplan = null;
       importTrainings = null;
       importGewichte = null;
+      importEigene = null;
       datenMeldung(txt("backup.leer"));
       return;
     }
@@ -4716,6 +5322,9 @@
     if (art === "ersetzen" && importEinstellungen !== null) {
       einstellungenUebernehmen(importEinstellungen);
     }
+
+    // Die eigenen Übungen kommen vor den Einträgen, damit diese ihre Übung gleich finden
+    const eigeneText = eigeneImportieren(art);
 
     let meldung;
     if (art === "ersetzen") {
@@ -4743,7 +5352,7 @@
       }
       meldung = txt("backup.ergaenzt", { neu: hinzugefuegt, alt: uebersprungen });
     }
-    datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art));
+    datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art) + eigeneText);
 
     localStorage.setItem("eintraege", JSON.stringify(eintraege));
     importEintraege = [];
@@ -4751,6 +5360,7 @@
     importWochenplan = null;
     importTrainings = null;
     importGewichte = null;
+    importEigene = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
     anzeigen();
     letztesMalAnzeigen();
@@ -4762,6 +5372,7 @@
     importWochenplan = null;
     importTrainings = null;
     importGewichte = null;
+    importEigene = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
   }
 

@@ -787,7 +787,7 @@ h1 {
   display: none;
 }
 
-/* Suchfeld oben im Sheet. Es dient auch zum Eintippen einer eigenen Übung. */
+/* Suchfeld oben im Sheet. Aus dem eingetippten Namen lässt sich auch eine eigene Übung anlegen. */
 .sheet-suche {
   flex-shrink: 0;
   padding: 0 16px 10px;
@@ -916,10 +916,69 @@ h1 {
   font-weight: 400;
 }
 
-/* "… als eigene Übung übernehmen" am Ende der Suchergebnisse */
+/* "… als eigene Übung anlegen" am Ende der Suchergebnisse */
 .sheet-zeile.eigene {
   border-bottom: none;
   color: var(--akzent-text);
+}
+
+/* Das kleine Zeichen "Eigene" unter dem Namen einer selbst angelegten Übung */
+.selbst-zeichen {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Button "Eigene Übung hinzufügen" in der Übungsauswahl */
+.sheet-neu {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin: 0 0 12px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Steht der Button unter einer Liste, braucht er Abstand nach oben */
+.sheet-zeile + .sheet-neu,
+.sheet-mehr + .sheet-neu,
+.leer-hinweis + .sheet-neu {
+  margin-top: 16px;
+}
+
+/* Kachel "Eigene": eine Zeile mit der Übung und rechts dem Stift zum Bearbeiten */
+.selbst-zeile {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid var(--rand);
+}
+
+.selbst-zeile .sheet-zeile {
+  flex: 1;
+  min-width: 0;
+  border-bottom: none;
+}
+
+.selbst-stift {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 24px;
+  background: none;
+  color: var(--akzent-text);
+  font-size: 22px;
 }
 
 /* "Mehr anzeigen (+N)" unter den ersten Übungen eines Bereichs */
@@ -1192,6 +1251,84 @@ h1 {
 
 .fett-eingabe .zahl-feld::placeholder {
   color: var(--text-aus);
+}
+
+/* ---------- Formular für eigene Übungen ---------- */
+
+/* Das Formular ist so hoch wie die Übungsauswahl und deckt sie ganz ab */
+#selbst-sheet {
+  height: 85vh;
+  height: 85dvh;
+  background: var(--karte);
+}
+
+/* Beschriftung über einem Feld */
+.form-titel {
+  display: block;
+  margin: 18px 0 8px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-titel:first-child {
+  margin-top: 4px;
+}
+
+/* Textfeld und Auswahlfeld */
+.form-feld {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 17px;
+}
+
+.form-feld::placeholder {
+  color: var(--text-aus);
+}
+
+.form-feld:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--akzent-text);
+}
+
+/* Hinweis direkt unter einem Feld */
+.form-meldung {
+  margin: 8px 4px 0;
+}
+
+/* Die Hilfsmuskeln als Knöpfe, die in die nächste Zeile umbrechen. Die angetippten sind grün. */
+.wahl-knoepfe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wahl-knopf {
+  min-height: 40px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 20px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-size: 15px;
+}
+
+.wahl-knopf.aktiv {
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+  font-weight: 600;
+}
+
+/* "Übung löschen" unter dem Speichern-Button */
+#selbst-loeschen {
+  background: var(--fuellung);
+  color: var(--text);
 }
 
 /* ---------- Diagramme ---------- */

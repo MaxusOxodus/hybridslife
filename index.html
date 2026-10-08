@@ -21,7 +21,7 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 
@@ -423,11 +423,40 @@
       <span id="sheet-titel">Muskelgruppe</span>
       <button onclick="sheetSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
-    <!-- Suche über alle Übungen. Gibt es keinen Treffer, lässt sich der Text als eigene Übung übernehmen. -->
+    <!-- Suche über alle Übungen. Gibt es den Namen noch nicht, lässt sich daraus eine eigene Übung anlegen. -->
     <div class="sheet-suche">
-      <input id="sheet-suche" placeholder="Übung suchen oder eigene eintippen" data-t-platzhalter="sheet.suchfeld" autocomplete="off" enterkeyhint="search" oninput="sheetSucheGeaendert()" onkeydown="if (event.key === 'Enter') this.blur()">
+      <input id="sheet-suche" placeholder="Übung suchen oder eigene anlegen" data-t-platzhalter="sheet.suchfeld" autocomplete="off" enterkeyhint="search" oninput="sheetSucheGeaendert()" onkeydown="if (event.key === 'Enter') this.blur()">
     </div>
     <div id="sheet-inhalt"></div>
+  </div>
+
+  <!-- Sheet: eigene Übung anlegen oder bearbeiten. Es liegt über der Übungsauswahl. Den Inhalt der Auswahlfelder setzt die app.js. -->
+  <div id="selbst-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span id="selbst-titel" class="sheet-titel"></span>
+      <button onclick="selbstFormSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+    </div>
+    <div class="zusatz-inhalt">
+      <label class="form-titel" for="selbst-name" data-t="selbst.name">Name</label>
+      <input id="selbst-name" class="form-feld" maxlength="60" autocomplete="off" enterkeyhint="done" data-t-platzhalter="selbst.namePlatzhalter" placeholder="z. B. Landmine Press" oninput="selbstNameGeaendert()" onkeydown="if (event.key === 'Enter') this.blur()">
+      <p id="selbst-name-meldung" class="meldung form-meldung"></p>
+      <div id="selbst-vorhanden"></div>
+
+      <label class="form-titel" for="selbst-haupt" data-t="selbst.haupt">Hauptmuskelgruppe</label>
+      <select id="selbst-haupt" class="form-feld" onchange="selbstHauptGeaendert()"></select>
+      <p id="selbst-haupt-meldung" class="meldung form-meldung"></p>
+
+      <div class="form-titel" data-t="selbst.hilfs">Hilfsmuskeln (optional)</div>
+      <div id="selbst-hilfs" class="wahl-knoepfe"></div>
+
+      <div class="form-titel" data-t="selbst.art">Art</div>
+      <div id="selbst-art" class="umschalter"></div>
+      <p id="selbst-art-hinweis" class="meldung form-meldung"></p>
+
+      <button class="speichern-btn" onclick="selbstSpeichern()" data-t="speichern">Speichern</button>
+      <button id="selbst-loeschen" class="zweit-btn versteckt" onclick="selbstLoeschenFragen()" data-t="selbst.loeschen">Übung löschen</button>
+    </div>
   </div>
 
 
@@ -501,9 +530,9 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=19"></script>
-<script src="uebungen.js?v=19"></script>
-<script src="app.js?v=19"></script>
+<script src="texte.js?v=20"></script>
+<script src="uebungen.js?v=20"></script>
+<script src="app.js?v=20"></script>
 
 </body>
 </html>

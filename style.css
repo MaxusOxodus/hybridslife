@@ -1174,6 +1174,26 @@ h1 {
   margin: 4px auto 0;
 }
 
+/* Das Feld für das Körperfett unter dem Rad, so breit wie das Rad */
+.fett-eingabe {
+  max-width: 180px;
+  margin: 16px auto 0;
+}
+
+.fett-eingabe .rad-titel {
+  display: block;
+}
+
+.fett-eingabe .zahl-feld {
+  height: 52px;
+  background: var(--fuellung);
+  font-size: 22px;
+}
+
+.fett-eingabe .zahl-feld::placeholder {
+  color: var(--text-aus);
+}
+
 /* ---------- Diagramme ---------- */
 
 /* Umschalter mit mehreren Möglichkeiten nebeneinander, z. B. 1RM, Gewicht, Volumen */
@@ -1344,6 +1364,11 @@ h1 {
   flex: 1;
   color: var(--text-leise);
   font-weight: 400;
+}
+
+/* Das Körperfett unter dem Datum einer Messung */
+.listen-zeile .messung-datum div {
+  font-size: 14px;
 }
 
 /* Übungsname als Button: sieht aus wie Text, das kleine Diagramm-Zeichen zeigt, dass man ihn antippen kann */

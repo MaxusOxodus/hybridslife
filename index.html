@@ -21,7 +21,7 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 
@@ -282,6 +282,17 @@
     <h2 class="abschnitt">Letzte Messungen</h2>
     <div id="kg-liste"></div>
 
+    <!-- Körperfett: wird beim Körpergewicht mit eingetragen und hat ein eigenes Diagramm -->
+    <h2 class="abschnitt">Körperfett</h2>
+    <div class="karte">
+      <div id="fett-zeitraum" class="umschalter"></div>
+      <div id="fett-diagramm"></div>
+      <div id="fett-legende" class="legende">
+        <span><i class="legende-linie"></i>7-Tage-Schnitt</span>
+        <span><i class="legende-punkt"></i>Messung</span>
+      </div>
+    </div>
+
     <h2 class="abschnitt">Kraftentwicklung</h2>
     <div id="fortschritt-uebungen"></div>
   </section>
@@ -442,6 +453,11 @@
         <div class="rad-titel gewicht-titel">Gewicht (kg)</div>
         <div class="rad-rahmen"><div id="rad-koerpergewicht" class="rad"></div></div>
       </div>
+      <!-- Körperfett: freiwillig. Bleibt das Feld leer, wird nur das Gewicht gespeichert. -->
+      <div class="fett-eingabe">
+        <label class="rad-titel" for="feld-koerperfett">Körperfett in % (optional)</label>
+        <input id="feld-koerperfett" class="zahl-feld" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="–" onblur="koerperfettFeldPruefen()" onkeydown="if (event.key === 'Enter') this.blur()">
+      </div>
       <button class="speichern-btn" onclick="gewichtSpeichern()">Speichern</button>
     </div>
   </div>
@@ -477,8 +493,8 @@
   </div>
 
 <!-- Erst die Übungsdaten, dann die App, die sie benutzt -->
-<script src="uebungen.js?v=14"></script>
-<script src="app.js?v=14"></script>
+<script src="uebungen.js?v=15"></script>
+<script src="app.js?v=15"></script>
 
 </body>
 </html>

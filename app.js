@@ -281,6 +281,7 @@
   }
 
   // Körpergewicht: eine Liste von Messungen mit Datum und Gewicht, die älteste zuerst. Pro Tag gibt es eine.
+  // Wer mag, gibt zum Gewicht das Körperfett in Prozent an (koerperfett). Ohne Angabe fehlt das Feld.
   let koerpergewicht = gespeichertLesen("koerpergewicht", []);
   if (!Array.isArray(koerpergewicht)) {
     koerpergewicht = [];
@@ -3804,8 +3805,51 @@
     { id: 0, text: "Alle" }
   ];
 
-  // Der gewählte Zeitraum in Tagen
+  // Der gewählte Zeitraum in Tagen, für jedes der zwei Diagramme einzeln
   let kgZeitraum = 30;
+  let fettZeitraum = 30;
+
+  // Grenzen für das Körperfett in Prozent
+  const FETT_MIN = 3;
+  const FETT_MAX = 60;
+
+  // Macht aus einer Eingabe einen gültigen Wert für das Körperfett: innerhalb der Grenzen,
+  // eine Nachkommastelle. Leer oder keine Zahl: null (keine Angabe).
+  function koerperfettLesen(wert) {
+    const text = String(wert).trim().replace(",", ".");
+    const zahl = Number(text);
+    if (text === "" || isNaN(zahl)) {
+      return null;
+    }
+    return Math.max(FETT_MIN, Math.min(Math.round(zahl * 10) / 10, FETT_MAX));
+  }
+
+  // Das Körperfett einer gespeicherten Messung. Fehlt es oder ist es ungültig: null.
+  function koerperfettVon(m) {
+    if (!m || typeof m.koerperfett !== "number" || isNaN(m.koerperfett) || m.koerperfett < FETT_MIN || m.koerperfett > FETT_MAX) {
+      return null;
+    }
+    return m.koerperfett;
+  }
+
+  // Ein Körperfett-Wert mit immer genau einer Nachkommastelle, z. B. "15,0 %"
+  function fettText(wert) {
+    return wert.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %";
+  }
+
+  // Schreibt einen Wert ins Körperfett-Feld. null leert es.
+  function koerperfettFeldSetzen(wert) {
+    let text = "";
+    if (wert !== null) {
+      text = zahlText(wert);
+    }
+    document.getElementById("feld-koerperfett").value = text;
+  }
+
+  // Nach dem Verlassen steht im Feld, was wirklich gilt (z. B. 60 statt 99)
+  function koerperfettFeldPruefen() {
+    koerperfettFeldSetzen(koerperfettLesen(document.getElementById("feld-koerperfett").value));
+  }
 
   // Speichert die Messungen, die älteste zuerst
   function gewichteSpeichern() {
@@ -3815,19 +3859,32 @@
     localStorage.setItem("koerpergewicht", JSON.stringify(koerpergewicht));
   }
 
-  // Alle gültigen Messungen als { zeit, wert, index }, die älteste zuerst.
+  // Alle gültigen Messungen als { zeit, wert, fett, index }, die älteste zuerst.
+  // fett ist das Körperfett in Prozent oder null, wenn es nicht angegeben wurde.
   // index ist die Stelle in der gespeicherten Liste, damit Löschen die richtige Messung trifft.
   function gewichtMessungen() {
     const liste = [];
     for (let i = 0; i < koerpergewicht.length; i++) {
       const m = koerpergewicht[i];
       if (hatDatum(m) && typeof m.gewicht === "number" && !isNaN(m.gewicht)) {
-        liste.push({ zeit: new Date(m.datum).getTime(), wert: m.gewicht, index: i });
+        liste.push({ zeit: new Date(m.datum).getTime(), wert: m.gewicht, fett: koerperfettVon(m), index: i });
       }
     }
     liste.sort(function (a, b) {
       return a.zeit - b.zeit;
     });
+    return liste;
+  }
+
+  // Nur die Messungen mit Körperfett als { zeit, wert }, die älteste zuerst. wert ist hier das Körperfett.
+  function fettMessungen() {
+    const alle = gewichtMessungen();
+    const liste = [];
+    for (let i = 0; i < alle.length; i++) {
+      if (alle[i].fett !== null) {
+        liste.push({ zeit: alle[i].zeit, wert: alle[i].fett });
+      }
+    }
     return liste;
   }
 
@@ -3867,12 +3924,19 @@
   }
 
   // Öffnet das Eintragen. Das Rad steht auf dem letzten Gewicht.
+  // Das Körperfett-Feld ist leer, außer für heute wurde schon eins eingetragen.
   function gewichtSheetOeffnen() {
     const liste = gewichtMessungen();
     let start = START_KOERPERGEWICHT;
+    let fett = null;
     if (liste.length > 0) {
-      start = liste[liste.length - 1].wert;
+      const letzte = liste[liste.length - 1];
+      start = letzte.wert;
+      if (tagSchluessel(new Date(letzte.zeit)) === tagSchluessel(new Date())) {
+        fett = letzte.fett;
+      }
     }
+    koerperfettFeldSetzen(fett);
     // Das Rad zeigt die gewählte Einheit und kennt nur Werte innerhalb seiner Grenzen
     const grenzen = GEWICHT_EINHEITEN[einheit()];
     const wert = Math.round(ausKg(start) * 10) / 10;
@@ -3880,13 +3944,19 @@
     radSetzen("rad-koerpergewicht", Math.max(grenzen.koerperMin, Math.min(wert, grenzen.koerperMax)));
   }
 
-  // Speichert das Gewicht vom Rad für heute. Eine frühere Messung von heute wird ersetzt.
+  // Speichert das Gewicht vom Rad für heute, dazu das Körperfett, wenn eins im Feld steht.
+  // Eine frühere Messung von heute wird ersetzt.
   function gewichtSpeichern() {
     const jetzt = new Date();
     koerpergewicht = koerpergewicht.filter(function (m) {
       return !hatDatum(m) || tagSchluessel(new Date(m.datum)) !== tagSchluessel(jetzt);
     });
-    koerpergewicht.push({ datum: jetzt.toISOString(), gewicht: zuKg(radWert("rad-koerpergewicht")) });
+    const messung = { datum: jetzt.toISOString(), gewicht: zuKg(radWert("rad-koerpergewicht")) };
+    const fett = koerperfettLesen(document.getElementById("feld-koerperfett").value);
+    if (fett !== null) {
+      messung.koerperfett = fett;
+    }
+    koerpergewicht.push(messung);
     gewichteSpeichern();
 
     zusatzSheetsSchliessen();
@@ -3901,6 +3971,58 @@
     koerpergewichtAnzeigen();
   }
 
+  // Zeichnet Messungen mit ihrem 7-Tage-Schnitt: die Messungen dünn und grau, darüber kräftig der Schnitt.
+  // kennung ist "kg" oder "fett" und steht vorn an den ids von Diagramm und Legende.
+  // zeitraum ist die Zahl der Tage (0 = alles). umrechnen macht aus einem gespeicherten Wert den gezeigten,
+  // text macht aus einem gezeigten Wert den Text mit Einheit. leerText steht da, solange es keine Messung gibt.
+  function messungenZeichnen(kennung, liste, zeitraum, umrechnen, text, leerText) {
+    const diagramm = document.getElementById(kennung + "-diagramm");
+    const jetzt = Date.now();
+    let von;
+    let bis;
+    if (zeitraum > 0) {
+      von = jetzt - zeitraum * 86400000;
+      bis = jetzt;
+    }
+    const messungen = [];
+    const schnitt = [];
+    for (let i = 0; i < liste.length; i++) {
+      if (von === undefined || liste[i].zeit >= von) {
+        const mittel = umrechnen(schnittAm(liste, new Date(liste[i].zeit)));
+        messungen.push({ zeit: liste[i].zeit, wert: umrechnen(liste[i].wert), zusatz: "Schnitt " + text(mittel) });
+        schnitt.push({ zeit: liste[i].zeit, wert: mittel });
+      }
+    }
+
+    document.getElementById(kennung + "-legende").classList.toggle("versteckt", messungen.length === 0);
+    if (messungen.length === 0) {
+      diagramm.innerHTML = "";
+      let hinweis = "In diesem Zeitraum gibt es keine Messung.";
+      if (liste.length === 0) {
+        hinweis = leerText;
+      }
+      diagramm.appendChild(element("p", "meldung", hinweis));
+    } else {
+      diagrammZeichnen(diagramm, [
+        { punkte: messungen, art: "neben", mitPunkten: true, tasten: true },
+        { punkte: schnitt, art: "haupt", mitPunkten: false }
+      ], function (p) {
+        return text(p.wert);
+      }, von, bis);
+    }
+  }
+
+  // Fortschritt-Tab: das Diagramm für das Körperfett, mit denselben Zeiträumen wie beim Gewicht
+  function koerperfettAnzeigen() {
+    umschalterBauen(document.getElementById("fett-zeitraum"), KG_ZEITRAEUME, fettZeitraum, function (tage) {
+      fettZeitraum = tage;
+      koerperfettAnzeigen();
+    });
+    messungenZeichnen("fett", fettMessungen(), fettZeitraum, function (wert) {
+      return wert;
+    }, fettText, "Noch kein Körperfett eingetragen. Du kannst es beim Körpergewicht mit angeben.");
+  }
+
   // Fortschritt-Tab: Diagramm, Kacheln und die Liste der letzten Messungen
   function koerpergewichtAnzeigen() {
     const liste = gewichtMessungen();
@@ -3909,42 +4031,8 @@
       kgZeitraum = tage;
       koerpergewichtAnzeigen();
     });
-
-    // Diagramm: die Messungen dünn und grau, darüber kräftig der 7-Tage-Schnitt
-    const diagramm = document.getElementById("kg-diagramm");
-    const jetzt = Date.now();
-    let von;
-    let bis;
-    if (kgZeitraum > 0) {
-      von = jetzt - kgZeitraum * 86400000;
-      bis = jetzt;
-    }
-    const messungen = [];
-    const schnitt = [];
-    for (let i = 0; i < liste.length; i++) {
-      if (von === undefined || liste[i].zeit >= von) {
-        const mittel = schnittAm(liste, new Date(liste[i].zeit));
-        messungen.push({ zeit: liste[i].zeit, wert: ausKg(liste[i].wert), zusatz: "Schnitt " + kgText(mittel) });
-        schnitt.push({ zeit: liste[i].zeit, wert: ausKg(mittel) });
-      }
-    }
-
-    document.getElementById("kg-legende").classList.toggle("versteckt", messungen.length === 0);
-    if (messungen.length === 0) {
-      diagramm.innerHTML = "";
-      let text = "In diesem Zeitraum gibt es keine Messung.";
-      if (liste.length === 0) {
-        text = "Noch kein Gewicht eingetragen.";
-      }
-      diagramm.appendChild(element("p", "meldung", text));
-    } else {
-      diagrammZeichnen(diagramm, [
-        { punkte: messungen, art: "neben", mitPunkten: true, tasten: true },
-        { punkte: schnitt, art: "haupt", mitPunkten: false }
-      ], function (p) {
-        return einheitText(p.wert);
-      }, von, bis);
-    }
+    messungenZeichnen("kg", liste, kgZeitraum, ausKg, einheitText, "Noch kein Gewicht eingetragen.");
+    koerperfettAnzeigen();
 
     // Kacheln: Schnitt am Tag der letzten Messung minus Schnitt so viele Tage davor
     const kacheln = document.getElementById("kg-kacheln");
@@ -3983,8 +4071,13 @@
     for (let i = liste.length - 1; i >= 0 && i >= liste.length - MESSUNGEN_ANZAHL; i--) {
       const m = liste[i];
       const zeile = element("div", "listen-zeile");
+      // Unter dem Datum steht das Körperfett, wenn es angegeben wurde
       zeile.appendChild(element("span", "", kgText(m.wert)));
-      zeile.appendChild(element("span", "messung-datum", tagText(new Date(m.zeit)) + new Date(m.zeit).getFullYear()));
+      const datum = element("span", "messung-datum", tagText(new Date(m.zeit)) + new Date(m.zeit).getFullYear());
+      if (m.fett !== null) {
+        datum.appendChild(element("div", "", "Körperfett " + fettText(m.fett)));
+      }
+      zeile.appendChild(datum);
       const weg = element("button", "", "Löschen");
       weg.onclick = function () {
         gewichtLoeschen(m.index);
@@ -4328,14 +4421,19 @@
       importEinstellungen = einstellungenBereinigen(daten.einstellungen);
     }
 
-    // Das Körpergewicht gibt es erst in neueren Backups. Übernommen wird nur, was Datum und Gewicht hat.
+    // Das Körpergewicht gibt es erst in neueren Backups. Übernommen wird nur, was Datum und Gewicht hat,
+    // dazu das Körperfett, wenn es angegeben und gültig ist.
     importGewichte = null;
     if (daten && !Array.isArray(daten) && Array.isArray(daten.koerpergewicht)) {
       importGewichte = [];
       for (let i = 0; i < daten.koerpergewicht.length; i++) {
         const m = daten.koerpergewicht[i];
         if (hatDatum(m) && typeof m.gewicht === "number" && !isNaN(m.gewicht)) {
-          importGewichte.push({ datum: m.datum, gewicht: m.gewicht });
+          const messung = { datum: m.datum, gewicht: m.gewicht };
+          if (koerperfettVon(m) !== null) {
+            messung.koerperfett = m.koerperfett;
+          }
+          importGewichte.push(messung);
         }
       }
     }

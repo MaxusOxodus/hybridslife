@@ -1,4 +1,4 @@
-  // Die Übungsdaten stehen in der uebungen.js: MUSKELGRUPPEN, BEREICHE, MUSKELN, UEBUNGEN und ALTE_NAMEN.
+  // Die Übungsdaten stehen in der uebungen.js: MUSKELGRUPPEN, BEREICHE, MUSKELN, UEBUNGEN, UEBUNGSLISTEN und ALTE_NAMEN.
   // Die Texte der Oberfläche stehen in der texte.js: SPRACHEN und TEXTE.
 
   // Die Sprache der App als Kürzel, z. B. "de" oder "en". Sie gilt für die Texte der Oberfläche
@@ -10,10 +10,24 @@
   const TOP_ANZAHL = 7;
 
   // Nachschlagen ohne Suchen: Übung über ihre ID, Muskelgruppe über ihre ID,
-  // und Übungs-ID über einen Namen (deutsch, englisch oder früherer Name, kleingeschrieben)
+  // und Übungs-ID über einen Namen (deutsch, englisch, Alias oder früherer Name, kleingeschrieben)
   const UEBUNG_NACH_ID = {};
   const GRUPPE_NACH_ID = {};
   const ID_NACH_NAME = {};
+
+  // Namen, die zwei Übungen tragen, z. B. "Hip Thrust" mit Gewicht und als Eigengewicht.
+  // Bei ihnen nennt die Suche zusätzlich den Bereich.
+  const NAME_MEHRFACH = {};
+
+  // Trägt einen Namen ein. Ist er schon vergeben, bleibt die erste Übung stehen.
+  function nameMerken(name, id) {
+    const schluessel = name.toLowerCase();
+    if (!ID_NACH_NAME[schluessel]) {
+      ID_NACH_NAME[schluessel] = id;
+    } else if (ID_NACH_NAME[schluessel] !== id) {
+      NAME_MEHRFACH[schluessel] = true;
+    }
+  }
 
   for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
     GRUPPE_NACH_ID[MUSKELGRUPPEN[i].id] = MUSKELGRUPPEN[i];
@@ -21,8 +35,15 @@
   for (let i = 0; i < UEBUNGEN.length; i++) {
     const u = UEBUNGEN[i];
     UEBUNG_NACH_ID[u.id] = u;
-    ID_NACH_NAME[u.en.toLowerCase()] = u.id;
-    ID_NACH_NAME[u.de.toLowerCase()] = u.id;
+    nameMerken(u.en, u.id);
+    nameMerken(u.de, u.id);
+  }
+  // Die Aliase kommen danach, damit ein richtiger Name immer Vorrang hat
+  for (let i = 0; i < UEBUNGEN.length; i++) {
+    const alias = UEBUNGEN[i].alias || [];
+    for (let j = 0; j < alias.length; j++) {
+      nameMerken(alias[j], UEBUNGEN[i].id);
+    }
   }
   Object.keys(ALTE_NAMEN).forEach(function (name) {
     ID_NACH_NAME[name] = ALTE_NAMEN[name];
@@ -1080,20 +1101,29 @@
   const KOERPER_ARME_UNTEN = '<path class="linie" stroke-width="4.5" d="M9.4 48 7.6 60M50.6 48l1.8 12"/>';
   const KOERPER_SCHULTERN = '<ellipse cx="14" cy="26" rx="4.5" ry="5"/><ellipse cx="46" cy="26" rx="4.5" ry="5"/>';
 
+  // Die Flächen einer Ansicht liegen nebeneinander und überlappen sich nicht,
+  // sonst wären die grauen Stellen an der Überlappung dunkler.
   const KOERPER_MUSKELN = {
     vorn: {
-      schultern: KOERPER_SCHULTERN,
+      "schulter-seite": '<ellipse cx="11.5" cy="26.5" rx="2.6" ry="4.8"/><ellipse cx="48.5" cy="26.5" rx="2.6" ry="4.8"/>',
+      "schulter-vorn": '<ellipse cx="16.6" cy="26" rx="2.4" ry="4.2"/><ellipse cx="43.4" cy="26" rx="2.4" ry="4.2"/>',
       brust: '<path d="M20 25h9v10q-5 3-9-1z"/><path d="M40 25h-9v10q5 3 9-1z"/>',
       bizeps: KOERPER_ARME_OBEN,
       unterarme: KOERPER_ARME_UNTEN,
       bauch: '<rect x="24" y="38" width="12" height="21" rx="3"/>',
-      quadrizeps: '<path class="linie" stroke-width="8" d="M24 67 23.2 86M36 67l.8 19"/>'
+      "bauch-schraeg": '<rect x="19" y="39" width="3.6" height="18" rx="1.8"/><rect x="37.4" y="39" width="3.6" height="18" rx="1.8"/>',
+      quadrizeps: '<path class="linie" stroke-width="6" d="M22.8 67 22.4 86M37.2 67l.4 19"/>',
+      adduktoren: '<path class="linie" stroke-width="2.6" d="M27.9 67.5 27.2 80M32.1 67.5l.7 12.5"/>'
     },
     hinten: {
-      schultern: KOERPER_SCHULTERN,
-      ruecken: '<path d="M19 24h22l-2 22-5 12h-8l-5-12z"/>',
+      "schulter-hinten": KOERPER_SCHULTERN,
+      trapez: '<path d="M30 22l7 3-7 13-7-13z"/>',
+      "ruecken-oben": '<path d="M19.2 26.5h3.3l6 11.5h-8.3z"/><path d="M40.8 26.5h-3.3l-6 11.5h8.3z"/>',
+      lat: '<path d="M19.6 39.5h8.9v11l-6.3-4z"/><path d="M40.4 39.5h-8.9v11l6.3-4z"/>',
+      "ruecken-unten": '<rect x="25" y="51.5" width="10" height="5" rx="2"/>',
       trizeps: KOERPER_ARME_OBEN,
       unterarme: KOERPER_ARME_UNTEN,
+      abduktoren: '<ellipse cx="19.3" cy="56" rx="1.6" ry="3"/><ellipse cx="40.7" cy="56" rx="1.6" ry="3"/>',
       po: '<ellipse cx="24.5" cy="62" rx="5" ry="5"/><ellipse cx="35.5" cy="62" rx="5" ry="5"/>',
       beinbeuger: '<path class="linie" stroke-width="8" d="M24 71 23.2 86M36 71l.8 15"/>',
       waden: '<path class="linie" stroke-width="6.5" d="M23 93v13M37 93v13"/>'
@@ -1167,23 +1197,31 @@
   }
 
   // Schritt 2: die Übungen einer Muskelgruppe, sortiert nach Maschine, Freie Gewichte und Eigengewicht.
+  // Welche Übungen das sind und in welcher Reihenfolge, steht in UEBUNGSLISTEN.
   // Darunter "Trainiert auch": Übungen anderer Gruppen, bei denen diese Gruppe stark mitarbeitet.
   function sheetUebungenZeigen(gruppeId) {
     sheetGruppe = gruppeId;
     const inhalt = sheetLeeren(GRUPPE_NACH_ID[gruppeId][sprache], true);
+    const gezeigt = {};
     let anzahl = 0;
 
     for (let i = 0; i < BEREICHE.length; i++) {
       const bereich = BEREICHE[i];
-      const liste = UEBUNGEN.filter(function (u) {
-        return uebungGruppe(u) === gruppeId && u.bereich === bereich.id;
-      });
+      const ids = UEBUNGSLISTEN[gruppeId][bereich.id];
+      const liste = [];
+      for (let j = 0; j < ids.length; j++) {
+        if (UEBUNG_NACH_ID[ids[j]]) {
+          liste.push(UEBUNG_NACH_ID[ids[j]]);
+          gezeigt[ids[j]] = true;
+        }
+      }
       sheetAbschnitt(inhalt, bereich[sprache], liste, false);
       anzahl += liste.length;
     }
 
+    // Was oben schon steht, wird hier nicht wiederholt
     const auch = UEBUNGEN.filter(function (u) {
-      return u.auch.indexOf(gruppeId) !== -1;
+      return u.auch.indexOf(gruppeId) !== -1 && !gezeigt[u.id];
     });
     sheetAbschnitt(inhalt, txt("sheet.trainiertAuch"), auch, true);
 
@@ -1217,6 +1255,16 @@
     }
   }
 
+  // Der Name eines Bereichs ("maschine", "frei" oder "eigen") in der eingestellten Sprache
+  function bereichName(id) {
+    for (let i = 0; i < BEREICHE.length; i++) {
+      if (BEREICHE[i].id === id) {
+        return BEREICHE[i][sprache];
+      }
+    }
+    return "";
+  }
+
   // Eine Übung als Zeile: oben der Name, darunter klein der Name in der anderen Sprache.
   // mitGruppe hängt die Muskelgruppe an, z. B. in der Suche und bei "Trainiert auch".
   function uebungZeile(u, mitGruppe) {
@@ -1230,6 +1278,10 @@
     }
     if (mitGruppe) {
       zweit += " · " + gruppe[sprache];
+      // Gibt es den Namen zweimal, zeigt der Bereich, welche Übung gemeint ist
+      if (NAME_MEHRFACH[u.de.toLowerCase()] || NAME_MEHRFACH[u.en.toLowerCase()]) {
+        zweit += " · " + bereichName(u.bereich);
+      }
     }
     btn.appendChild(element("span", "sheet-zeile-zweit", zweit));
 
@@ -1240,8 +1292,8 @@
     return btn;
   }
 
-  // Wird bei jeder Eingabe im Suchfeld aufgerufen. Gesucht wird in allen Übungen, auf Deutsch und Englisch.
-  // Jedes eingetippte Wort muss im Namen vorkommen, die Reihenfolge ist egal.
+  // Wird bei jeder Eingabe im Suchfeld aufgerufen. Gesucht wird in allen Übungen, auf Deutsch und Englisch
+  // und in den Aliasen. Jedes eingetippte Wort muss im Namen vorkommen, die Reihenfolge ist egal.
   function sheetSucheGeaendert() {
     const eingabe = document.getElementById("sheet-suche").value.trim();
 
@@ -1257,7 +1309,7 @@
 
     const woerter = eingabe.toLowerCase().split(/\s+/);
     const treffer = UEBUNGEN.filter(function (u) {
-      const namen = (u.de + " " + u.en).toLowerCase();
+      const namen = (u.de + " " + u.en + " " + (u.alias || []).join(" ")).toLowerCase();
       return woerter.every(function (wort) {
         return namen.indexOf(wort) !== -1;
       });

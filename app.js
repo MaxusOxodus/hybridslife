@@ -1874,10 +1874,12 @@
   const WDH_BEREICHE = [[5, 9], [6, 8], [6, 10], [8, 12]];
 
   // Das Wdh.-Ziel einer Übung: eine feste Zahl, einer der vorgegebenen Bereiche oder ein eigener Bereich.
-  // Die Auswahl bestimmt, welche Zahlenfelder daneben zu sehen sind.
+  // Die Auswahl bestimmt, welche Zahlenfelder direkt darunter zu sehen sind.
   function wdhZielFeld(uebung) {
-    const rahmen = element("div", "ziel");
+    const rahmen = element("div", "ziel wdh-ziel");
     rahmen.appendChild(element("span", "", "Wdh."));
+    const spalte = element("div", "wdh-spalte");
+    rahmen.appendChild(spalte);
 
     const auswahl = document.createElement("select");
     auswahl.setAttribute("aria-label", "Art des Wiederholungsziels");
@@ -1886,14 +1888,17 @@
       auswahl.appendChild(new Option(WDH_BEREICHE[i][0] + "–" + WDH_BEREICHE[i][1], String(i)));
     }
     auswahl.appendChild(new Option("Eigener Bereich", "eigen"));
-    rahmen.appendChild(auswahl);
+    spalte.appendChild(auswahl);
 
+    // Die Zahlenfelder stehen in einer eigenen Zeile unter der Auswahl
+    const felderZeile = element("div", "wdh-felder");
     const von = wdhZahlFeld(uebung, "zielWdh", "Wiederholungen");
     const strich = element("span", "", "–");
     const bis = wdhZahlFeld(uebung, "zielWdhMax", "Wiederholungen bis");
-    rahmen.appendChild(von);
-    rahmen.appendChild(strich);
-    rahmen.appendChild(bis);
+    felderZeile.appendChild(von);
+    felderZeile.appendChild(strich);
+    felderZeile.appendChild(bis);
+    spalte.appendChild(felderZeile);
 
     // Was beim Öffnen gewählt ist, ergibt sich aus den gespeicherten Zahlen
     let art = "fest";
@@ -1911,7 +1916,7 @@
     function felderZeigen() {
       von.value = uebung.zielWdh || "";
       bis.value = uebung.zielWdhMax || "";
-      von.classList.toggle("versteckt", art !== "fest" && art !== "eigen");
+      felderZeile.classList.toggle("versteckt", art !== "fest" && art !== "eigen");
       strich.classList.toggle("versteckt", art !== "eigen");
       bis.classList.toggle("versteckt", art !== "eigen");
     }

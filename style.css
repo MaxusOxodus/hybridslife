@@ -1740,8 +1740,6 @@ h1 {
 
 .ziel {
   display: flex;
-  /* Beim eigenen Wdh.-Bereich rutschen die zwei Zahlenfelder auf schmalen Bildschirmen in die nächste Zeile */
-  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   color: var(--text-leise);
@@ -1762,6 +1760,34 @@ h1 {
   text-align: center;
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+/* Wdh.-Ziel: Die Zahlenfelder stehen direkt unter der Auswahl und sind zusammen so breit wie sie */
+.wdh-ziel {
+  align-items: flex-start;
+}
+
+.wdh-ziel > span {
+  line-height: 40px;
+}
+
+.wdh-spalte {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wdh-felder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Beide Felder teilen sich den Platz gleich, ein einzelnes Feld füllt die ganze Breite */
+.wdh-felder input {
+  flex: 1;
+  width: 0;
+  min-width: 0;
 }
 
 /* Die kleinen Pfeile im Zahlenfeld ausblenden */

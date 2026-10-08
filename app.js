@@ -1,4 +1,4 @@
-  // Die Übungsdaten stehen in der uebungen.js: MUSKELGRUPPEN, BEREICHE, MUSKELN, UEBUNGEN, UEBUNGSLISTEN und ALTE_NAMEN.
+  // Die Übungsdaten stehen in der uebungen.js: MUSKELGRUPPEN, BEREICHE, MUSKELN, UEBUNGEN, UEBUNGSLISTEN, ALTE_NAMEN und ALTE_IDS.
   // Die Texte der Oberfläche stehen in der texte.js: SPRACHEN und TEXTE.
 
   // Die Sprache der App als Kürzel, z. B. "de" oder "en". Sie gilt für die Texte der Oberfläche
@@ -375,7 +375,12 @@
 
   // Ergänzt bei einem Eintrag oder einer Routinen-Übung die feste ID, wenn der Name bekannt ist.
   // Gibt true zurück, wenn etwas ergänzt wurde. Der gespeicherte Name bleibt unverändert.
+  // Eine ID, die es nicht mehr gibt, weil zwei Übungen zusammengelegt wurden, wird auf die heutige umgestellt.
   function idErgaenzen(objekt, name) {
+    if (objekt && typeof objekt.uebungId === "string" && ALTE_IDS[objekt.uebungId]) {
+      objekt.uebungId = ALTE_IDS[objekt.uebungId];
+      return true;
+    }
     if (!objekt || objekt.uebungId || typeof name !== "string") {
       return false;
     }

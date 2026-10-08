@@ -21,7 +21,7 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=13">
+  <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 
@@ -73,11 +73,11 @@
     <!-- Zahlenfelder: Antippen öffnet die Zahlentastatur, die Buttons darunter ändern den Wert in Schritten -->
     <div class="eingaben">
       <div>
-        <div class="rad-titel">Gewicht (kg)</div>
+        <div class="rad-titel gewicht-titel">Gewicht (kg)</div>
         <input id="feld-gewicht" class="zahl-feld" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" aria-label="Gewicht in kg">
         <div class="schnell">
-          <button onclick="feldAendern('feld-gewicht', -2.5)" aria-label="2,5 kg weniger">−2,5</button>
-          <button onclick="feldAendern('feld-gewicht', 2.5)" aria-label="2,5 kg mehr">+2,5</button>
+          <button class="gewicht-weniger" onclick="gewichtAendern('feld-gewicht', -1)" aria-label="2,5 kg weniger">−2,5</button>
+          <button class="gewicht-mehr" onclick="gewichtAendern('feld-gewicht', 1)" aria-label="2,5 kg mehr">+2,5</button>
         </div>
       </div>
       <div>
@@ -166,11 +166,11 @@
         <div id="modus-vorbei" class="heute-label versteckt">Pause vorbei</div>
         <div class="eingaben zwei">
           <div>
-            <div class="rad-titel">Gewicht (kg)</div>
+            <div class="rad-titel gewicht-titel">Gewicht (kg)</div>
             <input id="t-feld-gewicht" class="zahl-feld gross" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" aria-label="Gewicht in kg">
             <div class="schnell">
-              <button onclick="feldAendern('t-feld-gewicht', -2.5)" aria-label="2,5 kg weniger">−2,5</button>
-              <button onclick="feldAendern('t-feld-gewicht', 2.5)" aria-label="2,5 kg mehr">+2,5</button>
+              <button class="gewicht-weniger" onclick="gewichtAendern('t-feld-gewicht', -1)" aria-label="2,5 kg weniger">−2,5</button>
+              <button class="gewicht-mehr" onclick="gewichtAendern('t-feld-gewicht', 1)" aria-label="2,5 kg mehr">+2,5</button>
             </div>
           </div>
           <div>
@@ -297,28 +297,67 @@
   <section id="seite-profil" class="seite">
     <h1>Profil</h1>
     <p class="unterzeile">Deine Einstellungen</p>
-    <div class="karte kommt-bald">Kommt bald</div>
 
-    <h2 class="abschnitt">Pausentimer</h2>
-    <div class="karte pause-einstellung">
-      <div>
-        <div class="uebung-name">Standard-Pause</div>
-        <div class="routine-info">Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist</div>
-      </div>
-      <div class="stufen">
-        <button onclick="pauseStandardAendern(-15)" aria-label="15 Sekunden kürzer">−</button>
-        <span id="pause-standard"></span>
-        <button onclick="pauseStandardAendern(15)" aria-label="15 Sekunden länger">+</button>
+    <!-- Jeder Abschnitt ist eine Liste von Zeilen: links, worum es geht, rechts der Wert oder die Auswahl -->
+    <h2 class="abschnitt">Konto</h2>
+    <div class="karte einst-liste">
+      <div class="einst-zeile">
+        <span class="einst-titel">Login und Cloud-Speicher</span>
+        <span class="einst-wert">Kommt bald</span>
       </div>
     </div>
+
+    <h2 class="abschnitt">Abo</h2>
+    <div class="karte einst-liste">
+      <div class="einst-zeile">
+        <span class="einst-titel">Abo</span>
+        <span class="einst-wert">Kommt bald</span>
+      </div>
+    </div>
+
+    <h2 class="abschnitt">Integrationen</h2>
+    <div class="karte einst-liste">
+      <div class="einst-zeile">
+        <span class="einst-titel">Apple Health</span>
+        <span class="einst-wert">Kommt bald</span>
+      </div>
+    </div>
+    <p class="einst-fuss">Apple Health kommt mit der App-Store-Version.</p>
+
+    <h2 class="abschnitt">Training</h2>
+    <div class="karte einst-liste">
+      <div class="einst-zeile">
+        <span class="einst-titel">Standard-Pause</span>
+        <div class="stufen">
+          <button onclick="pauseStandardAendern(-15)" aria-label="15 Sekunden kürzer">−</button>
+          <span id="pause-standard"></span>
+          <button onclick="pauseStandardAendern(15)" aria-label="15 Sekunden länger">+</button>
+        </div>
+      </div>
+    </div>
+    <p class="einst-fuss">Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist.</p>
+
+    <!-- Die Umschalter baut die app.js -->
+    <h2 class="abschnitt">Einheiten</h2>
+    <div class="karte einst-liste">
+      <div class="einst-zeile">
+        <span class="einst-titel">Gewicht</span>
+        <div id="einheit-gewicht" class="umschalter"></div>
+      </div>
+      <div class="einst-zeile">
+        <span class="einst-titel">Länge</span>
+        <div id="einheit-laenge" class="umschalter"></div>
+      </div>
+    </div>
+    <p class="einst-fuss">Deine Daten bleiben beim Umschalten unverändert, nur Anzeige und Eingabe werden umgerechnet. Die Länge gilt für spätere Körpermaße.</p>
 
     <h2 class="abschnitt">Daten</h2>
-    <div class="karte daten-karte">
-      <button class="daten-btn" onclick="backupExportieren()">Backup exportieren</button>
-      <button class="daten-btn" onclick="document.getElementById('backup-datei').click()">Backup importieren</button>
+    <div class="karte einst-liste">
+      <button class="einst-zeile" onclick="backupExportieren()">Backup exportieren</button>
+      <button class="einst-zeile" onclick="document.getElementById('backup-datei').click()">Backup importieren</button>
       <input id="backup-datei" class="unsichtbar" type="file" accept=".json,application/json" onchange="backupDateiGewaehlt(this)">
-      <p id="daten-meldung"></p>
     </div>
+    <p id="daten-meldung" class="einst-fuss"></p>
   </section>
 
   <!-- Navigationsleiste: Die Icons sind einfache, selbst gezeichnete Linien-Grafiken (SVG) -->
@@ -400,7 +439,7 @@
     </div>
     <div class="zusatz-inhalt">
       <div class="kg-rad">
-        <div class="rad-titel">Gewicht (kg)</div>
+        <div class="rad-titel gewicht-titel">Gewicht (kg)</div>
         <div class="rad-rahmen"><div id="rad-koerpergewicht" class="rad"></div></div>
       </div>
       <button class="speichern-btn" onclick="gewichtSpeichern()">Speichern</button>
@@ -438,8 +477,8 @@
   </div>
 
 <!-- Erst die Übungsdaten, dann die App, die sie benutzt -->
-<script src="uebungen.js?v=13"></script>
-<script src="app.js?v=13"></script>
+<script src="uebungen.js?v=14"></script>
+<script src="app.js?v=14"></script>
 
 </body>
 </html>

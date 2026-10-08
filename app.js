@@ -194,8 +194,7 @@
     }
   ];
 
-  // Startwerte der Räder bei einer neuen Übung
-  const START_GEWICHT = 20;
+  // Startwerte der Zahlenfelder bei einer neuen Übung. Der für das Gewicht steht bei den Einheiten.
   const START_WDH = 10;
   const START_SAETZE = 3;
 
@@ -260,7 +259,8 @@
     trainingUmwandeln(laufendesTraining);
   }
 
-  // Einstellungen der App, bisher nur die Standard-Pause in Sekunden (pauseSekunden)
+  // Einstellungen der App: die Standard-Pause in Sekunden (pauseSekunden),
+  // die Einheit für Gewichte (gewichtEinheit: "kg" oder "lbs") und für Längen (laengeEinheit: "cm" oder "ftin")
   let einstellungen = gespeichertLesen("einstellungen", {});
   if (!einstellungen || typeof einstellungen !== "object" || Array.isArray(einstellungen)) {
     einstellungen = {};
@@ -424,13 +424,187 @@
     return String(wert).replace(".", ",");
   }
 
+  // ---------- Einheiten ----------
+
+  // Gespeichert wird immer in kg. Nur zum Anzeigen und Eingeben wird in die gewählte Einheit umgerechnet.
+  const LBS_JE_KG = 2.20462262;
+
+  // Je Einheit: höchstes Trainingsgewicht, Schritt der Schnellbuttons, Startwert der Gewichtsfelder
+  // und die Grenzen für das Körpergewicht
+  const GEWICHT_EINHEITEN = {
+    kg: { max: 400, schritt: 2.5, start: 20, koerperMin: 30, koerperMax: 200 },
+    lbs: { max: 880, schritt: 5, start: 45, koerperMin: 66, koerperMax: 440 }
+  };
+
+  // Die Auswahl im Profil
+  const GEWICHT_AUSWAHL = [
+    { id: "kg", text: "kg" },
+    { id: "lbs", text: "lbs" }
+  ];
+  const LAENGE_AUSWAHL = [
+    { id: "cm", text: "cm" },
+    { id: "ftin", text: "ft-in" }
+  ];
+
+  // Die gewählte Einheit für Gewichte: "kg" oder "lbs"
+  function einheit() {
+    if (einstellungen.gewichtEinheit === "lbs") {
+      return "lbs";
+    }
+    return "kg";
+  }
+
+  // Die gewählte Einheit für Längen: "cm" oder "ftin". Sie gilt für spätere Körpermaße.
+  function laengeEinheit() {
+    if (einstellungen.laengeEinheit === "ftin") {
+      return "ftin";
+    }
+    return "cm";
+  }
+
+  function einstellungenSpeichern() {
+    localStorage.setItem("einstellungen", JSON.stringify(einstellungen));
+  }
+
+  // Rechnet ein Gewicht aus kg in die gewählte Einheit um, ohne zu runden
+  function ausKg(kg) {
+    if (einheit() === "lbs") {
+      return kg * LBS_JE_KG;
+    }
+    return kg;
+  }
+
+  // Rechnet eine Eingabe in der gewählten Einheit in kg um. Vier Nachkommastellen,
+  // damit aus 135 lbs beim Zurückrechnen wieder genau 135 lbs werden.
+  function zuKg(wert) {
+    if (einheit() === "lbs") {
+      return Math.round(wert / LBS_JE_KG * 10000) / 10000;
+    }
+    return wert;
+  }
+
+  // Ein Trainingsgewicht als Zahl in der gewählten Einheit, auf zwei Nachkommastellen
+  function gewichtAnzeige(kg) {
+    return Math.round(ausKg(kg) * 100) / 100;
+  }
+
+  // Ein Trainingsgewicht als Text mit Einheit, z. B. "80 kg" oder "176,37 lbs"
+  function gewichtText(kg) {
+    const zahl = Number(String(kg).replace(",", "."));
+    if (isNaN(zahl)) {
+      return zahlText(kg) + " " + einheit();
+    }
+    return zahlText(gewichtAnzeige(zahl)) + " " + einheit();
+  }
+
+  // Bewegtes Gewicht als Text, z. B. "12.400 kg". In lbs auf ganze Pfund gerundet.
+  function volumenText(kg) {
+    let wert = kg;
+    if (einheit() === "lbs") {
+      wert = Math.round(ausKg(kg));
+    }
+    return wert.toLocaleString("de-DE") + " " + einheit();
+  }
+
+  // Der Startwert der Gewichtsfelder in kg
+  function startGewicht() {
+    return zuKg(GEWICHT_EINHEITEN[einheit()].start);
+  }
+
+  // Der Wert eines Gewichtsfeldes in kg
+  function gewichtFeldWert(id) {
+    return zuKg(feldWert(id));
+  }
+
+  // Schreibt ein Gewicht in kg in ein Gewichtsfeld. Ist es keine Zahl, bleibt das Feld, wie es war.
+  function gewichtFeldSetzen(id, kg) {
+    const zahl = Number(String(kg).replace(",", "."));
+    if (String(kg).trim() === "" || isNaN(zahl)) {
+      return;
+    }
+    feldSetzen(id, gewichtAnzeige(zahl));
+  }
+
+  // Die Schnellbuttons am Gewicht: ein Schritt leichter (-1) oder schwerer (1)
+  function gewichtAendern(id, richtung) {
+    feldAendern(id, richtung * GEWICHT_EINHEITEN[einheit()].schritt);
+  }
+
+  // Stellt alles auf die gewählte Einheit ein: Grenzen der Gewichtsfelder, Beschriftungen,
+  // Schnellbuttons und das Rad für das Körpergewicht
+  function einheitenAnwenden() {
+    const e = GEWICHT_EINHEITEN[einheit()];
+    felder["feld-gewicht"].max = e.max;
+    felder["t-feld-gewicht"].max = e.max;
+    document.getElementById("feld-gewicht").setAttribute("aria-label", "Gewicht in " + einheit());
+    document.getElementById("t-feld-gewicht").setAttribute("aria-label", "Gewicht in " + einheit());
+
+    const titel = document.querySelectorAll(".gewicht-titel");
+    for (let i = 0; i < titel.length; i++) {
+      titel[i].textContent = "Gewicht (" + einheit() + ")";
+    }
+    const weniger = document.querySelectorAll(".gewicht-weniger");
+    for (let i = 0; i < weniger.length; i++) {
+      weniger[i].textContent = "−" + zahlText(e.schritt);
+      weniger[i].setAttribute("aria-label", zahlText(e.schritt) + " " + einheit() + " weniger");
+    }
+    const mehr = document.querySelectorAll(".gewicht-mehr");
+    for (let i = 0; i < mehr.length; i++) {
+      mehr[i].textContent = "+" + zahlText(e.schritt);
+      mehr[i].setAttribute("aria-label", zahlText(e.schritt) + " " + einheit() + " mehr");
+    }
+
+    // Körpergewicht in Schritten von 0,1
+    const koerpergewichte = [];
+    for (let i = e.koerperMin * 10; i <= e.koerperMax * 10; i++) {
+      koerpergewichte.push(i / 10);
+    }
+    radBauen("rad-koerpergewicht", koerpergewichte, null);
+  }
+
+  // Wechselt die Einheit für Gewichte. Was gerade in den Gewichtsfeldern steht, wird umgerechnet.
+  function gewichtEinheitSetzen(neu) {
+    if (neu === einheit()) {
+      return;
+    }
+    let imLog = gewichtFeldWert("feld-gewicht");
+    let imModus = gewichtFeldWert("t-feld-gewicht");
+    const alterStart = startGewicht();
+    einstellungen.gewichtEinheit = neu;
+    einstellungenSpeichern();
+
+    // Steht in einem Feld noch der Startwert, bekommt es den runden Startwert der neuen Einheit
+    if (imLog === alterStart) {
+      imLog = startGewicht();
+    }
+    if (imModus === alterStart) {
+      imModus = startGewicht();
+    }
+    einheitenAnwenden();
+    gewichtFeldSetzen("feld-gewicht", imLog);
+    gewichtFeldSetzen("t-feld-gewicht", imModus);
+    einheitenAnzeigen();
+    anzeigen();
+    letztesMalAnzeigen();
+  }
+
+  // Profil: die Umschalter für Gewicht und Länge
+  function einheitenAnzeigen() {
+    umschalterBauen(document.getElementById("einheit-gewicht"), GEWICHT_AUSWAHL, einheit(), gewichtEinheitSetzen);
+    umschalterBauen(document.getElementById("einheit-laenge"), LAENGE_AUSWAHL, laengeEinheit(), function (neu) {
+      einstellungen.laengeEinheit = neu;
+      einstellungenSpeichern();
+      einheitenAnzeigen();
+    });
+  }
+
   // ---------- Seiten und Navigation ----------
 
   // Zeigt eine Seite und markiert ihren Tab
   function seiteZeigen(name) {
     // Beim Zurückkommen wird der Trainingsmodus neu aufgebaut, deshalb die Eingabe vorher merken
     if (aktiveSeite === "training" && trainingAnsicht === "modus" && !document.getElementById("modus-eingabe").classList.contains("versteckt")) {
-      gemerkteTrainingWerte = [feldWert("t-feld-gewicht"), feldWert("t-feld-wdh"), gewaehlterRir];
+      gemerkteTrainingWerte = [gewichtFeldWert("t-feld-gewicht"), feldWert("t-feld-wdh"), gewaehlterRir];
     }
 
     // Der Home-Tab führt von der Log-Ansicht zurück zur Übersicht
@@ -580,8 +754,10 @@
   // ---------- Scroll-Räder ----------
 
   // Füllt ein Rad mit Werten. seite ist die Seite, auf der das Rad steht.
+  // Ein Rad, das es schon gibt, wird dabei neu gefüllt.
   function radBauen(id, werte, seite) {
     const rad = document.getElementById(id);
+    rad.innerHTML = "";
     raeder[id] = { werte: werte, aktiv: -1 };
 
     for (let i = 0; i < werte.length; i++) {
@@ -663,7 +839,7 @@
         feld.setSelectionRange(0, feld.value.length);
       }, 0);
     };
-    // Nach dem Verlassen steht im Feld, was wirklich gilt (z. B. 400 statt 999)
+    // Nach dem Verlassen steht im Feld, was wirklich gilt (z. B. die Obergrenze statt 999)
     feld.onblur = function () {
       feldSetzen(id, feldWert(id));
     };
@@ -715,13 +891,13 @@
 
   // Stellt die Felder im Log auf die Startwerte oder, falls es die Übung schon gab, auf die Werte vom letzten Mal
   function felderVoreinstellen() {
-    feldSetzen("feld-gewicht", START_GEWICHT);
+    gewichtFeldSetzen("feld-gewicht", startGewicht());
     feldSetzen("feld-wdh", START_WDH);
     feldSetzen("feld-saetze", START_SAETZE);
 
     const letzter = letzterEintrag(gewaehlteUebung, gewaehlteUebungId);
     if (letzter) {
-      feldSetzen("feld-gewicht", letzter.gewicht);
+      gewichtFeldSetzen("feld-gewicht", letzter.gewicht);
       feldSetzen("feld-wdh", letzter.wdh);
       feldSetzen("feld-saetze", letzter.saetze);
     }
@@ -1127,7 +1303,7 @@
         uebung: gewaehlteUebung,
         uebungId: gewaehlteUebungId,
         muskelgruppe: gewaehlteGruppe,
-        gewicht: feldWert("feld-gewicht"),
+        gewicht: gewichtFeldWert("feld-gewicht"),
         wdh: feldWert("feld-wdh"),
         saetze: feldWert("feld-saetze"),
         datum: eintragDatum().toISOString()
@@ -1277,7 +1453,7 @@
       }
     }
     if (alleGleich) {
-      return e.saetze + " Sätze × " + e.wdh + " Wdh. à " + zahlText(e.gewicht) + " kg";
+      return e.saetze + " Sätze × " + e.wdh + " Wdh. à " + gewichtText(e.gewicht);
     }
 
     const teile = [];
@@ -1294,7 +1470,7 @@
         wiederholungen.push(text);
         i++;
       }
-      teile.push(zahlText(gewicht) + " kg × " + wiederholungen.join(", "));
+      teile.push(gewichtText(gewicht) + " × " + wiederholungen.join(", "));
     }
     return teile.join(" · ");
   }
@@ -1364,7 +1540,7 @@
     }
 
     document.getElementById("stat-workouts").textContent = anzahlTage;
-    document.getElementById("stat-gewicht").textContent = gesamtgewicht.toLocaleString("de-DE") + " kg";
+    document.getElementById("stat-gewicht").textContent = volumenText(gesamtgewicht);
     document.getElementById("stat-uebungen").textContent = anzahlUebungen;
     document.getElementById("stat-serie").textContent = serie;
 
@@ -2283,7 +2459,7 @@
       return [davor.gewicht, davor.wdh];
     }
 
-    const werte = [START_GEWICHT, u.zielWdh || START_WDH];
+    const werte = [startGewicht(), u.zielWdh || START_WDH];
     const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
     if (letzter) {
       const saetze = saetzeVon(letzter);
@@ -2299,9 +2475,9 @@
   // Die Reps in Reserve sind bei jedem neuen Satz erst einmal nicht gewählt.
   function modusFelderSetzen() {
     const werte = gemerkteTrainingWerte || modusStartWerte();
-    feldSetzen("t-feld-gewicht", START_GEWICHT);
+    gewichtFeldSetzen("t-feld-gewicht", startGewicht());
     feldSetzen("t-feld-wdh", START_WDH);
-    feldSetzen("t-feld-gewicht", werte[0]);
+    gewichtFeldSetzen("t-feld-gewicht", werte[0]);
     feldSetzen("t-feld-wdh", werte[1]);
 
     gewaehlterRir = null;
@@ -2341,7 +2517,7 @@
     const u = t.uebungen[t.index];
 
     // rir steht nur im Satz, wenn es angegeben wurde
-    const satz = { gewicht: feldWert("t-feld-gewicht"), wdh: feldWert("t-feld-wdh") };
+    const satz = { gewicht: gewichtFeldWert("t-feld-gewicht"), wdh: feldWert("t-feld-wdh") };
     if (gewaehlterRir !== null) {
       satz.rir = gewaehlterRir;
     }
@@ -2553,7 +2729,7 @@
     document.getElementById("fertig-text").textContent = text;
     document.getElementById("fertig-uebungen").textContent = t.erledigt.length;
     document.getElementById("fertig-saetze").textContent = anzahlSaetze;
-    document.getElementById("fertig-gewicht").textContent = bewegt.toLocaleString("de-DE") + " kg";
+    document.getElementById("fertig-gewicht").textContent = volumenText(bewegt);
 
     trainingseinheitSpeichern(t);
 
@@ -2659,7 +2835,7 @@
     const liste = gewichtMessungen();
 
     if (liste.length === 0) {
-      karte.appendChild(element("div", "home-zahl", "– kg"));
+      karte.appendChild(element("div", "home-zahl", "– " + einheit()));
       karte.appendChild(element("div", "routine-info", "Tippen zum Eintragen"));
       return;
     }
@@ -2922,7 +3098,7 @@
     const zahlen = element("div", "home-zahlen");
     zahlen.appendChild(homeZahl(anzahlUebungen, "Übungen"));
     zahlen.appendChild(homeZahl(anzahlSaetze, "Sätze"));
-    zahlen.appendChild(homeZahl(bewegt.toLocaleString("de-DE") + " kg", "Bewegt"));
+    zahlen.appendChild(homeZahl(volumenText(bewegt), "Bewegt"));
     karte.appendChild(zahlen);
   }
 
@@ -3194,9 +3370,14 @@
     return (Math.round(wert * 10) / 10).toLocaleString("de-DE");
   }
 
-  // Ein Gewicht mit immer genau einer Nachkommastelle, z. B. "82,0 kg"
-  function kgText(wert) {
-    return wert.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " kg";
+  // Ein Wert, der schon in der gewählten Einheit vorliegt, mit immer genau einer Nachkommastelle, z. B. "82,0 kg"
+  function einheitText(wert) {
+    return wert.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " " + einheit();
+  }
+
+  // Dasselbe für ein Gewicht in kg: Es wird vorher in die gewählte Einheit umgerechnet
+  function kgText(kg) {
+    return einheitText(ausKg(kg));
   }
 
   // Kurzes Datum für die Achse, z. B. "5.10." oder mit Jahr "5.10.26"
@@ -3519,6 +3700,10 @@
 
     const diagramm = document.getElementById("verlauf-diagramm");
     const punkte = verlaufPunkte(verlaufName, verlaufId, verlaufArt);
+    // Gerechnet wird in kg, gezeichnet in der gewählten Einheit
+    for (let i = 0; i < punkte.length; i++) {
+      punkte[i].wert = ausKg(punkte[i].wert);
+    }
     let hinweis = "";
 
     if (punkte.length === 0) {
@@ -3526,7 +3711,7 @@
       hinweis = "Zu dieser Übung gibt es noch keine Einträge.";
     } else {
       diagrammZeichnen(diagramm, [{ punkte: punkte, art: "haupt", mitPunkten: true }], function (p) {
-        return zahlKurz(p.wert) + " kg";
+        return zahlKurz(p.wert) + " " + einheit();
       });
 
       if (verlaufArt === "1rm") {
@@ -3688,8 +3873,11 @@
     if (liste.length > 0) {
       start = liste[liste.length - 1].wert;
     }
+    // Das Rad zeigt die gewählte Einheit und kennt nur Werte innerhalb seiner Grenzen
+    const grenzen = GEWICHT_EINHEITEN[einheit()];
+    const wert = Math.round(ausKg(start) * 10) / 10;
     zusatzSheetOeffnen("gewicht-sheet");
-    radSetzen("rad-koerpergewicht", start);
+    radSetzen("rad-koerpergewicht", Math.max(grenzen.koerperMin, Math.min(wert, grenzen.koerperMax)));
   }
 
   // Speichert das Gewicht vom Rad für heute. Eine frühere Messung von heute wird ersetzt.
@@ -3698,7 +3886,7 @@
     koerpergewicht = koerpergewicht.filter(function (m) {
       return !hatDatum(m) || tagSchluessel(new Date(m.datum)) !== tagSchluessel(jetzt);
     });
-    koerpergewicht.push({ datum: jetzt.toISOString(), gewicht: radWert("rad-koerpergewicht") });
+    koerpergewicht.push({ datum: jetzt.toISOString(), gewicht: zuKg(radWert("rad-koerpergewicht")) });
     gewichteSpeichern();
 
     zusatzSheetsSchliessen();
@@ -3736,8 +3924,8 @@
     for (let i = 0; i < liste.length; i++) {
       if (von === undefined || liste[i].zeit >= von) {
         const mittel = schnittAm(liste, new Date(liste[i].zeit));
-        messungen.push({ zeit: liste[i].zeit, wert: liste[i].wert, zusatz: "Schnitt " + kgText(mittel) });
-        schnitt.push({ zeit: liste[i].zeit, wert: mittel });
+        messungen.push({ zeit: liste[i].zeit, wert: ausKg(liste[i].wert), zusatz: "Schnitt " + kgText(mittel) });
+        schnitt.push({ zeit: liste[i].zeit, wert: ausKg(mittel) });
       }
     }
 
@@ -3754,7 +3942,7 @@
         { punkte: messungen, art: "neben", mitPunkten: true, tasten: true },
         { punkte: schnitt, art: "haupt", mitPunkten: false }
       ], function (p) {
-        return kgText(p.wert);
+        return einheitText(p.wert);
       }, von, bis);
     }
 
@@ -3770,14 +3958,14 @@
         const aktuell = schnittAm(liste, letzter);
         const damals = schnittAm(liste, frueher);
         if (damals !== null) {
-          const unterschied = Math.round((aktuell - damals) * 10) / 10;
+          const unterschied = Math.round(ausKg(aktuell - damals) * 10) / 10;
           let pfeil = "→";
           if (unterschied > 0) {
             pfeil = "↑";
           } else if (unterschied < 0) {
             pfeil = "↓";
           }
-          text = pfeil + " " + kgText(Math.abs(unterschied));
+          text = pfeil + " " + einheitText(Math.abs(unterschied));
         }
       }
       const kachel = element("div", "karte");
@@ -3821,8 +4009,8 @@
   // Messungen des Körpergewichts aus der Datei. null heißt: Das Backup enthält keine.
   let importGewichte = null;
 
-  // Die Standard-Pause aus der Datei in Sekunden. null heißt: Das Backup enthält keine.
-  let importPause = null;
+  // Die Einstellungen aus der Datei (Standard-Pause, Einheiten). null heißt: Das Backup enthält keine.
+  let importEinstellungen = null;
 
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
@@ -3986,6 +4174,37 @@
     return text;
   }
 
+  // Prüft die Einstellungen aus einem Backup und gibt nur zurück, was gültig ist
+  function einstellungenBereinigen(e) {
+    const sauber = {};
+    if (pauseLesen(e.pauseSekunden) !== null) {
+      sauber.pauseSekunden = pauseLesen(e.pauseSekunden);
+    }
+    if (e.gewichtEinheit === "kg" || e.gewichtEinheit === "lbs") {
+      sauber.gewichtEinheit = e.gewichtEinheit;
+    }
+    if (e.laengeEinheit === "cm" || e.laengeEinheit === "ftin") {
+      sauber.laengeEinheit = e.laengeEinheit;
+    }
+    return sauber;
+  }
+
+  // Übernimmt Einstellungen aus einem Backup. Was dort fehlt, bleibt, wie es ist.
+  function einstellungenUebernehmen(neu) {
+    if (neu.pauseSekunden) {
+      einstellungen.pauseSekunden = neu.pauseSekunden;
+    }
+    if (neu.laengeEinheit) {
+      einstellungen.laengeEinheit = neu.laengeEinheit;
+    }
+    einstellungenSpeichern();
+    if (neu.gewichtEinheit) {
+      gewichtEinheitSetzen(neu.gewichtEinheit);
+    }
+    pauseStandardAnzeigen();
+    einheitenAnzeigen();
+  }
+
   // Zeigt eine Meldung unter den Backup-Buttons
   function datenMeldung(text) {
     document.getElementById("daten-meldung").textContent = text;
@@ -4103,10 +4322,10 @@
     // Ebenso fehlt ihnen die eigene id des Eintrags
     eintragIdsErgaenzen(importEintraege);
 
-    // Die Standard-Pause gibt es erst in neueren Backups
-    importPause = null;
+    // Einstellungen gibt es erst in neueren Backups
+    importEinstellungen = null;
     if (daten && !Array.isArray(daten) && daten.einstellungen && typeof daten.einstellungen === "object") {
-      importPause = pauseLesen(daten.einstellungen.pauseSekunden);
+      importEinstellungen = einstellungenBereinigen(daten.einstellungen);
     }
 
     // Das Körpergewicht gibt es erst in neueren Backups. Übernommen wird nur, was Datum und Gewicht hat.
@@ -4203,11 +4422,9 @@
     }
     datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art));
 
-    // Die Standard-Pause wird nur beim Ersetzen übernommen
-    if (art === "ersetzen" && importPause !== null) {
-      einstellungen.pauseSekunden = importPause;
-      localStorage.setItem("einstellungen", JSON.stringify(einstellungen));
-      pauseStandardAnzeigen();
+    // Die Einstellungen werden nur beim Ersetzen übernommen
+    if (art === "ersetzen" && importEinstellungen !== null) {
+      einstellungenUebernehmen(importEinstellungen);
     }
 
     localStorage.setItem("eintraege", JSON.stringify(eintraege));
@@ -4230,22 +4447,20 @@
     document.getElementById("dialog-hintergrund").classList.remove("offen");
   }
 
-// Die Zahlenfelder im Log: Gewicht 0 bis 400 kg, Wiederholungen 1 bis 100, Sätze 1 bis 10
-feldBauen("feld-gewicht", 0, 400, true, START_GEWICHT);
+// Die Zahlenfelder im Log: Gewicht 0 bis 400 kg oder 0 bis 880 lbs, Wiederholungen 1 bis 100, Sätze 1 bis 10
+feldBauen("feld-gewicht", 0, GEWICHT_EINHEITEN[einheit()].max, true, GEWICHT_EINHEITEN[einheit()].start);
 feldBauen("feld-wdh", 1, 100, false, START_WDH);
 feldBauen("feld-saetze", 1, 10, false, START_SAETZE);
-felderVoreinstellen();
-
-// Körpergewicht: 30 bis 200 kg in 0,1-kg-Schritten
-const koerpergewichte = [];
-for (let i = 300; i <= 2000; i++) {
-  koerpergewichte.push(i / 10);
-}
-radBauen("rad-koerpergewicht", koerpergewichte, null);
 
 // Die zwei Zahlenfelder des Trainingsmodus
-feldBauen("t-feld-gewicht", 0, 400, true, START_GEWICHT);
+feldBauen("t-feld-gewicht", 0, GEWICHT_EINHEITEN[einheit()].max, true, GEWICHT_EINHEITEN[einheit()].start);
 feldBauen("t-feld-wdh", 1, 100, false, START_WDH);
+
+// Beschriftungen und Schnellbuttons in der gewählten Einheit, dazu das Rad für das Körpergewicht
+// (30 bis 200 kg oder 66 bis 440 lbs)
+einheitenAnwenden();
+einheitenAnzeigen();
+felderVoreinstellen();
 
 wochenleisteAnzeigen();
 anzeigen();

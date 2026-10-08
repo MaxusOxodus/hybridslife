@@ -1107,13 +1107,6 @@ h1 {
   font-size: 19px;
 }
 
-.pause-einstellung {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 /* Minus, Wert, Plus nebeneinander */
 .stufen {
   display: flex;
@@ -1381,15 +1374,75 @@ h1 {
   stroke-linejoin: round;
 }
 
-/* ---------- Profil: Daten ---------- */
+/* ---------- Profil: Listen im Stil der iOS-Einstellungen ---------- */
 
-.daten-karte {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* Eine Karte mit mehreren Zeilen, getrennt durch feine Linien */
+.einst-liste {
+  padding: 0 16px;
 }
 
-.daten-btn,
+.einst-zeile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+}
+
+.einst-zeile + .einst-zeile {
+  border-top: 1px solid var(--rand);
+}
+
+.einst-titel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.einst-wert {
+  flex-shrink: 0;
+  color: var(--text-leise);
+}
+
+.einst-zeile .umschalter {
+  flex-shrink: 0;
+  width: 152px;
+}
+
+.einst-zeile .umschalter button {
+  min-height: 34px;
+}
+
+/* Eine Zeile zum Antippen, z. B. "Backup exportieren" */
+button.einst-zeile {
+  width: 100%;
+  border-right: none;
+  border-bottom: none;
+  border-left: none;
+  border-radius: 0;
+  background: none;
+  color: var(--akzent-text);
+  font-size: 17px;
+  text-align: left;
+}
+
+button.einst-zeile:first-child {
+  border-top: none;
+}
+
+/* Kleiner Hinweis unter einer Liste */
+.einst-fuss {
+  margin: 8px 16px 0;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+.einst-fuss:empty {
+  display: none;
+}
+
+/* ---------- Dialog-Buttons ---------- */
+
 .dialog-btn {
   width: 100%;
   min-height: 54px;
@@ -1409,16 +1462,6 @@ h1 {
   height: 1px;
   opacity: 0;
   pointer-events: none;
-}
-
-#daten-meldung {
-  margin: 4px 0 0;
-  color: var(--text-leise);
-  font-size: 15px;
-}
-
-#daten-meldung:empty {
-  display: none;
 }
 
 /* ---------- Dialog: Frage vor dem Import ---------- */

@@ -355,6 +355,22 @@ const TEXTE = {
   },
   "verlauf.einPunkt": { de: "Ab dem zweiten Trainingstag entsteht eine Linie.", en: "A line appears from the second training day." },
 
+  "verlauf.zeitraumLeer": { de: "In diesem Zeitraum gibt es keine Einträge.", en: "There are no entries in this period." },
+
+  // ---------- Home: Karte "Kraft" und Auswahl der Übung ----------
+  "kraft.titel": { de: "Kraft", en: "Strength" },
+  "kraft.leer": {
+    de: "Trainiere eine Übung, dann erscheint hier dein Verlauf.",
+    en: "Train an exercise and your progress will show up here."
+  },
+  "kraft.1rm": { de: "Geschätztes 1RM", en: "Estimated 1RM" },
+  "kraft.inTagen": { de: "in {n} Tagen", en: "in {n} days" },
+  "kraft.seitStart": { de: "seit Start", en: "since start" },
+  "kraft.letzter": { de: "Letzter Eintrag: {datum}", en: "Last entry: {datum}" },
+  "kraft.waehlen": { de: "Übung wählen", en: "Choose exercise" },
+  "kraft.automatisch": { de: "Automatisch", en: "Automatic" },
+  "kraft.meist": { de: "Zuletzt am häufigsten: {name}", en: "Most trained lately: {name}" },
+
   // ---------- Gym ----------
   "gym.unterzeile": { de: "Bau dir dein eigenes Gym", en: "Build your own gym" },
 

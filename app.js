@@ -342,8 +342,10 @@
 
   // Einstellungen der App: die Standard-Pause in Sekunden (pauseSekunden),
   // die Einheit für Gewichte (gewichtEinheit: "kg" oder "lbs") und für Längen (laengeEinheit: "cm" oder "ftin"),
-  // die Sprache (sprache: "de" oder "en") und das Design (design: "dunkel" oder "hell").
+  // die Sprache (sprache: "de" oder "en"), das Design (design: "dunkel" oder "hell")
+  // und die für die Kraft-Karte gewählte Übung (kraftUebung: { name, uebungId }).
   // Fehlt die Sprache, gilt die des Geräts. Fehlt das Design, folgt die App dem Gerät.
+  // Fehlt die Übung, zeigt die Karte die zuletzt am häufigsten trainierte.
   let einstellungen = gespeichertLesen("einstellungen", {});
   if (!einstellungen || typeof einstellungen !== "object" || Array.isArray(einstellungen)) {
     einstellungen = {};
@@ -693,6 +695,28 @@
     if (laufendesTraining && listeZuordnen(laufendesTraining.uebungen, "name")) {
       localStorage.setItem("laufendesTraining", JSON.stringify(laufendesTraining));
     }
+
+    // Die für die Kraft-Karte gewählte Übung: Ist sie unbrauchbar gespeichert, gilt wieder "Automatisch"
+    const wahl = kraftUebungBereinigen(einstellungen.kraftUebung);
+    if (wahl) {
+      einstellungen.kraftUebung = wahl;
+    } else {
+      delete einstellungen.kraftUebung;
+    }
+  }
+
+  // Macht aus einer gespeicherten oder importierten Wahl für die Kraft-Karte eine saubere: Name und ID der Übung.
+  // Eine frühere ID wird wie bei den Einträgen auf die heutige umgestellt. Ohne brauchbaren Namen: null.
+  function kraftUebungBereinigen(wahl) {
+    if (!wahl || typeof wahl !== "object" || typeof wahl.name !== "string" || wahl.name.trim() === "") {
+      return null;
+    }
+    const sauber = { name: wahl.name, uebungId: "" };
+    if (typeof wahl.uebungId === "string") {
+      sauber.uebungId = wahl.uebungId;
+    }
+    idErgaenzen(sauber, sauber.name);
+    return sauber;
   }
 
   // Passt ein Eintrag zu einer Übung? Mit ID zählt die ID, sonst der Name.
@@ -3668,6 +3692,7 @@
     homeWocheAnzeigen();
     homeLetztesAnzeigen();
     homeGewichtAnzeigen();
+    homeKraftAnzeigen();
   }
 
   // Die Karte "Körpergewicht": das zuletzt eingetragene Gewicht mit Datum
@@ -4426,6 +4451,7 @@
     document.getElementById("verlauf-sheet").classList.remove("offen");
     document.getElementById("gewicht-sheet").classList.remove("offen");
     document.getElementById("tag-sheet").classList.remove("offen");
+    document.getElementById("kraft-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
     document.body.classList.remove("sheet-offen");
   }
@@ -4439,19 +4465,31 @@
     { id: "volumen", schluessel: "verlauf.volumen" }
   ];
 
-  // Die Übung, deren Verlauf gerade offen ist, und die gewählte Ansicht
+  // Die Übung, deren Verlauf gerade offen ist, die gewählte Ansicht und der Zeitraum in Tagen (0 = alles)
   let verlaufName = "";
   let verlaufId = "";
   let verlaufArt = "1rm";
+  let verlaufZeitraum = 0;
 
-  // Öffnet den Verlauf einer Übung. Er startet immer mit dem geschätzten Maximalgewicht (1RM).
-  function verlaufOeffnen(name, id) {
+  // true, wenn der Verlauf von der Kraft-Karte auf Home geöffnet wurde.
+  // Nur dann gilt ein Wechsel der Übung im Verlauf auch für die Karte.
+  let verlaufVonKarte = false;
+
+  // Öffnet den Verlauf einer Übung. Er startet immer mit dem geschätzten Maximalgewicht (1RM) über die ganze Zeit.
+  function verlaufOeffnen(name, id, vonKarte) {
+    verlaufArt = "1rm";
+    verlaufZeitraum = 0;
+    verlaufVonKarte = vonKarte === true;
+    verlaufUebungSetzen(name, id);
+    zusatzSheetOeffnen("verlauf-sheet");
+  }
+
+  // Zeigt im Verlauf eine (andere) Übung. Ansicht und Zeitraum bleiben, wie sie sind.
+  function verlaufUebungSetzen(name, id) {
     verlaufName = name;
     verlaufId = id || "";
-    verlaufArt = "1rm";
     document.getElementById("verlauf-titel").textContent = anzeigeName(name, id);
     verlaufAnzeigen();
-    zusatzSheetOeffnen("verlauf-sheet");
   }
 
   // Im Trainingsmodus: der Verlauf der Übung, die gerade dran ist
@@ -4534,28 +4572,46 @@
     return punkte;
   }
 
-  // Baut den Inhalt des Verlauf-Sheets: Umschalter, Diagramm und Hinweis
+  // Baut den Inhalt des Verlauf-Sheets: die Umschalter für Ansicht und Zeitraum, das Diagramm und den Hinweis
   function verlaufAnzeigen() {
     umschalterBauen(document.getElementById("verlauf-art"), VERLAUF_ARTEN, verlaufArt, function (art) {
       verlaufArt = art;
       verlaufAnzeigen();
     });
+    umschalterBauen(document.getElementById("verlauf-zeitraum"), VERLAUF_ZEITRAEUME, verlaufZeitraum, function (tage) {
+      verlaufZeitraum = tage;
+      verlaufAnzeigen();
+    });
 
     const diagramm = document.getElementById("verlauf-diagramm");
-    const punkte = verlaufPunkte(verlaufName, verlaufId, verlaufArt);
+    const alle = verlaufPunkte(verlaufName, verlaufId, verlaufArt);
+
+    // Mit einem Zeitraum reicht die Zeitachse von damals bis heute, gezeigt werden nur die Punkte darin
+    let von;
+    let bis;
+    if (verlaufZeitraum > 0) {
+      bis = Date.now();
+      von = bis - verlaufZeitraum * 86400000;
+    }
     // Gerechnet wird in kg, gezeichnet in der gewählten Einheit
-    for (let i = 0; i < punkte.length; i++) {
-      punkte[i].wert = ausKg(punkte[i].wert);
+    const punkte = [];
+    for (let i = 0; i < alle.length; i++) {
+      if (von === undefined || alle[i].zeit >= von) {
+        punkte.push({ zeit: alle[i].zeit, wert: ausKg(alle[i].wert) });
+      }
     }
     let hinweis = "";
 
     if (punkte.length === 0) {
       diagramm.innerHTML = "";
       hinweis = txt("verlauf.leer");
+      if (alle.length > 0) {
+        hinweis = txt("verlauf.zeitraumLeer");
+      }
     } else {
       diagrammZeichnen(diagramm, [{ punkte: punkte, art: "haupt", mitPunkten: true }], function (p) {
-        return zahlKurz(p.wert) + " " + einheit();
-      });
+        return kraftText(p.wert);
+      }, von, bis);
 
       if (verlaufArt === "1rm") {
         hinweis = txt("verlauf.1rm");
@@ -4578,14 +4634,15 @@
     document.getElementById("verlauf-hinweis").textContent = hinweis;
   }
 
-  // Fortschritt-Tab: alle Übungen, zu denen es Einträge gibt, die zuletzt trainierte oben
-  function fortschrittUebungenAnzeigen() {
-    const bereich = document.getElementById("fortschritt-uebungen");
-    bereich.innerHTML = "";
-
+  // Alle Übungen, zu denen es Einträge gibt, die zuletzt trainierte zuerst. Jede hat ihren gespeicherten Namen,
+  // ihre ID ("" bei Übungen ohne ID), den Zeitpunkt des letzten Eintrags (zeit, 0 ohne Datum)
+  // und die Zahl ihrer Trainingstage in den letzten KRAFT_TAGE Tagen (tageZuletzt).
+  // Der Fortschritt-Tab, die Kraft-Karte auf Home und die Auswahl der Übung nutzen alle diese Liste.
+  function trainierteUebungen() {
     // Jede Übung einmal: über ihre ID, Übungen ohne ID über den Namen
     const gefunden = {};
     const liste = [];
+    const grenze = Date.now() - KRAFT_TAGE * 86400000;
     for (let i = 0; i < eintraege.length; i++) {
       const e = eintraege[i];
       if (!e || typeof e.uebung !== "string" || e.uebung.trim() === "") {
@@ -4600,15 +4657,29 @@
         zeit = new Date(e.datum).getTime();
       }
       if (!gefunden[schluessel]) {
-        gefunden[schluessel] = { name: e.uebung, id: e.uebungId || "", zeit: zeit };
+        gefunden[schluessel] = { name: e.uebung, id: e.uebungId || "", zeit: zeit, tage: {}, tageZuletzt: 0 };
         liste.push(gefunden[schluessel]);
       } else if (zeit > gefunden[schluessel].zeit) {
         gefunden[schluessel].zeit = zeit;
       }
+      if (zeit >= grenze) {
+        gefunden[schluessel].tage[tagSchluessel(new Date(zeit))] = true;
+      }
+    }
+    for (let i = 0; i < liste.length; i++) {
+      liste[i].tageZuletzt = Object.keys(liste[i].tage).length;
     }
     liste.sort(function (a, b) {
       return b.zeit - a.zeit;
     });
+    return liste;
+  }
+
+  // Fortschritt-Tab: alle Übungen, zu denen es Einträge gibt, die zuletzt trainierte oben
+  function fortschrittUebungenAnzeigen() {
+    const bereich = document.getElementById("fortschritt-uebungen");
+    bereich.innerHTML = "";
+    const liste = trainierteUebungen();
 
     if (liste.length === 0) {
       bereich.appendChild(element("p", "leer-hinweis", txt("fortschritt.kraftLeer")));
@@ -4629,6 +4700,276 @@
     }
   }
 
+  // ---------- Home: Karte "Kraft" ----------
+
+  // Zeitraum in Tagen für zwei Dinge: Die Karte zeigt von sich aus die Übung, die in dieser Zeit am häufigsten
+  // trainiert wurde, und sie vergleicht den aktuellen Wert mit dem von vor so vielen Tagen.
+  const KRAFT_TAGE = 30;
+
+  // So viele Tage zeigt das kleine Diagramm der Karte (91 sind drei Monate)
+  const KRAFT_DIAGRAMM_TAGE = 91;
+
+  // Ein Kraftwert, der schon in der gewählten Einheit vorliegt, als Text, z. B. "102,5 kg".
+  // Die Karte und der große Verlauf schreiben ihre Werte beide so.
+  function kraftText(wert) {
+    return zahlKurz(wert) + " " + einheit();
+  }
+
+  // Die Übung, die die Karte von sich aus zeigt: die mit den meisten Trainingstagen in den letzten KRAFT_TAGE Tagen,
+  // bei Gleichstand die zuletzt trainierte. liste kommt von trainierteUebungen() und ist danach schon sortiert.
+  // Ohne Einträge: null.
+  function kraftStandard(liste) {
+    let beste = null;
+    for (let i = 0; i < liste.length; i++) {
+      if (beste === null || liste[i].tageZuletzt > beste.tageZuletzt) {
+        beste = liste[i];
+      }
+    }
+    return beste;
+  }
+
+  // Die von Hand gewählte Übung aus der Liste. Ohne Wahl oder wenn es zu ihr keine Einträge mehr gibt: null,
+  // dann gilt wieder die Übung von kraftStandard.
+  function kraftGewaehlt(liste) {
+    const wahl = einstellungen.kraftUebung;
+    if (!wahl) {
+      return null;
+    }
+    for (let i = 0; i < liste.length; i++) {
+      if (gleicheUebung({ uebung: liste[i].name, uebungId: liste[i].id }, wahl.name, wahl.uebungId)) {
+        return liste[i];
+      }
+    }
+    return null;
+  }
+
+  // Die Veränderung des letzten Werts: gegenüber dem letzten Punkt, der mindestens KRAFT_TAGE Tage alt ist.
+  // Gibt es so einen noch nicht, gegenüber dem ersten Eintrag ("seit Start"). Bei nur einem Punkt: null.
+  // Verglichen werden die Werte so, wie sie angezeigt werden: in der gewählten Einheit, auf eine Nachkommastelle.
+  function kraftAenderung(punkte) {
+    if (punkte.length < 2) {
+      return null;
+    }
+    const heute = new Date();
+    const grenze = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate() - KRAFT_TAGE).getTime();
+    let vergleich = null;
+    for (let i = 0; i < punkte.length; i++) {
+      if (punkte[i].zeit <= grenze) {
+        vergleich = punkte[i];
+      }
+    }
+    let titel = txt("kraft.inTagen", { n: KRAFT_TAGE });
+    if (vergleich === null) {
+      vergleich = punkte[0];
+      titel = txt("kraft.seitStart");
+    }
+
+    const jetzt = Math.round(ausKg(punkte[punkte.length - 1].wert) * 10) / 10;
+    const damals = Math.round(ausKg(vergleich.wert) * 10) / 10;
+    const unterschied = Math.round((jetzt - damals) * 10) / 10;
+    if (unterschied > 0) {
+      return { text: "↑ " + kraftText(unterschied), art: "hoch", titel: titel };
+    }
+    if (unterschied < 0) {
+      return { text: "↓ " + kraftText(-unterschied), art: "runter", titel: titel };
+    }
+    return { text: "–", art: "gleich", titel: titel };
+  }
+
+  // Zeichnet das kleine Diagramm der Karte als SVG-Text: nur die Linie und ein Punkt am letzten Wert,
+  // ohne Achsen und Beschriftung. punkte sind mindestens zwei, der älteste zuerst.
+  function miniDiagramm(punkte) {
+    const BREITE = 300;
+    const HOEHE = 72;
+    const RAND = 8;
+
+    let min = Infinity;
+    let max = -Infinity;
+    for (let i = 0; i < punkte.length; i++) {
+      min = Math.min(min, punkte[i].wert);
+      max = Math.max(max, punkte[i].wert);
+    }
+    const von = punkte[0].zeit;
+    const bis = punkte[punkte.length - 1].zeit;
+
+    function x(zeit) {
+      return RAND + (zeit - von) / (bis - von) * (BREITE - 2 * RAND);
+    }
+    // Sind alle Werte gleich, läuft die Linie in der Mitte
+    function y(wert) {
+      if (max === min) {
+        return HOEHE / 2;
+      }
+      return RAND + (max - wert) / (max - min) * (HOEHE - 2 * RAND);
+    }
+
+    let weg = "";
+    for (let i = 0; i < punkte.length; i++) {
+      weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit).toFixed(1) + " " + y(punkte[i].wert).toFixed(1);
+    }
+    const letzter = punkte[punkte.length - 1];
+    return '<svg class="mini-diagramm" viewBox="0 0 ' + BREITE + ' ' + HOEHE + '" aria-hidden="true">'
+      + '<path class="linie-haupt" d="' + weg + '"/>'
+      + '<circle class="punkt-haupt" r="4.5" cx="' + x(letzter.zeit).toFixed(1) + '" cy="' + y(letzter.wert).toFixed(1) + '"/></svg>';
+  }
+
+  // Die Karte "Kraft" auf Home: der Name der Übung, ihr geschätztes Maximalgewicht (1RM), die Veränderung
+  // und das kleine Diagramm der letzten drei Monate. Die Werte kommen aus verlaufPunkte, genau wie im großen Verlauf.
+  function homeKraftAnzeigen() {
+    const bereich = document.getElementById("home-kraft");
+    bereich.innerHTML = "";
+
+    const liste = trainierteUebungen();
+    const uebung = kraftGewaehlt(liste) || kraftStandard(liste);
+    if (!uebung) {
+      bereich.appendChild(element("div", "karte kommt-bald", txt("kraft.leer")));
+      return;
+    }
+
+    const karte = element("div", "karte kraft-karte");
+    const flaeche = element("button", "kraft-flaeche");
+    flaeche.onclick = function () {
+      verlaufOeffnen(uebung.name, uebung.id, true);
+    };
+    flaeche.appendChild(element("div", "routine-name", anzeigeName(uebung.name, uebung.id)));
+
+    const punkte = verlaufPunkte(uebung.name, uebung.id, "1rm");
+    if (punkte.length === 0) {
+      // Die Übung hat nur Einträge ohne Datum oder ohne Zahlen
+      flaeche.appendChild(element("div", "routine-info", txt("verlauf.leer")));
+    } else {
+      const letzter = punkte[punkte.length - 1];
+      const werte = element("div", "kraft-werte");
+      werte.appendChild(homeZahl(kraftText(ausKg(letzter.wert)), txt("kraft.1rm")));
+      const aenderung = kraftAenderung(punkte);
+      if (aenderung) {
+        const rechts = element("div", "kraft-aenderung");
+        rechts.appendChild(element("div", "kraft-pfeil " + aenderung.art, aenderung.text));
+        rechts.appendChild(element("div", "kachel-titel", aenderung.titel));
+        werte.appendChild(rechts);
+      }
+      flaeche.appendChild(werte);
+
+      // Das kleine Diagramm braucht mindestens zwei Punkte in den letzten drei Monaten. Sonst steht da, von wann der Wert ist.
+      const von = Date.now() - KRAFT_DIAGRAMM_TAGE * 86400000;
+      const sichtbar = [];
+      for (let i = 0; i < punkte.length; i++) {
+        if (punkte[i].zeit >= von) {
+          sichtbar.push(punkte[i]);
+        }
+      }
+      if (sichtbar.length >= 2) {
+        flaeche.insertAdjacentHTML("beforeend", miniDiagramm(sichtbar));
+      } else {
+        flaeche.appendChild(element("div", "routine-info", txt("kraft.letzter", { datum: datumMitJahr(new Date(letzter.zeit)) })));
+      }
+    }
+    karte.appendChild(flaeche);
+
+    // Der Knopf liegt über der Fläche, ist aber ein eigener Button: Er öffnet nur die Auswahl, nicht den Verlauf
+    const wahl = element("button", "kraft-wahl icon");
+    wahl.innerHTML = iconSvg("wechsel");
+    wahl.setAttribute("aria-label", txt("kraft.waehlen"));
+    wahl.onclick = function () {
+      kraftWahlOeffnen("karte");
+    };
+    karte.appendChild(wahl);
+    bereich.appendChild(karte);
+  }
+
+  // ---------- Auswahl der Übung für Karte und Verlauf ----------
+
+  // Wofür die Auswahl gerade offen ist: "karte" (der Knopf an der Kraft-Karte) oder "verlauf" (der Titel im Verlauf)
+  let kraftWahlZiel = "karte";
+
+  // Öffnet die Liste aller Übungen mit Einträgen, die zuletzt trainierte oben.
+  // Geht es um die Kraft-Karte, steht darüber "Automatisch": Dann sucht sich die Karte ihre Übung wieder selbst.
+  function kraftWahlOeffnen(ziel) {
+    kraftWahlZiel = ziel;
+    const liste = trainierteUebungen();
+    const fuerKarte = ziel === "karte" || verlaufVonKarte;
+
+    // Welche Zeile den Haken bekommt: bei der Karte die gewählte Übung (ohne Wahl "Automatisch"),
+    // sonst die Übung, die der Verlauf gerade zeigt
+    let aktiv = kraftGewaehlt(liste);
+    if (!fuerKarte) {
+      aktiv = { name: verlaufName, id: verlaufId };
+    }
+
+    const inhalt = document.getElementById("kraft-sheet-liste");
+    inhalt.innerHTML = "";
+    inhalt.scrollTop = 0;
+
+    if (fuerKarte) {
+      const standard = kraftStandard(liste);
+      const zeile = element("button", "listen-zeile");
+      const text = element("span", "wahl-text");
+      text.appendChild(element("div", "", txt("kraft.automatisch")));
+      if (standard) {
+        text.appendChild(element("div", "routine-info", txt("kraft.meist", { name: anzeigeName(standard.name, standard.id) })));
+      }
+      zeile.appendChild(text);
+      if (!aktiv) {
+        zeile.appendChild(element("span", "wahl-haken", "✓"));
+      }
+      zeile.onclick = function () {
+        kraftWaehlen(null);
+      };
+      inhalt.appendChild(zeile);
+    }
+
+    for (let i = 0; i < liste.length; i++) {
+      const u = liste[i];
+      const zeile = element("button", "listen-zeile");
+      zeile.appendChild(element("span", "wahl-text", anzeigeName(u.name, u.id)));
+      if (u.zeit > 0) {
+        zeile.appendChild(element("span", "routine-info", datumMitJahr(new Date(u.zeit))));
+      }
+      if (aktiv && gleicheUebung({ uebung: u.name, uebungId: u.id }, aktiv.name, aktiv.id)) {
+        zeile.appendChild(element("span", "wahl-haken", "✓"));
+      }
+      zeile.onclick = function () {
+        kraftWaehlen(u);
+      };
+      inhalt.appendChild(zeile);
+    }
+
+    document.getElementById("kraft-sheet").classList.add("offen");
+    document.getElementById("zusatz-hintergrund").classList.add("offen");
+    document.body.classList.add("sheet-offen");
+  }
+
+  // Eine Übung wurde angetippt (null = "Automatisch"). Für die Kraft-Karte wird die Wahl gespeichert.
+  // Ist der Verlauf offen, zeigt er danach die neue Übung.
+  function kraftWaehlen(uebung) {
+    if (kraftWahlZiel === "karte" || verlaufVonKarte) {
+      if (uebung) {
+        einstellungen.kraftUebung = { name: uebung.name, uebungId: uebung.id };
+      } else {
+        delete einstellungen.kraftUebung;
+      }
+      einstellungenSpeichern();
+      homeKraftAnzeigen();
+    }
+
+    if (kraftWahlZiel === "verlauf") {
+      const neu = uebung || kraftStandard(trainierteUebungen());
+      if (neu) {
+        verlaufUebungSetzen(neu.name, neu.id);
+      }
+    }
+    kraftWahlSchliessen();
+  }
+
+  // Schließt nur die Auswahl. Der Verlauf darunter bleibt offen, wenn sie von dort geöffnet wurde.
+  function kraftWahlSchliessen() {
+    if (document.getElementById("verlauf-sheet").classList.contains("offen")) {
+      document.getElementById("kraft-sheet").classList.remove("offen");
+    } else {
+      zusatzSheetsSchliessen();
+    }
+  }
+
   // ---------- Körpergewicht ----------
 
   // Startwert des Rades, solange noch kein Gewicht eingetragen ist
@@ -4646,6 +4987,9 @@
     { id: 365, schluessel: "zeitraum.jahr" },
     { id: 0, schluessel: "zeitraum.alle" }
   ];
+
+  // Der Verlauf einer Übung hat dieselben Zeiträume, nur ohne die einzelne Woche: Dafür wird zu selten trainiert.
+  const VERLAUF_ZEITRAEUME = KG_ZEITRAEUME.slice(1);
 
   // Der gewählte Zeitraum in Tagen, für jedes der zwei Diagramme einzeln
   let kgZeitraum = 30;
@@ -4944,7 +5288,8 @@
   // Messungen des Körpergewichts aus der Datei. null heißt: Das Backup enthält keine.
   let importGewichte = null;
 
-  // Die Einstellungen aus der Datei (Standard-Pause, Einheiten, Sprache, Design). null heißt: Das Backup enthält keine.
+  // Die Einstellungen aus der Datei (Standard-Pause, Einheiten, Sprache, Design, Übung der Kraft-Karte).
+  // null heißt: Das Backup enthält keine.
   let importEinstellungen = null;
 
   // Name und Benutzername aus der Datei. null heißt: Das Backup enthält keine (z. B. ein älteres Backup).
@@ -5153,6 +5498,9 @@
     if (e.design === "dunkel" || e.design === "hell") {
       sauber.design = e.design;
     }
+    if (kraftUebungBereinigen(e.kraftUebung)) {
+      sauber.kraftUebung = kraftUebungBereinigen(e.kraftUebung);
+    }
     return sauber;
   }
 
@@ -5166,6 +5514,9 @@
     }
     if (neu.design) {
       einstellungen.design = neu.design;
+    }
+    if (neu.kraftUebung) {
+      einstellungen.kraftUebung = neu.kraftUebung;
     }
     einstellungenSpeichern();
     designAnwenden();
@@ -5480,6 +5831,7 @@
     frage: '<circle cx="12" cy="12" r="8"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8M12 16.5v.01"/>',
     info: '<circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8v.01"/>',
     link: '<path d="M8 6h10v10M18 6L6 18"/>',
+    wechsel: '<path d="M8 20V4M8 4L4.5 7.5M8 4l3.5 3.5M16 4v16M16 20l-3.5-3.5M16 20l3.5-3.5"/>',
     abzeichen: '<circle cx="12" cy="14.5" r="5"/><path d="M9.3 10.2L6 3h4l2 4 2-4h4l-3.3 7.2"/>'
   };
 

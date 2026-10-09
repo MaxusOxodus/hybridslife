@@ -479,6 +479,93 @@ h1 {
   margin-top: 0;
 }
 
+/* Karte "Kraft": Die ganze Fläche ist ein Button, der den Verlauf öffnet. Der runde Knopf oben rechts
+   liegt als eigener Button darüber und öffnet nur die Auswahl der Übung. */
+.kraft-karte {
+  position: relative;
+  padding: 0;
+}
+
+.kraft-flaeche {
+  display: block;
+  width: 100%;
+  padding: 20px;
+  border: none;
+  border-radius: 20px;
+  background: none;
+  color: var(--text);
+  font-size: 17px;
+  text-align: left;
+}
+
+/* Rechts bleibt Platz für den runden Knopf */
+.kraft-flaeche .routine-name {
+  min-height: 28px;
+  padding-right: 40px;
+}
+
+.kraft-wahl {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 22px;
+  background: var(--fuellung);
+  color: var(--text);
+}
+
+/* Links der aktuelle Wert, rechts die Veränderung */
+.kraft-werte {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.kraft-werte .kachel-titel {
+  margin-top: 4px;
+}
+
+.kraft-aenderung {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+/* Der Pfeil mit der Veränderung: ein Anstieg in der Akzentfarbe, ein Rückgang neutral, ohne Veränderung ein leiser Strich */
+.kraft-pfeil {
+  font-weight: 700;
+}
+
+.kraft-pfeil.hoch {
+  color: var(--akzent-text);
+}
+
+.kraft-pfeil.gleich {
+  color: var(--text-leise);
+}
+
+/* Auswahl der Übung: der Haken an der gewählten Zeile und die Zeile "Automatisch" mit kleiner zweiter Zeile */
+.wahl-haken {
+  flex-shrink: 0;
+  color: var(--akzent-text);
+  font-weight: 700;
+}
+
+.wahl-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.wahl-text .routine-info {
+  margin-top: 2px;
+}
+
 /* "Alle Einträge" springt zur Liste: etwas Abstand, damit die Kopfzeile nichts verdeckt */
 #liste {
   scroll-margin-top: calc(44px + env(safe-area-inset-top));
@@ -806,6 +893,23 @@ h1 {
 
 #sheet-zurueck.versteckt {
   display: none;
+}
+
+/* Ein Titel zum Antippen (der Name der Übung im Verlauf): sieht aus wie der Titel, der kleine Pfeil zeigt, dass er aufgeht */
+.sheet-kopf .titel-knopf {
+  width: auto;
+  height: auto;
+  min-height: 48px;
+  padding: 0 0 0 10px;
+  border-radius: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.titel-knopf::after {
+  content: " ▾";
+  color: var(--text-leise);
+  font-size: 16px;
 }
 
 /* Suchfeld oben im Sheet. Aus dem eingetippten Namen lässt sich auch eine eigene Übung anlegen. */
@@ -1381,6 +1485,15 @@ h1 {
   color: var(--akzent-text);
 }
 
+/* Ein zweiter, kleinerer Umschalter direkt unter einem anderen (die Zeiträume im Verlauf) */
+.umschalter.klein {
+  margin-top: 8px;
+}
+
+.umschalter.klein button {
+  min-height: 34px;
+}
+
 /* Über dem Diagramm: links der Wert des gewählten Punktes, rechts sein Datum */
 .diagramm-info {
   display: flex;
@@ -1415,7 +1528,8 @@ h1 {
 }
 
 /* Hauptlinie: kräftig und grün */
-.diagramm .linie-haupt {
+.diagramm .linie-haupt,
+.mini-diagramm .linie-haupt {
   fill: none;
   stroke: var(--akzent-text);
   stroke-width: 2;
@@ -1432,8 +1546,21 @@ h1 {
   opacity: 0.5;
 }
 
-.diagramm .punkt-haupt {
+.diagramm .punkt-haupt,
+.mini-diagramm .punkt-haupt {
   fill: var(--akzent-text);
+}
+
+/* Das kleine Diagramm der Kraft-Karte auf Home: nur die Linie, ohne Achsen */
+.mini-diagramm {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 12px;
+}
+
+.mini-diagramm .linie-haupt {
+  stroke-width: 2.5;
 }
 
 .diagramm .punkt-neben {

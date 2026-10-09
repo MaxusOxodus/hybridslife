@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=21">
+  <link rel="stylesheet" href="style.css?v=22">
 </head>
 <body>
 
@@ -58,6 +58,10 @@
       <!-- Aktuelles Körpergewicht: Den Inhalt füllt die app.js, ein Tipp öffnet das Eintragen -->
       <h2 class="abschnitt" data-t="koerpergewicht">Körpergewicht</h2>
       <button id="home-gewicht" class="karte gewicht-karte" onclick="gewichtSheetOeffnen()"></button>
+
+      <!-- Kraft: der Verlauf einer Übung als kleines Diagramm. Den Inhalt füllt die app.js, ein Tipp öffnet den großen Verlauf. -->
+      <h2 class="abschnitt" data-t="kraft.titel">Kraft</h2>
+      <div id="home-kraft"></div>
 
       <h2 class="abschnitt" data-t="home.log">Log</h2>
       <button class="zweit-btn" onclick="logZeigen()" data-t="home.einzeln">Einzelne Übung eintragen</button>
@@ -452,14 +456,26 @@
   <div id="verlauf-sheet" class="zusatz-sheet">
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">
-      <span id="verlauf-titel" class="sheet-titel"></span>
+      <!-- Der Name der Übung: Antippen öffnet die Liste, um zu einer anderen Übung zu wechseln -->
+      <button id="verlauf-titel" class="sheet-titel titel-knopf" onclick="kraftWahlOeffnen('verlauf')"></button>
       <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
     <div class="zusatz-inhalt">
       <div id="verlauf-art" class="umschalter"></div>
+      <div id="verlauf-zeitraum" class="umschalter klein"></div>
       <div id="verlauf-diagramm"></div>
       <p id="verlauf-hinweis" class="meldung"></p>
     </div>
+  </div>
+
+  <!-- Sheet: Übung für den Verlauf wählen. Es liegt über dem Verlauf, deshalb steht es im HTML danach. Die Liste füllt die app.js. -->
+  <div id="kraft-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span class="sheet-titel" data-t="kraft.waehlen">Übung wählen</span>
+      <button onclick="kraftWahlSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+    </div>
+    <div id="kraft-sheet-liste" class="zusatz-inhalt"></div>
   </div>
 
   <!-- Sheet: Körpergewicht eintragen -->
@@ -717,9 +733,9 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=21"></script>
-<script src="uebungen.js?v=21"></script>
-<script src="app.js?v=21"></script>
+<script src="texte.js?v=22"></script>
+<script src="uebungen.js?v=22"></script>
+<script src="app.js?v=22"></script>
 
 </body>
 </html>

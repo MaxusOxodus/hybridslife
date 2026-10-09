@@ -985,8 +985,10 @@
     const e = GEWICHT_EINHEITEN[einheit()];
     felder["feld-gewicht"].max = e.max;
     felder["t-feld-gewicht"].max = e.max;
+    felder["s-feld-gewicht"].max = e.max;
     document.getElementById("feld-gewicht").setAttribute("aria-label", txt("gewicht.in", { einheit: einheit() }));
     document.getElementById("t-feld-gewicht").setAttribute("aria-label", txt("gewicht.in", { einheit: einheit() }));
+    document.getElementById("s-feld-gewicht").setAttribute("aria-label", txt("gewicht.in", { einheit: einheit() }));
 
     const titel = document.querySelectorAll(".gewicht-titel");
     for (let i = 0; i < titel.length; i++) {
@@ -2559,7 +2561,7 @@
   // ---------- Training: Rückfrage-Dialog ----------
 
   // Zeigt eine Frage mit beliebigen Buttons. Jeder Knopf hat einen Text, optional eine Art
-  // ("haupt" oder "leise") und optional eine Aktion, die nach dem Antippen läuft.
+  // ("haupt", "leise" oder "gefahr" für rotes Löschen) und optional eine Aktion, die nach dem Antippen läuft.
   function frageZeigen(titel, text, knoepfe) {
     document.getElementById("frage-titel").textContent = titel;
     document.getElementById("frage-text").textContent = text;
@@ -3308,6 +3310,7 @@
 
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
+    modusSaetzeAnzeigen();
   }
 
   // Der Balken oben füllt sich mit jeder Übung, die mindestens einen Satz hat
@@ -3502,24 +3505,7 @@
       t.erledigt.push({ id: eintrag.id, uebung: eintrag.uebung });
     }
 
-    // Die einzelnen Sätze, dazu wie bei jedem Eintrag Sätze, Wdh. und Gewicht:
-    // die Anzahl der Sätze und die Werte des schwersten Satzes (bei gleichem Gewicht der mit mehr Wdh.)
-    let schwerster = u.saetze[0];
-    eintrag.einzelsaetze = [];
-    for (let i = 0; i < u.saetze.length; i++) {
-      const s = u.saetze[i];
-      const einzeln = { gewicht: s.gewicht, wdh: s.wdh };
-      if (rirLesen(s.rir) !== null) {
-        einzeln.rir = s.rir;
-      }
-      eintrag.einzelsaetze.push(einzeln);
-      if (s.gewicht > schwerster.gewicht || (s.gewicht === schwerster.gewicht && s.wdh > schwerster.wdh)) {
-        schwerster = s;
-      }
-    }
-    eintrag.saetze = u.saetze.length;
-    eintrag.gewicht = schwerster.gewicht;
-    eintrag.wdh = schwerster.wdh;
+    eintragSaetzeSchreiben(eintrag, u.saetze);
 
     localStorage.setItem("eintraege", JSON.stringify(eintraege));
     anzeigen();
@@ -3530,7 +3516,263 @@
     pauseStarten(pauseDauer(u));
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(false);
+    modusSaetzeAnzeigen();
     window.scrollTo(0, 0);
+  }
+
+  // Schreibt eine Liste von Sätzen in einen Eintrag: die einzelnen Sätze, dazu wie bei jedem Eintrag
+  // Sätze, Wdh. und Gewicht, also die Anzahl der Sätze und die Werte des schwersten Satzes
+  // (bei gleichem Gewicht der mit mehr Wdh.). Die Liste darf nicht leer sein.
+  function eintragSaetzeSchreiben(eintrag, saetze) {
+    let schwerster = saetze[0];
+    eintrag.einzelsaetze = [];
+    for (let i = 0; i < saetze.length; i++) {
+      const s = saetze[i];
+      const einzeln = { gewicht: s.gewicht, wdh: s.wdh };
+      if (rirLesen(s.rir) !== null) {
+        einzeln.rir = s.rir;
+      }
+      eintrag.einzelsaetze.push(einzeln);
+      if (s.gewicht > schwerster.gewicht || (s.gewicht === schwerster.gewicht && s.wdh > schwerster.wdh)) {
+        schwerster = s;
+      }
+    }
+    eintrag.saetze = saetze.length;
+    eintrag.gewicht = schwerster.gewicht;
+    eintrag.wdh = schwerster.wdh;
+  }
+
+  // ---------- Satz bearbeiten ----------
+
+  // Der Satz, der gerade im Sheet bearbeitet wird: die id seines Eintrags und sein Platz in den Sätzen.
+  // satzRir ist die Auswahl der Reps in Reserve im Sheet.
+  let satzEintragId = "";
+  let satzIndex = -1;
+  let satzRir = null;
+
+  // "80 kg × 10", mit Reps in Reserve "80 kg × 10 · RIR 2"
+  function satzText(satz) {
+    let text = gewichtText(satz.gewicht) + " × " + satz.wdh;
+    if (rirLesen(satz.rir) !== null) {
+      text += " · " + rirText(satz.rir);
+    }
+    return text;
+  }
+
+  // Baut zu einem Eintrag eine Zeile je Satz. Antippen öffnet das Bearbeiten.
+  function satzZeilenBauen(behaelter, eintrag) {
+    const saetze = saetzeVon(eintrag);
+    for (let i = 0; i < saetze.length; i++) {
+      const zeile = element("button", "satz-zeile");
+      zeile.appendChild(element("span", "satz-nummer", i + 1));
+      zeile.appendChild(element("span", "satz-werte", satzText(saetze[i])));
+      const pfeil = element("span", "einst-pfeil", "›");
+      pfeil.setAttribute("aria-hidden", "true");
+      zeile.appendChild(pfeil);
+      zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: i + 1 }) + ": " + satzText(saetze[i]));
+      zeile.onclick = function () {
+        satzSheetOeffnen(eintrag.id, i);
+      };
+      behaelter.appendChild(zeile);
+    }
+  }
+
+  // Im Trainingsmodus: die schon eingetragenen Sätze der gezeigten Übung
+  function modusSaetzeAnzeigen() {
+    const bereich = document.getElementById("modus-saetze");
+    bereich.innerHTML = "";
+    const t = laufendesTraining;
+    if (!t || !t.uebungen[t.index]) {
+      return;
+    }
+    const eintrag = eintragFinden(t.uebungen[t.index].eintragId);
+    if (!eintrag || saetzeVon(eintrag).length === 0) {
+      return;
+    }
+    bereich.appendChild(element("h2", "abschnitt", txt("satz.deine")));
+    const karte = element("div", "karte satz-liste");
+    satzZeilenBauen(karte, eintrag);
+    bereich.appendChild(karte);
+  }
+
+  // Öffnet das Sheet für einen Satz und stellt die Felder auf seine Werte
+  function satzSheetOeffnen(eintragId, index) {
+    const eintrag = eintragFinden(eintragId);
+    if (!eintrag) {
+      return;
+    }
+    const satz = saetzeVon(eintrag)[index];
+    if (!satz) {
+      return;
+    }
+    satzEintragId = eintragId;
+    satzIndex = index;
+    satzRir = satz.rir;
+
+    document.getElementById("satz-sheet-titel").textContent = txt("satz.bearbeiten", { n: index + 1 });
+    document.getElementById("satz-sheet-uebung").textContent = anzeigeName(eintrag.uebung, eintrag.uebungId);
+    gewichtFeldSetzen("s-feld-gewicht", startGewicht());
+    feldSetzen("s-feld-wdh", START_WDH);
+    gewichtFeldSetzen("s-feld-gewicht", satz.gewicht);
+    feldSetzen("s-feld-wdh", satz.wdh);
+    satzRirAnzeigen();
+    zusatzSheetOeffnen("satz-sheet");
+  }
+
+  // Die Auswahl der Reps in Reserve im Sheet. Ein Tipp auf den gewählten Wert nimmt die Angabe wieder zurück.
+  function satzRirAnzeigen() {
+    umschalterBauen(document.getElementById("satz-rir"), RIR_AUSWAHL, satzRir, function (rir) {
+      if (satzRir === rir) {
+        satzRir = null;
+      } else {
+        satzRir = rir;
+      }
+      satzRirAnzeigen();
+    });
+  }
+
+  // Schließt nur das Bearbeiten. Der Trainingstag darunter bleibt offen, wenn es von dort geöffnet wurde.
+  function satzSheetSchliessen() {
+    if (document.getElementById("tag-sheet").classList.contains("offen")) {
+      document.getElementById("satz-sheet").classList.remove("offen");
+    } else {
+      zusatzSheetsSchliessen();
+    }
+  }
+
+  // "Speichern" im Sheet: Der Satz bekommt die neuen Werte, an seinem Platz im vorhandenen Eintrag.
+  // Alle anderen Sätze bleiben, wie sie sind. Eine Pause startet dabei nicht.
+  function satzSpeichern() {
+    const eintrag = eintragFinden(satzEintragId);
+    if (!eintrag) {
+      satzSheetSchliessen();
+      return;
+    }
+    const saetze = saetzeVon(eintrag);
+    const alt = saetze[satzIndex];
+    if (!alt) {
+      satzSheetSchliessen();
+      return;
+    }
+
+    // Steht im Feld noch das angezeigte Gewicht, bleibt das gespeicherte unverändert.
+    // Sonst könnte es sich in lbs durch das Hin- und Zurückrechnen um Bruchteile verschieben.
+    let gewicht = alt.gewicht;
+    if (feldWert("s-feld-gewicht") !== gewichtAnzeige(alt.gewicht)) {
+      gewicht = gewichtFeldWert("s-feld-gewicht");
+    }
+    saetze[satzIndex] = { gewicht: gewicht, wdh: feldWert("s-feld-wdh"), rir: satzRir };
+
+    eintragSaetzeSchreiben(eintrag, saetze);
+    satzAenderungSichern(eintrag, saetze);
+    satzSheetSchliessen();
+  }
+
+  // Fragt nach, bevor der Satz gelöscht wird
+  function satzLoeschenFragen() {
+    const eintrag = eintragFinden(satzEintragId);
+    if (!eintrag) {
+      satzSheetSchliessen();
+      return;
+    }
+    const saetze = saetzeVon(eintrag);
+    if (!saetze[satzIndex]) {
+      satzSheetSchliessen();
+      return;
+    }
+
+    let text = txt("satz.loeschenText", {
+      name: anzeigeName(eintrag.uebung, eintrag.uebungId),
+      n: satzIndex + 1,
+      satz: satzText(saetze[satzIndex])
+    });
+    if (saetze.length === 1) {
+      text += " " + txt("satz.loeschenEinziger");
+    }
+    frageZeigen(txt("satz.loeschenFrage"), text, [
+      { text: txt("loeschen"), art: "gefahr", aktion: satzLoeschen },
+      { text: txt("abbrechen"), art: "leise" }
+    ]);
+  }
+
+  // Löscht den Satz aus seinem Eintrag. War es der einzige, verschwindet der Eintrag selbst.
+  function satzLoeschen() {
+    const eintrag = eintragFinden(satzEintragId);
+    if (!eintrag) {
+      satzSheetSchliessen();
+      return;
+    }
+    const saetze = saetzeVon(eintrag);
+    if (!saetze[satzIndex]) {
+      satzSheetSchliessen();
+      return;
+    }
+    saetze.splice(satzIndex, 1);
+
+    if (saetze.length > 0) {
+      eintragSaetzeSchreiben(eintrag, saetze);
+    } else {
+      eintraege.splice(eintraege.indexOf(eintrag), 1);
+    }
+    satzAenderungSichern(eintrag, saetze);
+    satzSheetSchliessen();
+  }
+
+  // Nach dem Ändern oder Löschen eines Satzes: speichern, das laufende Training nachziehen
+  // und alles neu anzeigen, was den Eintrag zeigt. saetze sind die Sätze, die der Eintrag jetzt hat.
+  function satzAenderungSichern(eintrag, saetze) {
+    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+
+    // Gehört der Eintrag zum laufenden Training, bekommt dessen Übung dieselben Sätze.
+    // Ohne Sätze ist die Übung wieder offen.
+    const t = laufendesTraining;
+    if (t) {
+      for (let i = 0; i < t.uebungen.length; i++) {
+        const u = t.uebungen[i];
+        if (u.eintragId !== eintrag.id) {
+          continue;
+        }
+        u.saetze = [];
+        for (let j = 0; j < saetze.length; j++) {
+          const satz = { gewicht: saetze[j].gewicht, wdh: saetze[j].wdh };
+          if (rirLesen(saetze[j].rir) !== null) {
+            satz.rir = saetze[j].rir;
+          }
+          u.saetze.push(satz);
+        }
+        if (saetze.length === 0) {
+          u.eintragId = "";
+          for (let j = t.erledigt.length - 1; j >= 0; j--) {
+            if (t.erledigt[j].id === eintrag.id) {
+              t.erledigt.splice(j, 1);
+            }
+          }
+        }
+      }
+      trainingMerken();
+    }
+
+    anzeigen();
+    letztesMalAnzeigen();
+
+    // Der Trainingsmodus: Die Eingabe für den nächsten Satz und eine laufende Pause bleiben, wie sie sind
+    if (t && trainingAnsicht === "modus") {
+      modusFortschrittAnzeigen();
+      modusZustandAnzeigen(false);
+      modusSaetzeAnzeigen();
+    }
+
+    // Das Profil mit dem offenen Trainingstag. Hat der Tag keinen Eintrag mehr, schließt sich sein Sheet.
+    if (aktiveSeite === "profil") {
+      profilAnzeigen();
+      if (document.getElementById("tag-sheet").classList.contains("offen")) {
+        if (profilTage[tagSheetSchluessel]) {
+          tagSheetFuellen(tagSheetSchluessel);
+        } else {
+          zusatzSheetsSchliessen();
+        }
+      }
+    }
   }
 
   // "+ Satz" nach dem letzten Ziel-Satz: noch ein Satz derselben Übung
@@ -3743,7 +3985,7 @@
 
   // ---------- Home ----------
 
-  // Wechselt auf der Home-Seite zwischen Übersicht ("home") und Log ("log")
+  // Wechselt auf der Home-Seite zwischen Übersicht ("home") und "Übung eintragen" mit der Liste der Einträge ("log")
   function homeAnsichtZeigen(name) {
     document.getElementById("ansicht-home").classList.toggle("versteckt", name !== "home");
     document.getElementById("ansicht-log").classList.toggle("versteckt", name !== "log");
@@ -4535,7 +4777,7 @@
     }
   }
 
-  // Öffnet eines der Sheets ("verlauf-sheet", "gewicht-sheet", "uebungen-sheet" oder "tag-sheet")
+  // Öffnet eines der Sheets ("verlauf-sheet", "gewicht-sheet", "uebungen-sheet", "tag-sheet" oder "satz-sheet")
   function zusatzSheetOeffnen(id) {
     document.getElementById(id).classList.add("offen");
     document.getElementById("zusatz-hintergrund").classList.add("offen");
@@ -4547,6 +4789,7 @@
     document.getElementById("verlauf-sheet").classList.remove("offen");
     document.getElementById("gewicht-sheet").classList.remove("offen");
     document.getElementById("tag-sheet").classList.remove("offen");
+    document.getElementById("satz-sheet").classList.remove("offen");
     document.getElementById("kraft-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
     document.body.classList.remove("sheet-offen");
@@ -5926,6 +6169,7 @@
     import: '<path d="M12 4v11M8 11l4 4 4-4M5 14v5h14v-5"/>',
     frage: '<circle cx="12" cy="12" r="8"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8M12 16.5v.01"/>',
     info: '<circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8v.01"/>',
+    liste: '<path d="M9 7h11M9 12h11M9 17h11M4.5 7v.01M4.5 12v.01M4.5 17v.01"/>',
     link: '<path d="M8 6h10v10M18 6L6 18"/>',
     wechsel: '<path d="M8 20V4M8 4L4.5 7.5M8 4l3.5 3.5M16 4v16M16 20l-3.5-3.5M16 20l3.5-3.5"/>',
     abzeichen: '<circle cx="12" cy="14.5" r="5"/><path d="M9.3 10.2L6 3h4l2 4 2-4h4l-3.3 7.2"/>'
@@ -6514,17 +6758,27 @@
     }
   }
 
+  // Der Trainingstag, dessen Details gerade offen sind
+  let tagSheetSchluessel = "";
+
   // Die Details eines Trainingstags: jede Übung mit ihren Sätzen
   function tagSheetOeffnen(schluessel) {
-    const tag = profilTage[schluessel];
-    if (!tag) {
+    if (!profilTage[schluessel]) {
       return;
     }
+    tagSheetFuellen(schluessel);
+    document.getElementById("tag-sheet-inhalt").scrollTop = 0;
+    zusatzSheetOeffnen("tag-sheet");
+  }
+
+  // Baut den Inhalt des Sheets. Jeder Satz ist eine Zeile, Antippen öffnet das Bearbeiten.
+  function tagSheetFuellen(schluessel) {
+    const tag = profilTage[schluessel];
+    tagSheetSchluessel = schluessel;
     document.getElementById("tag-sheet-titel").textContent = tagTextMitJahr(tag.datum);
 
     const inhalt = document.getElementById("tag-sheet-inhalt");
     inhalt.innerHTML = "";
-    inhalt.scrollTop = 0;
     const uebungen = tagUebungen(tag);
     const teile = [txtAnzahl("anzahl.uebungen", uebungen.length), txtAnzahl("anzahl.saetze", tag.saetze), volumenText(tag.volumen)];
     // Gab es eine Routine, steht ihr Name vorn
@@ -6537,10 +6791,14 @@
       const e = tag.eintraege[i];
       const zeile = element("div", "tag-eintrag");
       zeile.appendChild(element("div", "tag-eintrag-name", anzeigeName(e.uebung, e.uebungId)));
-      zeile.appendChild(element("div", "routine-info", saetzeText(e)));
+      // Einträge, bei denen keine Zahlen stehen, haben keine einzelnen Sätze: Sie zeigen nur ihren Text
+      if (saetzeVon(e).length === 0) {
+        zeile.appendChild(element("div", "routine-info", saetzeText(e)));
+      } else {
+        satzZeilenBauen(zeile, e);
+      }
       inhalt.appendChild(zeile);
     }
-    zusatzSheetOeffnen("tag-sheet");
   }
 
   // Statistik: die Serie und die Zahlen der laufenden Woche, alles in der gewählten Einheit
@@ -6638,6 +6896,17 @@
     document.getElementById("bald-hinweis").textContent = "";
     datenMeldung("");
     profilAnzeigen();
+  }
+
+  // "Einträge ansehen": schließt die Einstellungen und zeigt auf Home die Liste aller Einträge
+  function eintraegeAnsehen() {
+    einstSchliessen();
+    gewaehlterTag = null;
+    wochenleisteAnzeigen();
+    speichernButtonAktualisieren();
+    anzeigen();
+    seiteZeigen("home");
+    logZeigen(true);
   }
 
   // Zeigt eine Ansicht der Einstellungen: "haupt" oder eine der Unterseiten
@@ -6753,6 +7022,10 @@ feldBauen("feld-saetze", 1, 10, false, START_SAETZE);
 // Die zwei Zahlenfelder des Trainingsmodus
 feldBauen("t-feld-gewicht", 0, GEWICHT_EINHEITEN[einheit()].max, true, GEWICHT_EINHEITEN[einheit()].start);
 feldBauen("t-feld-wdh", 1, 100, false, START_WDH);
+
+// Die zwei Zahlenfelder im Sheet "Satz bearbeiten", mit denselben Grenzen
+feldBauen("s-feld-gewicht", 0, GEWICHT_EINHEITEN[einheit()].max, true, GEWICHT_EINHEITEN[einheit()].start);
+feldBauen("s-feld-wdh", 1, 100, false, START_WDH);
 
 // Die festen Texte der Seite in der eingestellten Sprache
 texteEinsetzen();

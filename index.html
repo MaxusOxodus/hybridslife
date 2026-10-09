@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=23">
+  <link rel="stylesheet" href="style.css?v=24">
 </head>
 <body>
 
@@ -62,16 +62,13 @@
       <!-- Kraft: der Verlauf einer Übung als kleines Diagramm. Den Inhalt füllt die app.js, ein Tipp öffnet den großen Verlauf. -->
       <h2 class="abschnitt" data-t="kraft.titel">Kraft</h2>
       <div id="home-kraft"></div>
-
-      <h2 class="abschnitt" data-t="home.log">Log</h2>
-      <button class="zweit-btn" onclick="logZeigen()" data-t="home.einzeln">Einzelne Übung eintragen</button>
-      <button class="zweit-btn" onclick="logZeigen(true)" data-t="home.alleEintraege">Alle Einträge</button>
     </div>
 
-    <!-- Ansicht: Log, einzelne Übungen eintragen und die Liste der Einträge nach Wochen -->
+    <!-- Ansicht: Übung eintragen und die Liste der Einträge nach Wochen. Sie öffnet sich über einen Tag
+         in "Diese Woche" oder über "Einträge ansehen" in den Einstellungen. -->
     <div id="ansicht-log" class="ansicht versteckt">
     <button class="text-btn" onclick="homeZeigen()" data-t="zurueck.pfeil">‹ Zurück</button>
-    <div class="ansicht-titel" data-t="home.log">Log</div>
+    <div class="ansicht-titel" data-t="log.titel">Übung eintragen</div>
     <p class="unterzeile" data-t="log.unterzeile">Trag dein Training ein</p>
 
     <div class="wochen-kopf">
@@ -225,6 +222,9 @@
       </div>
 
       <button id="modus-weiter" class="zweit-btn" onclick="uebungBeenden()">Übung überspringen</button>
+
+      <!-- Die schon eingetragenen Sätze der Übung: Antippen öffnet das Bearbeiten. Die Zeilen baut die app.js. -->
+      <div id="modus-saetze"></div>
 
       <p id="modus-ziel" class="modus-ziel"></p>
       <p id="modus-hinweis" class="modus-hinweis"></p>
@@ -520,6 +520,42 @@
     <div id="tag-sheet-inhalt" class="zusatz-inhalt"></div>
   </div>
 
+  <!-- Sheet: einen eingetragenen Satz ändern oder löschen. Es liegt über dem Trainingstag, deshalb steht es im HTML danach. -->
+  <div id="satz-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span id="satz-sheet-titel" class="sheet-titel"></span>
+      <button onclick="satzSheetSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+    </div>
+    <div class="zusatz-inhalt">
+      <p id="satz-sheet-uebung" class="tag-zusammenfassung"></p>
+      <div class="eingaben zwei">
+        <div>
+          <div class="rad-titel gewicht-titel">Gewicht (kg)</div>
+          <input id="s-feld-gewicht" class="zahl-feld" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" aria-label="Gewicht in kg">
+          <div class="schnell">
+            <button class="gewicht-weniger" onclick="gewichtAendern('s-feld-gewicht', -1)" aria-label="2,5 kg weniger">−2,5</button>
+            <button class="gewicht-mehr" onclick="gewichtAendern('s-feld-gewicht', 1)" aria-label="2,5 kg mehr">+2,5</button>
+          </div>
+        </div>
+        <div>
+          <div class="rad-titel" data-t="wdh">Wdh.</div>
+          <input id="s-feld-wdh" class="zahl-feld" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen" data-t-aria="wiederholungen">
+          <div class="schnell">
+            <button onclick="feldAendern('s-feld-wdh', -1)" aria-label="Eine Wiederholung weniger" data-t-aria="wdh.weniger">−1</button>
+            <button onclick="feldAendern('s-feld-wdh', 1)" aria-label="Eine Wiederholung mehr" data-t-aria="wdh.mehr">+1</button>
+          </div>
+        </div>
+      </div>
+      <div class="rir">
+        <div class="rad-titel" data-t="modus.rir">Reps in Reserve (optional)</div>
+        <div id="satz-rir" class="umschalter"></div>
+      </div>
+      <button class="speichern-btn" onclick="satzSpeichern()" data-t="speichern">Speichern</button>
+      <button class="zweit-btn gefahr" onclick="satzLoeschenFragen()" data-t="satz.loeschen">Satz löschen</button>
+    </div>
+  </div>
+
   <!-- Einstellungen: füllen den ganzen Bildschirm. Sichtbar ist immer eine Ansicht: die Übersicht oder eine Unterseite.
        Oben links steht ✕ zum Schließen, auf einer Unterseite ‹ zurück zur Übersicht. -->
   <div id="einst-sheet">
@@ -611,6 +647,11 @@
           <button class="einst-zeile" onclick="document.getElementById('backup-datei').click()">
             <span class="icon einst-icon" data-icon="import"></span>
             <span class="einst-titel" data-t="backup.importieren">Backup importieren</span>
+            <span class="einst-pfeil" aria-hidden="true">›</span>
+          </button>
+          <button class="einst-zeile" onclick="eintraegeAnsehen()">
+            <span class="icon einst-icon" data-icon="liste"></span>
+            <span class="einst-titel" data-t="einst.eintraege">Einträge ansehen</span>
             <span class="einst-pfeil" aria-hidden="true">›</span>
           </button>
           <input id="backup-datei" class="unsichtbar" type="file" accept=".json,application/json" onchange="backupDateiGewaehlt(this)">
@@ -734,9 +775,9 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=23"></script>
-<script src="uebungen.js?v=23"></script>
-<script src="app.js?v=23"></script>
+<script src="texte.js?v=24"></script>
+<script src="uebungen.js?v=24"></script>
+<script src="app.js?v=24"></script>
 
 </body>
 </html>

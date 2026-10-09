@@ -67,13 +67,22 @@ const TEXTE = {
   "wdh.mehr": { de: "Eine Wiederholung mehr", en: "One rep more" },
   "satz.weniger": { de: "Ein Satz weniger", en: "One set less" },
   "satz.mehr": { de: "Ein Satz mehr", en: "One set more" },
+  "satz.deine": { de: "Deine Sätze", en: "Your sets" },
+  "satz.bearbeiten": { de: "Satz {n} bearbeiten", en: "Edit set {n}" },
+  "satz.loeschen": { de: "Satz löschen", en: "Delete set" },
+  "satz.loeschenFrage": { de: "Satz löschen?", en: "Delete set?" },
+  "satz.loeschenText": {
+    de: "{name}: Satz {n} ({satz}) wird entfernt. Das lässt sich nicht rückgängig machen.",
+    en: "{name}: set {n} ({satz}) will be removed. This cannot be undone."
+  },
+  "satz.loeschenEinziger": {
+    de: "Es ist der einzige Satz dieser Übung, damit verschwindet auch ihr Eintrag.",
+    en: "It is the only set of this exercise, so its entry is removed too."
+  },
 
   // ---------- Home ----------
   "home.dieseWoche": { de: "Diese Woche", en: "This Week" },
   "home.letztesTraining": { de: "Letztes Training", en: "Last Workout" },
-  "home.log": { de: "Log", en: "Log" },
-  "home.einzeln": { de: "Einzelne Übung eintragen", en: "Log a single exercise" },
-  "home.alleEintraege": { de: "Alle Einträge", en: "All entries" },
   "home.tippen": { de: "Tippen zum Eintragen", en: "Tap to log" },
   "home.laeuft": { de: "Läuft gerade", en: "In progress" },
   "home.erledigt": { de: "Heute erledigt", en: "Done today" },
@@ -92,6 +101,7 @@ const TEXTE = {
   "freiesTraining": { de: "Freies Training", en: "Free workout" },
 
   // ---------- Log ----------
+  "log.titel": { de: "Übung eintragen", en: "Log exercise" },
   "log.unterzeile": { de: "Trag dein Training ein", en: "Log your workout" },
   "log.wocheZurueck": { de: "Woche zurück", en: "Previous week" },
   "log.wocheVor": { de: "Woche vor", en: "Next week" },
@@ -455,6 +465,7 @@ const TEXTE = {
   },
   "einst.support": { de: "Support", en: "Support" },
   "einst.faq": { de: "FAQ", en: "FAQ" },
+  "einst.eintraege": { de: "Einträge ansehen", en: "View entries" },
   "einst.ueber": { de: "Über", en: "About" },
   "einst.folgen": { de: "Folge uns", en: "Follow us" },
   "design": { de: "Design", en: "Appearance" },

@@ -11,6 +11,8 @@
   --akzent-text: #C6F135;
   --akzent-leicht: rgba(198, 241, 53, 0.15);
   --auf-akzent: #000000;
+  /* Rot für Aktionen, die etwas löschen */
+  --gefahr: #FF453A;
   /* Dezente Fläche für Felder und Buttons, die auf einer Karte liegen */
   --fuellung: rgba(255, 255, 255, 0.09);
   --griff: rgba(255, 255, 255, 0.3);
@@ -37,6 +39,7 @@
     /* Limettengrün wäre auf Weiß kaum lesbar, deshalb hier ein dunkles Grün */
     --akzent-text: #3F6B0B;
     --akzent-leicht: rgba(63, 107, 11, 0.12);
+    --gefahr: #D70015;
     --fuellung: rgba(120, 120, 128, 0.12);
     --griff: rgba(60, 60, 67, 0.3);
     --text-aus: rgba(60, 60, 67, 0.3);
@@ -58,6 +61,7 @@
   /* Limettengrün wäre auf Weiß kaum lesbar, deshalb hier ein dunkles Grün */
   --akzent-text: #3F6B0B;
   --akzent-leicht: rgba(63, 107, 11, 0.12);
+  --gefahr: #D70015;
   --fuellung: rgba(120, 120, 128, 0.12);
   --griff: rgba(60, 60, 67, 0.3);
   --text-aus: rgba(60, 60, 67, 0.3);
@@ -2335,6 +2339,50 @@ button.einst-zeile:first-child {
   overflow-wrap: anywhere;
 }
 
+/* ---------- Eingetragene Sätze ---------- */
+
+/* Ein Satz als Zeile zum Antippen: Nummer, Werte, Pfeil. Im Trainingsmodus und im Trainingstag. */
+.satz-liste {
+  padding: 0 16px;
+}
+
+.satz-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 17px;
+  text-align: left;
+}
+
+.satz-liste .satz-zeile + .satz-zeile {
+  border-top: 1px solid var(--rand);
+}
+
+.satz-nummer {
+  flex-shrink: 0;
+  min-width: 22px;
+  color: var(--text-leise);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.satz-werte {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Die Zahlenfelder im Sheet "Satz bearbeiten" */
+#satz-sheet .zahl-feld {
+  background: var(--fuellung);
+}
+
 /* Abzeichen: Platzhalter mit Icon in der Mitte */
 .abzeichen-leer {
   display: flex;
@@ -2452,6 +2500,18 @@ button.einst-zeile:first-child {
 .dialog-btn.leise {
   background: none;
   color: var(--text-leise);
+}
+
+/* Löschen: rote Schrift */
+.dialog-btn.gefahr,
+.zweit-btn.gefahr {
+  color: var(--gefahr);
+  font-weight: 700;
+}
+
+/* Im Sheet steht der Button auf dem Sheet-Hintergrund, deshalb bekommt er eine leichte Füllung */
+.zusatz-sheet .zweit-btn.gefahr {
+  background: var(--fuellung);
 }
 
 /* ---------- Training: Ansichten ---------- */

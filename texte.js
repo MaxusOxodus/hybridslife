@@ -378,9 +378,7 @@ const TEXTE = {
     de: "Trainiere eine Übung, dann erscheint hier dein Verlauf.",
     en: "Train an exercise and your progress will show up here."
   },
-  "kraft.inTagen": { de: "in {n} Tagen", en: "in {n} days" },
   "kraft.seitStart": { de: "seit Start", en: "since start" },
-  "kraft.letzter": { de: "Letzter Eintrag: {datum}", en: "Last entry: {datum}" },
   "kraft.waehlen": { de: "Übung wählen", en: "Choose exercise" },
   "kraft.automatisch": { de: "Automatisch", en: "Automatic" },
   "kraft.meist": { de: "Zuletzt am häufigsten: {name}", en: "Most trained lately: {name}" },

@@ -4049,18 +4049,8 @@
     return flaeche;
   }
 
-  // Die Veränderung in einer Kachel: oben der Pfeil mit dem Wert, darunter der Zeitraum (z. B. "in 30 Tagen").
-  // art färbt den Pfeil: "hoch", "runter", "gleich" oder "" für neutral.
-  function kachelAenderung(text, art, zeit) {
-    const zeile = element("div", "kachel-aenderung");
-    zeile.appendChild(element("div", "kraft-pfeil " + art, text));
-    zeile.appendChild(element("div", "kachel-zeit", zeit));
-    return zeile;
-  }
-
-  // Die Kachel "Körpergewicht": das zuletzt eingetragene Gewicht, die Veränderung im 7-Tage-Schnitt
-  // und das kleine Diagramm der letzten drei Monate. Ein Tipp öffnet das Diagramm im Fortschritt-Tab,
-  // der Plus-Knopf das Eintragen.
+  // Die Kachel "Körpergewicht": das zuletzt eingetragene Gewicht und das kleine Diagramm der letzten drei Monate.
+  // Ein Tipp öffnet das Diagramm im Fortschritt-Tab, der Plus-Knopf das Eintragen.
   function homeGewichtAnzeigen() {
     const bereich = document.getElementById("home-gewicht");
     bereich.innerHTML = "";
@@ -4075,34 +4065,17 @@
     const letzte = liste[liste.length - 1];
     flaeche.appendChild(element("div", "home-zahl", kgText(letzte.wert)));
 
-    // Die Veränderung wie in den Kacheln des Fortschritt-Tabs. Reichen die Messungen noch nicht
-    // so weit zurück, gilt sie seit der ersten Messung. Bei nur einer Messung gibt es keine.
-    let unterschied = schnittAenderung(liste, KRAFT_TAGE);
-    let zeit = txt("kraft.inTagen", { n: KRAFT_TAGE });
-    if (unterschied === null && liste.length > 1) {
-      unterschied = schnittAenderung(liste, 0);
-      zeit = txt("kraft.seitStart");
-    }
-    if (unterschied !== null) {
-      flaeche.appendChild(kachelAenderung(schnittAenderungText(unterschied), "", zeit));
-    }
-
     // Das kleine Diagramm zeigt wie das große die Messungen und ihren 7-Tage-Schnitt.
-    // Es braucht mindestens zwei Messungen in den letzten drei Monaten. Sonst steht da, von wann der Wert ist.
-    const von = Date.now() - KRAFT_DIAGRAMM_TAGE * 86400000;
-    const messungen = [];
+    // Der Schnitt rechnet immer mit allen Messungen, auch mit denen vor dem gezeigten Zeitraum.
+    const messungen = miniZeitraum(liste);
     const schnitt = [];
-    for (let i = 0; i < liste.length; i++) {
-      if (liste[i].zeit >= von) {
-        messungen.push({ zeit: liste[i].zeit, wert: liste[i].wert });
-        schnitt.push({ zeit: liste[i].zeit, wert: schnittAm(liste, new Date(liste[i].zeit)) });
-      }
+    for (let i = 0; i < messungen.length; i++) {
+      schnitt.push({ zeit: messungen[i].zeit, wert: schnittAm(liste, new Date(messungen[i].zeit)) });
     }
-    if (messungen.length >= 2) {
-      miniDiagramm(flaeche, [{ punkte: messungen, art: "neben" }, { punkte: schnitt, art: "haupt" }]);
-    } else {
-      flaeche.appendChild(element("div", "routine-info", tagTextMitJahr(new Date(letzte.zeit))));
-    }
+    miniDiagramm(flaeche, [
+      { punkte: messungen, art: "neben", mitPunkten: true, ring: true },
+      { punkte: schnitt, art: "haupt", mitPunkten: false }
+    ]);
   }
 
   // Öffnet den Fortschritt-Tab und rollt zum Diagramm des Körpergewichts
@@ -5139,12 +5112,14 @@
 
   // ---------- Home: Karte "Kraft" ----------
 
-  // Zeitraum in Tagen für zwei Dinge: Die Karte zeigt von sich aus die Übung, die in dieser Zeit am häufigsten
-  // trainiert wurde, und sie vergleicht den aktuellen Wert mit dem von vor so vielen Tagen.
+  // Zeitraum in Tagen: Die Karte zeigt von sich aus die Übung, die in dieser Zeit am häufigsten trainiert wurde.
   const KRAFT_TAGE = 30;
 
   // So viele Tage zeigt das kleine Diagramm der Karte (91 sind drei Monate)
   const KRAFT_DIAGRAMM_TAGE = 91;
+
+  // Bis zu so vielen Werten zeichnet das kleine Diagramm jeden als Punkt, darüber nur noch die Linie
+  const MINI_PUNKTE = 20;
 
   // Ein Kraftwert, der schon in der gewählten Einheit vorliegt, als Text, z. B. "102,5 kg".
   // Die Karte und der große Verlauf schreiben ihre Werte beide so.
@@ -5183,7 +5158,6 @@
   // Die Veränderung des letzten Werts gegenüber dem letzten Punkt, der mindestens so viele Tage alt ist.
   // tage 0 vergleicht mit dem ersten Eintrag ("seit Start"). Gibt es keinen so alten Punkt oder nur einen einzigen: null.
   // Verglichen werden die Werte so, wie sie angezeigt werden: in der gewählten Einheit, auf eine Nachkommastelle.
-  // Die Kachel auf Home und die Kacheln im großen Verlauf rechnen beide hiermit.
   function kraftAenderung(punkte, tage) {
     if (punkte.length < 2) {
       return null;
@@ -5215,12 +5189,31 @@
     return { text: "–", art: "gleich" };
   }
 
-  // Hängt das kleine Diagramm einer Kachel an die Fläche, im Stil der großen Diagramme: dieselben Linien,
-  // ein Punkt am letzten Wert der Hauptlinie, darunter das erste und das letzte Datum. Achsen hat es keine.
-  // reihen wie bei diagrammZeichnen: [{ punkte, art }], die Punkte mindestens zwei, der älteste zuerst.
+  // Die Punkte für das kleine Diagramm: die der letzten KRAFT_DIAGRAMM_TAGE Tage.
+  // Liegt dort keiner, sind es alle. punkte: [{ zeit, wert }], der älteste zuerst.
+  function miniZeitraum(punkte) {
+    const von = Date.now() - KRAFT_DIAGRAMM_TAGE * 86400000;
+    const sichtbar = [];
+    for (let i = 0; i < punkte.length; i++) {
+      if (punkte[i].zeit >= von) {
+        sichtbar.push({ zeit: punkte[i].zeit, wert: punkte[i].wert });
+      }
+    }
+    if (sichtbar.length === 0) {
+      return punkte;
+    }
+    return sichtbar;
+  }
+
+  // Hängt das kleine Diagramm einer Kachel an die Fläche, im Stil der großen Diagramme: feines Gitter,
+  // dieselben Linien und Punkte, der letzte Wert mit hellem Rand, darunter das erste und das letzte Datum.
+  // Zahlen am Rand hat es keine.
+  // reihen wie bei diagrammZeichnen: [{ punkte, art, mitPunkten }], die Punkte mindestens einer, der älteste zuerst.
+  // ring: true bei der Linie, deren letzter Wert den Rand bekommt.
+  // Ein einzelner Wert steht am rechten Rand in der Mitte, ohne Linie.
   // Das SVG füllt den Platz, der in der Kachel übrig ist, und wird dafür in Breite und Höhe gezogen.
-  // Die Linien behalten dabei ihre Stärke (im CSS). Der Punkt ist ein winziger Strich mit runden Enden,
-  // so bleibt er rund.
+  // Die Linien behalten dabei ihre Stärke (im CSS). Punkte sind winzige Striche mit runden Enden,
+  // so bleiben sie rund.
   function miniDiagramm(flaeche, reihen) {
     let min = Infinity;
     let max = -Infinity;
@@ -5236,42 +5229,72 @@
       }
     }
 
+    // Der Wertebereich bekommt oben und unten etwas Rand. Sind alle Werte gleich (oder ist es nur einer),
+    // liegt er wie im großen Diagramm um den Wert herum.
+    let luft = (max - min) * 0.1;
+    if (max === min) {
+      luft = Math.max(Math.abs(max) * 0.05, 1);
+    }
+    const unten = min - luft;
+    const oben = max + luft;
+
     function x(zeit) {
+      if (bis === von) {
+        return "100";
+      }
       return ((zeit - von) / (bis - von) * 100).toFixed(1);
     }
-    // Sind alle Werte gleich, läuft die Linie in der Mitte
     function y(wert) {
-      if (max === min) {
-        return "50";
-      }
-      return ((max - wert) / (max - min) * 100).toFixed(1);
+      return ((oben - wert) / (oben - unten) * 100).toFixed(1);
     }
 
-    let svg = '<svg class="mini-diagramm" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">';
+    // Ein Punkt als SVG-Text: ein winziger Strich, den das CSS mit runden Enden so dick macht wie der Punkt breit ist
+    function punkt(klasse, p) {
+      return '<path class="' + klasse + '" d="M' + x(p.zeit) + " " + y(p.wert) + 'h0.01"/>';
+    }
+
+    // Drei feine waagerechte Hilfslinien: oben, in der Mitte und unten
+    let svg = '<svg class="mini-diagramm" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'
+      + '<path class="gitter" d="M0 0H100M0 50H100M0 100H100"/>';
+    let ring = "";
     for (let r = 0; r < reihen.length; r++) {
       const punkte = reihen[r].punkte;
-      let weg = "";
-      for (let i = 0; i < punkte.length; i++) {
-        weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit) + " " + y(punkte[i].wert);
+      if (punkte.length > 1) {
+        let weg = "";
+        for (let i = 0; i < punkte.length; i++) {
+          weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit) + " " + y(punkte[i].wert);
+        }
+        svg += '<path class="linie-' + reihen[r].art + '" d="' + weg + '"/>';
       }
-      svg += '<path class="linie-' + reihen[r].art + '" d="' + weg + '"/>';
-      if (reihen[r].art === "haupt") {
+      // In der kleinen Kachel würden viele Punkte zu einem Balken verkleben, dann bleibt nur die Linie
+      if (reihen[r].mitPunkten && punkte.length <= MINI_PUNKTE) {
+        for (let i = 0; i < punkte.length; i++) {
+          svg += punkt("punkt-" + reihen[r].art, punkte[i]);
+        }
+      }
+      // Der letzte Wert: sein Punkt mit einem hellen Rand, gezeichnet über allem anderen
+      if (reihen[r].ring) {
         const letzter = punkte[punkte.length - 1];
-        svg += '<path class="punkt-ende" d="M' + x(letzter.zeit) + " " + y(letzter.wert) + 'h0.01"/>';
+        ring = punkt("ring", letzter) + punkt("punkt-" + reihen[r].art, letzter);
       }
     }
-    svg += "</svg>";
+    svg += ring + "</svg>";
 
     const rahmen = element("div", "mini-rahmen");
     rahmen.innerHTML = svg;
     flaeche.appendChild(rahmen);
+    // Darunter links das erste und rechts das letzte Datum. Bei einem einzigen Tag steht nur rechts eins.
     const daten = element("div", "mini-daten");
-    daten.appendChild(element("span", "", datumKurz(von)));
+    let links = "";
+    if (bis > von) {
+      links = datumKurz(von);
+    }
+    daten.appendChild(element("span", "", links));
     daten.appendChild(element("span", "", datumKurz(bis)));
     flaeche.appendChild(daten);
   }
 
-  // Die Kachel "Kraft" auf Home: der Name der Übung, ihr geschätztes Maximalgewicht (1RM), die Veränderung
+  // Die Kachel "Kraft" auf Home: der Name der Übung, ihr geschätztes Maximalgewicht (1RM)
   // und das kleine Diagramm der letzten drei Monate. Die Werte kommen aus verlaufPunkte, genau wie im großen Verlauf.
   function homeKraftAnzeigen() {
     const bereich = document.getElementById("home-kraft");
@@ -5304,31 +5327,7 @@
     }
     const letzter = punkte[punkte.length - 1];
     flaeche.appendChild(element("div", "home-zahl", kraftText(ausKg(letzter.wert))));
-
-    // Die Veränderung in KRAFT_TAGE Tagen. Gibt es noch keinen so alten Eintrag, gilt sie seit dem ersten.
-    let aenderung = kraftAenderung(punkte, KRAFT_TAGE);
-    let zeit = txt("kraft.inTagen", { n: KRAFT_TAGE });
-    if (aenderung === null) {
-      aenderung = kraftAenderung(punkte, 0);
-      zeit = txt("kraft.seitStart");
-    }
-    if (aenderung) {
-      flaeche.appendChild(kachelAenderung(aenderung.text, aenderung.art, zeit));
-    }
-
-    // Das kleine Diagramm braucht mindestens zwei Punkte in den letzten drei Monaten. Sonst steht da, von wann der Wert ist.
-    const von = Date.now() - KRAFT_DIAGRAMM_TAGE * 86400000;
-    const sichtbar = [];
-    for (let i = 0; i < punkte.length; i++) {
-      if (punkte[i].zeit >= von) {
-        sichtbar.push(punkte[i]);
-      }
-    }
-    if (sichtbar.length >= 2) {
-      miniDiagramm(flaeche, [{ punkte: sichtbar, art: "haupt" }]);
-    } else {
-      flaeche.appendChild(element("div", "routine-info", txt("kraft.letzter", { datum: datumMitJahr(new Date(letzter.zeit)) })));
-    }
+    miniDiagramm(flaeche, [{ punkte: miniZeitraum(punkte), art: "haupt", mitPunkten: true, ring: true }]);
   }
 
   // ---------- Auswahl der Übung für Karte und Verlauf ----------
@@ -5564,18 +5563,14 @@
   }
 
   // Die Veränderung im 7-Tage-Schnitt: der Schnitt am Tag der letzten Messung minus der Schnitt so viele Tage davor,
-  // in der gewählten Einheit und auf eine Nachkommastelle. tage 0 vergleicht mit dem Tag der ersten Messung.
+  // in der gewählten Einheit und auf eine Nachkommastelle.
   // Ohne Messung in der Woche vor dem Vergleichstag: null.
-  // Die Kacheln im Fortschritt-Tab und die Kachel auf Home rechnen beide hiermit.
   function schnittAenderung(liste, tage) {
     if (liste.length === 0) {
       return null;
     }
     const letzter = new Date(liste[liste.length - 1].zeit);
-    let frueher = new Date(liste[0].zeit);
-    if (tage > 0) {
-      frueher = new Date(letzter.getFullYear(), letzter.getMonth(), letzter.getDate() - tage);
-    }
+    const frueher = new Date(letzter.getFullYear(), letzter.getMonth(), letzter.getDate() - tage);
     const damals = schnittAm(liste, frueher);
     if (damals === null) {
       return null;

@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=26">
+  <link rel="stylesheet" href="style.css?v=27">
 </head>
 <body>
 
@@ -402,6 +402,12 @@
 
   <!-- Hinweis auf eine neue Version: erscheint über der Navigationsleiste -->
   <button id="update-hinweis" onclick="updateLaden()" data-t="update">Neue Version verfügbar – tippen zum Aktualisieren</button>
+
+  <!-- Bestätigung nach dem Verwerfen eines Trainings: bleibt kurz stehen und bietet "Rückgängig" an -->
+  <div id="verworfen-hinweis" role="status">
+    <span data-t="modus.verworfen">Training verworfen</span>
+    <button onclick="verwerfenRueckgaengig()" data-t="rueckgaengig">Rückgängig</button>
+  </div>
 
   <div id="sheet-hintergrund" onclick="sheetSchliessen()"></div>
   <div id="sheet">
@@ -777,9 +783,9 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=26"></script>
-<script src="uebungen.js?v=26"></script>
-<script src="app.js?v=26"></script>
+<script src="texte.js?v=27"></script>
+<script src="uebungen.js?v=27"></script>
+<script src="app.js?v=27"></script>
 
 </body>
 </html>

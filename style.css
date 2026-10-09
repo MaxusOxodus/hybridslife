@@ -294,6 +294,48 @@ h1 {
   animation: seite-einblenden 0.3s ease-out;
 }
 
+/* ---------- Bestätigung "Training verworfen" mit "Rückgängig": an derselben Stelle ---------- */
+
+#verworfen-hinweis {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  z-index: 16;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 448px;
+  min-height: 44px;
+  margin: 0 auto;
+  padding: 4px 6px 4px 16px;
+  border: 1px solid var(--rand);
+  border-radius: 22px;
+  background: var(--glas);
+  -webkit-backdrop-filter: var(--glas-filter);
+  backdrop-filter: var(--glas-filter);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#verworfen-hinweis.sichtbar {
+  display: flex;
+  animation: seite-einblenden 0.3s ease-out;
+}
+
+#verworfen-hinweis button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 18px;
+  background: none;
+  color: var(--akzent-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
 /* ---------- Wochenleiste ---------- */
 
 .wochen-kopf {

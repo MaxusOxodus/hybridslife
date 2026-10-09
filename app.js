@@ -2611,8 +2611,10 @@
     const weiter = element("button", "knopf haupt", txt("fortsetzen"));
     weiter.onclick = trainingFortsetzen;
     knoepfe.appendChild(weiter);
-    const weg = element("button", "knopf leise", txt("verwerfen"));
-    weg.onclick = trainingVerwerfen;
+    const weg = element("button", "knopf leise", txt("modus.abbrechen"));
+    weg.onclick = function () {
+      trainingAbbrechenFragen();
+    };
     knoepfe.appendChild(weg);
     karte.appendChild(knoepfe);
     bereich.appendChild(karte);
@@ -3170,7 +3172,8 @@
 
   // ---------- Training: Trainingsmodus ----------
 
-  // Startet eine Routine. Läuft schon ein Training, wird erst gefragt.
+  // Startet eine Routine. Läuft schon ein Training, wird erst gefragt. Hat das laufende Training
+  // schon Sätze, folgt bei "neu starten" die Auswahl, ob sie gespeichert oder verworfen werden.
   function routineStarten(routine) {
     if (routine.uebungen.length === 0) {
       return;
@@ -3185,7 +3188,9 @@
       {
         text: txt("modus.neuStarten", { name: routine.name }),
         aktion: function () {
-          trainingBeginnen(routine);
+          trainingAbbrechenFragen(function () {
+            trainingBeginnen(routine);
+          });
         }
       },
       { text: txt("abbrechen"), art: "leise" }
@@ -3195,6 +3200,8 @@
   // Legt das laufende Training an. Die Übungen werden kopiert, damit spätere Änderungen
   // an der Routine ein laufendes Training nicht durcheinanderbringen.
   function trainingBeginnen(routine) {
+    // Mit einem neuen Training lässt sich ein verworfenes nicht mehr zurückholen
+    verworfenHinweisSchliessen();
     laufendesTraining = {
       routineId: routine.id,
       routineName: routine.name,
@@ -3286,12 +3293,186 @@
     modusAnzeigen();
   }
 
-  // Verwirft das laufende Training. Was schon gespeichert wurde, bleibt im Log.
-  function trainingVerwerfen() {
+  // Was am laufenden Training hängt: seine Einträge im Log, die Zahl der Sätze und das bewegte Gewicht.
+  // Zum Training gehören genau die Einträge, deren id es sich gemerkt hat. Jeder davon ist im
+  // Trainingsmodus neu entstanden, andere Einträge derselben Übung haben eine andere id.
+  function trainingStand() {
+    const t = laufendesTraining;
+    const ids = [];
+    for (let i = 0; i < t.erledigt.length; i++) {
+      ids.push(t.erledigt[i].id);
+    }
+    for (let i = 0; i < t.uebungen.length; i++) {
+      ids.push(t.uebungen[i].eintragId);
+    }
+
+    const stand = { eintraege: [], saetze: 0, bewegt: 0 };
+    for (let i = 0; i < ids.length; i++) {
+      const eintrag = eintragFinden(ids[i]);
+      if (!ids[i] || !eintrag || stand.eintraege.indexOf(eintrag) !== -1) {
+        continue;
+      }
+      stand.eintraege.push(eintrag);
+      stand.saetze += saetzeVon(eintrag).length;
+      stand.bewegt += eintragVolumen(eintrag, 0);
+    }
+    return stand;
+  }
+
+  // "3 Sätze · 2 Übungen · 1.240 kg"
+  function trainingStandText(stand) {
+    return txtAnzahl("anzahl.saetze", stand.saetze) + " · " + txtAnzahl("anzahl.uebungen", stand.eintraege.length)
+      + " · " + volumenText(stand.bewegt);
+  }
+
+  // Setzt die laufende Einheit und die Pause zurück. Die Einträge im Log bleiben, wie sie sind.
+  function trainingZuruecksetzen() {
+    pause = null;
+    pauseVorbeiSeit = 0;
+    localStorage.removeItem("pause");
+
     laufendesTraining = null;
+    gemerkteTrainingWerte = null;
     trainingMerken();
+  }
+
+  // Zeigt alles neu an, was aus den Einträgen und dem laufenden Training berechnet wird
+  function nachTrainingAnzeigen() {
+    anzeigen();
+    letztesMalAnzeigen();
+    wochenleisteAnzeigen();
     trainingAnzeigen();
-    homeAnzeigen();
+    if (aktiveSeite === "home") {
+      homeAnzeigen();
+    }
+    if (aktiveSeite === "fortschritt") {
+      fortschrittAnzeigen();
+    }
+    if (aktiveSeite === "profil") {
+      profilAnzeigen();
+    }
+  }
+
+  // Beendet ein Training, in dem noch kein Satz eingetragen ist: ohne Rückfrage, gespeichert wird nichts
+  function trainingOhneSaetzeBeenden() {
+    trainingZuruecksetzen();
+    if (trainingAnsicht === "modus") {
+      trainingAnsichtZeigen("uebersicht");
+    }
+    nachTrainingAnzeigen();
+  }
+
+  // Das zuletzt verworfene Training für "Rückgängig" (null = keins): die laufende Einheit und ihre
+  // Einträge mit dem Platz, an dem sie im Log standen. Es gilt nur, solange der Hinweis zu sehen ist.
+  let verworfenesTraining = null;
+
+  // Die Uhr, die den Hinweis "Training verworfen" wieder ausblendet
+  let verworfenUhr = null;
+
+  // So lange bleibt "Rückgängig" nach dem Verwerfen stehen, in Millisekunden
+  const VERWORFEN_ANZEIGE = 8000;
+
+  // Verwirft das laufende Training: Seine Einträge verschwinden aus dem Log, alle anderen bleiben unberührt.
+  // Einheit und Pause werden zurückgesetzt. Danach lässt es sich kurz zurückholen.
+  function trainingVerwerfen() {
+    const t = laufendesTraining;
+    const stand = trainingStand();
+
+    const geloescht = [];
+    for (let i = 0; i < stand.eintraege.length; i++) {
+      geloescht.push({ platz: eintraege.indexOf(stand.eintraege[i]), eintrag: stand.eintraege[i] });
+    }
+    geloescht.sort(function (a, b) {
+      return a.platz - b.platz;
+    });
+    // Von hinten nach vorn, damit die Plätze davor stimmen
+    for (let i = geloescht.length - 1; i >= 0; i--) {
+      eintraege.splice(geloescht[i].platz, 1);
+    }
+    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+
+    trainingZuruecksetzen();
+    if (trainingAnsicht === "modus") {
+      trainingAnsichtZeigen("uebersicht");
+    }
+    nachTrainingAnzeigen();
+
+    verworfenesTraining = { training: t, eintraege: geloescht };
+    document.getElementById("verworfen-hinweis").classList.add("sichtbar");
+    clearTimeout(verworfenUhr);
+    verworfenUhr = setTimeout(verworfenHinweisSchliessen, VERWORFEN_ANZEIGE);
+  }
+
+  // Blendet den Hinweis aus. Damit ist auch "Rückgängig" vorbei.
+  function verworfenHinweisSchliessen() {
+    clearTimeout(verworfenUhr);
+    verworfenUhr = null;
+    verworfenesTraining = null;
+    document.getElementById("verworfen-hinweis").classList.remove("sichtbar");
+  }
+
+  // "Rückgängig": Die verworfenen Einträge kommen an ihren Platz zurück, und das Training läuft wieder
+  function verwerfenRueckgaengig() {
+    const v = verworfenesTraining;
+    verworfenHinweisSchliessen();
+    if (!v || laufendesTraining) {
+      return;
+    }
+
+    // Von vorn nach hinten, so landet jeder Eintrag wieder an seinem alten Platz
+    for (let i = 0; i < v.eintraege.length; i++) {
+      eintraege.splice(Math.min(v.eintraege[i].platz, eintraege.length), 0, v.eintraege[i].eintrag);
+    }
+    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+
+    laufendesTraining = v.training;
+    trainingMerken();
+    nachTrainingAnzeigen();
+    trainingFortsetzen();
+  }
+
+  // "Abbrechen" außerhalb des Trainingsmodus: fragt, ob die bisherigen Sätze gespeichert oder verworfen werden.
+  // Ohne Sätze endet das Training ohne Rückfrage. danach läuft, sobald das Training weg ist
+  // (z. B. der Start einer anderen Routine). Ohne danach zeigt Speichern die Zusammenfassung.
+  function trainingAbbrechenFragen(danach) {
+    const stand = trainingStand();
+    if (stand.saetze === 0) {
+      trainingOhneSaetzeBeenden();
+      if (danach) {
+        danach();
+      }
+      return;
+    }
+
+    frageZeigen(txt("modus.abbrechenFrage"), trainingStandText(stand), [
+      {
+        text: txt("modus.bisherigeSpeichern"),
+        art: "haupt",
+        aktion: function () {
+          if (danach) {
+            trainingseinheitSpeichern(laufendesTraining);
+            trainingZuruecksetzen();
+            danach();
+            return;
+          }
+          if (aktiveSeite !== "training") {
+            seiteZeigen("training");
+          }
+          trainingAbschliessen();
+        }
+      },
+      {
+        text: txt("modus.allesVerwerfen"),
+        art: "gefahr",
+        aktion: function () {
+          trainingVerwerfen();
+          if (danach) {
+            danach();
+          }
+        }
+      },
+      { text: txt("modus.weitermachen"), art: "leise" }
+    ]);
   }
 
   // Zeigt die aktuelle Übung und stellt die Räder ein
@@ -3784,29 +3965,14 @@
   }
 
   // "Nächste Übung" oder "Übung überspringen": weiter zur nächsten Übung der Routine.
-  // Nach der letzten Übung endet das Training. Sind dann noch Übungen offen, wird erst gefragt.
+  // Nach der letzten Übung endet das Training, vorher kommt die Auswahl zum Speichern oder Verwerfen.
   function uebungBeenden() {
     const t = laufendesTraining;
     if (t.index < t.uebungen.length - 1) {
       uebungZeigen(t.index + 1);
       return;
     }
-
-    const offen = offeneUebungen(t.index);
-    if (offen.length === 0) {
-      trainingAbschliessen();
-      return;
-    }
-    frageZeigen(txt("modus.abschliessenFrage"), offenText(offen) + " " + txt("modus.bleibtImLog"), [
-      { text: txt("modus.abschliessen"), art: "haupt", aktion: trainingAbschliessen },
-      {
-        text: txt("modus.zurOffenen"),
-        aktion: function () {
-          uebungZeigen(offen[0]);
-        }
-      },
-      { text: txt("modus.weiterTrainieren"), art: "leise" }
-    ]);
+    trainingBeendenFragen(true);
   }
 
   // Die Pfeile neben "Übung 2 von 6": zur vorherigen (-1) oder nächsten (1) Übung
@@ -3894,16 +4060,34 @@
     zusatzSheetOeffnen("uebungen-sheet");
   }
 
-  function trainingBeendenFragen() {
-    const offen = offeneUebungen(-1);
-    let text = txt("modus.bleibtImLog");
-    if (offen.length > 0) {
-      text = offenText(offen) + " " + txt("modus.entfallen") + " " + text;
+  // "Beenden" und "Training abschließen": fragt, ob das Training gespeichert oder verworfen wird.
+  // Ohne einen einzigen Satz endet es ohne Rückfrage. zurOffenen = true bietet nach der letzten Übung
+  // zusätzlich den Sprung zur ersten Übung an, die noch offen ist.
+  function trainingBeendenFragen(zurOffenen) {
+    const stand = trainingStand();
+    if (stand.saetze === 0) {
+      trainingOhneSaetzeBeenden();
+      return;
     }
-    frageZeigen(txt("modus.beendenFrage"), text, [
-      { text: txt("modus.trainingBeenden"), art: "haupt", aktion: trainingAbschliessen },
-      { text: txt("modus.weiterTrainieren"), art: "leise" }
-    ]);
+
+    const offen = offeneUebungen(-1);
+    let text = trainingStandText(stand);
+    if (offen.length > 0) {
+      text += "\n" + offenText(offen) + " " + txt("modus.entfallen");
+    }
+
+    const knoepfe = [{ text: txt("modus.speichern"), art: "haupt", aktion: trainingAbschliessen }];
+    if (zurOffenen && offen.length > 0) {
+      knoepfe.push({
+        text: txt("modus.zurOffenen"),
+        aktion: function () {
+          uebungZeigen(offen[0]);
+        }
+      });
+    }
+    knoepfe.push({ text: txt("verwerfen"), art: "gefahr", aktion: trainingVerwerfen });
+    knoepfe.push({ text: txt("modus.zurueckZumTraining"), art: "leise" });
+    frageZeigen(txt("modus.beendenFrage"), text, knoepfe);
   }
 
   // Beendet das Training und zeigt die Zusammenfassung: Übungen, Sätze, bewegtes Gewicht
@@ -3978,7 +4162,12 @@
       stand: txt("uebung.xVonY", { x: laufendesTraining.index + 1, y: laufendesTraining.uebungen.length })
     }), [
       { text: txt("fortsetzen"), art: "haupt", aktion: trainingFortsetzen },
-      { text: txt("verwerfen"), aktion: trainingVerwerfen },
+      {
+        text: txt("modus.abbrechen"),
+        aktion: function () {
+          trainingAbbrechenFragen();
+        }
+      },
       { text: txt("spaeter"), art: "leise" }
     ]);
   }

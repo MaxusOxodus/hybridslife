@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=24">
+  <link rel="stylesheet" href="style.css?v=25">
 </head>
 <body>
 
@@ -55,13 +55,12 @@
       <h2 class="abschnitt" data-t="home.letztesTraining">Letztes Training</h2>
       <div id="home-letztes"></div>
 
-      <!-- Aktuelles Körpergewicht: Den Inhalt füllt die app.js, ein Tipp öffnet das Eintragen -->
-      <h2 class="abschnitt" data-t="koerpergewicht">Körpergewicht</h2>
-      <button id="home-gewicht" class="karte gewicht-karte" onclick="gewichtSheetOeffnen()"></button>
-
-      <!-- Kraft: der Verlauf einer Übung als kleines Diagramm. Den Inhalt füllt die app.js, ein Tipp öffnet den großen Verlauf. -->
-      <h2 class="abschnitt" data-t="kraft.titel">Kraft</h2>
-      <div id="home-kraft"></div>
+      <!-- Zwei quadratische Kacheln nebeneinander, jede mit kleinem Diagramm. Den Inhalt füllt die app.js.
+           Kraft: Ein Tipp öffnet den großen Verlauf der Übung. Körpergewicht: Ein Tipp öffnet das Diagramm im Fortschritt-Tab. -->
+      <div class="home-kacheln">
+        <div id="home-kraft"></div>
+        <div id="home-gewicht"></div>
+      </div>
     </div>
 
     <!-- Ansicht: Übung eintragen und die Liste der Einträge nach Wochen. Sie öffnet sich über einen Tag
@@ -280,7 +279,7 @@
       </div>
     </div>
 
-    <h2 class="abschnitt" data-t="koerpergewicht">Körpergewicht</h2>
+    <h2 id="kg-abschnitt" class="abschnitt" data-t="koerpergewicht">Körpergewicht</h2>
     <div class="karte">
       <!-- Zeitraum des Diagramms: Die Buttons baut die app.js -->
       <div id="kg-zeitraum" class="umschalter"></div>
@@ -465,6 +464,9 @@
       <div id="verlauf-art" class="umschalter"></div>
       <div id="verlauf-zeitraum" class="umschalter klein"></div>
       <div id="verlauf-diagramm"></div>
+      <!-- Veränderung des letzten Werts über vier Abstände: Die Kacheln baut die app.js -->
+      <h2 id="verlauf-kacheln-titel" class="abschnitt" data-t="verlauf.veraenderung">Veränderung</h2>
+      <div id="verlauf-kacheln" class="kacheln"></div>
       <p id="verlauf-hinweis" class="meldung"></p>
     </div>
   </div>
@@ -775,9 +777,9 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=24"></script>
-<script src="uebungen.js?v=24"></script>
-<script src="app.js?v=24"></script>
+<script src="texte.js?v=25"></script>
+<script src="uebungen.js?v=25"></script>
+<script src="app.js?v=25"></script>
 
 </body>
 </html>

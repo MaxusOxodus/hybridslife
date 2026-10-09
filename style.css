@@ -468,32 +468,42 @@ h1 {
   margin-top: 4px;
 }
 
-.gewicht-karte {
-  width: 100%;
-  color: var(--text);
-  font-size: 17px;
-  text-align: left;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+/* Die zwei Kacheln "Kraft" und "Körpergewicht" stehen nebeneinander */
+.home-kacheln {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 36px;
 }
 
-.gewicht-karte .routine-info {
-  margin-top: 0;
+#home-kraft,
+#home-gewicht {
+  display: grid;
+  min-width: 0;
 }
 
-/* Karte "Kraft": Die ganze Fläche ist ein Button, der den Verlauf öffnet. Der runde Knopf oben rechts
-   liegt als eigener Button darüber und öffnet nur die Auswahl der Übung. */
-.kraft-karte {
+/* Eine Kachel ist mindestens so hoch wie breit: Das unsichtbare ::before hat die Breite als Höhe
+   und liegt im selben Feld wie die Fläche. Braucht der Inhalt mehr Platz, wächst die Kachel mit. */
+.home-kachel {
   position: relative;
+  display: grid;
+  min-width: 0;
   padding: 0;
 }
 
-.kraft-flaeche {
-  display: block;
-  width: 100%;
-  padding: 20px;
+.home-kachel::before {
+  content: "";
+  grid-area: 1 / 1;
+  padding-bottom: 100%;
+}
+
+/* Die ganze Fläche ist ein Button. Der Inhalt steht untereinander, das Diagramm füllt den Rest. */
+.kachel-flaeche {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 12px;
   border: none;
   border-radius: 20px;
   background: none;
@@ -502,43 +512,61 @@ h1 {
   text-align: left;
 }
 
-/* Rechts bleibt Platz für den runden Knopf */
-.kraft-flaeche .routine-name {
-  min-height: 28px;
-  padding-right: 40px;
+/* Der Name in einer Zeile, zu lange Namen enden mit "…". Rechts bleibt Platz für den runden Knopf. */
+.kachel-name {
+  padding-right: 32px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.kraft-wahl {
+.kachel-flaeche .home-zahl {
+  margin-top: 6px;
+  font-size: 20px;
+}
+
+.kachel-flaeche .routine-info {
+  font-size: 13px;
+}
+
+.kachel-aenderung {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.kachel-zeit {
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Der Knopf oben rechts liegt als eigener Button über der Fläche. Seine Tippfläche ist 44 px groß,
+   sichtbar ist nur der kleinere Kreis um das Zeichen. */
+.kachel-knopf {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 0;
+  right: 0;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
   padding: 0;
   border: none;
-  border-radius: 22px;
-  background: var(--fuellung);
+  background: none;
   color: var(--text);
 }
 
-/* Links der aktuelle Wert, rechts die Veränderung */
-.kraft-werte {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.kraft-werte .kachel-titel {
-  margin-top: 4px;
-}
-
-.kraft-aenderung {
-  flex-shrink: 0;
-  text-align: right;
+.home-kachel .kachel-knopf svg {
+  box-sizing: content-box;
+  width: 16px;
+  height: 16px;
+  padding: 6px;
+  border-radius: 50%;
+  background: var(--fuellung);
 }
 
 /* Der Pfeil mit der Veränderung: ein Anstieg in der Akzentfarbe, ein Rückgang neutral, ohne Veränderung ein leiser Strich */
@@ -1542,7 +1570,8 @@ h1 {
 }
 
 /* Nebenlinie: dünn und grau, z. B. die einzelnen Messungen hinter dem Durchschnitt */
-.diagramm .linie-neben {
+.diagramm .linie-neben,
+.mini-diagramm .linie-neben {
   fill: none;
   stroke: var(--text-leise);
   stroke-width: 1;
@@ -1550,21 +1579,87 @@ h1 {
   opacity: 0.5;
 }
 
-.diagramm .punkt-haupt,
-.mini-diagramm .punkt-haupt {
+.diagramm .punkt-haupt {
   fill: var(--akzent-text);
 }
 
-/* Das kleine Diagramm der Kraft-Karte auf Home: nur die Linie, ohne Achsen */
-.mini-diagramm {
-  display: block;
-  width: 100%;
-  height: auto;
-  margin-top: 12px;
+/* Das kleine Diagramm der Kacheln auf Home: dieselben Linien, ohne Achsen. Der Rahmen nimmt den Platz,
+   der in der Kachel übrig ist. Das SVG wird hineingezogen, der Rand lässt Platz für den Punkt am Ende. */
+.mini-rahmen {
+  position: relative;
+  flex: 1;
+  min-height: 34px;
+  margin-top: 8px;
 }
 
-.mini-diagramm .linie-haupt {
-  stroke-width: 2.5;
+.mini-diagramm {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  overflow: visible;
+}
+
+/* Die Striche behalten ihre Stärke, auch wenn das SVG verzerrt wird */
+.mini-diagramm path {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Der Punkt am letzten Wert: ein winziger Strich mit runden Enden, so dick wie der Punkt breit ist */
+.mini-diagramm .punkt-ende {
+  fill: none;
+  stroke: var(--akzent-text);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+/* Unter dem kleinen Diagramm: links das erste, rechts das letzte Datum */
+.mini-daten {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 2px;
+  color: var(--text-leise);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Auf sehr schmalen Handys ist in der Kachel kein Platz für die Datumszeile,
+   und die Abstände sind kleiner, damit die Kachel quadratisch bleibt */
+@media (max-width: 359px) {
+  .mini-daten {
+    display: none;
+  }
+
+  .kachel-flaeche {
+    padding: 10px;
+  }
+
+  .kachel-flaeche .home-zahl {
+    margin-top: 2px;
+  }
+
+  .mini-rahmen {
+    min-height: 30px;
+    margin-top: 4px;
+  }
+}
+
+/* Die Veränderungs-Kacheln im Verlauf stehen auf dem Sheet-Hintergrund, deshalb bekommen sie eine leichte Füllung */
+.zusatz-sheet .kacheln .karte {
+  padding: 14px 16px;
+  border-color: transparent;
+  background: var(--fuellung);
+}
+
+.zusatz-sheet .abschnitt {
+  margin-top: 24px;
+}
+
+/* Beim Sprung von Home zum Körpergewicht bleibt die Überschrift unter der festen Kopfzeile sichtbar */
+#kg-abschnitt {
+  scroll-margin-top: calc(56px + env(safe-area-inset-top));
 }
 
 .diagramm .punkt-neben {

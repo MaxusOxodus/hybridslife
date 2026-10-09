@@ -83,7 +83,6 @@ const TEXTE = {
   // ---------- Home ----------
   "home.dieseWoche": { de: "Diese Woche", en: "This Week" },
   "home.letztesTraining": { de: "Letztes Training", en: "Last Workout" },
-  "home.tippen": { de: "Tippen zum Eintragen", en: "Tap to log" },
   "home.laeuft": { de: "Läuft gerade", en: "In progress" },
   "home.erledigt": { de: "Heute erledigt", en: "Done today" },
   "home.geplant": { de: "Heute geplant", en: "Planned today" },
@@ -370,6 +369,8 @@ const TEXTE = {
   "verlauf.einPunkt": { de: "Ab dem zweiten Trainingstag entsteht eine Linie.", en: "A line appears from the second training day." },
 
   "verlauf.zeitraumLeer": { de: "In diesem Zeitraum gibt es keine Einträge.", en: "There are no entries in this period." },
+  "verlauf.veraenderung": { de: "Veränderung", en: "Change" },
+  "verlauf.monate": { de: "{n} Monate", en: "{n} months" },
 
   // ---------- Home: Karte "Kraft" und Auswahl der Übung ----------
   "kraft.titel": { de: "Kraft", en: "Strength" },
@@ -377,7 +378,6 @@ const TEXTE = {
     de: "Trainiere eine Übung, dann erscheint hier dein Verlauf.",
     en: "Train an exercise and your progress will show up here."
   },
-  "kraft.1rm": { de: "Geschätztes 1RM", en: "Estimated 1RM" },
   "kraft.inTagen": { de: "in {n} Tagen", en: "in {n} days" },
   "kraft.seitStart": { de: "seit Start", en: "since start" },
   "kraft.letzter": { de: "Letzter Eintrag: {datum}", en: "Last entry: {datum}" },

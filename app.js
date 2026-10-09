@@ -4029,20 +4029,86 @@
     homeKraftAnzeigen();
   }
 
-  // Die Karte "Körpergewicht": das zuletzt eingetragene Gewicht mit Datum
+  // Baut eine der zwei quadratischen Kacheln auf Home in den Bereich. Die ganze Fläche ist ein Button (beimTipp).
+  // Der runde Knopf oben rechts liegt als eigener Button darüber: icon ist sein Zeichen,
+  // knopfText sein Name für Screenreader, beimKnopf läuft nach dem Antippen.
+  // Zurück kommt die Fläche, in die der Inhalt gehört. Oben steht schon der Name.
+  function homeKachel(bereich, name, beimTipp, icon, knopfText, beimKnopf) {
+    const karte = element("div", "karte home-kachel");
+    const flaeche = element("button", "kachel-flaeche");
+    flaeche.onclick = beimTipp;
+    flaeche.appendChild(element("div", "kachel-name", name));
+    karte.appendChild(flaeche);
+
+    const knopf = element("button", "kachel-knopf icon");
+    knopf.innerHTML = iconSvg(icon);
+    knopf.setAttribute("aria-label", knopfText);
+    knopf.onclick = beimKnopf;
+    karte.appendChild(knopf);
+    bereich.appendChild(karte);
+    return flaeche;
+  }
+
+  // Die Veränderung in einer Kachel: oben der Pfeil mit dem Wert, darunter der Zeitraum (z. B. "in 30 Tagen").
+  // art färbt den Pfeil: "hoch", "runter", "gleich" oder "" für neutral.
+  function kachelAenderung(text, art, zeit) {
+    const zeile = element("div", "kachel-aenderung");
+    zeile.appendChild(element("div", "kraft-pfeil " + art, text));
+    zeile.appendChild(element("div", "kachel-zeit", zeit));
+    return zeile;
+  }
+
+  // Die Kachel "Körpergewicht": das zuletzt eingetragene Gewicht, die Veränderung im 7-Tage-Schnitt
+  // und das kleine Diagramm der letzten drei Monate. Ein Tipp öffnet das Diagramm im Fortschritt-Tab,
+  // der Plus-Knopf das Eintragen.
   function homeGewichtAnzeigen() {
-    const karte = document.getElementById("home-gewicht");
-    karte.innerHTML = "";
+    const bereich = document.getElementById("home-gewicht");
+    bereich.innerHTML = "";
+    const flaeche = homeKachel(bereich, txt("koerpergewicht"), koerpergewichtZeigen, "plus", txt("fortschritt.gewichtEintragen"), gewichtSheetOeffnen);
     const liste = gewichtMessungen();
 
     if (liste.length === 0) {
-      karte.appendChild(element("div", "home-zahl", "– " + einheit()));
-      karte.appendChild(element("div", "routine-info", txt("home.tippen")));
+      flaeche.appendChild(element("div", "home-zahl", "– " + einheit()));
+      flaeche.appendChild(element("div", "routine-info", txt("messung.gewichtLeer")));
       return;
     }
     const letzte = liste[liste.length - 1];
-    karte.appendChild(element("div", "home-zahl", kgText(letzte.wert)));
-    karte.appendChild(element("div", "routine-info", tagTextMitJahr(new Date(letzte.zeit))));
+    flaeche.appendChild(element("div", "home-zahl", kgText(letzte.wert)));
+
+    // Die Veränderung wie in den Kacheln des Fortschritt-Tabs. Reichen die Messungen noch nicht
+    // so weit zurück, gilt sie seit der ersten Messung. Bei nur einer Messung gibt es keine.
+    let unterschied = schnittAenderung(liste, KRAFT_TAGE);
+    let zeit = txt("kraft.inTagen", { n: KRAFT_TAGE });
+    if (unterschied === null && liste.length > 1) {
+      unterschied = schnittAenderung(liste, 0);
+      zeit = txt("kraft.seitStart");
+    }
+    if (unterschied !== null) {
+      flaeche.appendChild(kachelAenderung(schnittAenderungText(unterschied), "", zeit));
+    }
+
+    // Das kleine Diagramm zeigt wie das große die Messungen und ihren 7-Tage-Schnitt.
+    // Es braucht mindestens zwei Messungen in den letzten drei Monaten. Sonst steht da, von wann der Wert ist.
+    const von = Date.now() - KRAFT_DIAGRAMM_TAGE * 86400000;
+    const messungen = [];
+    const schnitt = [];
+    for (let i = 0; i < liste.length; i++) {
+      if (liste[i].zeit >= von) {
+        messungen.push({ zeit: liste[i].zeit, wert: liste[i].wert });
+        schnitt.push({ zeit: liste[i].zeit, wert: schnittAm(liste, new Date(liste[i].zeit)) });
+      }
+    }
+    if (messungen.length >= 2) {
+      miniDiagramm(flaeche, [{ punkte: messungen, art: "neben" }, { punkte: schnitt, art: "haupt" }]);
+    } else {
+      flaeche.appendChild(element("div", "routine-info", tagTextMitJahr(new Date(letzte.zeit))));
+    }
+  }
+
+  // Öffnet den Fortschritt-Tab und rollt zum Diagramm des Körpergewichts
+  function koerpergewichtZeigen() {
+    seiteZeigen("fortschritt");
+    document.getElementById("kg-abschnitt").scrollIntoView();
   }
 
   // Hat der Eintrag ein gültiges Datum?
@@ -4804,6 +4870,15 @@
     { id: "volumen", schluessel: "verlauf.volumen" }
   ];
 
+  // Die Abstände der Veränderungs-Kacheln unter dem Diagramm in Tagen (0 = seit dem ersten Eintrag),
+  // jeder mit dem Schlüssel seiner Beschriftung und der Zahl darin
+  const VERLAUF_ABSTAENDE = [
+    { tage: 30, schluessel: "fortschritt.tage", n: 30 },
+    { tage: 91, schluessel: "verlauf.monate", n: 3 },
+    { tage: 182, schluessel: "verlauf.monate", n: 6 },
+    { tage: 0, schluessel: "kraft.seitStart" }
+  ];
+
   // Die Übung, deren Verlauf gerade offen ist, die gewählte Ansicht und der Zeitraum in Tagen (0 = alles)
   let verlaufName = "";
   let verlaufId = "";
@@ -4971,6 +5046,29 @@
       }
     }
     document.getElementById("verlauf-hinweis").textContent = hinweis;
+
+    // Kacheln: die Veränderung des letzten Werts in der gewählten Ansicht. Sie gelten unabhängig vom Zeitraum
+    // des Diagramms. Reichen die Einträge für einen Abstand noch nicht weit genug zurück, steht dort ein Strich.
+    const kacheln = document.getElementById("verlauf-kacheln");
+    kacheln.innerHTML = "";
+    document.getElementById("verlauf-kacheln-titel").classList.toggle("versteckt", alle.length === 0);
+    if (alle.length === 0) {
+      return;
+    }
+    for (let i = 0; i < VERLAUF_ABSTAENDE.length; i++) {
+      const abstand = VERLAUF_ABSTAENDE[i];
+      const aenderung = kraftAenderung(alle, abstand.tage);
+      let text = "–";
+      if (aenderung && aenderung.art === "gleich") {
+        text = "→ " + kraftText(0);
+      } else if (aenderung) {
+        text = aenderung.text;
+      }
+      const kachel = element("div", "karte");
+      kachel.appendChild(element("div", "home-zahl", text));
+      kachel.appendChild(element("div", "kachel-titel", txt(abstand.schluessel, { n: abstand.n })));
+      kacheln.appendChild(kachel);
+    }
   }
 
   // Alle Übungen, zu denen es Einträge gibt, die zuletzt trainierte zuerst. Jede hat ihren gespeicherten Namen,
@@ -5082,77 +5180,98 @@
     return null;
   }
 
-  // Die Veränderung des letzten Werts: gegenüber dem letzten Punkt, der mindestens KRAFT_TAGE Tage alt ist.
-  // Gibt es so einen noch nicht, gegenüber dem ersten Eintrag ("seit Start"). Bei nur einem Punkt: null.
+  // Die Veränderung des letzten Werts gegenüber dem letzten Punkt, der mindestens so viele Tage alt ist.
+  // tage 0 vergleicht mit dem ersten Eintrag ("seit Start"). Gibt es keinen so alten Punkt oder nur einen einzigen: null.
   // Verglichen werden die Werte so, wie sie angezeigt werden: in der gewählten Einheit, auf eine Nachkommastelle.
-  function kraftAenderung(punkte) {
+  // Die Kachel auf Home und die Kacheln im großen Verlauf rechnen beide hiermit.
+  function kraftAenderung(punkte, tage) {
     if (punkte.length < 2) {
       return null;
     }
-    const heute = new Date();
-    const grenze = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate() - KRAFT_TAGE).getTime();
-    let vergleich = null;
-    for (let i = 0; i < punkte.length; i++) {
-      if (punkte[i].zeit <= grenze) {
-        vergleich = punkte[i];
+    let vergleich = punkte[0];
+    if (tage > 0) {
+      const heute = new Date();
+      const grenze = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate() - tage).getTime();
+      vergleich = null;
+      for (let i = 0; i < punkte.length; i++) {
+        if (punkte[i].zeit <= grenze) {
+          vergleich = punkte[i];
+        }
       }
-    }
-    let titel = txt("kraft.inTagen", { n: KRAFT_TAGE });
-    if (vergleich === null) {
-      vergleich = punkte[0];
-      titel = txt("kraft.seitStart");
+      if (vergleich === null) {
+        return null;
+      }
     }
 
     const jetzt = Math.round(ausKg(punkte[punkte.length - 1].wert) * 10) / 10;
     const damals = Math.round(ausKg(vergleich.wert) * 10) / 10;
     const unterschied = Math.round((jetzt - damals) * 10) / 10;
     if (unterschied > 0) {
-      return { text: "↑ " + kraftText(unterschied), art: "hoch", titel: titel };
+      return { text: "↑ " + kraftText(unterschied), art: "hoch" };
     }
     if (unterschied < 0) {
-      return { text: "↓ " + kraftText(-unterschied), art: "runter", titel: titel };
+      return { text: "↓ " + kraftText(-unterschied), art: "runter" };
     }
-    return { text: "–", art: "gleich", titel: titel };
+    return { text: "–", art: "gleich" };
   }
 
-  // Zeichnet das kleine Diagramm der Karte als SVG-Text: nur die Linie und ein Punkt am letzten Wert,
-  // ohne Achsen und Beschriftung. punkte sind mindestens zwei, der älteste zuerst.
-  function miniDiagramm(punkte) {
-    const BREITE = 300;
-    const HOEHE = 72;
-    const RAND = 8;
-
+  // Hängt das kleine Diagramm einer Kachel an die Fläche, im Stil der großen Diagramme: dieselben Linien,
+  // ein Punkt am letzten Wert der Hauptlinie, darunter das erste und das letzte Datum. Achsen hat es keine.
+  // reihen wie bei diagrammZeichnen: [{ punkte, art }], die Punkte mindestens zwei, der älteste zuerst.
+  // Das SVG füllt den Platz, der in der Kachel übrig ist, und wird dafür in Breite und Höhe gezogen.
+  // Die Linien behalten dabei ihre Stärke (im CSS). Der Punkt ist ein winziger Strich mit runden Enden,
+  // so bleibt er rund.
+  function miniDiagramm(flaeche, reihen) {
     let min = Infinity;
     let max = -Infinity;
-    for (let i = 0; i < punkte.length; i++) {
-      min = Math.min(min, punkte[i].wert);
-      max = Math.max(max, punkte[i].wert);
+    let von = Infinity;
+    let bis = -Infinity;
+    for (let r = 0; r < reihen.length; r++) {
+      for (let i = 0; i < reihen[r].punkte.length; i++) {
+        const p = reihen[r].punkte[i];
+        min = Math.min(min, p.wert);
+        max = Math.max(max, p.wert);
+        von = Math.min(von, p.zeit);
+        bis = Math.max(bis, p.zeit);
+      }
     }
-    const von = punkte[0].zeit;
-    const bis = punkte[punkte.length - 1].zeit;
 
     function x(zeit) {
-      return RAND + (zeit - von) / (bis - von) * (BREITE - 2 * RAND);
+      return ((zeit - von) / (bis - von) * 100).toFixed(1);
     }
     // Sind alle Werte gleich, läuft die Linie in der Mitte
     function y(wert) {
       if (max === min) {
-        return HOEHE / 2;
+        return "50";
       }
-      return RAND + (max - wert) / (max - min) * (HOEHE - 2 * RAND);
+      return ((max - wert) / (max - min) * 100).toFixed(1);
     }
 
-    let weg = "";
-    for (let i = 0; i < punkte.length; i++) {
-      weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit).toFixed(1) + " " + y(punkte[i].wert).toFixed(1);
+    let svg = '<svg class="mini-diagramm" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">';
+    for (let r = 0; r < reihen.length; r++) {
+      const punkte = reihen[r].punkte;
+      let weg = "";
+      for (let i = 0; i < punkte.length; i++) {
+        weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit) + " " + y(punkte[i].wert);
+      }
+      svg += '<path class="linie-' + reihen[r].art + '" d="' + weg + '"/>';
+      if (reihen[r].art === "haupt") {
+        const letzter = punkte[punkte.length - 1];
+        svg += '<path class="punkt-ende" d="M' + x(letzter.zeit) + " " + y(letzter.wert) + 'h0.01"/>';
+      }
     }
-    const letzter = punkte[punkte.length - 1];
-    return '<svg class="mini-diagramm" viewBox="0 0 ' + BREITE + ' ' + HOEHE + '" aria-hidden="true">'
-      + '<path class="linie-haupt" d="' + weg + '"/>'
-      + '<circle class="punkt-haupt" r="4.5" cx="' + x(letzter.zeit).toFixed(1) + '" cy="' + y(letzter.wert).toFixed(1) + '"/></svg>';
+    svg += "</svg>";
+
+    const rahmen = element("div", "mini-rahmen");
+    rahmen.innerHTML = svg;
+    flaeche.appendChild(rahmen);
+    const daten = element("div", "mini-daten");
+    daten.appendChild(element("span", "", datumKurz(von)));
+    daten.appendChild(element("span", "", datumKurz(bis)));
+    flaeche.appendChild(daten);
   }
 
-  // Die Karte "Kraft" auf Home: der Name der Übung, ihr geschätztes Maximalgewicht (1RM), die Veränderung
+  // Die Kachel "Kraft" auf Home: der Name der Übung, ihr geschätztes Maximalgewicht (1RM), die Veränderung
   // und das kleine Diagramm der letzten drei Monate. Die Werte kommen aus verlaufPunkte, genau wie im großen Verlauf.
   function homeKraftAnzeigen() {
     const bereich = document.getElementById("home-kraft");
@@ -5161,59 +5280,55 @@
     const liste = trainierteUebungen();
     const uebung = kraftGewaehlt(liste) || kraftStandard(liste);
     if (!uebung) {
-      bereich.appendChild(element("div", "karte kommt-bald", txt("kraft.leer")));
+      const leer = element("div", "karte home-kachel");
+      const text = element("div", "kachel-flaeche");
+      text.appendChild(element("div", "kachel-name", txt("kraft.titel")));
+      text.appendChild(element("div", "routine-info", txt("kraft.leer")));
+      leer.appendChild(text);
+      bereich.appendChild(leer);
       return;
     }
 
-    const karte = element("div", "karte kraft-karte");
-    const flaeche = element("button", "kraft-flaeche");
-    flaeche.onclick = function () {
+    // Die Fläche öffnet den großen Verlauf. Der Knopf öffnet nur die Auswahl der Übung.
+    const flaeche = homeKachel(bereich, anzeigeName(uebung.name, uebung.id), function () {
       verlaufOeffnen(uebung.name, uebung.id, true);
-    };
-    flaeche.appendChild(element("div", "routine-name", anzeigeName(uebung.name, uebung.id)));
+    }, "wechsel", txt("kraft.waehlen"), function () {
+      kraftWahlOeffnen("karte");
+    });
 
     const punkte = verlaufPunkte(uebung.name, uebung.id, "1rm");
     if (punkte.length === 0) {
       // Die Übung hat nur Einträge ohne Datum oder ohne Zahlen
       flaeche.appendChild(element("div", "routine-info", txt("verlauf.leer")));
-    } else {
-      const letzter = punkte[punkte.length - 1];
-      const werte = element("div", "kraft-werte");
-      werte.appendChild(homeZahl(kraftText(ausKg(letzter.wert)), txt("kraft.1rm")));
-      const aenderung = kraftAenderung(punkte);
-      if (aenderung) {
-        const rechts = element("div", "kraft-aenderung");
-        rechts.appendChild(element("div", "kraft-pfeil " + aenderung.art, aenderung.text));
-        rechts.appendChild(element("div", "kachel-titel", aenderung.titel));
-        werte.appendChild(rechts);
-      }
-      flaeche.appendChild(werte);
+      return;
+    }
+    const letzter = punkte[punkte.length - 1];
+    flaeche.appendChild(element("div", "home-zahl", kraftText(ausKg(letzter.wert))));
 
-      // Das kleine Diagramm braucht mindestens zwei Punkte in den letzten drei Monaten. Sonst steht da, von wann der Wert ist.
-      const von = Date.now() - KRAFT_DIAGRAMM_TAGE * 86400000;
-      const sichtbar = [];
-      for (let i = 0; i < punkte.length; i++) {
-        if (punkte[i].zeit >= von) {
-          sichtbar.push(punkte[i]);
-        }
-      }
-      if (sichtbar.length >= 2) {
-        flaeche.insertAdjacentHTML("beforeend", miniDiagramm(sichtbar));
-      } else {
-        flaeche.appendChild(element("div", "routine-info", txt("kraft.letzter", { datum: datumMitJahr(new Date(letzter.zeit)) })));
+    // Die Veränderung in KRAFT_TAGE Tagen. Gibt es noch keinen so alten Eintrag, gilt sie seit dem ersten.
+    let aenderung = kraftAenderung(punkte, KRAFT_TAGE);
+    let zeit = txt("kraft.inTagen", { n: KRAFT_TAGE });
+    if (aenderung === null) {
+      aenderung = kraftAenderung(punkte, 0);
+      zeit = txt("kraft.seitStart");
+    }
+    if (aenderung) {
+      flaeche.appendChild(kachelAenderung(aenderung.text, aenderung.art, zeit));
+    }
+
+    // Das kleine Diagramm braucht mindestens zwei Punkte in den letzten drei Monaten. Sonst steht da, von wann der Wert ist.
+    const von = Date.now() - KRAFT_DIAGRAMM_TAGE * 86400000;
+    const sichtbar = [];
+    for (let i = 0; i < punkte.length; i++) {
+      if (punkte[i].zeit >= von) {
+        sichtbar.push(punkte[i]);
       }
     }
-    karte.appendChild(flaeche);
-
-    // Der Knopf liegt über der Fläche, ist aber ein eigener Button: Er öffnet nur die Auswahl, nicht den Verlauf
-    const wahl = element("button", "kraft-wahl icon");
-    wahl.innerHTML = iconSvg("wechsel");
-    wahl.setAttribute("aria-label", txt("kraft.waehlen"));
-    wahl.onclick = function () {
-      kraftWahlOeffnen("karte");
-    };
-    karte.appendChild(wahl);
-    bereich.appendChild(karte);
+    if (sichtbar.length >= 2) {
+      miniDiagramm(flaeche, [{ punkte: sichtbar, art: "haupt" }]);
+    } else {
+      flaeche.appendChild(element("div", "routine-info", txt("kraft.letzter", { datum: datumMitJahr(new Date(letzter.zeit)) })));
+    }
   }
 
   // ---------- Auswahl der Übung für Karte und Verlauf ----------
@@ -5448,6 +5563,37 @@
     return summe / anzahl;
   }
 
+  // Die Veränderung im 7-Tage-Schnitt: der Schnitt am Tag der letzten Messung minus der Schnitt so viele Tage davor,
+  // in der gewählten Einheit und auf eine Nachkommastelle. tage 0 vergleicht mit dem Tag der ersten Messung.
+  // Ohne Messung in der Woche vor dem Vergleichstag: null.
+  // Die Kacheln im Fortschritt-Tab und die Kachel auf Home rechnen beide hiermit.
+  function schnittAenderung(liste, tage) {
+    if (liste.length === 0) {
+      return null;
+    }
+    const letzter = new Date(liste[liste.length - 1].zeit);
+    let frueher = new Date(liste[0].zeit);
+    if (tage > 0) {
+      frueher = new Date(letzter.getFullYear(), letzter.getMonth(), letzter.getDate() - tage);
+    }
+    const damals = schnittAm(liste, frueher);
+    if (damals === null) {
+      return null;
+    }
+    return Math.round(ausKg(schnittAm(liste, letzter) - damals) * 10) / 10;
+  }
+
+  // Der Text zu einer solchen Veränderung: Pfeil und Betrag, z. B. "↓ 0,4 kg"
+  function schnittAenderungText(unterschied) {
+    let pfeil = "→";
+    if (unterschied > 0) {
+      pfeil = "↑";
+    } else if (unterschied < 0) {
+      pfeil = "↓";
+    }
+    return pfeil + " " + einheitText(Math.abs(unterschied));
+  }
+
   // Öffnet das Eintragen. Das Rad steht auf dem letzten Gewicht.
   // Das Körperfett-Feld ist leer, außer für heute wurde schon eins eingetragen.
   function gewichtSheetOeffnen() {
@@ -5565,21 +5711,9 @@
     const abstaende = [3, 7, 14, 30];
     for (let i = 0; i < abstaende.length; i++) {
       let text = "–";
-      if (liste.length > 0) {
-        const letzter = new Date(liste[liste.length - 1].zeit);
-        const frueher = new Date(letzter.getFullYear(), letzter.getMonth(), letzter.getDate() - abstaende[i]);
-        const aktuell = schnittAm(liste, letzter);
-        const damals = schnittAm(liste, frueher);
-        if (damals !== null) {
-          const unterschied = Math.round(ausKg(aktuell - damals) * 10) / 10;
-          let pfeil = "→";
-          if (unterschied > 0) {
-            pfeil = "↑";
-          } else if (unterschied < 0) {
-            pfeil = "↓";
-          }
-          text = pfeil + " " + einheitText(Math.abs(unterschied));
-        }
+      const unterschied = schnittAenderung(liste, abstaende[i]);
+      if (unterschied !== null) {
+        text = schnittAenderungText(unterschied);
       }
       const kachel = element("div", "karte");
       kachel.appendChild(element("div", "home-zahl", text));
@@ -6171,6 +6305,7 @@
     info: '<circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8v.01"/>',
     liste: '<path d="M9 7h11M9 12h11M9 17h11M4.5 7v.01M4.5 12v.01M4.5 17v.01"/>',
     link: '<path d="M8 6h10v10M18 6L6 18"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
     wechsel: '<path d="M8 20V4M8 4L4.5 7.5M8 4l3.5 3.5M16 4v16M16 20l-3.5-3.5M16 20l3.5-3.5"/>',
     abzeichen: '<circle cx="12" cy="14.5" r="5"/><path d="M9.3 10.2L6 3h4l2 4 2-4h4l-3.3 7.2"/>'
   };

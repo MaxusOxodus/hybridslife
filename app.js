@@ -2672,12 +2672,21 @@
         routineBearbeiten(routine);
       };
       knoepfe.appendChild(aendern);
+      karte.appendChild(knoepfe);
+
+      // Zweite Reihe: Vier Knöpfe nebeneinander passen auf schmalen Bildschirmen nicht
+      const weitere = element("div", "karten-knoepfe weitere");
+      const doppelt = element("button", "knopf leise", txt("routine.duplizieren"));
+      doppelt.onclick = function () {
+        routineDuplizieren(routine, routine.name, routine.uebungen);
+      };
+      weitere.appendChild(doppelt);
       const weg = element("button", "knopf leise", txt("loeschen"));
       weg.onclick = function () {
         routineLoeschenFragen(routine);
       };
-      knoepfe.appendChild(weg);
-      karte.appendChild(knoepfe);
+      weitere.appendChild(weg);
+      karte.appendChild(weitere);
       liste.appendChild(karte);
     }
   }
@@ -2800,16 +2809,77 @@
     routineBearbeiten(null);
   }
 
+  // Baut die Übungen einer Routine als neue Objekte nach. So teilt die Kopie nichts mit dem Original:
+  // Was an der Kopie geändert wird, bleibt in der Kopie.
+  function uebungenKopieren(uebungen) {
+    const kopie = [];
+    for (let i = 0; i < uebungen.length; i++) {
+      const u = uebungen[i];
+      kopie.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, zielWdhMax: wdhBis(u), pause: pauseLesen(u.pause) });
+    }
+    return kopie;
+  }
+
+  // Der Name für die Kopie einer Routine: "Name (Kopie)", und wenn es den schon gibt "Name (Kopie 2)" usw.
+  // Endet der Name schon auf "(Kopie)", wird weitergezählt statt "(Kopie) (Kopie)" anzuhängen.
+  function kopieName(name) {
+    const stamm = name.trim().replace(/ \((Kopie|Copy)( \d+)?\)$/, "");
+    const laenge = document.getElementById("routine-name").maxLength;
+    let nummer = 1;
+    while (true) {
+      let anhang = " " + txt("routine.kopie");
+      if (nummer > 1) {
+        anhang = " " + txt("routine.kopieN", { n: nummer });
+      }
+      // Ein langer Name wird vorne gekürzt, damit der Anhang in das Namensfeld passt
+      const vorschlag = stamm.slice(0, laenge - anhang.length).trim() + anhang;
+      let vergeben = false;
+      for (let i = 0; i < routinen.length; i++) {
+        if (routinen[i].name.trim().toLowerCase() === vorschlag.toLowerCase()) {
+          vergeben = true;
+        }
+      }
+      if (!vergeben) {
+        return vorschlag;
+      }
+      nummer++;
+    }
+  }
+
+  // Legt eine Kopie mit neuer id direkt hinter dem Original an und öffnet sie im Editor.
+  // Der Wochenplan bleibt, wie er ist.
+  function routineDuplizieren(original, name, uebungen) {
+    const kopie = { id: neueId(), name: kopieName(name), uebungen: uebungenKopieren(uebungen) };
+    for (let i = 0; i < kopie.uebungen.length; i++) {
+      wdhZielBereinigen(kopie.uebungen[i]);
+    }
+    routinen.splice(routinen.indexOf(original) + 1, 0, kopie);
+    routinenSpeichern();
+    trainingAnzeigen();
+    routineBearbeiten(kopie);
+  }
+
+  // "Duplizieren" im Editor: kopiert, was gerade zu sehen ist. Das Original bleibt, wie es gespeichert war.
+  function routineDuplizierenAusEditor() {
+    const original = routineFinden(bearbeiteteRoutine.id);
+    if (!original) {
+      return;
+    }
+    if (bearbeiteteRoutine.uebungen.length === 0) {
+      document.getElementById("routine-meldung").textContent = txt("editor.ohneUebung");
+      return;
+    }
+    const name = document.getElementById("routine-name").value.trim() || original.name;
+    routineDuplizieren(original, name, bearbeiteteRoutine.uebungen);
+  }
+
   // Öffnet den Editor mit einer Kopie der Routine. Ohne Routine startet er leer.
   function routineBearbeiten(routine) {
     bearbeiteteRoutine = { id: "", name: "", uebungen: [] };
     if (routine) {
       bearbeiteteRoutine.id = routine.id;
       bearbeiteteRoutine.name = routine.name;
-      for (let i = 0; i < routine.uebungen.length; i++) {
-        const u = routine.uebungen[i];
-        bearbeiteteRoutine.uebungen.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, zielWdhMax: wdhBis(u), pause: pauseLesen(u.pause) });
-      }
+      bearbeiteteRoutine.uebungen = uebungenKopieren(routine.uebungen);
     }
 
     bearbeitenTitelAnzeigen();
@@ -2826,6 +2896,8 @@
       titel = txt("editor.bearbeiten");
     }
     document.getElementById("bearbeiten-titel").textContent = titel;
+    // Duplizieren geht nur bei einer Routine, die schon gespeichert ist
+    document.getElementById("routine-duplizieren").classList.toggle("versteckt", !bearbeiteteRoutine.id);
   }
 
   // Die Übungen der bearbeiteten Routine: Pfeile zum Umsortieren, Ziel-Felder und Entfernen
@@ -2842,6 +2914,8 @@
     for (let i = 0; i < uebungen.length; i++) {
       const u = uebungen[i];
       const zeile = element("div", "karte uebung-zeile");
+      // Oben Pfeile, Name und Entfernen, darunter die Ziele über die ganze Breite der Karte
+      const kopf = element("div", "uebung-kopf");
 
       const pfeile = element("div", "pfeile");
       const hoch = element("button", "", "↑");
@@ -2858,7 +2932,7 @@
         routineUebungVerschieben(i, 1);
       };
       pfeile.appendChild(runter);
-      zeile.appendChild(pfeile);
+      kopf.appendChild(pfeile);
 
       const mitte = element("div", "uebung-mitte");
       // Der Name ist ein Button: Antippen zeigt den Verlauf der Übung
@@ -2872,12 +2946,7 @@
       if (gruppe) {
         mitte.appendChild(element("div", "uebung-gruppe", gruppe));
       }
-      const ziele = element("div", "ziele");
-      ziele.appendChild(zielFeld(txt("saetze"), u, "zielSaetze", 10));
-      ziele.appendChild(wdhZielFeld(u));
-      ziele.appendChild(pauseFeld(u));
-      mitte.appendChild(ziele);
-      zeile.appendChild(mitte);
+      kopf.appendChild(mitte);
 
       const weg = element("button", "entfernen", "✕");
       weg.setAttribute("aria-label", txt("editor.entfernen"));
@@ -2885,7 +2954,15 @@
         uebungen.splice(i, 1);
         routineUebungenAnzeigen();
       };
-      zeile.appendChild(weg);
+      kopf.appendChild(weg);
+      zeile.appendChild(kopf);
+
+      // Sätze, Wdh. und Pause untereinander: links die Beschriftungen, rechts die Felder
+      const ziele = element("div", "ziele");
+      ziele.appendChild(zielFeld(txt("saetze"), u, "zielSaetze", 10));
+      ziele.appendChild(wdhZielFeld(u));
+      ziele.appendChild(pauseFeld(u));
+      zeile.appendChild(ziele);
 
       liste.appendChild(zeile);
     }
@@ -2897,6 +2974,7 @@
     rahmen.appendChild(element("span", "", titel));
 
     const feld = document.createElement("input");
+    feld.className = "ziel-haupt";
     feld.type = "number";
     feld.inputMode = "numeric";
     feld.min = 1;
@@ -2920,14 +2998,15 @@
   const WDH_BEREICHE = [[5, 9], [6, 8], [6, 10], [8, 12]];
 
   // Das Wdh.-Ziel einer Übung: eine feste Zahl, einer der vorgegebenen Bereiche oder ein eigener Bereich.
-  // Die Auswahl bestimmt, welche Zahlenfelder direkt darunter zu sehen sind.
+  // Die Auswahl bestimmt, welche Zahlenfelder rechts neben ihr zu sehen sind.
   function wdhZielFeld(uebung) {
-    const rahmen = element("div", "ziel wdh-ziel");
+    const rahmen = element("div", "ziel");
     rahmen.appendChild(element("span", "", txt("wdh")));
     const spalte = element("div", "wdh-spalte");
     rahmen.appendChild(spalte);
 
     const auswahl = document.createElement("select");
+    auswahl.className = "ziel-haupt";
     auswahl.setAttribute("aria-label", txt("editor.wdhArt"));
     auswahl.appendChild(new Option(txt("editor.festeZahl"), "fest"));
     for (let i = 0; i < WDH_BEREICHE.length; i++) {
@@ -2936,7 +3015,7 @@
     auswahl.appendChild(new Option(txt("editor.eigenerBereich"), "eigen"));
     spalte.appendChild(auswahl);
 
-    // Die Zahlenfelder stehen in einer eigenen Zeile unter der Auswahl
+    // Die Zahlenfelder stehen in derselben Zeile und teilen sich den Platz rechts von der Auswahl
     const felderZeile = element("div", "wdh-felder");
     const von = wdhZahlFeld(uebung, "zielWdh", txt("wiederholungen"));
     const strich = element("span", "", "–");
@@ -2999,21 +3078,34 @@
     return feld;
   }
 
-  // Auswahlfeld für die Pause nach jedem Satz dieser Übung. "Standard" heißt: die Zeit aus dem Profil.
+  // Auswahlfeld für die Pause nach jedem Satz dieser Übung. Der erste Eintrag (Wert "") heißt: die Zeit
+  // aus dem Profil. Er zeigt diese Zeit an, gespeichert wird aber weiter "keine eigene Pause" (null).
+  // So zieht die Übung mit, wenn die Standard-Pause später geändert wird.
   function pauseFeld(uebung) {
     const rahmen = element("label", "ziel");
     rahmen.appendChild(element("span", "", txt("pause")));
 
     const auswahl = document.createElement("select");
-    auswahl.appendChild(new Option(txt("editor.pauseStandard"), ""));
+    auswahl.className = "ziel-haupt";
+    // Zwei Überschriften in der aufgeklappten Liste, damit dieselbe Zeit nicht zweimal ohne Erklärung dasteht
+    const standard = document.createElement("optgroup");
+    standard.label = txt("profil.standardPause");
+    standard.appendChild(new Option(pauseText(pauseStandard()), ""));
+    auswahl.appendChild(standard);
+    const eigene = document.createElement("optgroup");
+    eigene.label = txt("editor.pauseEigene");
     for (let sekunden = PAUSE_SCHRITT; sekunden <= PAUSE_MAX; sekunden += PAUSE_SCHRITT) {
-      auswahl.appendChild(new Option(pauseText(sekunden), sekunden));
+      eigene.appendChild(new Option(pauseText(sekunden), sekunden));
     }
+    auswahl.appendChild(eigene);
     if (uebung.pause) {
       auswahl.value = uebung.pause;
     }
+    // Eine übernommene Standard-Zeit steht dezenter da als eine selbst gewählte
+    auswahl.classList.toggle("uebernommen", !uebung.pause);
     auswahl.onchange = function () {
       uebung.pause = pauseLesen(auswahl.value);
+      auswahl.classList.toggle("uebernommen", !uebung.pause);
     };
     rahmen.appendChild(auswahl);
     return rahmen;
@@ -4035,6 +4127,10 @@
     einstellungen.pauseSekunden = Math.max(PAUSE_SCHRITT, Math.min(PAUSE_MAX, pauseStandard() + sekunden));
     localStorage.setItem("einstellungen", JSON.stringify(einstellungen));
     pauseStandardAnzeigen();
+    // Ist der Routinen-Editor offen, zeigen seine Pause-Felder die neue Standard-Zeit
+    if (bearbeiteteRoutine && trainingAnsicht === "bearbeiten") {
+      routineUebungenAnzeigen();
+    }
   }
 
   // Restzeit der laufenden Pause in Millisekunden. Ohne Pause oder nach ihrem Ende: 0.

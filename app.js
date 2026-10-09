@@ -4073,7 +4073,7 @@
     const offen = offeneUebungen(-1);
     let text = trainingStandText(stand);
     if (offen.length > 0) {
-      text += "\n" + offenText(offen) + " " + txt("modus.entfallen");
+      text += "\n" + offenText(offen) + " " + txtAnzahl("modus.entfallen", offen.length);
     }
 
     const knoepfe = [{ text: txt("modus.speichern"), art: "haupt", aktion: trainingAbschliessen }];

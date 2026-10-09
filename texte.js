@@ -200,8 +200,8 @@ const TEXTE = {
   "routine.kopieN": { de: "(Kopie {n})", en: "(Copy {n})" },
   "routine.loeschenFrage": { de: "Routine löschen?", en: "Delete routine?" },
   "routine.loeschenText": {
-    de: "„{name}“ wird gelöscht und aus dem Wochenplan entfernt. Deine Einträge im Log bleiben erhalten.",
-    en: "“{name}” will be deleted and removed from the weekly plan. Your log entries are kept."
+    de: "„{name}“ wird gelöscht und aus dem Wochenplan entfernt. Deine Einträge bleiben erhalten.",
+    en: "“{name}” will be deleted and removed from the weekly plan. Your entries are kept."
   },
   "vorlage.routinen": { de: "Routinen: {namen}", en: "Routines: {namen}" },
   "vorlage.uebernehmen": { de: "Vorlage übernehmen", en: "Use template" },
@@ -299,7 +299,8 @@ const TEXTE = {
   "modus.laufendesFortsetzen": { de: "Laufendes Training fortsetzen", en: "Resume current workout" },
   "modus.neuStarten": { de: "„{name}“ neu starten", en: "Start “{name}” from scratch" },
   "modus.nichtFertig": { de: "„{name}“ ist noch nicht abgeschlossen: {stand}.", en: "“{name}” isn't finished yet: {stand}." },
-  "modus.entfallen": { de: "Sie entfallen.", en: "They will be dropped." },
+  "modus.entfallen.eins": { de: "Sie entfällt.", en: "It will be skipped." },
+  "modus.entfallen.viele": { de: "Sie entfallen.", en: "They will be skipped." },
   "modus.zurOffenen": { de: "Zur offenen Übung", en: "Go to open exercise" },
   "modus.beendenFrage": { de: "Training beenden?", en: "End workout?" },
   "modus.speichern": { de: "Training speichern", en: "Save workout" },

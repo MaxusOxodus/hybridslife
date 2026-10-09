@@ -6,8 +6,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <!-- Farbe der Browser- und Statusleiste, passend zum hellen oder dunklen Design -->
-  <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta id="farbe-hell" name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+  <meta id="farbe-dunkel" name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <title>Gymstead</title>
 
   <!-- PWA: Manifest (Name, Icons, Start ohne Browserleiste) und Icons -->
@@ -21,7 +21,18 @@
   <meta name="apple-mobile-web-app-title" content="Gymstead">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="stylesheet" href="style.css?v=20">
+  <!-- Ist in den Einstellungen "Dunkel" oder "Hell" gewählt, gilt das sofort, noch bevor die Seite gezeichnet wird.
+       Sonst würde beim Start kurz das andere Design aufblitzen. Ohne Auswahl folgt die App dem Gerät. -->
+  <script>
+    try {
+      var design = JSON.parse(localStorage.getItem("einstellungen")).design;
+      if (design === "dunkel" || design === "hell") {
+        document.documentElement.setAttribute("data-design", design);
+      }
+    } catch (fehler) {}
+  </script>
+
+  <link rel="stylesheet" href="style.css?v=21">
 </head>
 <body>
 
@@ -260,7 +271,7 @@
       </div>
       <div class="karte">
         <div id="stat-serie" class="kachel-zahl">0</div>
-        <div class="kachel-titel" data-t="fortschritt.serie">Wochen in Folge mit mind. 3 Trainingstagen</div>
+        <div id="stat-serie-titel" class="kachel-titel"></div>
       </div>
     </div>
 
@@ -304,79 +315,52 @@
     <div class="karte kommt-bald" data-t="kommtBald">Kommt bald</div>
   </section>
 
-  <!-- Seite: Profil -->
+  <!-- Seite: Profil. Karte, Raster und Reiter füllt die app.js. -->
   <section id="seite-profil" class="seite">
-    <h1 data-t="nav.profil">Profil</h1>
-    <p class="unterzeile" data-t="profil.unterzeile">Deine Einstellungen</p>
-
-    <!-- Jeder Abschnitt ist eine Liste von Zeilen: links, worum es geht, rechts der Wert oder die Auswahl -->
-    <h2 class="abschnitt" data-t="profil.konto">Konto</h2>
-    <div class="karte einst-liste">
-      <div class="einst-zeile">
-        <span class="einst-titel" data-t="profil.login">Login und Cloud-Speicher</span>
-        <span class="einst-wert" data-t="kommtBald">Kommt bald</span>
+    <div class="profil-kopf">
+      <div>
+        <h1 data-t="nav.profil">Profil</h1>
+        <p class="unterzeile" data-t="profil.unterzeile">Dein Training auf einen Blick</p>
       </div>
+      <button class="rund-btn" onclick="einstOeffnen()" aria-label="Einstellungen" data-t-aria="einst.titel"><span class="icon" data-icon="zahnrad"></span></button>
     </div>
 
-    <h2 class="abschnitt" data-t="profil.abo">Abo</h2>
-    <div class="karte einst-liste">
-      <div class="einst-zeile">
-        <span class="einst-titel" data-t="profil.abo">Abo</span>
-        <span class="einst-wert" data-t="kommtBald">Kommt bald</span>
-      </div>
-    </div>
+    <!-- Erinnerung ans Backup: erscheint nur, wenn das letzte zu lange her ist -->
+    <div id="backup-hinweis"></div>
 
-    <h2 class="abschnitt" data-t="profil.integrationen">Integrationen</h2>
-    <div class="karte einst-liste">
-      <div class="einst-zeile">
-        <span class="einst-titel">Apple Health</span>
-        <span class="einst-wert" data-t="kommtBald">Kommt bald</span>
-      </div>
-    </div>
-    <p class="einst-fuss" data-t="profil.health">Apple Health kommt mit der App-Store-Version.</p>
-
-    <h2 class="abschnitt" data-t="nav.training">Training</h2>
-    <div class="karte einst-liste">
-      <div class="einst-zeile">
-        <span class="einst-titel" data-t="profil.standardPause">Standard-Pause</span>
-        <div class="stufen">
-          <button onclick="pauseStandardAendern(-15)" aria-label="15 Sekunden kürzer" data-t-aria="profil.pauseKuerzer">−</button>
-          <span id="pause-standard"></span>
-          <button onclick="pauseStandardAendern(15)" aria-label="15 Sekunden länger" data-t-aria="profil.pauseLaenger">+</button>
+    <div class="karte">
+      <div class="profil-person">
+        <div id="profil-avatar" class="avatar"></div>
+        <div class="profil-namen">
+          <div id="profil-name" class="routine-name"></div>
+          <div id="profil-benutzer" class="routine-info"></div>
         </div>
       </div>
-    </div>
-    <p class="einst-fuss" data-t="profil.pauseHinweis">Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist.</p>
+      <div id="profil-zahlen" class="home-zahlen profil-zahlen"></div>
+      <button class="profil-btn" onclick="einstOeffnen('profil')" data-t="profil.bearbeiten">Profil bearbeiten</button>
 
-    <!-- Die Umschalter baut die app.js -->
-    <h2 class="abschnitt" data-t="profil.einheiten">Einheiten</h2>
-    <div class="karte einst-liste">
-      <div class="einst-zeile">
-        <span class="einst-titel" data-t="gewicht">Gewicht</span>
-        <div id="einheit-gewicht" class="umschalter"></div>
+      <!-- Aktivität: ein Feld pro Tag, eine Spalte pro Woche. Die Tage stehen fest, die Wochen lassen sich seitlich wischen. -->
+      <div class="raster-kopf">
+        <span class="raster-titel" data-t="raster.titel">Aktivität</span>
+        <span id="raster-anzahl"></span>
       </div>
-      <div class="einst-zeile">
-        <span class="einst-titel" data-t="profil.laenge">Länge</span>
-        <div id="einheit-laenge" class="umschalter"></div>
+      <div class="raster">
+        <div id="raster-tage" class="raster-tage" aria-hidden="true"></div>
+        <div id="raster-rollen" class="raster-rollen">
+          <div id="raster-monate" class="raster-monate" aria-hidden="true"></div>
+          <div id="raster-felder" class="raster-felder"></div>
+        </div>
       </div>
-    </div>
-    <p class="einst-fuss" data-t="profil.einheitenHinweis">Deine Daten bleiben beim Umschalten unverändert, nur Anzeige und Eingabe werden umgerechnet. Die Länge gilt für spätere Körpermaße.</p>
-
-    <h2 class="abschnitt" data-t="profil.sprache">Sprache</h2>
-    <div class="karte einst-liste">
-      <div class="einst-zeile">
-        <span class="einst-titel" data-t="profil.sprache">Sprache</span>
-        <div id="sprache-auswahl" class="umschalter"></div>
+      <button id="raster-info" class="raster-info" onclick="rasterTagOeffnen()"></button>
+      <div class="raster-legende" aria-hidden="true">
+        <span data-t="raster.weniger">Weniger</span>
+        <i class="raster-feld"></i><i class="raster-feld stufe-1"></i><i class="raster-feld stufe-2"></i><i class="raster-feld stufe-3"></i><i class="raster-feld stufe-4"></i>
+        <span data-t="raster.mehr">Mehr</span>
       </div>
     </div>
 
-    <h2 class="abschnitt" data-t="profil.daten">Daten</h2>
-    <div class="karte einst-liste">
-      <button class="einst-zeile" onclick="backupExportieren()" data-t="backup.exportieren">Backup exportieren</button>
-      <button class="einst-zeile" onclick="document.getElementById('backup-datei').click()" data-t="backup.importieren">Backup importieren</button>
-      <input id="backup-datei" class="unsichtbar" type="file" accept=".json,application/json" onchange="backupDateiGewaehlt(this)">
-    </div>
-    <p id="daten-meldung" class="einst-fuss"></p>
+    <div id="profil-reiter" class="umschalter profil-reiter"></div>
+    <div id="profil-reiter-inhalt"></div>
   </section>
 
   <!-- Navigationsleiste: Die Icons sind einfache, selbst gezeichnete Linien-Grafiken (SVG) -->
@@ -509,6 +493,209 @@
     <div id="uebungen-sheet-liste" class="zusatz-inhalt"></div>
   </div>
 
+  <!-- Sheet: ein Trainingstag mit allen Übungen und Sätzen. Den Inhalt füllt die app.js. -->
+  <div id="tag-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span id="tag-sheet-titel" class="sheet-titel"></span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+    </div>
+    <div id="tag-sheet-inhalt" class="zusatz-inhalt"></div>
+  </div>
+
+  <!-- Einstellungen: füllen den ganzen Bildschirm. Sichtbar ist immer eine Ansicht: die Übersicht oder eine Unterseite.
+       Oben links steht ✕ zum Schließen, auf einer Unterseite ‹ zurück zur Übersicht. -->
+  <div id="einst-sheet">
+    <div class="einst-kopf">
+      <button id="einst-links" onclick="einstLinks()"></button>
+      <span id="einst-titel"></span>
+    </div>
+    <div id="einst-inhalt">
+
+      <!-- Übersicht -->
+      <div id="einst-ansicht-haupt" class="einst-ansicht">
+        <h2 class="abschnitt" data-t="profil.konto">Konto</h2>
+        <div class="karte einst-liste">
+        <button class="einst-zeile" onclick="einstZeigen('profil')">
+          <span class="icon einst-icon" data-icon="person"></span>
+          <span class="einst-titel" data-t="nav.profil">Profil</span>
+          <span class="einst-pfeil" aria-hidden="true">›</span>
+        </button>
+        <button class="einst-zeile bald" onclick="baldHinweis('konto')">
+          <span class="icon einst-icon" data-icon="schloss"></span>
+          <span class="einst-text">
+            <span class="einst-titel" data-t="einst.konto">Konto</span>
+            <span class="einst-unter" data-t="einst.bald">Bald verfügbar</span>
+          </span>
+        </button>
+        <button class="einst-zeile bald" onclick="baldHinweis('abo')">
+          <span class="icon einst-icon" data-icon="karte"></span>
+          <span class="einst-text">
+            <span class="einst-titel" data-t="einst.abo">Abo verwalten</span>
+            <span class="einst-unter" data-t="einst.bald">Bald verfügbar</span>
+          </span>
+        </button>
+        <button class="einst-zeile bald" onclick="baldHinweis('blockiert')">
+          <span class="icon einst-icon" data-icon="gesperrt"></span>
+          <span class="einst-text">
+            <span class="einst-titel" data-t="einst.blockiert">Blockierte Nutzer</span>
+            <span class="einst-unter" data-t="einst.bald">Bald verfügbar</span>
+          </span>
+        </button>
+        </div>
+        <p id="bald-hinweis" class="einst-fuss"></p>
+
+        <h2 class="abschnitt" data-t="einst.titel">Einstellungen</h2>
+        <div class="karte einst-liste">
+        <button class="einst-zeile" onclick="einstZeigen('einheiten')">
+          <span class="icon einst-icon" data-icon="waage"></span>
+          <span class="einst-titel" data-t="profil.einheiten">Einheiten</span>
+          <span id="einst-wert-einheiten" class="einst-wert"></span>
+          <span class="einst-pfeil" aria-hidden="true">›</span>
+        </button>
+        <button class="einst-zeile" onclick="einstZeigen('design')">
+          <span class="icon einst-icon" data-icon="design"></span>
+          <span class="einst-titel" data-t="design">Design</span>
+          <span id="einst-wert-design" class="einst-wert"></span>
+          <span class="einst-pfeil" aria-hidden="true">›</span>
+        </button>
+        <button class="einst-zeile" onclick="einstZeigen('sprache')">
+          <span class="icon einst-icon" data-icon="globus"></span>
+          <span class="einst-titel" data-t="profil.sprache">Sprache</span>
+          <span id="einst-wert-sprache" class="einst-wert"></span>
+          <span class="einst-pfeil" aria-hidden="true">›</span>
+        </button>
+        </div>
+
+        <h2 class="abschnitt" data-t="nav.training">Training</h2>
+        <div class="karte einst-liste">
+          <div class="einst-zeile umbruch">
+            <span class="icon einst-icon" data-icon="stoppuhr"></span>
+            <span class="einst-titel" data-t="profil.standardPause">Standard-Pause</span>
+            <div class="stufen">
+              <button onclick="pauseStandardAendern(-15)" aria-label="15 Sekunden kürzer" data-t-aria="profil.pauseKuerzer">−</button>
+              <span id="pause-standard"></span>
+              <button onclick="pauseStandardAendern(15)" aria-label="15 Sekunden länger" data-t-aria="profil.pauseLaenger">+</button>
+            </div>
+          </div>
+        </div>
+        <p class="einst-fuss" data-t="profil.pauseHinweis">Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist.</p>
+
+        <h2 class="abschnitt" data-t="profil.daten">Daten</h2>
+        <div id="einst-daten-karte" class="karte einst-liste">
+          <button class="einst-zeile" onclick="backupExportieren()">
+            <span class="icon einst-icon" data-icon="export"></span>
+            <span class="einst-text">
+              <span class="einst-titel" data-t="backup.exportieren">Backup exportieren</span>
+              <span id="backup-zuletzt" class="einst-unter"></span>
+            </span>
+            <span class="einst-pfeil" aria-hidden="true">›</span>
+          </button>
+          <button class="einst-zeile" onclick="document.getElementById('backup-datei').click()">
+            <span class="icon einst-icon" data-icon="import"></span>
+            <span class="einst-titel" data-t="backup.importieren">Backup importieren</span>
+            <span class="einst-pfeil" aria-hidden="true">›</span>
+          </button>
+          <input id="backup-datei" class="unsichtbar" type="file" accept=".json,application/json" onchange="backupDateiGewaehlt(this)">
+        </div>
+        <p id="daten-meldung" class="einst-fuss"></p>
+        <p class="einst-fuss" data-t="backup.nurHier">Deine Daten liegen nur auf diesem Gerät. Ein Backup schützt sie.</p>
+
+        <h2 class="abschnitt" data-t="einst.support">Support</h2>
+        <div class="karte einst-liste">
+        <button class="einst-zeile" onclick="einstZeigen('faq')">
+          <span class="icon einst-icon" data-icon="frage"></span>
+          <span class="einst-titel" data-t="einst.faq">FAQ</span>
+          <span class="einst-pfeil" aria-hidden="true">›</span>
+        </button>
+        <button class="einst-zeile" onclick="einstZeigen('ueber')">
+          <span class="icon einst-icon" data-icon="info"></span>
+          <span class="einst-titel" data-t="einst.ueber">Über</span>
+          <span class="einst-pfeil" aria-hidden="true">›</span>
+        </button>
+        </div>
+
+        <!-- Folge uns: Die Adressen stehen oben in der app.js. Ohne Adresse bleibt die Zeile ausgeblendet. -->
+        <div id="einst-folgen" class="versteckt">
+          <h2 class="abschnitt" data-t="einst.folgen">Folge uns</h2>
+          <div class="karte einst-liste">
+            <a id="folgen-instagram" class="einst-zeile versteckt" target="_blank" rel="noopener">
+              <span class="icon einst-icon" data-icon="link"></span>
+              <span class="einst-titel">Instagram</span>
+              <span class="einst-pfeil" aria-hidden="true">›</span>
+            </a>
+            <a id="folgen-tiktok" class="einst-zeile versteckt" target="_blank" rel="noopener">
+              <span class="icon einst-icon" data-icon="link"></span>
+              <span class="einst-titel">TikTok</span>
+              <span class="einst-pfeil" aria-hidden="true">›</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unterseite: Name und Benutzername -->
+      <div id="einst-ansicht-profil" class="einst-ansicht versteckt">
+        <label class="form-titel" for="profil-feld-name" data-t="profil.name">Name</label>
+        <input id="profil-feld-name" class="form-feld" autocomplete="off" enterkeyhint="done" placeholder="Dein Name" data-t-platzhalter="profil.namePlatzhalter" oninput="profilFelderGeaendert()" onkeydown="if (event.key === 'Enter') this.blur()">
+        <p id="profil-name-meldung" class="meldung form-meldung"></p>
+
+        <label class="form-titel" for="profil-feld-benutzer" data-t="profil.benutzername">Benutzername</label>
+        <input id="profil-feld-benutzer" class="form-feld" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="benutzername" data-t-platzhalter="profil.benutzerPlatzhalter" oninput="profilFelderGeaendert()" onkeydown="if (event.key === 'Enter') this.blur()">
+        <p id="profil-benutzer-meldung" class="meldung form-meldung"></p>
+
+        <p class="einst-fuss" data-t="profil.nurHier">Name und Benutzername bleiben auf diesem Gerät und stehen im Backup.</p>
+        <button class="speichern-btn" onclick="profilSpeichern()" data-t="speichern">Speichern</button>
+      </div>
+
+      <!-- Unterseite: Einheiten. Die Umschalter baut die app.js. -->
+      <div id="einst-ansicht-einheiten" class="einst-ansicht versteckt">
+        <div class="karte einst-liste">
+          <div class="einst-zeile">
+            <span class="einst-titel" data-t="gewicht">Gewicht</span>
+            <div id="einheit-gewicht" class="umschalter"></div>
+          </div>
+          <div class="einst-zeile">
+            <span class="einst-titel" data-t="profil.laenge">Länge</span>
+            <div id="einheit-laenge" class="umschalter"></div>
+          </div>
+        </div>
+        <p class="einst-fuss" data-t="profil.einheitenHinweis">Deine Daten bleiben beim Umschalten unverändert, nur Anzeige und Eingabe werden umgerechnet. Die Länge gilt für spätere Körpermaße.</p>
+      </div>
+
+      <!-- Unterseite: Design -->
+      <div id="einst-ansicht-design" class="einst-ansicht versteckt">
+        <div id="design-auswahl" class="umschalter gross"></div>
+        <p class="einst-fuss" data-t="design.hinweis">„System“ folgt der Einstellung deines Geräts.</p>
+      </div>
+
+      <!-- Unterseite: Sprache -->
+      <div id="einst-ansicht-sprache" class="einst-ansicht versteckt">
+        <div id="sprache-auswahl" class="umschalter gross"></div>
+      </div>
+
+      <!-- Unterseite: FAQ. Fragen und Antworten stehen in der texte.js. -->
+      <div id="einst-ansicht-faq" class="einst-ansicht versteckt">
+        <div id="faq-liste"></div>
+      </div>
+
+      <!-- Unterseite: Über -->
+      <div id="einst-ansicht-ueber" class="einst-ansicht versteckt">
+        <div class="karte einst-liste">
+          <div class="einst-zeile">
+            <span class="einst-titel" data-t="ueber.app">App</span>
+            <span class="einst-wert">Gymstead</span>
+          </div>
+          <div class="einst-zeile">
+            <span class="einst-titel" data-t="ueber.version">Version</span>
+            <span id="ueber-version" class="einst-wert"></span>
+          </div>
+        </div>
+        <p class="einst-fuss" data-t="ueber.text">Gymstead ist eine Trainings-App für Krafttraining.</p>
+        <p class="einst-fuss" data-t="ueber.lokal">Alle Daten liegen lokal auf diesem Gerät.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Frage vor dem Import: vorhandene Einträge ergänzen oder ersetzen? -->
   <div id="dialog-hintergrund">
     <div id="dialog">
@@ -530,9 +717,9 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=20"></script>
-<script src="uebungen.js?v=20"></script>
-<script src="app.js?v=20"></script>
+<script src="texte.js?v=21"></script>
+<script src="uebungen.js?v=21"></script>
+<script src="app.js?v=21"></script>
 
 </body>
 </html>

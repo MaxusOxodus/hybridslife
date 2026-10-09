@@ -1,6 +1,11 @@
   // Die Übungsdaten stehen in der uebungen.js: MUSKELGRUPPEN, BEREICHE, MUSKELN, UEBUNGEN, UEBUNGSLISTEN, ALTE_NAMEN und ALTE_IDS.
   // Die Texte der Oberfläche stehen in der texte.js: SPRACHEN und TEXTE.
 
+  // "Folge uns" in den Einstellungen: Hier trägst du die Adressen ein, z. B. "https://www.instagram.com/deinname".
+  // Solange eine Adresse leer ist, bleibt ihre Zeile ausgeblendet.
+  const INSTAGRAM_URL = "";
+  const TIKTOK_URL = "";
+
   // Die Sprache der App als Kürzel, z. B. "de" oder "en". Sie gilt für die Texte der Oberfläche
   // und für die Namen der Übungen und Muskelgruppen. Der richtige Wert kommt weiter unten,
   // sobald die Einstellungen gelesen sind.
@@ -254,6 +259,34 @@
   // So viele Trainingstage braucht eine Woche, damit sie für die Serie zählt
   const SERIE_TAGE_PRO_WOCHE = 3;
 
+  // Aktivitäts-Raster im Profil: so viele Wochen zeigt es (53 sind gut ein Jahr)
+  const RASTER_WOCHEN = 53;
+
+  // Breite einer Spalte des Rasters in Pixeln. Muss zur Größe von .raster-feld im CSS passen.
+  const RASTER_SPALTE = 15;
+
+  // So viele Spalten braucht ein ausgeschriebener Monatsname über dem Raster
+  const RASTER_MONAT_SPALTEN = 4;
+
+  // Farbstufen des Rasters: Sie richten sich nach deinen eigenen Trainingstagen, gemessen an den Sätzen pro Tag.
+  // Die drei Grenzen sind Anteile: 0.25 heißt, ein Viertel deiner Trainingstage liegt darunter.
+  // Ein Tag bekommt für jede Grenze, die er erreicht, eine Stufe mehr, von 1 (hell) bis 4 (kräftig).
+  const RASTER_GRENZEN = [0.25, 0.5, 0.75];
+
+  // Nach so vielen Tagen ohne Backup-Export erinnert das Profil daran
+  const BACKUP_ERINNERUNG_TAGE = 14;
+
+  // Grenzen für Name und Benutzername im Profil
+  const NAME_MAX = 30;
+  const BENUTZER_MIN = 3;
+  const BENUTZER_MAX = 20;
+
+  // So viele Trainingstage zeigt der Verlauf im Profil sofort, der Rest steckt hinter "Mehr anzeigen"
+  const VERLAUF_ANZAHL = 30;
+
+  // So viele Fragen hat die FAQ. Die Texte stehen in der texte.js unter "faq.1.frage", "faq.1.antwort" usw.
+  const FAQ_ANZAHL = 8;
+
   // Merkt sich zu jedem Rad seine Werte und welcher gerade markiert ist
   const raeder = {};
 
@@ -308,13 +341,17 @@
   }
 
   // Einstellungen der App: die Standard-Pause in Sekunden (pauseSekunden),
-  // die Einheit für Gewichte (gewichtEinheit: "kg" oder "lbs") und für Längen (laengeEinheit: "cm" oder "ftin")
-  // und die Sprache (sprache: "de" oder "en"). Fehlt die Sprache, gilt die des Geräts.
+  // die Einheit für Gewichte (gewichtEinheit: "kg" oder "lbs") und für Längen (laengeEinheit: "cm" oder "ftin"),
+  // die Sprache (sprache: "de" oder "en") und das Design (design: "dunkel" oder "hell").
+  // Fehlt die Sprache, gilt die des Geräts. Fehlt das Design, folgt die App dem Gerät.
   let einstellungen = gespeichertLesen("einstellungen", {});
   if (!einstellungen || typeof einstellungen !== "object" || Array.isArray(einstellungen)) {
     einstellungen = {};
   }
   sprache = spracheErmitteln();
+
+  // Das Profil: Name und Benutzername (ohne @). Beides ist leer, bis es im Profil eingetragen wird.
+  let profil = profilBereinigen(gespeichertLesen("profil", {}));
 
   // Die laufende Pause (null = keine). "ende" ist der Zeitpunkt in Millisekunden, an dem sie vorbei ist.
   // Weil das Ende feststeht, stimmt die Restzeit auch, wenn das Handy zwischendurch gesperrt war.
@@ -769,7 +806,7 @@
     }
   }
 
-  // Profil: der Umschalter für die Sprache
+  // Einstellungen: der Umschalter für die Sprache
   function spracheAnzeigen() {
     const auswahl = [];
     for (let i = 0; i < SPRACHEN.length; i++) {
@@ -794,6 +831,9 @@
       feldSetzen(id, felder[id].wert);
     });
     spracheAnzeigen();
+    designAnzeigen();
+    einstTitelAnzeigen();
+    einstWerteAnzeigen();
     einheitenAnwenden();
     einheitenAnzeigen();
     wochenleisteAnzeigen();
@@ -973,7 +1013,7 @@
     letztesMalAnzeigen();
   }
 
-  // Profil: die Umschalter für Gewicht und Länge
+  // Einstellungen: die Umschalter für Gewicht und Länge
   function einheitenAnzeigen() {
     umschalterBauen(document.getElementById("einheit-gewicht"), GEWICHT_AUSWAHL, einheit(), gewichtEinheitSetzen);
     umschalterBauen(document.getElementById("einheit-laenge"), LAENGE_AUSWAHL, laengeEinheit(), function (neu) {
@@ -1014,6 +1054,10 @@
 
     if (name === "fortschritt") {
       fortschrittAnzeigen();
+    }
+
+    if (name === "profil") {
+      profilAnzeigen();
     }
 
     if (name === "training") {
@@ -2283,8 +2327,9 @@
 
   // ---------- Fortschritt ----------
 
-  // Berechnet die vier Kacheln aus den gespeicherten Einträgen
-  function fortschrittAnzeigen() {
+  // Die Zahlen über alle Einträge: Workouts (Tage mit mindestens einem Eintrag), verschiedene Übungen,
+  // das bewegte Gesamtgewicht in kg und die Serie in Wochen. Fortschritt und Profil zeigen dieselben Zahlen.
+  function gesamtZahlen() {
     const trainingstage = {};    // jeder Tag mit mindestens einem Eintrag
     const tageProWoche = {};     // Anzahl Trainingstage je Woche (Schlüssel: Montag)
     const uebungen = {};         // jede Übung einmal: über ihre ID, eigene Übungen über den Namen
@@ -2332,10 +2377,16 @@
       montag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7);
     }
 
-    document.getElementById("stat-workouts").textContent = anzahlTage;
-    document.getElementById("stat-gewicht").textContent = volumenText(gesamtgewicht);
-    document.getElementById("stat-uebungen").textContent = anzahlUebungen;
-    document.getElementById("stat-serie").textContent = serie;
+    return { workouts: anzahlTage, uebungen: anzahlUebungen, gewicht: gesamtgewicht, serie: serie };
+  }
+
+  function fortschrittAnzeigen() {
+    const zahlen = gesamtZahlen();
+    document.getElementById("stat-workouts").textContent = zahlen.workouts;
+    document.getElementById("stat-gewicht").textContent = volumenText(zahlen.gewicht);
+    document.getElementById("stat-uebungen").textContent = zahlen.uebungen;
+    document.getElementById("stat-serie").textContent = zahlen.serie;
+    document.getElementById("stat-serie-titel").textContent = txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE });
 
     koerpergewichtAnzeigen();
     fortschrittUebungenAnzeigen();
@@ -3939,7 +3990,7 @@
     return Math.floor(sekunden / 60) + ":" + String(sekunden % 60).padStart(2, "0");
   }
 
-  // Die Standard-Pause aus dem Profil
+  // Die Standard-Pause aus den Einstellungen
   function pauseStandard() {
     return pauseLesen(einstellungen.pauseSekunden) || PAUSE_STANDARD;
   }
@@ -3949,12 +4000,12 @@
     return pauseLesen(uebung.pause) || pauseStandard();
   }
 
-  // Profil: zeigt die Standard-Pause
+  // Einstellungen: zeigt die Standard-Pause
   function pauseStandardAnzeigen() {
     document.getElementById("pause-standard").textContent = pauseText(pauseStandard());
   }
 
-  // Profil: macht die Standard-Pause um 15 Sekunden kürzer oder länger
+  // Einstellungen: macht die Standard-Pause um 15 Sekunden kürzer oder länger
   function pauseStandardAendern(sekunden) {
     einstellungen.pauseSekunden = Math.max(PAUSE_SCHRITT, Math.min(PAUSE_MAX, pauseStandard() + sekunden));
     localStorage.setItem("einstellungen", JSON.stringify(einstellungen));
@@ -4363,7 +4414,7 @@
     }
   }
 
-  // Öffnet eines der Sheets ("verlauf-sheet", "gewicht-sheet" oder "uebungen-sheet")
+  // Öffnet eines der Sheets ("verlauf-sheet", "gewicht-sheet", "uebungen-sheet" oder "tag-sheet")
   function zusatzSheetOeffnen(id) {
     document.getElementById(id).classList.add("offen");
     document.getElementById("zusatz-hintergrund").classList.add("offen");
@@ -4374,6 +4425,7 @@
     document.getElementById("uebungen-sheet").classList.remove("offen");
     document.getElementById("verlauf-sheet").classList.remove("offen");
     document.getElementById("gewicht-sheet").classList.remove("offen");
+    document.getElementById("tag-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
     document.body.classList.remove("sheet-offen");
   }
@@ -4892,8 +4944,11 @@
   // Messungen des Körpergewichts aus der Datei. null heißt: Das Backup enthält keine.
   let importGewichte = null;
 
-  // Die Einstellungen aus der Datei (Standard-Pause, Einheiten, Sprache). null heißt: Das Backup enthält keine.
+  // Die Einstellungen aus der Datei (Standard-Pause, Einheiten, Sprache, Design). null heißt: Das Backup enthält keine.
   let importEinstellungen = null;
+
+  // Name und Benutzername aus der Datei. null heißt: Das Backup enthält keine (z. B. ein älteres Backup).
+  let importProfil = null;
 
   // Die eigenen Übungen aus der Datei. null heißt: Das Backup enthält keine (z. B. ein älteres Backup).
   let importEigene = null;
@@ -5095,6 +5150,9 @@
     if (spracheBekannt(e.sprache)) {
       sauber.sprache = e.sprache;
     }
+    if (e.design === "dunkel" || e.design === "hell") {
+      sauber.design = e.design;
+    }
     return sauber;
   }
 
@@ -5106,7 +5164,12 @@
     if (neu.laengeEinheit) {
       einstellungen.laengeEinheit = neu.laengeEinheit;
     }
+    if (neu.design) {
+      einstellungen.design = neu.design;
+    }
     einstellungenSpeichern();
+    designAnwenden();
+    designAnzeigen();
     if (neu.gewichtEinheit) {
       gewichtEinheitSetzen(neu.gewichtEinheit);
     }
@@ -5126,8 +5189,9 @@
   function backupText() {
     const backup = {
       app: "gymstead",
-      version: 6,
+      version: 7,
       exportiert: new Date().toISOString(),
+      profil: profil,
       eintraege: eintraege,
       eigeneUebungen: eigeneUebungen,
       routinen: routinen,
@@ -5152,6 +5216,7 @@
     const istIOS = "standalone" in navigator;
     if (istIOS && navigator.canShare && navigator.canShare({ files: [datei] })) {
       navigator.share({ files: [datei] }).then(function () {
+        backupDatumMerken();
         datenMeldung(txt("backup.exportiert", { n: eintraege.length }));
       }).catch(function (fehler) {
         // AbortError heißt nur: Das Teilen-Menü wurde ohne Auswahl geschlossen
@@ -5177,7 +5242,14 @@
     setTimeout(function () {
       URL.revokeObjectURL(adresse);
     }, 60000);
+    backupDatumMerken();
     datenMeldung(txt("backup.exportiert", { n: eintraege.length }));
+  }
+
+  // Merkt sich, wann zuletzt ein Backup exportiert wurde. Das Datum bleibt auf dem Gerät und steht nicht im Backup.
+  function backupDatumMerken() {
+    localStorage.setItem("letztesBackup", JSON.stringify(new Date().toISOString()));
+    einstWerteAnzeigen();
   }
 
   // Wird aufgerufen, sobald im Datei-Feld eine Datei gewählt wurde
@@ -5247,6 +5319,12 @@
       importEinstellungen = einstellungenBereinigen(daten.einstellungen);
     }
 
+    // Name und Benutzername gibt es erst ab Backup-Version 7. Ältere Backups lassen das Profil, wie es ist.
+    importProfil = null;
+    if (daten && !Array.isArray(daten) && daten.profil && typeof daten.profil === "object") {
+      importProfil = profilBereinigen(daten.profil);
+    }
+
     // Das Körpergewicht gibt es erst in neueren Backups. Übernommen wird nur, was Datum und Gewicht hat,
     // dazu das Körperfett, wenn es angegeben und gültig ist.
     importGewichte = null;
@@ -5298,6 +5376,7 @@
       importTrainings = null;
       importGewichte = null;
       importEigene = null;
+      importProfil = null;
       datenMeldung(txt("backup.leer"));
       return;
     }
@@ -5321,6 +5400,9 @@
     // damit die Meldung danach schon in der Sprache aus dem Backup erscheint.
     if (art === "ersetzen" && importEinstellungen !== null) {
       einstellungenUebernehmen(importEinstellungen);
+    }
+    if (importProfil !== null) {
+      profilUebernehmen(importProfil, art);
     }
 
     // Die eigenen Übungen kommen vor den Einträgen, damit diese ihre Übung gleich finden
@@ -5361,9 +5443,11 @@
     importTrainings = null;
     importGewichte = null;
     importEigene = null;
+    importProfil = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
     anzeigen();
     letztesMalAnzeigen();
+    einstWerteAnzeigen();
   }
 
   function importAbbrechen() {
@@ -5373,8 +5457,845 @@
     importTrainings = null;
     importGewichte = null;
     importEigene = null;
+    importProfil = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
   }
+
+  // ---------- Icons ----------
+
+  // Selbst gezeichnete Linien-Icons im selben Stil wie die der Navigationsleiste (24 × 24, nur Striche).
+  // Im HTML steht an der Stelle nur data-icon="name", die Zeichnung setzt iconsEinsetzen() ein.
+  const ICONS = {
+    zahnrad: '<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>',
+    person: '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>',
+    schloss: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    karte: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14.5h4"/>',
+    gesperrt: '<circle cx="12" cy="12" r="8"/><path d="M6.5 6.5l11 11"/>',
+    waage: '<path d="M12 4v16M7 20h10M5 7h14M5 7l-3 7h6zM19 7l-3 7h6z"/>',
+    design: '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/>',
+    globus: '<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c3 3 3 13 0 16M12 4c-3 3-3 13 0 16"/>',
+    stoppuhr: '<circle cx="12" cy="13" r="7"/><path d="M12 13V9.5M10 3h4M12 3v3"/>',
+    export: '<path d="M12 15V4M8 8l4-4 4 4M5 14v5h14v-5"/>',
+    import: '<path d="M12 4v11M8 11l4 4 4-4M5 14v5h14v-5"/>',
+    frage: '<circle cx="12" cy="12" r="8"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8M12 16.5v.01"/>',
+    info: '<circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8v.01"/>',
+    link: '<path d="M8 6h10v10M18 6L6 18"/>',
+    abzeichen: '<circle cx="12" cy="14.5" r="5"/><path d="M9.3 10.2L6 3h4l2 4 2-4h4l-3.3 7.2"/>'
+  };
+
+  // Die Zeichnung eines Icons als SVG-Text
+  function iconSvg(name) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS[name] + "</svg>";
+  }
+
+  // Setzt in jedes Element mit data-icon die passende Zeichnung
+  function iconsEinsetzen() {
+    const stellen = document.querySelectorAll("[data-icon]");
+    for (let i = 0; i < stellen.length; i++) {
+      stellen[i].innerHTML = iconSvg(stellen[i].getAttribute("data-icon"));
+    }
+  }
+
+  // ---------- Design: Dunkel, Hell oder System ----------
+
+  const DESIGN_AUSWAHL = [
+    { id: "system", schluessel: "design.system" },
+    { id: "dunkel", schluessel: "design.dunkel" },
+    { id: "hell", schluessel: "design.hell" }
+  ];
+
+  // Das gewählte Design: "dunkel", "hell" oder "system" (die App folgt dem Gerät)
+  function design() {
+    if (einstellungen.design === "dunkel" || einstellungen.design === "hell") {
+      return einstellungen.design;
+    }
+    return "system";
+  }
+
+  // Stellt die Farben auf das gewählte Design. Das Attribut data-design am <html> wertet die style.css aus.
+  // Bei "System" fehlt es, dann entscheidet das Gerät. Dazu passt die Farbe der Browser- und Statusleiste.
+  function designAnwenden() {
+    const wahl = design();
+    if (wahl === "system") {
+      document.documentElement.removeAttribute("data-design");
+    } else {
+      document.documentElement.setAttribute("data-design", wahl);
+    }
+
+    // Es gibt zwei Angaben: eine für ein helles Gerät, eine für ein dunkles. Ist ein Design fest gewählt,
+    // bekommen beide dessen Farbe.
+    let beiHell = "#F2F2F7";
+    let beiDunkel = "#000000";
+    if (wahl === "dunkel") {
+      beiHell = beiDunkel;
+    }
+    if (wahl === "hell") {
+      beiDunkel = beiHell;
+    }
+    document.getElementById("farbe-hell").setAttribute("content", beiHell);
+    document.getElementById("farbe-dunkel").setAttribute("content", beiDunkel);
+  }
+
+  // Einstellungen: der Umschalter für das Design
+  function designAnzeigen() {
+    umschalterBauen(document.getElementById("design-auswahl"), DESIGN_AUSWAHL, design(), designSetzen);
+  }
+
+  function designSetzen(neu) {
+    if (neu === "dunkel" || neu === "hell") {
+      einstellungen.design = neu;
+    } else {
+      delete einstellungen.design;
+    }
+    einstellungenSpeichern();
+    designAnwenden();
+    designAnzeigen();
+  }
+
+  // ---------- Profil: Name und Benutzername ----------
+
+  // Macht aus einer Eingabe einen Benutzernamen: ohne Leerzeichen am Rand, ohne @ davor, kleingeschrieben
+  function benutzerLesen(text) {
+    return String(text).trim().replace(/^@/, "").toLowerCase();
+  }
+
+  // Die Länge eines Textes in Zeichen. Ein Emoji zählt als eins.
+  function zeichenAnzahl(text) {
+    return Array.from(text).length;
+  }
+
+  // Prüft einen Namen. Gibt die Fehlermeldung zurück, ohne Fehler einen leeren Text.
+  function nameFehler(name) {
+    if (zeichenAnzahl(name) > NAME_MAX) {
+      return txt("profil.nameZuLang", { max: NAME_MAX });
+    }
+    return "";
+  }
+
+  // Dasselbe für einen Benutzernamen. Leer ist erlaubt, dann zeigt das Profil keinen.
+  function benutzerFehler(benutzername) {
+    if (benutzername === "") {
+      return "";
+    }
+    if (!/^[a-z0-9._]+$/.test(benutzername)) {
+      return txt("profil.benutzerZeichen");
+    }
+    if (benutzername.length < BENUTZER_MIN || benutzername.length > BENUTZER_MAX) {
+      return txt("profil.benutzerLaenge", { min: BENUTZER_MIN, max: BENUTZER_MAX });
+    }
+    return "";
+  }
+
+  // Macht aus gespeicherten oder importierten Daten ein sauberes Profil. Was fehlt oder ungültig ist, bleibt leer.
+  function profilBereinigen(p) {
+    const sauber = { name: "", benutzername: "" };
+    if (!p || typeof p !== "object") {
+      return sauber;
+    }
+    if (typeof p.name === "string" && nameFehler(nameSaeubern(p.name)) === "") {
+      sauber.name = nameSaeubern(p.name);
+    }
+    if (typeof p.benutzername === "string" && benutzerFehler(benutzerLesen(p.benutzername)) === "") {
+      sauber.benutzername = benutzerLesen(p.benutzername);
+    }
+    return sauber;
+  }
+
+  function profilSichern() {
+    localStorage.setItem("profil", JSON.stringify(profil));
+  }
+
+  // Übernimmt Name und Benutzername aus einem Backup. Beim Ersetzen gilt, was im Backup steht.
+  // Beim Ergänzen füllt das Backup nur, was hier noch leer ist. Ein leeres Feld im Backup ändert nie etwas.
+  function profilUebernehmen(neu, art) {
+    if (neu.name && (art === "ersetzen" || !profil.name)) {
+      profil.name = neu.name;
+    }
+    if (neu.benutzername && (art === "ersetzen" || !profil.benutzername)) {
+      profil.benutzername = neu.benutzername;
+    }
+    profilSichern();
+  }
+
+  // Einstellungen: füllt die Felder "Name" und "Benutzername" mit dem gespeicherten Profil
+  function profilFormFuellen() {
+    document.getElementById("profil-feld-name").value = profil.name;
+    document.getElementById("profil-feld-benutzer").value = profil.benutzername;
+    profilFelderGeaendert();
+  }
+
+  // Beim Tippen verschwinden die Fehlermeldungen wieder
+  function profilFelderGeaendert() {
+    document.getElementById("profil-name-meldung").textContent = "";
+    document.getElementById("profil-benutzer-meldung").textContent = "";
+  }
+
+  // Prüft die beiden Felder und speichert das Profil. Bei einem Fehler steht die Meldung unter dem Feld.
+  function profilSpeichern() {
+    const name = nameSaeubern(document.getElementById("profil-feld-name").value);
+    const benutzername = benutzerLesen(document.getElementById("profil-feld-benutzer").value);
+    document.getElementById("profil-name-meldung").textContent = nameFehler(name);
+    document.getElementById("profil-benutzer-meldung").textContent = benutzerFehler(benutzername);
+    if (nameFehler(name) !== "" || benutzerFehler(benutzername) !== "") {
+      return;
+    }
+
+    profil = { name: name, benutzername: benutzername };
+    profilSichern();
+    einstLinks();
+  }
+
+  // ---------- Profil: Trainingstage ----------
+
+  // Die Trainingstage, die das Profil gerade zeigt (Schlüssel wie bei tagSchluessel)
+  let profilTage = {};
+
+  // Alle Trainingstage: zu jedem Kalendertag sein Datum, seine Einträge und die Summen
+  // der Sätze, der Wiederholungen und des bewegten Gewichts in kg
+  function trainingstage() {
+    const tage = {};
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (!hatDatum(e)) {
+        continue;
+      }
+      const datum = new Date(e.datum);
+      const schluessel = tagSchluessel(datum);
+      if (!tage[schluessel]) {
+        tage[schluessel] = {
+          schluessel: schluessel,
+          datum: new Date(datum.getFullYear(), datum.getMonth(), datum.getDate()),
+          eintraege: [],
+          saetze: 0,
+          wdh: 0,
+          volumen: 0
+        };
+      }
+      const tag = tage[schluessel];
+      const saetze = saetzeVon(e);
+      tag.eintraege.push(e);
+      tag.saetze += saetze.length;
+      for (let j = 0; j < saetze.length; j++) {
+        tag.wdh += saetze[j].wdh;
+      }
+      tag.volumen += eintragVolumen(e, 0);
+    }
+    return tage;
+  }
+
+  // Die Namen der Übungen eines Trainingstags, jede einmal
+  function tagUebungen(tag) {
+    const namen = [];
+    for (let i = 0; i < tag.eintraege.length; i++) {
+      const name = anzeigeName(tag.eintraege[i].uebung, tag.eintraege[i].uebungId);
+      if (namen.indexOf(name) === -1) {
+        namen.push(name);
+      }
+    }
+    return namen;
+  }
+
+  // Die Namen der Routinen, aus denen die Einträge eines Trainingstags stammen, jede einmal
+  function tagRoutinen(tag) {
+    const namen = [];
+    for (let i = 0; i < tag.eintraege.length; i++) {
+      const name = tag.eintraege[i].routineName;
+      if (name && namen.indexOf(name) === -1) {
+        namen.push(name);
+      }
+    }
+    return namen;
+  }
+
+  // Was an einem Tag trainiert wurde: die Routine, ohne Routine die ersten Übungen ("Bankdrücken, Rudern +3")
+  function tagName(tag) {
+    const routinen = tagRoutinen(tag);
+    if (routinen.length > 0) {
+      return routinen.join(" + ");
+    }
+
+    const uebungen = tagUebungen(tag);
+    if (uebungen.length > 2) {
+      return uebungen.slice(0, 2).join(", ") + " +" + (uebungen.length - 2);
+    }
+    return uebungen.join(", ");
+  }
+
+  // Wie viele Kalendertage ein gespeicherter Zeitpunkt her ist: 0 = heute, 1 = gestern.
+  // Fehlt er oder ist er ungültig, kommt null zurück.
+  function tageSeit(zeitpunkt) {
+    if (!zeitpunkt || isNaN(new Date(zeitpunkt))) {
+      return null;
+    }
+    const damals = new Date(zeitpunkt);
+    const heute = new Date();
+    const tagDamals = new Date(damals.getFullYear(), damals.getMonth(), damals.getDate());
+    const tagHeute = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate());
+    return Math.max(0, Math.round((tagHeute - tagDamals) / 86400000));
+  }
+
+  // ---------- Profil: Seite ----------
+
+  // Die drei Reiter unter der Profil-Karte
+  const PROFIL_REITER = [
+    { id: "verlauf", schluessel: "profil.reiter.verlauf" },
+    { id: "statistik", schluessel: "fortschritt.statistik" },
+    { id: "abzeichen", schluessel: "profil.reiter.abzeichen" }
+  ];
+
+  // Der gewählte Reiter und wie viele Trainingstage der Verlauf gerade zeigt
+  let profilReiter = "verlauf";
+  let verlaufGezeigt = VERLAUF_ANZAHL;
+
+  // Baut die ganze Profil-Seite neu auf
+  function profilAnzeigen() {
+    profilTage = trainingstage();
+    profilKarteAnzeigen();
+    backupHinweisAnzeigen();
+    rasterAnzeigen();
+    profilReiterAnzeigen();
+  }
+
+  // Oben in der Karte: Avatar, Name, Benutzername und die drei Kennzahlen
+  function profilKarteAnzeigen() {
+    // Der Avatar zeigt den ersten Buchstaben des Namens, sonst des Benutzernamens. Ohne beides ein Symbol.
+    const avatar = document.getElementById("profil-avatar");
+    const anfang = Array.from(profil.name || profil.benutzername)[0];
+    if (anfang) {
+      avatar.textContent = anfang.toUpperCase();
+    } else {
+      avatar.innerHTML = iconSvg("person");
+    }
+
+    const name = document.getElementById("profil-name");
+    name.textContent = profil.name || txt("profil.ohneName");
+    name.classList.toggle("leise", profil.name === "");
+
+    let benutzer = "";
+    if (profil.benutzername) {
+      benutzer = "@" + profil.benutzername;
+    }
+    document.getElementById("profil-benutzer").textContent = benutzer;
+
+    const zahlen = gesamtZahlen();
+    const bereich = document.getElementById("profil-zahlen");
+    bereich.innerHTML = "";
+    bereich.appendChild(homeZahl(zahlen.workouts, txt("profil.workouts")));
+    bereich.appendChild(homeZahl(zahlen.serie, txt("profil.serie")));
+    const volumen = homeZahl(volumenText(zahlen.gewicht), txt("verlauf.volumen"));
+    volumen.classList.add("breit");
+    bereich.appendChild(volumen);
+  }
+
+  // ---------- Profil: Erinnerung ans Backup ----------
+
+  // Zeigt über der Profil-Karte einen Hinweis, wenn es schon Trainings gibt und das letzte Backup zu lange her ist
+  // (oder es noch keins gab). Wer ihn wegklickt, hat genauso lange Ruhe, wie ein Backup vorhält.
+  function backupHinweisAnzeigen() {
+    const bereich = document.getElementById("backup-hinweis");
+    bereich.innerHTML = "";
+    if (eintraege.length === 0) {
+      return;
+    }
+    const seitBackup = tageSeit(gespeichertLesen("letztesBackup", null));
+    if (seitBackup !== null && seitBackup <= BACKUP_ERINNERUNG_TAGE) {
+      return;
+    }
+    const seitWeg = tageSeit(gespeichertLesen("backupHinweisWeg", null));
+    if (seitWeg !== null && seitWeg <= BACKUP_ERINNERUNG_TAGE) {
+      return;
+    }
+
+    const karte = element("div", "karte erinnerung");
+    const icon = element("span", "icon einst-icon");
+    icon.innerHTML = iconSvg("export");
+    karte.appendChild(icon);
+
+    const mitte = element("div", "erinnerung-text");
+    mitte.appendChild(element("div", "erinnerung-titel", txt("erinnerung.titel")));
+    let text = txt("erinnerung.nie");
+    if (seitBackup !== null) {
+      text = txt("erinnerung.alt", { n: seitBackup });
+    }
+    mitte.appendChild(element("div", "routine-info", text));
+    const hin = element("button", "text-btn", txt("erinnerung.knopf"));
+    hin.onclick = function () {
+      einstOeffnen("daten");
+    };
+    mitte.appendChild(hin);
+    karte.appendChild(mitte);
+
+    const weg = element("button", "erinnerung-zu", "✕");
+    weg.setAttribute("aria-label", txt("erinnerung.zu"));
+    weg.onclick = function () {
+      localStorage.setItem("backupHinweisWeg", JSON.stringify(new Date().toISOString()));
+      backupHinweisAnzeigen();
+    };
+    karte.appendChild(weg);
+    bereich.appendChild(karte);
+  }
+
+  // Der Text unter "Backup exportieren": wann zuletzt exportiert wurde
+  function backupZuletztText() {
+    const tage = tageSeit(gespeichertLesen("letztesBackup", null));
+    if (tage === null) {
+      return txt("backup.nie");
+    }
+    if (tage === 0) {
+      return txt("backup.zuletzt.heute");
+    }
+    if (tage === 1) {
+      return txt("backup.zuletzt.gestern");
+    }
+    return txt("backup.zuletzt.tage", { n: tage });
+  }
+
+  // ---------- Profil: Aktivitäts-Raster ----------
+
+  // Zu jedem Feld des Rasters (Schlüssel wie bei tagSchluessel) sein Element und sein Datum
+  let rasterFelder = {};
+
+  // Der angetippte Tag als Schlüssel (null = keiner)
+  let rasterTag = null;
+
+  // Die Grenzen der Farbstufen als Sätze pro Tag, berechnet aus den Trainingstagen im Raster.
+  // werte sind deren Sätze, aufsteigend sortiert.
+  function rasterGrenzen(werte) {
+    const grenzen = [];
+    for (let i = 0; i < RASTER_GRENZEN.length; i++) {
+      grenzen.push(werte[Math.ceil(RASTER_GRENZEN[i] * (werte.length - 1))]);
+    }
+    return grenzen;
+  }
+
+  // Die Farbstufe eines Trainingstags: 1 (hell) bis 4 (kräftig)
+  function rasterStufe(saetze, grenzen) {
+    let stufe = 1;
+    for (let i = 0; i < grenzen.length; i++) {
+      if (saetze >= grenzen[i]) {
+        stufe++;
+      }
+    }
+    return stufe;
+  }
+
+  // Der Text zu einem Tag: Datum und was trainiert wurde, z. B. "Mi, 7.10.2026 · Push-Tag · 14 Sätze"
+  function rasterTagText(datum, tag) {
+    if (!tag) {
+      return tagTextMitJahr(datum) + " · " + txt("raster.keinTraining");
+    }
+    return tagTextMitJahr(datum) + " · " + tagName(tag) + " · " + txtAnzahl("anzahl.saetze", tag.saetze);
+  }
+
+  // Baut das Raster: eine Spalte pro Woche, die aktuelle ganz rechts, in jeder Spalte Montag oben
+  function rasterAnzeigen() {
+    const heute = new Date();
+    const start = montagDerWoche(heute);
+    start.setDate(start.getDate() - 7 * (RASTER_WOCHEN - 1));
+
+    // Links stehen die Wochentage, beschriftet ist jeder zweite: Mo, Mi, Fr
+    const tageSpalte = document.getElementById("raster-tage");
+    tageSpalte.innerHTML = "";
+    for (let t = 0; t < 7; t++) {
+      let name = "";
+      if (t === 0 || t === 2 || t === 4) {
+        name = wochentag(t);
+      }
+      tageSpalte.appendChild(element("span", "", name));
+    }
+
+    // Die Farbstufen richten sich nach den Trainingstagen, die im Raster liegen
+    const werte = [];
+    Object.keys(profilTage).forEach(function (schluessel) {
+      if (Number(schluessel) >= tagSchluessel(start)) {
+        werte.push(profilTage[schluessel].saetze);
+      }
+    });
+    werte.sort(function (a, b) {
+      return a - b;
+    });
+    const grenzen = rasterGrenzen(werte);
+
+    const felder = document.getElementById("raster-felder");
+    felder.innerHTML = "";
+    rasterFelder = {};
+    const marken = [];
+    let monat = -1;
+    for (let w = 0; w < RASTER_WOCHEN; w++) {
+      for (let t = 0; t < 7; t++) {
+        const datum = new Date(start.getFullYear(), start.getMonth(), start.getDate() + w * 7 + t);
+        // Die Tage nach heute gibt es noch nicht, die aktuelle Woche endet also bei heute
+        if (datum > heute) {
+          break;
+        }
+
+        // Beginnt mit dieser Woche ein neuer Monat, bekommt die Spalte seinen Namen
+        if (t === 0 && datum.getMonth() !== monat) {
+          monat = datum.getMonth();
+          marken.push({ spalte: w, name: datum.toLocaleDateString(gebiet(), { month: "long" }) });
+        }
+
+        const schluessel = tagSchluessel(datum);
+        const tag = profilTage[schluessel];
+        const feld = element("button", "raster-feld");
+        if (tag) {
+          feld.classList.add("stufe-" + rasterStufe(tag.saetze, grenzen));
+        }
+        feld.setAttribute("aria-label", rasterTagText(datum, tag));
+        feld.onclick = function () {
+          rasterTagWaehlen(schluessel);
+        };
+        felder.appendChild(feld);
+        rasterFelder[schluessel] = { feld: feld, datum: datum };
+      }
+    }
+
+    // Monatsnamen: Ein ausgeschriebener Name braucht mehrere Spalten Platz. Deshalb fällt der erste weg,
+    // wenn gleich danach der nächste Monat beginnt, und der letzte, solange er am rechten Rand nicht hineinpasst.
+    if (marken.length > 1 && marken[1].spalte < RASTER_MONAT_SPALTEN) {
+      marken.shift();
+    }
+    if (marken.length > 0 && marken[marken.length - 1].spalte > RASTER_WOCHEN - RASTER_MONAT_SPALTEN) {
+      marken.pop();
+    }
+    const monate = document.getElementById("raster-monate");
+    monate.innerHTML = "";
+    for (let i = 0; i < marken.length; i++) {
+      const marke = element("span", "", marken[i].name);
+      marke.style.left = marken[i].spalte * RASTER_SPALTE + "px";
+      monate.appendChild(marke);
+    }
+
+    document.getElementById("raster-anzahl").textContent = txtAnzahl("anzahl.trainings", werte.length);
+
+    // Der vorher gewählte Tag bleibt gewählt, solange es sein Feld noch gibt
+    if (!rasterFelder[rasterTag]) {
+      rasterTag = null;
+    }
+    rasterInfoAnzeigen();
+
+    // Beim Öffnen steht das Raster ganz rechts bei der aktuellen Woche
+    const rollen = document.getElementById("raster-rollen");
+    rollen.scrollLeft = rollen.scrollWidth;
+  }
+
+  // Tippen auf ein Feld wählt den Tag, nochmal Tippen hebt die Auswahl auf
+  function rasterTagWaehlen(schluessel) {
+    if (rasterTag === schluessel) {
+      rasterTag = null;
+    } else {
+      rasterTag = schluessel;
+    }
+    rasterInfoAnzeigen();
+  }
+
+  // Markiert das gewählte Feld und zeigt unter dem Raster, was an dem Tag trainiert wurde.
+  // An einem Trainingstag führt die Zeile weiter zu den Details.
+  function rasterInfoAnzeigen() {
+    Object.keys(rasterFelder).forEach(function (schluessel) {
+      rasterFelder[schluessel].feld.classList.toggle("gewaehlt", schluessel === String(rasterTag));
+    });
+
+    const info = document.getElementById("raster-info");
+    const tag = profilTage[rasterTag];
+    info.disabled = !tag;
+    info.classList.toggle("mit-pfeil", Boolean(tag));
+    if (rasterTag === null) {
+      info.textContent = txt("raster.tippen");
+      return;
+    }
+    info.textContent = rasterTagText(rasterFelder[rasterTag].datum, tag);
+  }
+
+  // Öffnet die Details des im Raster gewählten Tags
+  function rasterTagOeffnen() {
+    tagSheetOeffnen(rasterTag);
+  }
+
+  // ---------- Profil: Reiter Verlauf, Statistik und Abzeichen ----------
+
+  function profilReiterAnzeigen() {
+    umschalterBauen(document.getElementById("profil-reiter"), PROFIL_REITER, profilReiter, function (neu) {
+      profilReiter = neu;
+      verlaufGezeigt = VERLAUF_ANZAHL;
+      profilReiterAnzeigen();
+    });
+
+    const inhalt = document.getElementById("profil-reiter-inhalt");
+    inhalt.innerHTML = "";
+    if (profilReiter === "verlauf") {
+      profilVerlaufAnzeigen(inhalt);
+    } else if (profilReiter === "statistik") {
+      profilStatistikAnzeigen(inhalt);
+    } else {
+      profilAbzeichenAnzeigen(inhalt);
+    }
+  }
+
+  // Verlauf: die Trainingstage, der neueste zuerst. Tippen öffnet die Details.
+  function profilVerlaufAnzeigen(inhalt) {
+    const schluessel = Object.keys(profilTage).sort(function (a, b) {
+      return b - a;
+    });
+    if (schluessel.length === 0) {
+      inhalt.appendChild(element("div", "karte kommt-bald", txt("profil.verlaufLeer")));
+      return;
+    }
+
+    for (let i = 0; i < schluessel.length && i < verlaufGezeigt; i++) {
+      const tag = profilTage[schluessel[i]];
+      const zeile = element("button", "verlauf-zeile");
+      const links = element("span", "verlauf-text");
+      links.appendChild(element("span", "verlauf-name", tagName(tag)));
+      links.appendChild(element("span", "verlauf-info", tagTextMitJahr(tag.datum) + " · " + txtAnzahl("anzahl.saetze", tag.saetze)));
+      zeile.appendChild(links);
+      zeile.appendChild(element("span", "verlauf-volumen", volumenText(tag.volumen)));
+      zeile.onclick = function () {
+        tagSheetOeffnen(tag.schluessel);
+      };
+      inhalt.appendChild(zeile);
+    }
+
+    if (schluessel.length > verlaufGezeigt) {
+      const mehr = element("button", "zweit-btn", txt("profil.mehr"));
+      mehr.onclick = function () {
+        verlaufGezeigt += VERLAUF_ANZAHL;
+        profilReiterAnzeigen();
+      };
+      inhalt.appendChild(mehr);
+    }
+  }
+
+  // Die Details eines Trainingstags: jede Übung mit ihren Sätzen
+  function tagSheetOeffnen(schluessel) {
+    const tag = profilTage[schluessel];
+    if (!tag) {
+      return;
+    }
+    document.getElementById("tag-sheet-titel").textContent = tagTextMitJahr(tag.datum);
+
+    const inhalt = document.getElementById("tag-sheet-inhalt");
+    inhalt.innerHTML = "";
+    inhalt.scrollTop = 0;
+    const uebungen = tagUebungen(tag);
+    const teile = [txtAnzahl("anzahl.uebungen", uebungen.length), txtAnzahl("anzahl.saetze", tag.saetze), volumenText(tag.volumen)];
+    // Gab es eine Routine, steht ihr Name vorn
+    if (tagRoutinen(tag).length > 0) {
+      teile.unshift(tagName(tag));
+    }
+    inhalt.appendChild(element("p", "tag-zusammenfassung", teile.join(" · ")));
+
+    for (let i = 0; i < tag.eintraege.length; i++) {
+      const e = tag.eintraege[i];
+      const zeile = element("div", "tag-eintrag");
+      zeile.appendChild(element("div", "tag-eintrag-name", anzeigeName(e.uebung, e.uebungId)));
+      zeile.appendChild(element("div", "routine-info", saetzeText(e)));
+      inhalt.appendChild(zeile);
+    }
+    zusatzSheetOeffnen("tag-sheet");
+  }
+
+  // Statistik: die Serie und die Zahlen der laufenden Woche, alles in der gewählten Einheit
+  function profilStatistikAnzeigen(inhalt) {
+    const serie = element("div", "karte");
+    serie.appendChild(element("div", "routine-name", txtAnzahl("profil.serieText", gesamtZahlen().serie)));
+    serie.appendChild(element("div", "routine-info", txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE })));
+    inhalt.appendChild(serie);
+
+    // Diese Woche: alle Trainingstage ab Montag
+    const montag = tagSchluessel(montagDerWoche(new Date()));
+    let workouts = 0;
+    let volumen = 0;
+    let wdh = 0;
+    Object.keys(profilTage).forEach(function (schluessel) {
+      if (Number(schluessel) >= montag) {
+        workouts++;
+        volumen += profilTage[schluessel].volumen;
+        wdh += profilTage[schluessel].wdh;
+      }
+    });
+
+    inhalt.appendChild(element("h2", "abschnitt", txt("home.dieseWoche")));
+    const woche = element("div", "karte");
+    const zahlen = element("div", "home-zahlen profil-zahlen ohne-abstand");
+    zahlen.appendChild(homeZahl(workouts, txt("profil.workouts")));
+    zahlen.appendChild(homeZahl(wdh.toLocaleString(gebiet()), txt("wiederholungen")));
+    const feld = homeZahl(volumenText(volumen), txt("verlauf.volumen"));
+    feld.classList.add("breit");
+    zahlen.appendChild(feld);
+    woche.appendChild(zahlen);
+    inhalt.appendChild(woche);
+  }
+
+  // Abzeichen: vorerst nur ein Platzhalter
+  function profilAbzeichenAnzeigen(inhalt) {
+    const karte = element("div", "karte abzeichen-leer");
+    const icon = element("span", "icon");
+    icon.innerHTML = iconSvg("abzeichen");
+    karte.appendChild(icon);
+    karte.appendChild(element("div", "routine-name", txt("kommtBald")));
+    karte.appendChild(element("div", "routine-info", txt("profil.abzeichenText")));
+    inhalt.appendChild(karte);
+  }
+
+  // ---------- Einstellungen ----------
+
+  // Die Ansichten der Einstellungen und der Schlüssel ihres Titels: die Übersicht ("haupt") und die Unterseiten
+  const EINST_TITEL = {
+    haupt: "einst.titel",
+    profil: "profil.bearbeiten",
+    einheiten: "profil.einheiten",
+    design: "design",
+    sprache: "profil.sprache",
+    faq: "einst.faq",
+    ueber: "einst.ueber"
+  };
+
+  // Die sichtbare Ansicht. einstDirekt ist true, wenn die Einstellungen gleich mit einer Unterseite geöffnet wurden
+  // ("Profil bearbeiten"): Dann schließt der Knopf oben links, statt zur Übersicht zu führen.
+  let einstAnsicht = "haupt";
+  let einstDirekt = false;
+
+  // Wie weit die Übersicht gescrollt war, bevor eine Unterseite aufging
+  let einstScroll = 0;
+
+  // Öffnet die Einstellungen. ziel ist leer (Übersicht), "profil" (gleich Name und Benutzername bearbeiten)
+  // oder "daten" (Übersicht, gescrollt zu den Backup-Zeilen).
+  function einstOeffnen(ziel) {
+    einstDirekt = ziel === "profil";
+    einstScroll = 0;
+    if (einstDirekt) {
+      einstZeigen("profil");
+    } else {
+      einstZeigen("haupt");
+    }
+    document.getElementById("einst-sheet").classList.add("offen");
+    document.body.classList.add("sheet-offen");
+
+    if (ziel === "daten") {
+      const karte = document.getElementById("einst-daten-karte");
+      document.getElementById("einst-inhalt").scrollTop = karte.offsetTop - 120;
+      karte.classList.add("markiert");
+      setTimeout(function () {
+        karte.classList.remove("markiert");
+      }, 2000);
+    }
+  }
+
+  // Schließt die Einstellungen. Das Profil dahinter wird neu aufgebaut, weil sich Name, Sprache,
+  // Einheit oder die Daten selbst (Import) geändert haben können.
+  function einstSchliessen() {
+    document.getElementById("einst-sheet").classList.remove("offen");
+    document.body.classList.remove("sheet-offen");
+    document.getElementById("bald-hinweis").textContent = "";
+    datenMeldung("");
+    profilAnzeigen();
+  }
+
+  // Zeigt eine Ansicht der Einstellungen: "haupt" oder eine der Unterseiten
+  function einstZeigen(name) {
+    const inhalt = document.getElementById("einst-inhalt");
+    if (einstAnsicht === "haupt" && name !== "haupt") {
+      einstScroll = inhalt.scrollTop;
+    }
+    const ansichten = document.querySelectorAll(".einst-ansicht");
+    for (let i = 0; i < ansichten.length; i++) {
+      ansichten[i].classList.toggle("versteckt", ansichten[i].id !== "einst-ansicht-" + name);
+    }
+    einstAnsicht = name;
+    einstTitelAnzeigen();
+
+    if (name === "haupt") {
+      einstWerteAnzeigen();
+      inhalt.scrollTop = einstScroll;
+      return;
+    }
+    inhalt.scrollTop = 0;
+    if (name === "profil") {
+      profilFormFuellen();
+    }
+    if (name === "faq") {
+      faqAnzeigen();
+    }
+    if (name === "ueber") {
+      document.getElementById("ueber-version").textContent = appVersion();
+    }
+  }
+
+  // Der Titel der sichtbaren Ansicht und der Knopf oben links: ✕ schließt, ‹ führt zurück zur Übersicht
+  function einstTitelAnzeigen() {
+    document.getElementById("einst-titel").textContent = txt(EINST_TITEL[einstAnsicht]);
+    const links = document.getElementById("einst-links");
+    if (einstAnsicht === "haupt" || einstDirekt) {
+      links.textContent = "✕";
+      links.setAttribute("aria-label", txt("schliessen"));
+    } else {
+      links.textContent = "‹";
+      links.setAttribute("aria-label", txt("zurueck"));
+    }
+  }
+
+  // Der Knopf oben links
+  function einstLinks() {
+    if (einstAnsicht === "haupt" || einstDirekt) {
+      einstSchliessen();
+    } else {
+      einstZeigen("haupt");
+    }
+  }
+
+  // Die Übersicht: rechts in den Zeilen die gewählten Werte, das Datum des letzten Backups und die Zeilen von "Folge uns"
+  function einstWerteAnzeigen() {
+    let laenge = "cm";
+    if (laengeEinheit() === "ftin") {
+      laenge = "ft-in";
+    }
+    document.getElementById("einst-wert-einheiten").textContent = einheit() + " · " + laenge;
+    document.getElementById("einst-wert-design").textContent = txt("design." + design());
+    document.getElementById("einst-wert-sprache").textContent = spracheDaten().name;
+    document.getElementById("backup-zuletzt").textContent = backupZuletztText();
+
+    folgenZeile("folgen-instagram", INSTAGRAM_URL);
+    folgenZeile("folgen-tiktok", TIKTOK_URL);
+    document.getElementById("einst-folgen").classList.toggle("versteckt", INSTAGRAM_URL === "" && TIKTOK_URL === "");
+  }
+
+  // Eine Zeile von "Folge uns": sichtbar nur, wenn ihre Adresse eingetragen ist
+  function folgenZeile(id, adresse) {
+    const zeile = document.getElementById(id);
+    zeile.classList.toggle("versteckt", adresse === "");
+    if (adresse !== "") {
+      zeile.href = adresse;
+    }
+  }
+
+  // Konto, Abo und blockierte Nutzer gibt es noch nicht: Tippen zeigt unter der Karte, warum
+  function baldHinweis(name) {
+    document.getElementById("bald-hinweis").textContent = txt("einst." + name + ".hinweis");
+  }
+
+  // FAQ: jede Frage zum Aufklappen
+  function faqAnzeigen() {
+    const liste = document.getElementById("faq-liste");
+    liste.innerHTML = "";
+    for (let i = 1; i <= FAQ_ANZAHL; i++) {
+      const frage = element("details", "karte faq");
+      frage.appendChild(element("summary", "", txt("faq." + i + ".frage")));
+      frage.appendChild(element("p", "", txt("faq." + i + ".antwort", { n: SERIE_TAGE_PRO_WOCHE })));
+      liste.appendChild(frage);
+    }
+  }
+
+  // Die Versionsnummer der App. Sie steht in der index.html an der Adresse dieser Datei ("app.js?v=21").
+  function appVersion() {
+    const skript = document.querySelector('script[src^="app.js"]');
+    const treffer = /v=(\d+)/.exec(skript ? skript.getAttribute("src") : "");
+    if (treffer) {
+      return treffer[1];
+    }
+    return "";
+  }
+
 
 // Die Zahlenfelder im Log: Gewicht 0 bis 400 kg oder 0 bis 880 lbs, Wiederholungen 1 bis 100, Sätze 1 bis 10
 feldBauen("feld-gewicht", 0, GEWICHT_EINHEITEN[einheit()].max, true, GEWICHT_EINHEITEN[einheit()].start);
@@ -5387,7 +6308,12 @@ feldBauen("t-feld-wdh", 1, 100, false, START_WDH);
 
 // Die festen Texte der Seite in der eingestellten Sprache
 texteEinsetzen();
+iconsEinsetzen();
 spracheAnzeigen();
+
+// Das gewählte Design (Dunkel, Hell oder System) und sein Umschalter
+designAnwenden();
+designAnzeigen();
 
 // Beschriftungen und Schnellbuttons in der gewählten Einheit, dazu das Rad für das Körpergewicht
 // (30 bis 200 kg oder 66 bis 440 lbs)

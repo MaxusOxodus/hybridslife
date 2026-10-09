@@ -315,7 +315,7 @@ const TEXTE = {
   "fortschritt.workouts": { de: "Workouts gesamt", en: "Total workouts" },
   "fortschritt.gesamtgewicht": { de: "Bewegtes Gesamtgewicht", en: "Total weight moved" },
   "fortschritt.verschiedene": { de: "Verschiedene Übungen", en: "Different exercises" },
-  "fortschritt.serie": { de: "Wochen in Folge mit mind. 3 Trainingstagen", en: "Weeks in a row with at least 3 training days" },
+  "fortschritt.serie": { de: "Wochen in Folge mit mind. {n} Trainingstagen", en: "Weeks in a row with at least {n} training days" },
   "fortschritt.schnitt": { de: "7-Tage-Schnitt", en: "7-day average" },
   "fortschritt.messung": { de: "Messung", en: "Measurement" },
   "fortschritt.gewichtEintragen": { de: "Gewicht eintragen", en: "Log weight" },
@@ -359,12 +359,143 @@ const TEXTE = {
   "gym.unterzeile": { de: "Bau dir dein eigenes Gym", en: "Build your own gym" },
 
   // ---------- Profil ----------
-  "profil.unterzeile": { de: "Deine Einstellungen", en: "Your settings" },
+  "profil.unterzeile": { de: "Dein Training auf einen Blick", en: "Your training at a glance" },
+  "profil.bearbeiten": { de: "Profil bearbeiten", en: "Edit profile" },
+  "profil.ohneName": { de: "Noch kein Name", en: "No name yet" },
+  "profil.name": { de: "Name", en: "Name" },
+  "profil.namePlatzhalter": { de: "Dein Name", en: "Your name" },
+  "profil.benutzername": { de: "Benutzername", en: "Username" },
+  "profil.benutzerPlatzhalter": { de: "benutzername", en: "username" },
+  "profil.nurHier": {
+    de: "Name und Benutzername bleiben auf diesem Gerät und stehen im Backup.",
+    en: "Name and username stay on this device and are part of the backup."
+  },
+  "profil.nameZuLang": { de: "Der Name darf höchstens {max} Zeichen haben.", en: "The name can have at most {max} characters." },
+  "profil.benutzerLaenge": {
+    de: "Der Benutzername braucht {min} bis {max} Zeichen.",
+    en: "The username needs {min} to {max} characters."
+  },
+  "profil.benutzerZeichen": {
+    de: "Erlaubt sind Buchstaben ohne Umlaute, Ziffern, Punkt und Unterstrich.",
+    en: "Only letters, digits, dot and underscore are allowed."
+  },
+  "profil.workouts": { de: "Workouts", en: "Workouts" },
+  "profil.serie": { de: "Serie in Wochen", en: "Streak in weeks" },
+  "profil.reiter.verlauf": { de: "Verlauf", en: "History" },
+  "profil.reiter.abzeichen": { de: "Abzeichen", en: "Badges" },
+  "profil.verlaufLeer": {
+    de: "Noch keine Trainings. Sobald du etwas einträgst, erscheint es hier.",
+    en: "No workouts yet. As soon as you log something, it shows up here."
+  },
+  "profil.mehr": { de: "Mehr anzeigen", en: "Show more" },
+  "profil.serieText.eins": { de: "Serie: 1 Woche", en: "Streak: 1 week" },
+  "profil.serieText.viele": { de: "Serie: {n} Wochen", en: "Streak: {n} weeks" },
+  "profil.abzeichenText": {
+    de: "Abzeichen für deine Erfolge folgen in einem späteren Update.",
+    en: "Badges for your achievements will follow in a later update."
+  },
+  "anzahl.trainings.eins": { de: "1 Training", en: "1 workout" },
+  "anzahl.trainings.viele": { de: "{n} Trainings", en: "{n} workouts" },
+
+  // ---------- Profil: Aktivitäts-Raster ----------
+  "raster.titel": { de: "Aktivität", en: "Activity" },
+  "raster.weniger": { de: "Weniger", en: "Less" },
+  "raster.mehr": { de: "Mehr", en: "More" },
+  "raster.tippen": { de: "Tippe auf ein Feld für die Details.", en: "Tap a square for details." },
+  "raster.keinTraining": { de: "Kein Training", en: "No workout" },
+
+  // ---------- Profil: Erinnerung ans Backup ----------
+  "erinnerung.titel": { de: "Backup machen", en: "Make a backup" },
+  "erinnerung.nie": {
+    de: "Du hast noch kein Backup exportiert.",
+    en: "You have not exported a backup yet."
+  },
+  "erinnerung.alt": { de: "Dein letztes Backup ist {n} Tage alt.", en: "Your last backup is {n} days old." },
+  "erinnerung.knopf": { de: "Zum Backup", en: "Go to backup" },
+  "erinnerung.zu": { de: "Hinweis ausblenden", en: "Dismiss hint" },
+
+  // ---------- Einstellungen ----------
+  "einst.titel": { de: "Einstellungen", en: "Settings" },
   "profil.konto": { de: "Konto", en: "Account" },
-  "profil.login": { de: "Login und Cloud-Speicher", en: "Login and cloud storage" },
-  "profil.abo": { de: "Abo", en: "Subscription" },
-  "profil.integrationen": { de: "Integrationen", en: "Integrations" },
-  "profil.health": { de: "Apple Health kommt mit der App-Store-Version.", en: "Apple Health arrives with the App Store version." },
+  "einst.konto": { de: "Konto", en: "Account" },
+  "einst.abo": { de: "Abo verwalten", en: "Manage subscription" },
+  "einst.blockiert": { de: "Blockierte Nutzer", en: "Blocked users" },
+  "einst.bald": { de: "Bald verfügbar", en: "Available soon" },
+  "einst.konto.hinweis": {
+    de: "Ein Konto mit Anmeldung gibt es noch nicht. Bis dahin liegen deine Daten nur auf diesem Gerät.",
+    en: "There is no account or sign-in yet. Until then your data only lives on this device."
+  },
+  "einst.abo.hinweis": {
+    de: "Ein Abo gibt es noch nicht. Es gibt hier also nichts zu verwalten.",
+    en: "There is no subscription yet, so there is nothing to manage here."
+  },
+  "einst.blockiert.hinweis": {
+    de: "Andere Nutzer gibt es in der App noch nicht, deshalb lässt sich niemand blockieren.",
+    en: "There are no other users in the app yet, so there is nobody to block."
+  },
+  "einst.support": { de: "Support", en: "Support" },
+  "einst.faq": { de: "FAQ", en: "FAQ" },
+  "einst.ueber": { de: "Über", en: "About" },
+  "einst.folgen": { de: "Folge uns", en: "Follow us" },
+  "design": { de: "Design", en: "Appearance" },
+  "design.system": { de: "System", en: "System" },
+  "design.dunkel": { de: "Dunkel", en: "Dark" },
+  "design.hell": { de: "Hell", en: "Light" },
+  "design.hinweis": { de: "„System“ folgt der Einstellung deines Geräts.", en: "“System” follows your device setting." },
+  "ueber.app": { de: "App", en: "App" },
+  "ueber.version": { de: "Version", en: "Version" },
+  "ueber.text": {
+    de: "Gymstead ist eine Trainings-App für Hybrid-Athleten. Zurzeit trackst du damit dein Krafttraining.",
+    en: "Gymstead is a training app for hybrid athletes. For now it tracks your strength training."
+  },
+  "ueber.lokal": {
+    de: "Alle Daten liegen lokal auf diesem Gerät. Es gibt kein Konto und keine Cloud, nichts wird an einen Server geschickt.",
+    en: "All data is stored locally on this device. There is no account and no cloud, nothing is sent to a server."
+  },
+
+  // ---------- FAQ: Die Anzahl der Fragen steht als FAQ_ANZAHL in der app.js ----------
+  "faq.1.frage": { de: "Wo liegen meine Daten?", en: "Where is my data stored?" },
+  "faq.1.antwort": {
+    de: "Nur auf diesem Gerät, im Speicher des Browsers. Es gibt kein Konto und keine Cloud. Achtung: Wenn du die App vom Home-Bildschirm löschst oder in Safari die Website-Daten löschst, können alle Trainings verloren gehen. Exportiere deshalb regelmäßig ein Backup.",
+    en: "Only on this device, in the browser's storage. There is no account and no cloud. Warning: if you delete the app from your Home Screen or clear the website data in Safari, all your workouts can be lost. So export a backup regularly."
+  },
+  "faq.2.frage": { de: "Wie mache ich ein Backup?", en: "How do I make a backup?" },
+  "faq.2.antwort": {
+    de: "Profil, dann das Zahnrad, dann „Backup exportieren“. Es entsteht eine Datei mit dem Datum im Namen. Auf dem iPhone öffnet sich das Teilen-Menü, dort wählst du „In Dateien sichern“. In der Zeile steht, wann du zuletzt exportiert hast.",
+    en: "Profile, then the gear, then “Export backup”. This creates a file with the date in its name. On iPhone the share menu opens, choose “Save to Files” there. The row shows when you last exported."
+  },
+  "faq.3.frage": { de: "Wie ziehe ich auf ein neues iPhone um?", en: "How do I move to a new iPhone?" },
+  "faq.3.antwort": {
+    de: "Exportiere auf dem alten iPhone ein Backup und sichere die Datei so, dass du auf dem neuen daran kommst, zum Beispiel in iCloud Drive. Öffne Gymstead auf dem neuen iPhone, tippe in den Einstellungen auf „Backup importieren“, wähle die Datei und dann „Ersetzen“. Von allein wandern die Daten nicht mit.",
+    en: "Export a backup on the old iPhone and save the file where the new one can reach it, for example in iCloud Drive. Open Gymstead on the new iPhone, tap “Import backup” in the settings, pick the file and choose “Replace”. The data does not move over by itself."
+  },
+  "faq.4.frage": { de: "Was ist der Unterschied zwischen Ergänzen und Ersetzen?", en: "What is the difference between Merge and Replace?" },
+  "faq.4.antwort": {
+    de: "„Ergänzen“ behält alles, was auf dem Gerät ist, und fügt hinzu, was fehlt. „Ersetzen“ löscht die vorhandenen Einträge und nimmt die aus dem Backup. Einstellungen wie Einheit und Sprache kommen nur bei „Ersetzen“ mit.",
+    en: "“Merge” keeps everything on the device and adds what is missing. “Replace” deletes the existing entries and takes those from the backup. Settings such as unit and language only come along with “Replace”."
+  },
+  "faq.5.frage": { de: "Kann ich zwischen kg und lbs wechseln?", en: "Can I switch between kg and lbs?" },
+  "faq.5.antwort": {
+    de: "Ja, in den Einstellungen unter „Einheiten“. Gespeichert wird immer in kg, umgerechnet werden nur Anzeige und Eingabe. Du kannst also jederzeit hin und her wechseln, ohne dass etwas verloren geht.",
+    en: "Yes, in the settings under “Units”. Everything is stored in kg, only display and input are converted. So you can switch back and forth at any time without losing anything."
+  },
+  "faq.6.frage": { de: "Wie lege ich eine eigene Übung an?", en: "How do I create my own exercise?" },
+  "faq.6.antwort": {
+    de: "Tippe in der Übungsauswahl den Namen ins Suchfeld. Gibt es die Übung noch nicht, kannst du sie direkt anlegen. Deine eigenen Übungen findest du unter der Kachel „Eigene“, dort lassen sie sich über den Stift bearbeiten und löschen.",
+    en: "Type the name into the search field of the exercise picker. If the exercise does not exist yet, you can create it right there. You find your own exercises under the “My Own” tile, where the pencil lets you edit and delete them."
+  },
+  "faq.7.frage": { de: "Wie wird die Serie gezählt?", en: "How is the streak counted?" },
+  "faq.7.antwort": {
+    de: "Eine Woche zählt, wenn du an mindestens {n} Tagen trainiert hast. Die Serie ist die Zahl solcher Wochen in Folge. Die laufende Woche unterbricht sie nicht, solange sie noch nicht vorbei ist.",
+    en: "A week counts when you trained on at least {n} days. The streak is the number of such weeks in a row. The current week does not break it while it is still running."
+  },
+  "faq.8.frage": { de: "Funktioniert die App ohne Internet?", en: "Does the app work offline?" },
+  "faq.8.antwort": {
+    de: "Ja. Nach dem ersten Öffnen ist die App auf dem Gerät gespeichert und startet auch ohne Netz. Gibt es eine neue Version, erscheint unten ein Hinweis zum Aktualisieren.",
+    en: "Yes. After the first launch the app is stored on the device and starts without a connection. When a new version is available, a hint to update appears at the bottom."
+  },
+
+  // ---------- Einstellungen: Training, Einheiten, Sprache, Daten ----------
   "profil.standardPause": { de: "Standard-Pause", en: "Default rest" },
   "profil.pauseKuerzer": { de: "15 Sekunden kürzer", en: "15 seconds shorter" },
   "profil.pauseLaenger": { de: "15 Sekunden länger", en: "15 seconds longer" },
@@ -382,6 +513,14 @@ const TEXTE = {
   "profil.daten": { de: "Daten", en: "Data" },
   "backup.exportieren": { de: "Backup exportieren", en: "Export backup" },
   "backup.importieren": { de: "Backup importieren", en: "Import backup" },
+  "backup.zuletzt.heute": { de: "Zuletzt: heute", en: "Last: today" },
+  "backup.zuletzt.gestern": { de: "Zuletzt: gestern", en: "Last: yesterday" },
+  "backup.zuletzt.tage": { de: "Zuletzt: vor {n} Tagen", en: "Last: {n} days ago" },
+  "backup.nie": { de: "Noch nie", en: "Never" },
+  "backup.nurHier": {
+    de: "Deine Daten liegen nur auf diesem Gerät. Ein Backup schützt sie.",
+    en: "Your data only lives on this device. A backup protects it."
+  },
 
   // ---------- Backup ----------
   "backup.ergaenzen": { de: "Ergänzen (vorhandene behalten)", en: "Merge (keep existing)" },

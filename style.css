@@ -25,9 +25,10 @@
   color-scheme: dark;
 }
 
-/* Helles Design: greift nur, wenn das Gerät auf "hell" steht, und überschreibt die Farben von oben */
+/* Helles Design: überschreibt die Farben von oben. Die Farben stehen zweimal da, weil es zwei Wege dorthin gibt.
+   1. Das Gerät steht auf "hell" und in den Einstellungen ist nicht "Dunkel" gewählt. */
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-design="dunkel"]) {
     --hintergrund: #F2F2F7;
     --karte: #FFFFFF;
     --rand: rgba(60, 60, 67, 0.12);
@@ -45,6 +46,26 @@
     --glas-sheet: rgba(255, 255, 255, 0.8);
     color-scheme: light;
   }
+}
+
+/* 2. In den Einstellungen ist "Hell" gewählt. Das Attribut data-design setzt die App am <html>. */
+:root[data-design="hell"] {
+  --hintergrund: #F2F2F7;
+  --karte: #FFFFFF;
+  --rand: rgba(60, 60, 67, 0.12);
+  --text: #000000;
+  --text-leise: #6C6C70;
+  /* Limettengrün wäre auf Weiß kaum lesbar, deshalb hier ein dunkles Grün */
+  --akzent-text: #3F6B0B;
+  --akzent-leicht: rgba(63, 107, 11, 0.12);
+  --fuellung: rgba(120, 120, 128, 0.12);
+  --griff: rgba(60, 60, 67, 0.3);
+  --text-aus: rgba(60, 60, 67, 0.3);
+  --abdunklung: rgba(0, 0, 0, 0.3);
+  --abdunklung-stark: rgba(0, 0, 0, 0.4);
+  --glas: rgba(249, 249, 249, 0.78);
+  --glas-sheet: rgba(255, 255, 255, 0.8);
+  color-scheme: light;
 }
 
 * {
@@ -1112,7 +1133,7 @@ h1 {
   margin-top: 22px;
 }
 
-/* ---------- Pausentimer: Leiste über der Navigation und Einstellung im Profil ---------- */
+/* ---------- Pausentimer: Leiste über der Navigation und Einstellung der Standard-Pause ---------- */
 
 #pause-leiste {
   position: fixed;
@@ -1536,7 +1557,7 @@ h1 {
   stroke-linejoin: round;
 }
 
-/* ---------- Profil: Listen im Stil der iOS-Einstellungen ---------- */
+/* ---------- Einstellungen: Listen im Stil der iOS-Einstellungen ---------- */
 
 /* Eine Karte mit mehreren Zeilen, getrennt durch feine Linien */
 .einst-liste {
@@ -1556,13 +1577,65 @@ h1 {
   border-top: 1px solid var(--rand);
 }
 
+/* Der Titel nimmt den freien Platz, alles rechts davon (Wert, Pfeil, Umschalter) rückt an den Rand */
 .einst-titel {
+  flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
 .einst-wert {
   flex-shrink: 0;
+  color: var(--text-leise);
+  font-size: 15px;
+}
+
+/* Titel mit einer kleinen zweiten Zeile darunter, z. B. "Zuletzt: vor 3 Tagen" */
+.einst-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.einst-unter {
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+/* Das Icon vorn in der Zeile: grün auf einem leicht getönten Quadrat */
+.einst-icon {
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+}
+
+.einst-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Der Pfeil am Ende einer Zeile, die weiterführt */
+.einst-pfeil {
+  flex-shrink: 0;
+  color: var(--text-aus);
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* Zeilen, hinter denen noch nichts steckt ("Bald verfügbar"): ausgegraut */
+.einst-zeile.bald .einst-icon {
+  background: var(--fuellung);
+  color: var(--text-leise);
+}
+
+.einst-zeile.bald .einst-titel {
   color: var(--text-leise);
 }
 
@@ -1583,9 +1656,15 @@ button.einst-zeile {
   border-left: none;
   border-radius: 0;
   background: none;
-  color: var(--akzent-text);
+  color: var(--text);
   font-size: 17px;
   text-align: left;
+}
+
+/* Eine Zeile, die als Link nach außen führt ("Folge uns") */
+a.einst-zeile {
+  color: var(--text);
+  text-decoration: none;
 }
 
 button.einst-zeile:first-child {
@@ -1601,6 +1680,557 @@ button.einst-zeile:first-child {
 
 .einst-fuss:empty {
   display: none;
+}
+
+/* ---------- Einstellungen: das Sheet über den ganzen Bildschirm ---------- */
+
+/* Es fährt wie die anderen Sheets von unten hoch, deckt aber alles ab */
+#einst-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--hintergrund);
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.45s;
+}
+
+#einst-sheet.offen {
+  transform: translateY(0);
+  visibility: visible;
+}
+
+/* Kopf: links der Knopf, in der Mitte der Titel. Die dritte Spalte bleibt leer, damit der Titel mittig steht. */
+.einst-kopf {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  padding: calc(4px + env(safe-area-inset-top)) 8px 4px;
+}
+
+.einst-kopf button {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: 24px;
+  background: none;
+  color: var(--text);
+  font-size: 22px;
+}
+
+#einst-titel {
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+#einst-inhalt {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px calc(32px + env(safe-area-inset-bottom));
+}
+
+/* Die Abschnitte stehen hier etwas dichter als auf den Seiten */
+.einst-ansicht .abschnitt {
+  margin-top: 28px;
+}
+
+.einst-ansicht > .abschnitt:first-child {
+  margin-top: 12px;
+}
+
+.einst-ansicht {
+  padding-top: 8px;
+}
+
+/* Die Standard-Pause teilt sich die Zeile mit Icon und Titel, deshalb sind die Knöpfe hier schmaler.
+   Reicht der Platz auf einem schmalen Handy trotzdem nicht, rutschen sie in eine zweite Zeile,
+   statt dass der Titel mitten im Wort umbricht. */
+.einst-zeile.umbruch {
+  flex-wrap: wrap;
+}
+
+.einst-zeile.umbruch .einst-titel {
+  flex: 1 0 auto;
+  overflow-wrap: normal;
+}
+
+#einst-sheet .stufen {
+  gap: 4px;
+  margin-left: auto;
+}
+
+#einst-sheet .stufen button {
+  width: 36px;
+  height: 36px;
+}
+
+/* Ein Umschalter, der allein auf einer Unterseite steht */
+.umschalter.gross button {
+  min-height: 48px;
+  font-size: 16px;
+}
+
+/* Die Karte mit den Backup-Zeilen leuchtet kurz auf, wenn die Erinnerung im Profil hierher führt */
+#einst-daten-karte {
+  transition: box-shadow 0.6s;
+}
+
+#einst-daten-karte.markiert {
+  box-shadow: 0 0 0 2px var(--akzent-text);
+}
+
+/* FAQ: jede Frage ist eine Karte, die beim Antippen ihre Antwort zeigt */
+.faq {
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.faq summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::after {
+  content: "+";
+  flex-shrink: 0;
+  color: var(--text-leise);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.faq[open] summary::after {
+  content: "−";
+}
+
+.faq p {
+  margin: 0;
+  padding: 0 18px 16px;
+  color: var(--text-leise);
+  font-size: 15px;
+}
+
+/* ---------- Icons: selbst gezeichnete Linien wie in der Navigationsleiste ---------- */
+
+.icon {
+  display: inline-flex;
+}
+
+.icon svg,
+.avatar svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Profil: Kopf und Karte ---------- */
+
+/* Titel links, Zahnrad rechts */
+.profil-kopf {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rund-btn {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-top: 8px;
+  padding: 0;
+  border: 1px solid var(--rand);
+  border-radius: 22px;
+  background: var(--karte);
+  color: var(--text);
+}
+
+.profil-person {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profil-namen {
+  min-width: 0;
+}
+
+/* Runder Avatar mit dem ersten Buchstaben des Namens */
+.avatar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.avatar svg {
+  width: 30px;
+  height: 30px;
+}
+
+/* "Noch kein Name" steht leiser da als ein echter Name */
+.routine-name.leise {
+  color: var(--text-leise);
+}
+
+.profil-btn {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 14px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.home-zahlen.ohne-abstand {
+  margin-top: 0;
+}
+
+/* Die Zahlen im Profil: zwei nebeneinander, das Volumen darunter über die ganze Breite.
+   Zahlen wie "1.000.450 kg" hätten in einer von drei Spalten keinen Platz. */
+.profil-zahlen {
+  grid-template-columns: 1fr 1fr;
+  row-gap: 14px;
+}
+
+.profil-zahlen .breit {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Profil: Erinnerung ans Backup ---------- */
+
+.erinnerung {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 14px 6px 6px 16px;
+}
+
+.erinnerung-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.erinnerung-titel {
+  font-weight: 700;
+}
+
+.erinnerung .text-btn {
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.erinnerung-zu {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin-top: -8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font-size: 16px;
+}
+
+/* ---------- Profil: Aktivitäts-Raster ---------- */
+
+.raster-kopf {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rand);
+}
+
+.raster-titel {
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+#raster-anzahl {
+  color: var(--text-leise);
+  font-size: 14px;
+}
+
+/* Links die Wochentage, rechts die Wochen. Nur der rechte Teil lässt sich seitlich wischen. */
+.raster {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+/* Jede Zeile ist so hoch wie ein Feld (15px). Oben bleibt Platz für die Zeile mit den Monatsnamen. */
+.raster-tage {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-rows: repeat(7, 15px);
+  margin-top: 18px;
+  color: var(--text-leise);
+  font-size: 10px;
+  line-height: 15px;
+}
+
+.raster-rollen {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.raster-rollen::-webkit-scrollbar {
+  display: none;
+}
+
+/* Die Monatsnamen stehen frei über ihrer Spalte. Die Stelle (left) setzt die app.js. */
+.raster-monate {
+  position: relative;
+  height: 18px;
+}
+
+.raster-monate span {
+  position: absolute;
+  top: 0;
+  color: var(--text-leise);
+  font-size: 11px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+/* Die Felder füllen Spalte für Spalte von oben nach unten: sieben Zeilen, also eine Spalte pro Woche */
+.raster-felder {
+  display: grid;
+  grid-auto-columns: 15px;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 15px);
+  width: max-content;
+}
+
+/* Ein Feld ist 15px groß, gefärbt sind davon die inneren 12px. So bleibt zwischen den Feldern eine Lücke,
+   und trotzdem trifft der Finger auch dann ein Feld, wenn er die Lücke erwischt.
+   Die 15px müssen zu RASTER_SPALTE in der app.js passen. */
+.raster-feld {
+  display: block;
+  width: 15px;
+  height: 15px;
+  padding: 1.5px;
+  border: none;
+  border-radius: 5px;
+  background: var(--fuellung);
+  background-clip: content-box;
+}
+
+/* Vier Farbstufen: von hell bis zum vollen Grün. Die erste Zeile gilt für Browser, die color-mix nicht kennen. */
+.raster-feld.stufe-1 {
+  background-color: var(--akzent-leicht);
+  background-color: color-mix(in srgb, var(--akzent-text) 30%, transparent);
+}
+
+.raster-feld.stufe-2 {
+  background-color: var(--akzent-text);
+  background-color: color-mix(in srgb, var(--akzent-text) 53%, transparent);
+}
+
+.raster-feld.stufe-3 {
+  background-color: var(--akzent-text);
+  background-color: color-mix(in srgb, var(--akzent-text) 76%, transparent);
+}
+
+.raster-feld.stufe-4 {
+  background-color: var(--akzent-text);
+}
+
+/* Das angetippte Feld bekommt einen Rahmen */
+.raster-feld.gewaehlt {
+  box-shadow: inset 0 0 0 1.5px var(--text);
+}
+
+/* Unter dem Raster: was am gewählten Tag trainiert wurde. An einem Trainingstag führt die Zeile zu den Details. */
+.raster-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-size: 14px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.raster-info:disabled {
+  color: var(--text-leise);
+  opacity: 1;
+  cursor: default;
+}
+
+.raster-info.mit-pfeil::after {
+  content: "›";
+  flex-shrink: 0;
+  color: var(--text-leise);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.raster-legende {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+  color: var(--text-leise);
+  font-size: 12px;
+}
+
+.raster-legende span:first-child {
+  margin-right: 4px;
+}
+
+.raster-legende span:last-child {
+  margin-left: 4px;
+}
+
+/* ---------- Profil: Reiter Verlauf, Statistik und Abzeichen ---------- */
+
+.profil-reiter {
+  margin: 16px 0 12px;
+}
+
+/* Verlauf: eine Zeile pro Trainingstag */
+.verlauf-zeile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  margin-bottom: 8px;
+  padding: 12px 18px;
+  border: 1px solid var(--rand);
+  border-radius: 16px;
+  background: var(--karte);
+  color: var(--text);
+  font-size: 17px;
+  text-align: left;
+}
+
+.verlauf-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.verlauf-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.verlauf-info {
+  color: var(--text-leise);
+  font-size: 14px;
+}
+
+.verlauf-volumen {
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Sheet mit den Details eines Trainingstags */
+.tag-zusammenfassung {
+  margin: 0 0 12px;
+  color: var(--text-leise);
+  font-size: 15px;
+}
+
+.tag-eintrag {
+  padding: 12px 0;
+  border-top: 1px solid var(--rand);
+}
+
+.tag-eintrag-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Abzeichen: Platzhalter mit Icon in der Mitte */
+.abzeichen-leer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.abzeichen-leer .icon {
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 12px;
+  border-radius: 28px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+}
+
+.abzeichen-leer .icon svg {
+  width: 28px;
+  height: 28px;
 }
 
 /* ---------- Dialog-Buttons ---------- */

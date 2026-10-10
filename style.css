@@ -1932,7 +1932,8 @@ h1 {
 }
 
 /* Beim Sprung von Home zum Körpergewicht bleibt die Überschrift unter der festen Kopfzeile sichtbar */
-#kg-abschnitt {
+#kg-abschnitt,
+#kraft-abschnitt {
   scroll-margin-top: calc(56px + env(safe-area-inset-top));
 }
 
@@ -2210,6 +2211,96 @@ h1 {
   background: none;
   color: var(--text-leise);
   font-size: 14px;
+}
+
+/* Kraftentwicklung nach Muskelgruppen: der Zeitraum-Umschalter steht über den Zeilen */
+#fortschritt-uebungen .umschalter.klein {
+  margin-bottom: 12px;
+}
+
+#fortschritt-uebungen > .umschalter.klein:first-child {
+  margin-top: 0;
+}
+
+/* Eine Muskelgruppe: links die kleine Körper-Figur, daneben Name und Zahlen, rechts der Pfeil */
+.gruppen-zeile {
+  justify-content: flex-start;
+  padding: 8px 14px;
+}
+
+.gruppen-zeile .listen-text {
+  flex: 1;
+}
+
+.gruppen-zeile .routine-info {
+  flex-shrink: 1;
+}
+
+.gruppen-figur {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.gruppen-figur .koerper {
+  width: 24px;
+  height: 47px;
+}
+
+/* Gruppen ohne trainierte Übung: ausgegraut und nicht antippbar */
+.gruppen-zeile.aus {
+  opacity: 0.5;
+}
+
+.gruppen-offen {
+  margin: 20px 0 10px 4px;
+}
+
+/* Über den Übungen einer Gruppe: links der Zurück-Pfeil, daneben der Name der Gruppe */
+.gruppen-kopf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.gruppen-kopf .text-btn {
+  flex-shrink: 0;
+}
+
+.gruppen-titel {
+  min-width: 0;
+  font-size: 20px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* Eine Übung der Gruppe: links Name, 1RM und Veränderung, rechts das kleine Diagramm */
+.kraft-zeile {
+  padding: 10px 14px 10px 18px;
+}
+
+.kraft-zeile .listen-text {
+  flex: 1;
+}
+
+.kraft-zeile .routine-info {
+  flex-shrink: 1;
+}
+
+.kraft-wert {
+  font-size: 15px;
+}
+
+.zeilen-diagramm {
+  display: flex;
+  flex-shrink: 0;
+  width: 76px;
+  height: 48px;
+}
+
+.zeilen-diagramm .mini-rahmen {
+  min-height: 0;
+  margin-top: 0;
 }
 
 /* Übungsname als Button: sieht aus wie Text, das kleine Diagramm-Zeichen zeigt, dass man ihn antippen kann */
@@ -3415,12 +3506,6 @@ button.einst-zeile:first-child {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-}
-
-.rang-zeile {
-  color: var(--akzent-text);
-  font-size: 14px;
-  font-weight: 600;
 }
 
 /* Im Verlauf einer Übung steht die Karte mit dem Fortschritts-Rang unter den Kacheln */

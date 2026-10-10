@@ -368,6 +368,20 @@ const TEXTE = {
     en: "Once you've logged exercises, you'll find their history here."
   },
   "fortschritt.tage": { de: "{n} Tage", en: "{n} days" },
+
+  // Kraftentwicklung nach Muskelgruppen. Die Zahl hinter "gruppen.in." ist der Zeitraum in Tagen (0 = alles).
+  "gruppen.in.30": { de: "{wert} in 30 Tagen", en: "{wert} in 30 days" },
+  "gruppen.in.91": { de: "{wert} in 3 Monaten", en: "{wert} in 3 months" },
+  "gruppen.in.182": { de: "{wert} in 6 Monaten", en: "{wert} in 6 months" },
+  "gruppen.in.365": { de: "{wert} in 1 Jahr", en: "{wert} in 1 year" },
+  "gruppen.in.0": { de: "{wert} seit Start", en: "{wert} since start" },
+  "gruppen.offen": { de: "Noch nicht trainiert", en: "Not trained yet" },
+  "gruppen.keine": { de: "Noch keine Einträge", en: "No entries yet" },
+  "gruppen.weitere": { de: "Weitere Übungen", en: "Other exercises" },
+  "gruppen.sortierung": { de: "Sortierung", en: "Sort order" },
+  "gruppen.zuletzt": { de: "Zuletzt", en: "Recent" },
+  "gruppen.steigerung": { de: "Größte Steigerung", en: "Biggest gain" },
+  "gruppen.1rm": { de: "1RM {wert}", en: "1RM {wert}" },
   "messung.schnitt": { de: "Schnitt {wert}", en: "Avg {wert}" },
   "messung.zeitraumLeer": { de: "In diesem Zeitraum gibt es keine Messung.", en: "No measurement in this period." },
   "messung.gewichtLeer": { de: "Noch kein Gewicht eingetragen.", en: "No weight logged yet." },
@@ -690,7 +704,6 @@ const TEXTE = {
   "rang.nochWochen.viele": { de: "Noch {n} Wochen bis {rang}", en: "{n} weeks to {rang}" },
   "rang.neu.eins": { de: "Neuer Rang: {text}", en: "New rank: {text}" },
   "rang.neu.viele": { de: "Neue Ränge: {text}", en: "New ranks: {text}" },
-  "rang.fortschrittKurz": { de: "{rang} · {prozent}", en: "{rang} · {prozent}" },
   "rang.fortschrittText": {
     de: "Start {start} → Bestwert {bestwert} ({prozent}), geschätztes 1RM aus Sätzen mit 1 bis 10 Wdh.",
     en: "Start {start} → best {bestwert} ({prozent}), estimated 1RM from sets with 1 to 10 reps."

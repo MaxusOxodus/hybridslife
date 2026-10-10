@@ -6098,7 +6098,8 @@
   }
 
   // Alle Übungen, zu denen es Einträge gibt, die zuletzt trainierte zuerst. Jede hat ihren gespeicherten Namen,
-  // ihre ID ("" bei Übungen ohne ID), den Zeitpunkt des letzten Eintrags (zeit, 0 ohne Datum)
+  // ihre ID ("" bei Übungen ohne ID), die im Eintrag gespeicherte Muskelgruppe (gruppe, "" ohne),
+  // den Zeitpunkt des letzten Eintrags (zeit, 0 ohne Datum)
   // und die Zahl ihrer Trainingstage in den letzten KRAFT_TAGE Tagen (tageZuletzt).
   // Der Fortschritt-Tab, die Kraft-Karte auf Home und die Auswahl der Übung nutzen alle diese Liste.
   function trainierteUebungen() {
@@ -6120,10 +6121,13 @@
         zeit = new Date(e.datum).getTime();
       }
       if (!gefunden[schluessel]) {
-        gefunden[schluessel] = { name: e.uebung, id: e.uebungId || "", zeit: zeit, tage: {}, tageZuletzt: 0 };
+        gefunden[schluessel] = { name: e.uebung, id: e.uebungId || "", gruppe: "", zeit: zeit, tage: {}, tageZuletzt: 0 };
         liste.push(gefunden[schluessel]);
       } else if (zeit > gefunden[schluessel].zeit) {
         gefunden[schluessel].zeit = zeit;
+      }
+      if (gefunden[schluessel].gruppe === "" && typeof e.muskelgruppe === "string") {
+        gefunden[schluessel].gruppe = e.muskelgruppe;
       }
       if (zeit >= grenze) {
         gefunden[schluessel].tage[tagSchluessel(new Date(zeit))] = true;
@@ -6138,30 +6142,251 @@
     return liste;
   }
 
-  // Fortschritt-Tab: alle Übungen, zu denen es Einträge gibt, die zuletzt trainierte oben.
-  // Unter dem Namen steht der Fortschritts-Rang der Übung, sobald es einen gibt.
+  // ---------- Fortschritt-Tab: Kraftentwicklung nach Muskelgruppen ----------
+
+  // Die Karte für Übungen, die zu keiner Muskelgruppe gehören: alte Einträge ohne ID und ohne gespeicherte Gruppe
+  const GRUPPE_WEITERE = "weitere";
+
+  // Die zwei Sortierungen der Übungen einer Gruppe
+  const GRUPPEN_SORTIERUNGEN = [
+    { id: "zuletzt", schluessel: "gruppen.zuletzt" },
+    { id: "steigerung", schluessel: "gruppen.steigerung" }
+  ];
+
+  // Die geöffnete Muskelgruppe als ID ("" = die Liste der Gruppen), die Sortierung ihrer Übungen und der Zeitraum
+  // der Veränderung in Tagen (0 = seit dem ersten Eintrag). Nichts davon wird gespeichert:
+  // Nach dem Öffnen der App ist es wieder die Liste der Gruppen mit drei Monaten.
+  let fortschrittGruppe = "";
+  let fortschrittSortierung = "zuletzt";
+  let fortschrittZeitraum = 91;
+
+  // Die ID der Muskelgruppe einer Übung aus trainierteUebungen(): die Gruppe ihres Hauptmuskels.
+  // Ohne bekannte ID (alte Einträge, gelöschte eigene Übungen) gilt die im Eintrag gespeicherte Gruppe,
+  // sonst GRUPPE_WEITERE. So steht jede Übung in genau einer Gruppe.
+  function gruppeVonTrainierter(u) {
+    const bekannt = UEBUNG_NACH_ID[u.id] || UEBUNG_NACH_ID[ALTE_IDS[u.id]];
+    if (bekannt) {
+      return uebungGruppe(bekannt);
+    }
+    const name = u.gruppe.trim().toLowerCase();
+    for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
+      if (name !== "" && (MUSKELGRUPPEN[i].de.toLowerCase() === name || MUSKELGRUPPEN[i].en.toLowerCase() === name)) {
+        return MUSKELGRUPPEN[i].id;
+      }
+    }
+    return GRUPPE_WEITERE;
+  }
+
+  // Alle Muskelgruppen mit ihren trainierten Übungen, dazu am Ende GRUPPE_WEITERE, wenn es dort Übungen gibt.
+  // Jede Gruppe: { id, gruppe (aus MUSKELGRUPPEN, null bei GRUPPE_WEITERE), uebungen, zeit, beste }.
+  // uebungen: die Übungen aus trainierteUebungen(), die zuletzt trainierte zuerst, jede zusätzlich mit ihren
+  //           1RM-Punkten (punkte) und der Veränderung über den Zeitraum (aenderung, aus kraftAenderung).
+  // zeit:     der letzte Eintrag der Gruppe. beste: der höchste Anteil ihrer Übungen, null ohne Vergleich.
+  // Reihenfolge: die zuletzt trainierte Gruppe zuerst, dann GRUPPE_WEITERE, dann die Gruppen ohne Übung.
+  function kraftGruppen(tage) {
+    const nachId = {};
+    const gruppen = [];
+    for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
+      nachId[MUSKELGRUPPEN[i].id] = { id: MUSKELGRUPPEN[i].id, gruppe: MUSKELGRUPPEN[i], uebungen: [], zeit: 0, beste: null };
+      gruppen.push(nachId[MUSKELGRUPPEN[i].id]);
+    }
+    const weitere = { id: GRUPPE_WEITERE, gruppe: null, uebungen: [], zeit: 0, beste: null };
+
+    const liste = trainierteUebungen();
+    for (let i = 0; i < liste.length; i++) {
+      const u = liste[i];
+      const ziel = nachId[gruppeVonTrainierter(u)] || weitere;
+      u.punkte = verlaufPunkte(u.name, u.id, "1rm");
+      u.aenderung = kraftAenderung(u.punkte, tage);
+      ziel.uebungen.push(u);
+      ziel.zeit = Math.max(ziel.zeit, u.zeit);
+      if (u.aenderung && u.aenderung.anteil !== null && (ziel.beste === null || u.aenderung.anteil > ziel.beste)) {
+        ziel.beste = u.aenderung.anteil;
+      }
+    }
+
+    const trainiert = [];
+    const offen = [];
+    for (let i = 0; i < gruppen.length; i++) {
+      if (gruppen[i].uebungen.length > 0) {
+        trainiert.push(gruppen[i]);
+      } else {
+        offen.push(gruppen[i]);
+      }
+    }
+    trainiert.sort(function (a, b) {
+      return b.zeit - a.zeit;
+    });
+    if (weitere.uebungen.length > 0) {
+      trainiert.push(weitere);
+    }
+    return trainiert.concat(offen);
+  }
+
+  // Der Name einer Gruppe aus kraftGruppen in der eingestellten Sprache
+  function kraftGruppeName(g) {
+    if (g.gruppe) {
+      return g.gruppe[sprache];
+    }
+    return txt("gruppen.weitere");
+  }
+
+  // Der Umschalter für den Zeitraum der Veränderung. Er gilt für die Gruppen und für ihre Übungen.
+  function fortschrittZeitraumBauen(bereich) {
+    const schalter = element("div", "umschalter klein");
+    umschalterBauen(schalter, VERLAUF_ZEITRAEUME, fortschrittZeitraum, function (tage) {
+      fortschrittZeitraum = tage;
+      fortschrittUebungenAnzeigen();
+    });
+    bereich.appendChild(schalter);
+  }
+
+  // Wechselt zwischen der Liste der Gruppen ("") und einer Gruppe und rollt zur Überschrift "Kraftentwicklung"
+  function fortschrittGruppeZeigen(id) {
+    fortschrittGruppe = id;
+    fortschrittUebungenAnzeigen();
+    document.getElementById("kraft-abschnitt").scrollIntoView();
+  }
+
+  // Fortschritt-Tab, Kraftentwicklung: zuerst die Muskelgruppen, nach einem Tipp die Übungen der Gruppe
   function fortschrittUebungenAnzeigen() {
     const bereich = document.getElementById("fortschritt-uebungen");
     bereich.innerHTML = "";
-    const liste = trainierteUebungen();
+    const gruppen = kraftGruppen(fortschrittZeitraum);
 
-    if (liste.length === 0) {
+    if (gruppen[0].uebungen.length === 0) {
+      fortschrittGruppe = "";
       bereich.appendChild(element("p", "leer-hinweis", txt("fortschritt.kraftLeer")));
       return;
     }
 
-    for (let i = 0; i < liste.length; i++) {
-      const u = liste[i];
-      const zeile = element("button", "listen-zeile");
-      const links = element("span", "listen-text");
-      links.appendChild(element("span", "", anzeigeName(u.name, u.id)));
-      const f = fortschrittRang(verlaufPunkte(u.name, u.id, "rang"), Date.now());
-      if (f) {
-        links.appendChild(element("span", "rang-zeile", txt("rang.fortschrittKurz", { rang: rangName(f.rp), prozent: prozentText(f.steigerung) })));
+    // Die geöffnete Gruppe. Hat sie keine Übung mehr (z. B. nach dem Löschen von Einträgen), gilt wieder die Liste.
+    let offen = null;
+    for (let i = 0; i < gruppen.length; i++) {
+      if (gruppen[i].id === fortschrittGruppe && gruppen[i].uebungen.length > 0) {
+        offen = gruppen[i];
       }
-      zeile.appendChild(links);
-      if (u.zeit > 0) {
-        zeile.appendChild(element("span", "routine-info", datumMitJahr(new Date(u.zeit))));
+    }
+    if (offen) {
+      gruppeUebungenAnzeigen(bereich, offen);
+    } else {
+      fortschrittGruppe = "";
+      gruppenListeAnzeigen(bereich, gruppen);
+    }
+  }
+
+  // Ebene 1: die Muskelgruppen als Zeilen. Unter dem Namen stehen die Zahl der trainierten Übungen und die beste
+  // Steigerung der Gruppe im gewählten Zeitraum. Gruppen ohne Übung stehen ausgegraut am Ende.
+  function gruppenListeAnzeigen(bereich, gruppen) {
+    fortschrittZeitraumBauen(bereich);
+    let titelGesetzt = false;
+
+    for (let i = 0; i < gruppen.length; i++) {
+      const g = gruppen[i];
+      const trainiert = g.uebungen.length > 0;
+      if (!trainiert && !titelGesetzt) {
+        bereich.appendChild(element("div", "sheet-abschnitt gruppen-offen", txt("gruppen.offen")));
+        titelGesetzt = true;
+      }
+
+      const zeile = element(trainiert ? "button" : "div", "listen-zeile gruppen-zeile");
+      const figur = element("span", "gruppen-figur");
+      figur.innerHTML = koerperSvg(g.gruppe || { id: "", ansicht: "vorn" });
+      zeile.appendChild(figur);
+
+      const text = element("span", "listen-text");
+      text.appendChild(element("span", "", kraftGruppeName(g)));
+      if (trainiert) {
+        let steigerung = "–";
+        if (g.beste !== null) {
+          steigerung = txt("gruppen.in." + fortschrittZeitraum, { wert: prozentText(g.beste) });
+        }
+        text.appendChild(element("span", "routine-info", txtAnzahl("anzahl.uebungen", g.uebungen.length) + " · " + steigerung));
+      } else {
+        zeile.classList.add("aus");
+        text.appendChild(element("span", "routine-info", txt("gruppen.keine")));
+      }
+      zeile.appendChild(text);
+
+      if (trainiert) {
+        const pfeil = element("span", "einst-pfeil", "›");
+        pfeil.setAttribute("aria-hidden", "true");
+        zeile.appendChild(pfeil);
+        zeile.onclick = function () {
+          fortschrittGruppeZeigen(g.id);
+        };
+      }
+      bereich.appendChild(zeile);
+    }
+  }
+
+  // Ebene 2: die Übungen einer Gruppe mit ihrem aktuellen 1RM, der Veränderung im gewählten Zeitraum
+  // und dem kleinen Diagramm dieses Zeitraums. Ein Tipp öffnet den großen Verlauf.
+  function gruppeUebungenAnzeigen(bereich, g) {
+    const kopf = element("div", "gruppen-kopf");
+    const zurueck = element("button", "text-btn", txt("zurueck.pfeil"));
+    zurueck.onclick = function () {
+      fortschrittGruppeZeigen("");
+    };
+    kopf.appendChild(zurueck);
+    kopf.appendChild(element("div", "gruppen-titel", kraftGruppeName(g)));
+    bereich.appendChild(kopf);
+
+    const sortierung = element("div", "umschalter");
+    sortierung.setAttribute("aria-label", txt("gruppen.sortierung"));
+    umschalterBauen(sortierung, GRUPPEN_SORTIERUNGEN, fortschrittSortierung, function (art) {
+      fortschrittSortierung = art;
+      fortschrittUebungenAnzeigen();
+    });
+    bereich.appendChild(sortierung);
+    fortschrittZeitraumBauen(bereich);
+
+    // Die Übungen sind schon nach der letzten Nutzung sortiert. Für "Größte Steigerung" kommt der höchste Anteil
+    // zuerst, Übungen ohne Vergleich stehen am Ende. Bei Gleichstand bleibt die zuletzt trainierte vorn.
+    const uebungen = g.uebungen.slice();
+    if (fortschrittSortierung === "steigerung") {
+      const anteil = function (u) {
+        if (u.aenderung && u.aenderung.anteil !== null) {
+          return u.aenderung.anteil;
+        }
+        return -Infinity;
+      };
+      uebungen.sort(function (a, b) {
+        if (anteil(a) !== anteil(b)) {
+          return anteil(b) - anteil(a);
+        }
+        return b.zeit - a.zeit;
+      });
+    }
+
+    for (let i = 0; i < uebungen.length; i++) {
+      const u = uebungen[i];
+      const zeile = element("button", "listen-zeile kraft-zeile");
+      const text = element("span", "listen-text");
+      text.appendChild(element("span", "", anzeigeName(u.name, u.id)));
+
+      // Übungen, die nur Einträge ohne Datum oder ohne Zahlen haben, bekommen einen Strich statt der Werte
+      if (u.punkte.length === 0) {
+        text.appendChild(element("span", "routine-info", "–"));
+      } else {
+        text.appendChild(element("span", "kraft-wert", txt("gruppen.1rm", { wert: kraftText(ausKg(u.punkte[u.punkte.length - 1].wert)) })));
+        let aenderung = "–";
+        if (u.aenderung && u.aenderung.art === "gleich") {
+          aenderung = "→ " + kraftText(0);
+        } else if (u.aenderung) {
+          aenderung = u.aenderung.text;
+        }
+        if (u.aenderung && u.aenderung.anteil !== null) {
+          aenderung += " · " + prozentText(u.aenderung.anteil);
+        }
+        text.appendChild(element("span", "routine-info", aenderung));
+      }
+      zeile.appendChild(text);
+
+      if (u.punkte.length > 0) {
+        const diagramm = element("span", "zeilen-diagramm");
+        miniDiagramm(diagramm, [{ punkte: miniZeitraum(u.punkte, fortschrittZeitraum), art: "haupt", mitPunkten: true, ring: true }], true);
+        zeile.appendChild(diagramm);
       }
       zeile.onclick = function () {
         verlaufOeffnen(u.name, u.id);
@@ -6218,6 +6443,8 @@
   // Die Veränderung des letzten Werts gegenüber dem letzten Punkt, der mindestens so viele Tage alt ist.
   // tage 0 vergleicht mit dem ersten Eintrag ("seit Start"). Gibt es keinen so alten Punkt oder nur einen einzigen: null.
   // Verglichen werden die Werte so, wie sie angezeigt werden: in der gewählten Einheit, auf eine Nachkommastelle.
+  // anteil ist dieselbe Veränderung als Anteil des alten Werts (0.08 heißt 8 % mehr), null bei einem alten Wert von 0.
+  // Der Verlauf und die Muskelgruppen im Fortschritt-Tab rechnen beide hiermit.
   function kraftAenderung(punkte, tage) {
     if (punkte.length < 2) {
       return null;
@@ -6240,19 +6467,27 @@
     const jetzt = Math.round(ausKg(punkte[punkte.length - 1].wert) * 10) / 10;
     const damals = Math.round(ausKg(vergleich.wert) * 10) / 10;
     const unterschied = Math.round((jetzt - damals) * 10) / 10;
+    let anteil = null;
+    if (damals > 0) {
+      anteil = unterschied / damals;
+    }
     if (unterschied > 0) {
-      return { text: "↑ " + kraftText(unterschied), art: "hoch" };
+      return { text: "↑ " + kraftText(unterschied), art: "hoch", anteil: anteil };
     }
     if (unterschied < 0) {
-      return { text: "↓ " + kraftText(-unterschied), art: "runter" };
+      return { text: "↓ " + kraftText(-unterschied), art: "runter", anteil: anteil };
     }
-    return { text: "–", art: "gleich" };
+    return { text: "–", art: "gleich", anteil: anteil };
   }
 
   // Die Punkte für das kleine Diagramm: die der letzten KRAFT_DIAGRAMM_TAGE Tage.
   // Liegt dort keiner, sind es alle. punkte: [{ zeit, wert }], der älteste zuerst.
-  function miniZeitraum(punkte) {
-    const von = Date.now() - KRAFT_DIAGRAMM_TAGE * 86400000;
+  // Mit tage gilt dieser Zeitraum statt KRAFT_DIAGRAMM_TAGE, 0 heißt: alle.
+  function miniZeitraum(punkte, tage) {
+    if (tage === 0) {
+      return punkte;
+    }
+    const von = Date.now() - (tage || KRAFT_DIAGRAMM_TAGE) * 86400000;
     const sichtbar = [];
     for (let i = 0; i < punkte.length; i++) {
       if (punkte[i].zeit >= von) {
@@ -6274,7 +6509,8 @@
   // Das SVG füllt den Platz, der in der Kachel übrig ist, und wird dafür in Breite und Höhe gezogen.
   // Die Linien behalten dabei ihre Stärke (im CSS). Punkte sind winzige Striche mit runden Enden,
   // so bleiben sie rund.
-  function miniDiagramm(flaeche, reihen) {
+  // ohneDaten: true lässt die Datumszeile weg (in den Übungszeilen des Fortschritt-Tabs).
+  function miniDiagramm(flaeche, reihen, ohneDaten) {
     let min = Infinity;
     let max = -Infinity;
     let von = Infinity;
@@ -6343,6 +6579,9 @@
     const rahmen = element("div", "mini-rahmen");
     rahmen.innerHTML = svg;
     flaeche.appendChild(rahmen);
+    if (ohneDaten) {
+      return;
+    }
     // Darunter links das erste und rechts das letzte Datum. Bei einem einzigen Tag steht nur rechts eins.
     const daten = element("div", "mini-daten");
     let links = "";

@@ -3623,6 +3623,7 @@
     document.getElementById("modus-uebung").textContent = anzeigeName(u.name, u.uebungId);
     // Das Bild der Übung aus der bilder.js und darunter die Geräte-Zeile, z. B. "Maschine · Brust"
     document.getElementById("modus-bild").innerHTML = uebungsBild(u.uebungId);
+    document.getElementById("modus-erklaerung").classList.toggle("versteckt", erklaerungId(u.uebungId, u.name) === "");
     const bekannt = UEBUNG_NACH_ID[u.uebungId];
     let geraet = "";
     if (bekannt) {
@@ -5919,10 +5920,99 @@
     document.getElementById("tag-sheet").classList.remove("offen");
     document.getElementById("satz-sheet").classList.remove("offen");
     document.getElementById("kraft-sheet").classList.remove("offen");
+    document.getElementById("erklaerung-sheet").classList.remove("offen");
     document.getElementById("muster-sheet").classList.remove("offen");
     document.getElementById("teilen-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
     document.body.classList.remove("sheet-offen");
+  }
+
+  // ---------- Erklärungen ----------
+
+  // Die ID, unter der die Erklärung einer Übung in der erklaerungen.js steht. Eine alte ID führt über ALTE_IDS
+  // zur heutigen Übung. Ohne ID zählt der Name (auch Alias oder früherer Name). Gibt es keine Erklärung
+  // (z. B. bei eigenen Übungen), ist das Ergebnis "".
+  function erklaerungId(id, name) {
+    let eid = id || "";
+    if (eid && ALTE_IDS[eid]) {
+      eid = ALTE_IDS[eid];
+    }
+    if (!eid && name) {
+      eid = ID_NACH_NAME[String(name).toLowerCase()] || "";
+    }
+    if (eid && Object.prototype.hasOwnProperty.call(ERKLAERUNGEN, eid)) {
+      return eid;
+    }
+    return "";
+  }
+
+  // Eine schmale Box unter den Schritten: "Häufiger Fehler", "Sicherheit" oder "Tipp"
+  function erklaerungBox(art, text) {
+    const box = element("div", "erklaerung-box " + art);
+    box.appendChild(element("div", "erklaerung-box-titel", txt("erklaerung." + art)));
+    box.appendChild(element("p", "erklaerung-box-text", text));
+    return box;
+  }
+
+  // Öffnet die Erklärung: Name oben, darunter das Bild, die Schritte und die schmalen Boxen
+  function erklaerungOeffnen(id, name) {
+    const eid = erklaerungId(id, name);
+    if (eid === "") {
+      return;
+    }
+    const daten = ERKLAERUNGEN[eid];
+    document.getElementById("erklaerung-titel").textContent = anzeigeName(name, eid);
+
+    const inhalt = document.getElementById("erklaerung-inhalt");
+    inhalt.innerHTML = "";
+    inhalt.scrollTop = 0;
+    const bild = element("div", "erklaerung-bild");
+    bild.setAttribute("aria-hidden", "true");
+    bild.innerHTML = uebungsBild(eid);
+    inhalt.appendChild(bild);
+
+    const schritte = daten.schritte[sprache] || daten.schritte.de;
+    for (let i = 0; i < schritte.length; i++) {
+      const schritt = element("div", "erklaerung-schritt");
+      schritt.appendChild(element("div", "erklaerung-nummer", String(i + 1)));
+      const text = element("div", "erklaerung-schritt-text");
+      text.appendChild(element("div", "erklaerung-schritt-titel", schritte[i].titel));
+      text.appendChild(element("p", "erklaerung-schritt-satz", schritte[i].text));
+      schritt.appendChild(text);
+      inhalt.appendChild(schritt);
+    }
+
+    const arten = ["fehler", "sicherheit", "tipp"];
+    for (let i = 0; i < arten.length; i++) {
+      const eintrag = daten[arten[i]];
+      if (eintrag) {
+        inhalt.appendChild(erklaerungBox(arten[i], eintrag[sprache] || eintrag.de));
+      }
+    }
+    zusatzSheetOeffnen("erklaerung-sheet");
+  }
+
+  // Im Trainingsmodus: die Erklärung der Übung, die gerade dran ist
+  function erklaerungImModus() {
+    if (!laufendesTraining) {
+      return;
+    }
+    const u = laufendesTraining.uebungen[laufendesTraining.index];
+    erklaerungOeffnen(u.uebungId, u.name);
+  }
+
+  // Im Verlauf: die Erklärung der Übung, deren Verlauf offen ist
+  function erklaerungImVerlauf() {
+    erklaerungOeffnen(verlaufId, verlaufName);
+  }
+
+  // Schließt nur die Erklärung. Der Verlauf darunter bleibt offen, wenn sie von dort geöffnet wurde.
+  function erklaerungSchliessen() {
+    if (document.getElementById("verlauf-sheet").classList.contains("offen")) {
+      document.getElementById("erklaerung-sheet").classList.remove("offen");
+    } else {
+      zusatzSheetsSchliessen();
+    }
   }
 
   // ---------- Kraftentwicklung ----------
@@ -5967,6 +6057,7 @@
     verlaufName = name;
     verlaufId = id || "";
     document.getElementById("verlauf-titel").textContent = anzeigeName(name, id);
+    document.getElementById("verlauf-erklaerung").classList.toggle("versteckt", erklaerungId(id, name) === "");
     verlaufAnzeigen();
   }
 

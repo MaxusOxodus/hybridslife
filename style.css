@@ -4562,3 +4562,118 @@ button.einst-zeile:first-child {
   color: var(--akzent-text);
   font-weight: 700;
 }
+
+/* ---------- Erklärung einer Übung ---------- */
+
+/* Der Button "Erklärung": klein, im Akzent, mit genug Fläche zum Antippen */
+.erklaerung-btn {
+  min-height: 44px;
+  margin: 0;
+  padding: 0 16px;
+  border: 1px solid var(--akzent-leicht);
+  border-radius: 22px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Im Trainingsmodus steht er unter der Geräte-Zeile, im Verlauf über dem Diagramm */
+.modus-uebung-text .erklaerung-btn {
+  margin-top: 4px;
+}
+
+#verlauf-erklaerung {
+  display: block;
+  margin: 0 0 12px;
+}
+
+.erklaerung-bild {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 14px;
+  padding: 12px;
+  border: 1px solid var(--glas-rand);
+  border-radius: 24px;
+  background: var(--fuellung);
+  color: var(--text);
+}
+
+/* Ein Schritt: große Nummer links, rechts fetter Titel und der Text. Alles bricht um, nichts wird abgeschnitten. */
+.erklaerung-schritt,
+.erklaerung-box {
+  margin-bottom: 10px;
+  border: 1px solid var(--glas-rand);
+  border-radius: 20px;
+  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas);
+  box-shadow: var(--glas-schatten);
+}
+
+.erklaerung-schritt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+}
+
+.erklaerung-nummer {
+  flex-shrink: 0;
+  min-width: 28px;
+  color: var(--akzent-text);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.erklaerung-schritt-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.erklaerung-schritt-titel {
+  font-size: 17px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.erklaerung-schritt-satz,
+.erklaerung-box-text {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* Schmale Boxen: "Häufiger Fehler", "Sicherheit" und "Tipp". Sicherheit hat einen Akzentrand links. */
+.erklaerung-box {
+  padding: 10px 14px;
+}
+
+.erklaerung-box-titel {
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.erklaerung-box.sicherheit {
+  border-left: 4px solid var(--akzent-text);
+}
+
+.erklaerung-box.sicherheit .erklaerung-box-titel {
+  color: var(--akzent-text);
+}
+
+@media (max-width: 379px) {
+  .erklaerung-schritt {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .erklaerung-nummer {
+    min-width: 22px;
+    font-size: 26px;
+  }
+}

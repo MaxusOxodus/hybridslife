@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=60">
+  <link rel="stylesheet" href="style.css?v=61">
 </head>
 <body>
 
@@ -193,6 +193,8 @@
             </button>
             <!-- Geräte-Zeile: Bereich und Muskelgruppe, z. B. "Maschine · Brust" -->
             <div id="modus-geraet" class="modus-geraet"></div>
+            <!-- Öffnet die Erklärung der Übung. Der Button erscheint nur, wenn es eine gibt. -->
+            <button id="modus-erklaerung" class="erklaerung-btn versteckt" onclick="erklaerungImModus()" data-t="erklaerung.button">Erklärung</button>
           </div>
         </div>
       </div>
@@ -526,6 +528,8 @@
       <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
     <div class="zusatz-inhalt">
+      <!-- Öffnet die Erklärung der Übung. Der Button erscheint nur, wenn es eine gibt. -->
+      <button id="verlauf-erklaerung" class="erklaerung-btn versteckt" onclick="erklaerungImVerlauf()" data-t="erklaerung.button">Erklärung</button>
       <div id="verlauf-art" class="umschalter"></div>
       <div id="verlauf-zeitraum" class="umschalter klein"></div>
       <div id="verlauf-diagramm"></div>
@@ -546,6 +550,16 @@
       <button onclick="kraftWahlSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
     <div id="kraft-sheet-liste" class="zusatz-inhalt"></div>
+  </div>
+
+  <!-- Sheet: Erklärung einer Übung. Es liegt über dem Verlauf, deshalb steht es im HTML danach. Den Inhalt baut die app.js. -->
+  <div id="erklaerung-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span id="erklaerung-titel" class="sheet-titel"></span>
+      <button onclick="erklaerungSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+    </div>
+    <div id="erklaerung-inhalt" class="zusatz-inhalt"></div>
   </div>
 
   <!-- Sheet: Körpergewicht oder Körperfett eintragen. Titel und was zu sehen ist, stellt die app.js beim Öffnen ein. -->
@@ -892,11 +906,12 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=60"></script>
-<script src="uebungen.js?v=60"></script>
-<script src="raenge.js?v=60"></script>
-<script src="bilder.js?v=60"></script>
-<script src="app.js?v=60"></script>
+<script src="texte.js?v=61"></script>
+<script src="uebungen.js?v=61"></script>
+<script src="erklaerungen.js?v=61"></script>
+<script src="raenge.js?v=61"></script>
+<script src="bilder.js?v=61"></script>
+<script src="app.js?v=61"></script>
 
 </body>
 </html>

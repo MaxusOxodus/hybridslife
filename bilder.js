@@ -96,7 +96,10 @@ const BILDER = {
   "rudern-brustauflage": '<path class="g" d="M16 25l20 20M24 33v23M14 56h34"/><circle cx="13" cy="16" r="4"/><path d="M18 21l20 20 11 15M20 23l-7 13"/><rect class="a" x="7" y="36" width="11" height="5" rx="2.5"/>',
 
   // Inverted Row von der Seite: unter der Stange hängend, der Körper gestreckt, die Fersen am Boden
-  "inverted-row": '<path class="g" d="M52 8v49M6 57h52"/><path class="a" d="M52 22H33"/><circle cx="42" cy="35" r="4"/><path d="M8 55l28-18V22"/>'
+  "inverted-row": '<path class="g" d="M52 8v49M6 57h52"/><path class="a" d="M52 22H33"/><circle cx="42" cy="35" r="4"/><path d="M8 55l28-18V22"/>',
+
+  // Armheben in Bauchlage von der Seite: auf dem Bauch liegend, die Arme heben vom Boden ab
+  "bauchlage-heben": '<path class="g" d="M6 53h52"/><circle cx="49" cy="43" r="4"/><path d="M43 46L10 50M42 45l9-15"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -280,7 +283,33 @@ const BILD_ZU_UEBUNG = {
   "chest-supported-dumbbell-row": "rudern-brustauflage",
   "australian-pull-up": "inverted-row",
   "ring-row": "inverted-row",
-  "feet-elevated-inverted-row": "inverted-row"
+  "feet-elevated-inverted-row": "inverted-row",
+
+  // Oberer Rücken
+  "chest-supported-overhand-grip-t-bar-row": "rudern-brustauflage",
+  "chest-supported-neutral-grip-t-bar-row": "rudern-brustauflage",
+  "chest-supported-semi-neutral-grip-t-bar-row": "rudern-brustauflage",
+  "chest-supported-wide-grip-t-bar-row": "rudern-brustauflage",
+  "standing-single-arm-cable-row": "rudern",
+  "cable-rope-high-row": "rudern",
+  "moto-cable-row": "rudern",
+  "smith-machine-row": "langhantelrudern",
+  "smith-machine-deficit-row": "langhantelrudern",
+  "smith-machine-pendlay-row": "langhantelrudern",
+  "langhantelrudern": "langhantelrudern",
+  "wide-grip-barbell-row": "langhantelrudern",
+  "dumbbell-rear-delt-row": "langhantelrudern",
+  "bent-over-neutral-grip-t-bar-row": "t-bar-rudern",
+  "bent-over-underhand-grip-t-bar-row": "t-bar-rudern",
+  "bent-over-semi-neutral-grip-t-bar-row": "t-bar-rudern",
+  "bent-over-wide-grip-t-bar-row": "t-bar-rudern",
+  "t-bar-rudern": "t-bar-rudern",
+  "wide-grip-inverted-row": "inverted-row",
+  "scapular-pull-up": "klimmzug",
+  "scapular-push-up": "liegestuetze",
+  "prone-y-raise": "bauchlage-heben",
+  "prone-t-raise": "bauchlage-heben",
+  "reverse-snow-angel": "bauchlage-heben"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

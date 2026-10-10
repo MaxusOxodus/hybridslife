@@ -784,7 +784,10 @@ const BILD_ZU_UEBUNG = {
   "barbell-hold": "shrugs",
   "dead-hang": "klimmzug",
   "towel-hang": "klimmzug",
-  "push-up-auf-fingerspitzen": "liegestuetze"
+  "push-up-auf-fingerspitzen": "liegestuetze",
+
+  // Ganzkörper
+  "burpee": "liegestuetze"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

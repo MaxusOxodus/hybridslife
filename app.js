@@ -994,6 +994,7 @@
     for (let i = 0; i < titel.length; i++) {
       titel[i].textContent = txt("gewicht.titel", { einheit: einheit() });
     }
+    gewichtTitelAnzeigen();
     const weniger = document.querySelectorAll(".gewicht-weniger");
     for (let i = 0; i < weniger.length; i++) {
       weniger[i].textContent = "−" + zahlText(e.schritt);
@@ -1011,6 +1012,45 @@
       koerpergewichte.push(i / 10);
     }
     radBauen("rad-koerpergewicht", koerpergewichte, null);
+  }
+
+  // Wird bei dieser Übung das Gewicht einer einzelnen Kurzhantel eingetragen? Das gilt für alle Übungen,
+  // die "Kurzhantel" im Namen tragen, und für die, deren Kraft-Rang mit Kurzhanteln rechnet (Feld "rang").
+  function proHantel(id) {
+    const u = UEBUNG_NACH_ID[id];
+    if (!u) {
+      return false;
+    }
+    if (u.rang && (u.rang.zaehlung === "summe" || u.rang.zaehlung === "proSeite")) {
+      return true;
+    }
+    return /kurzhantel/i.test(u.de) || /dumbbell/i.test(u.en);
+  }
+
+  // Schreibt den Titel über ein Gewichtsfeld: "Gewicht (kg)", bei Kurzhantel-Übungen "Gewicht pro Hantel (kg)".
+  // Der Titel ist das Element direkt vor dem Feld.
+  function gewichtTitelSetzen(feldId, uebungId) {
+    let schluessel = "gewicht.titel";
+    if (proHantel(uebungId)) {
+      schluessel = "gewicht.titelHantel";
+    }
+    document.getElementById(feldId).previousElementSibling.textContent = txt(schluessel, { einheit: einheit() });
+  }
+
+  // Die Titel aller drei Gewichtsfelder passend zu ihrer Übung: im Log, im Trainingsmodus und im Sheet "Satz bearbeiten"
+  function gewichtTitelAnzeigen() {
+    gewichtTitelSetzen("feld-gewicht", gewaehlteUebungId);
+    let imModus = "";
+    if (laufendesTraining && laufendesTraining.uebungen[laufendesTraining.index]) {
+      imModus = laufendesTraining.uebungen[laufendesTraining.index].uebungId;
+    }
+    gewichtTitelSetzen("t-feld-gewicht", imModus);
+    const eintrag = eintragFinden(satzEintragId);
+    let imSheet = "";
+    if (eintrag) {
+      imSheet = eintrag.uebungId;
+    }
+    gewichtTitelSetzen("s-feld-gewicht", imSheet);
   }
 
   // Wechselt die Einheit für Gewichte. Was gerade in den Gewichtsfeldern steht, wird umgerechnet.
@@ -2025,6 +2065,7 @@
       feld.textContent = anzeigeName(gewaehlteUebung, gewaehlteUebungId);
     }
     feld.classList.toggle("leer", leer);
+    gewichtTitelSetzen("feld-gewicht", gewaehlteUebungId);
     speichernButtonAktualisieren();
   }
 
@@ -2182,6 +2223,7 @@
       uebungFeldAktualisieren();
       letztesMalAnzeigen();
       felderVoreinstellen();
+      bestwertPruefen(eintrag, 0);
 
 }
 
@@ -2391,19 +2433,14 @@
       }
     }
 
-    // Serie: Wochen in Folge mit genug Trainingstagen, rückwärts gezählt.
-    // Die aktuelle Woche zählt erst, wenn sie genug Tage hat. Bis dahin unterbricht sie die Serie aber nicht.
-    let montag = montagDerWoche(new Date());
-    let serie = 0;
-    if ((tageProWoche[montag.getTime()] || 0) < SERIE_TAGE_PRO_WOCHE) {
-      montag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7);
-    }
-    while ((tageProWoche[montag.getTime()] || 0) >= SERIE_TAGE_PRO_WOCHE) {
-      serie++;
-      montag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7);
-    }
+    // Serie: Wochen in Folge mit genug Trainingstagen, mit Pausenwochen (serieBerechnen in der raenge.js).
+    // Die laufende Woche zählt erst, wenn sie vorbei ist. Sie unterbricht die Serie aber nicht.
+    const serie = serieBerechnen(tageProWoche, montagDerWoche(new Date()).getTime(), SERIE_TAGE_PRO_WOCHE);
 
-    return { workouts: anzahlTage, uebungen: anzahlUebungen, gewicht: gesamtgewicht, serie: serie };
+    return {
+      workouts: anzahlTage, uebungen: anzahlUebungen, gewicht: gesamtgewicht,
+      serie: serie.serie, pausen: serie.pausen, laengsteSerie: serie.laengste, serieErreichtAm: serie.erreichtAm
+    };
   }
 
   function fortschrittAnzeigen() {
@@ -3485,6 +3522,7 @@
     document.getElementById("modus-zurueck").disabled = t.index === 0;
     document.getElementById("modus-vor").disabled = t.index === t.uebungen.length - 1;
     document.getElementById("modus-uebung").textContent = anzeigeName(u.name, u.uebungId);
+    gewichtTitelSetzen("t-feld-gewicht", u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
     document.getElementById("modus-hinweis").textContent = gewichtErhoehenText(u);
     document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name, u.uebungId, u.eintragId) || txt("letztesMal.leer");
@@ -3699,6 +3737,7 @@
     modusZustandAnzeigen(false);
     modusSaetzeAnzeigen();
     window.scrollTo(0, 0);
+    bestwertPruefen(eintrag, u.saetze.length - 1);
   }
 
   // Schreibt eine Liste von Sätzen in einen Eintrag: die einzelnen Sätze, dazu wie bei jedem Eintrag
@@ -3721,6 +3760,46 @@
     eintrag.saetze = saetze.length;
     eintrag.gewicht = schwerster.gewicht;
     eintrag.wdh = schwerster.wdh;
+  }
+
+  // Nach dem Speichern eines Satzes: Liegt er um mehr als 15 % über dem Bestwert der Übung aus den letzten
+  // 14 Tagen, fragt die App einmal nach, ob der Wert stimmt. Gespeichert ist er in jedem Fall schon.
+  // Verglichen wird mit den anderen Einträgen der Übung. Ein früherer Satz desselben Eintrags,
+  // der schon genauso gut war, verhindert die zweite Nachfrage.
+  function bestwertPruefen(eintrag, index) {
+    const saetze = saetzeVon(eintrag);
+    const satz = saetze[index];
+    if (!satz || !hatDatum(eintrag)) {
+      return;
+    }
+    const datum = new Date(eintrag.datum);
+    const koerper = koerperZusatz(eintrag.uebungId, datum);
+    if (!rangSatzGueltig(satz.gewicht + koerper, satz.wdh)) {
+      return;
+    }
+    const neu = epley1RM(satz.gewicht + koerper, satz.wdh);
+    for (let i = 0; i < index; i++) {
+      if (epley1RM(saetze[i].gewicht + koerper, saetze[i].wdh) >= neu) {
+        return;
+      }
+    }
+    const vorher = bestwertIn(verlaufPunkte(eintrag.uebung, eintrag.uebungId, "rang", eintrag.id), datum.getTime(), PLAUSIBEL_TAGE);
+    if (!vorher || !bestwertUnplausibel(neu, vorher.wert)) {
+      return;
+    }
+    frageZeigen(txt("plausibel.titel"), txt("plausibel.text", {
+      name: anzeigeName(eintrag.uebung, eintrag.uebungId),
+      satz: satzText(satz),
+      tage: PLAUSIBEL_TAGE
+    }), [
+      { text: txt("plausibel.ja"), art: "haupt" },
+      {
+        text: txt("plausibel.bearbeiten"),
+        aktion: function () {
+          satzSheetOeffnen(eintrag.id, index);
+        }
+      }
+    ]);
   }
 
   // ---------- Satz bearbeiten ----------
@@ -3792,6 +3871,7 @@
 
     document.getElementById("satz-sheet-titel").textContent = txt("satz.bearbeiten", { n: index + 1 });
     document.getElementById("satz-sheet-uebung").textContent = anzeigeName(eintrag.uebung, eintrag.uebungId);
+    gewichtTitelSetzen("s-feld-gewicht", eintrag.uebungId);
     gewichtFeldSetzen("s-feld-gewicht", startGewicht());
     feldSetzen("s-feld-wdh", START_WDH);
     gewichtFeldSetzen("s-feld-gewicht", satz.gewicht);
@@ -3843,10 +3923,15 @@
       gewicht = gewichtFeldWert("s-feld-gewicht");
     }
     saetze[satzIndex] = { gewicht: gewicht, wdh: feldWert("s-feld-wdh"), rir: satzRir };
+    const geaendert = gewicht !== alt.gewicht || saetze[satzIndex].wdh !== alt.wdh;
+    const index = satzIndex;
 
     eintragSaetzeSchreiben(eintrag, saetze);
     satzAenderungSichern(eintrag, saetze);
     satzSheetSchliessen();
+    if (geaendert) {
+      bestwertPruefen(eintrag, index);
+    }
   }
 
   // Fragt nach, bevor der Satz gelöscht wird
@@ -4125,6 +4210,7 @@
     trainingMerken();
     trainingAnzeigen();
     trainingAnsichtZeigen("fertig");
+    rangPruefen(true);
   }
 
   // Hält das beendete Training als Einheit fest: Startzeit, Endzeit, Routine und die ids der Einträge.
@@ -5083,19 +5169,36 @@
     return Boolean(u) && u.bereich === "eigen";
   }
 
+  // Was bei einer Übung an einem Tag zum eingetragenen Gewicht dazukommt: bei Eigengewicht-Übungen
+  // das Körpergewicht des Tages, sonst 0. Ohne jede Messung ebenfalls 0.
+  function koerperZusatz(id, datum) {
+    if (!istEigengewicht(id)) {
+      return 0;
+    }
+    const gemessen = koerpergewichtAm(datum);
+    if (gemessen === null) {
+      return 0;
+    }
+    return gemessen;
+  }
+
   // Die Punkte für das Diagramm einer Übung: ein Wert pro Trainingstag, der älteste Tag zuerst.
-  // art "1rm": geschätztes Maximalgewicht für eine Wiederholung nach Epley, Gewicht × (1 + Wdh. ÷ 30),
-  //            der beste Wert des Tages. Bei genau einer Wiederholung gilt das Gewicht selbst.
+  // art "1rm": geschätztes Maximalgewicht für eine Wiederholung nach Epley (epley1RM in der raenge.js),
+  //            der beste Wert des Tages.
+  // art "rang": dasselbe, aber nur aus Sätzen, die für die Ränge zählen (1 bis 10 Wdh.).
   // art "schwer": das schwerste eingetragene Gewicht des Tages.
   // art "volumen": Sätze × Wdh. × Gewicht, über den Tag zusammengezählt.
   // Bei Eigengewicht-Übungen zählt für 1RM und Volumen das Körpergewicht des Tages zum eingetragenen Gewicht dazu.
-  function verlaufPunkte(name, id, art) {
-    const eigengewicht = istEigengewicht(id);
+  // ohneEintragId lässt einen Eintrag aus (für die Nachfrage "Stimmt der Wert?").
+  function verlaufPunkte(name, id, art, ohneEintragId) {
     const tage = {};
 
     for (let i = 0; i < eintraege.length; i++) {
       const e = eintraege[i];
       if (!hatDatum(e) || typeof e.uebung !== "string" || !gleicheUebung(e, name, id)) {
+        continue;
+      }
+      if (ohneEintragId && e.id === ohneEintragId) {
         continue;
       }
       const saetze = saetzeVon(e);
@@ -5104,29 +5207,27 @@
       }
 
       const datum = new Date(e.datum);
-      let koerper = 0;
-      if (eigengewicht) {
-        const gemessen = koerpergewichtAm(datum);
-        if (gemessen !== null) {
-          koerper = gemessen;
-        }
-      }
+      const koerper = koerperZusatz(id, datum);
 
       // Der Wert des Eintrags: der beste Satz (1RM, schwerstes Gewicht) oder die Summe aller Sätze (Volumen)
       let wert = 0;
       for (let j = 0; j < saetze.length; j++) {
         const last = saetze[j].gewicht + koerper;
         if (art === "1rm") {
-          let geschaetzt = last;
-          if (saetze[j].wdh > 1) {
-            geschaetzt = last * (1 + saetze[j].wdh / 30);
+          wert = Math.max(wert, epley1RM(last, saetze[j].wdh));
+        } else if (art === "rang") {
+          if (rangSatzGueltig(last, saetze[j].wdh)) {
+            wert = Math.max(wert, epley1RM(last, saetze[j].wdh));
           }
-          wert = Math.max(wert, geschaetzt);
         } else if (art === "volumen") {
           wert += saetze[j].wdh * last;
         } else {
           wert = Math.max(wert, saetze[j].gewicht);
         }
+      }
+      // Für die Ränge gibt es einen Tag nur, wenn er einen gültigen Satz hat
+      if (art === "rang" && wert === 0) {
+        continue;
       }
 
       const schluessel = tagSchluessel(datum);
@@ -5214,9 +5315,11 @@
     const kacheln = document.getElementById("verlauf-kacheln");
     kacheln.innerHTML = "";
     document.getElementById("verlauf-kacheln-titel").classList.toggle("versteckt", alle.length === 0);
+    document.getElementById("verlauf-rang").innerHTML = "";
     if (alle.length === 0) {
       return;
     }
+    fortschrittRangAnzeigen(document.getElementById("verlauf-rang"), verlaufName, verlaufId);
     for (let i = 0; i < VERLAUF_ABSTAENDE.length; i++) {
       const abstand = VERLAUF_ABSTAENDE[i];
       const aenderung = kraftAenderung(alle, abstand.tage);
@@ -5274,7 +5377,8 @@
     return liste;
   }
 
-  // Fortschritt-Tab: alle Übungen, zu denen es Einträge gibt, die zuletzt trainierte oben
+  // Fortschritt-Tab: alle Übungen, zu denen es Einträge gibt, die zuletzt trainierte oben.
+  // Unter dem Namen steht der Fortschritts-Rang der Übung, sobald es einen gibt.
   function fortschrittUebungenAnzeigen() {
     const bereich = document.getElementById("fortschritt-uebungen");
     bereich.innerHTML = "";
@@ -5288,7 +5392,13 @@
     for (let i = 0; i < liste.length; i++) {
       const u = liste[i];
       const zeile = element("button", "listen-zeile");
-      zeile.appendChild(element("span", "", anzeigeName(u.name, u.id)));
+      const links = element("span", "listen-text");
+      links.appendChild(element("span", "", anzeigeName(u.name, u.id)));
+      const f = fortschrittRang(verlaufPunkte(u.name, u.id, "rang"), Date.now());
+      if (f) {
+        links.appendChild(element("span", "rang-zeile", txt("rang.fortschrittKurz", { rang: rangName(f.rp), prozent: prozentText(f.steigerung) })));
+      }
+      zeile.appendChild(links);
       if (u.zeit > 0) {
         zeile.appendChild(element("span", "routine-info", datumMitJahr(new Date(u.zeit))));
       }
@@ -5817,6 +5927,9 @@
     zusatzSheetsSchliessen();
     homeGewichtAnzeigen();
     koerpergewichtAnzeigen();
+    if (aktiveSeite === "profil") {
+      profilAnzeigen();
+    }
   }
 
   function gewichtLoeschen(index) {
@@ -6158,6 +6271,10 @@
     if (kraftUebungBereinigen(e.kraftUebung)) {
       sauber.kraftUebung = kraftUebungBereinigen(e.kraftUebung);
     }
+    // Den Merker des Rang-Systems gibt es erst ab Backup-Version 8
+    if (e.rangMerker && typeof e.rangMerker === "object") {
+      sauber.rangMerker = rangMerkerBereinigen(e.rangMerker);
+    }
     return sauber;
   }
 
@@ -6197,7 +6314,7 @@
   function backupText() {
     const backup = {
       app: "gymstead",
-      version: 7,
+      version: 8,
       exportiert: new Date().toISOString(),
       profil: profil,
       eintraege: eintraege,
@@ -6445,6 +6562,17 @@
     datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art) + eigeneText);
 
     localStorage.setItem("eintraege", JSON.stringify(eintraege));
+
+    // Der Merker des Rang-Systems: Beim Ersetzen gilt der aus dem Backup. Hat das Backup keinen (ältere Backups),
+    // entsteht er aus den importierten Daten neu. In beiden Fällen ohne Meldung "Neuer Rang".
+    if (art === "ersetzen") {
+      delete einstellungen.rangMerker;
+      if (importEinstellungen !== null && importEinstellungen.rangMerker) {
+        einstellungen.rangMerker = importEinstellungen.rangMerker;
+      }
+      einstellungenSpeichern();
+    }
+    rangPruefen(false);
     importEintraege = [];
     importRoutinen = null;
     importWochenplan = null;
@@ -7152,15 +7280,536 @@
     inhalt.appendChild(woche);
   }
 
-  // Abzeichen: vorerst nur ein Platzhalter
+  // Abzeichen: der Gesamt-Kraftrang, der Konstanz-Rang, die sechs Bewegungsmuster und die Abzeichen.
+  // Gerechnet wird in der raenge.js, hier wird nur gesammelt und angezeigt.
   function profilAbzeichenAnzeigen(inhalt) {
-    const karte = element("div", "karte abzeichen-leer");
-    const icon = element("span", "icon");
-    icon.innerHTML = iconSvg("abzeichen");
-    karte.appendChild(icon);
-    karte.appendChild(element("div", "routine-name", txt("kommtBald")));
-    karte.appendChild(element("div", "routine-info", txt("profil.abzeichenText")));
-    inhalt.appendChild(karte);
+    // Wer die Ränge hier sieht, braucht dazu keine Meldung mehr
+    const daten = rangPruefen(false);
+    const stand = daten.stand;
+
+    inhalt.appendChild(gesamtRangKarte(stand));
+    inhalt.appendChild(konstanzKarte(stand));
+
+    inhalt.appendChild(element("h2", "abschnitt", txt("rang.muster")));
+    const muster = element("div", "muster-raster");
+    for (let i = 0; i < MUSTER.length; i++) {
+      muster.appendChild(musterKarte(MUSTER[i], stand.kraft.muster[MUSTER[i]]));
+    }
+    inhalt.appendChild(muster);
+
+    inhalt.appendChild(element("h2", "abschnitt", txt("profil.reiter.abzeichen")));
+    const raster = element("div", "abzeichen-raster");
+    for (let i = 0; i < daten.abzeichen.length; i++) {
+      // Geheime Abzeichen erscheinen erst, wenn sie erreicht sind
+      if (daten.abzeichen[i].geheim && !daten.abzeichen[i].erreicht) {
+        continue;
+      }
+      raster.appendChild(abzeichenKachel(daten.abzeichen[i], stand));
+    }
+    inhalt.appendChild(raster);
+
+    inhalt.appendChild(element("p", "meldung rang-fussnote", txt("rang.hinweis")));
+  }
+
+  // ---------- Ränge: Daten sammeln ----------
+
+  const ROEMISCH = ["I", "II", "III"];
+
+  // Der Name zu Rangpunkten, z. B. "Stark I". Die Rangnamen stehen in der texte.js.
+  function rangName(rp) {
+    const r = rpZuRang(rp);
+    return txt("rang.name." + r.rang) + " " + ROEMISCH[r.stufe - 1];
+  }
+
+  // Eine Steigerung als Text, z. B. "+25 %"
+  function prozentText(anteil) {
+    const prozent = Math.round(anteil * 100);
+    if (prozent < 0) {
+      return "−" + (-prozent) + " %";
+    }
+    return "+" + prozent + " %";
+  }
+
+  // Sammelt alles, was die Ränge brauchen, und lässt die raenge.js rechnen:
+  // uebungen:   alle trainierten Übungen mit ihren 1RM-Werten je Trainingstag (nur gültige Sätze)
+  // kraft:      die Kraft-Ränge der Muster und der Gesamt-Kraftrang
+  // schritt:    das Muster, das seiner nächsten Stufe am nächsten ist (oder null)
+  // zahlen:     Workouts, Volumen und Serie wie überall in der App
+  // konstanzRp: die Rangpunkte der Serie
+  // messungen:  die Zahl der Körpergewicht-Messungen
+  function rangStand() {
+    const jetzt = Date.now();
+    const messungen = gewichtMessungen();
+    const liste = trainierteUebungen();
+    const uebungen = [];
+    for (let i = 0; i < liste.length; i++) {
+      const fest = UEBUNG_NACH_ID[liste[i].id];
+      let rang = null;
+      if (fest && fest.rang) {
+        rang = fest.rang;
+      }
+      uebungen.push({ id: liste[i].id, name: liste[i].name, rang: rang, punkte: verlaufPunkte(liste[i].name, liste[i].id, "rang") });
+    }
+    const kraft = kraftRaenge(uebungen, function (zeit) {
+      return rangKoerpergewicht(messungen, zeit, schnittAm);
+    }, jetzt);
+    const zahlen = gesamtZahlen();
+    return {
+      uebungen: uebungen,
+      kraft: kraft,
+      schritt: naechsterSchritt(kraft),
+      zahlen: zahlen,
+      konstanzRp: rpAusSchwellen(zahlen.serie, KONSTANZ_SCHWELLEN),
+      messungen: messungen.length
+    };
+  }
+
+  // Alle Abzeichen mit ihrem Stand. Jedes hat: id, erreicht, datum (ISO-Text, "" = unbekannt),
+  // bei Abzeichen mit Stufen dazu gruppe, stufe (1 bis 3), ziel und wert, bei geheimen geheim: true.
+  // Das Datum wird so weit wie möglich aus den Daten berechnet. Was der Merker schon kennt, bleibt erreicht.
+  function abzeichenListe(stand, merker) {
+    const liste = [];
+
+    // Die Trainingstage, der älteste zuerst: je Tag ein Workout und sein Volumen
+    const tage = trainingstage();
+    const workoutPunkte = [];
+    const volumenPunkte = [];
+    Object.keys(tage).sort(function (a, b) {
+      return a - b;
+    }).forEach(function (schluessel) {
+      workoutPunkte.push({ zeit: tage[schluessel].datum.getTime(), wert: 1 });
+      volumenPunkte.push({ zeit: tage[schluessel].datum.getTime(), wert: tage[schluessel].volumen });
+    });
+    const punkteListen = [];
+    for (let i = 0; i < stand.uebungen.length; i++) {
+      punkteListen.push(stand.uebungen[i].punkte);
+    }
+    const rekordPunkte = rekorde(punkteListen);
+
+    // Trägt die drei Stufen eines Abzeichens ein. zeitFuer liefert zu einem Ziel den Zeitpunkt, an dem es erreicht war.
+    function stufen(gruppe, wert, zeitFuer) {
+      for (let i = 0; i < ABZEICHEN_STUFEN[gruppe].length; i++) {
+        const ziel = ABZEICHEN_STUFEN[gruppe][i];
+        let zeit = null;
+        if (wert >= ziel) {
+          zeit = zeitFuer(ziel);
+        }
+        liste.push({ id: gruppe + "-" + (i + 1), gruppe: gruppe, stufe: i + 1, ziel: ziel, wert: wert, erreicht: wert >= ziel, zeit: zeit });
+      }
+    }
+    stufen("workouts", stand.zahlen.workouts, function (ziel) {
+      return summeErreichtAm(workoutPunkte, ziel);
+    });
+    stufen("volumen", stand.zahlen.gewicht, function (ziel) {
+      return summeErreichtAm(volumenPunkte, ziel);
+    });
+    stufen("serie", stand.zahlen.laengsteSerie, function (ziel) {
+      return stand.zahlen.serieErreichtAm[ziel] || null;
+    });
+    // Wann ein Gesamt-Rang zum ersten Mal erreicht war, lässt sich nicht berechnen: Das Datum kommt aus dem Merker
+    stufen("gesamtRang", Math.max(merker.hoechsterGesamtRP, stand.kraft.gesamt || 0), function () {
+      return null;
+    });
+    stufen("rekorde", rekordPunkte.length, function (ziel) {
+      return summeErreichtAm(rekordPunkte, ziel);
+    });
+
+    function einmalig(id, erreicht, zeit) {
+      liste.push({ id: id, erreicht: erreicht, zeit: zeit || null, geheim: ABZEICHEN_GEHEIM.indexOf(id) !== -1 });
+    }
+    einmalig("erstesTraining", workoutPunkte.length > 0, workoutPunkte.length > 0 && workoutPunkte[0].zeit);
+    const messungen = gewichtMessungen();
+    einmalig("koerpergewicht", messungen.length > 0, messungen.length > 0 && messungen[0].zeit);
+    einmalig("ersteRoutine", routinen.length > 0);
+    einmalig("erstesBackup", Boolean(gespeichertLesen("letztesBackup", null)));
+    let allrounder = true;
+    for (let i = 0; i < MUSTER.length; i++) {
+      const m = stand.kraft.muster[MUSTER[i]];
+      if (!m || m.rp === null || m.rp < ALLROUNDER_RP) {
+        allrounder = false;
+      }
+    }
+    einmalig("allrounder", allrounder);
+
+    // Frühaufsteher: das früheste Training im Trainingsmodus, das vor 7 Uhr begonnen hat
+    let frueh = null;
+    for (let i = 0; i < trainings.length; i++) {
+      const start = new Date(trainings[i] && trainings[i].start);
+      if (!isNaN(start) && start.getHours() < FRUEH_STUNDE && (frueh === null || start.getTime() < frueh)) {
+        frueh = start.getTime();
+      }
+    }
+    einmalig("fruehaufsteher", frueh !== null, frueh);
+
+    for (let i = 0; i < liste.length; i++) {
+      const a = liste[i];
+      const gemerkt = merker.abzeichenGesehen[a.id];
+      a.datum = "";
+      if (gemerkt) {
+        a.datum = gemerkt;
+      } else if (a.zeit) {
+        a.datum = new Date(a.zeit).toISOString();
+      }
+      a.erreicht = a.erreicht || gemerkt !== undefined;
+    }
+    return liste;
+  }
+
+  // Rechnet Ränge und Abzeichen und hält im Merker fest, was neu erreicht ist (einstellungen.rangMerker).
+  // melden = true zeigt für neue Stufen und Abzeichen einmal eine Meldung.
+  // Beim allerersten Mal (noch kein Merker, z. B. direkt nach dem Update) wird alles still als gesehen gemerkt.
+  // Zurück kommen der Stand und die Abzeichen für die Anzeige.
+  function rangPruefen(melden) {
+    const stand = rangStand();
+    const erstesMal = !einstellungen.rangMerker;
+    const merker = rangMerkerBereinigen(einstellungen.rangMerker);
+    const vorher = JSON.stringify(merker);
+
+    // Die heutigen RP. Ohne Serie gibt es noch keinen Konstanz-Rang.
+    const aktuell = { gesamt: stand.kraft.gesamt, konstanz: null };
+    if (stand.zahlen.serie > 0) {
+      aktuell.konstanz = stand.konstanzRp;
+    }
+    for (let i = 0; i < MUSTER.length; i++) {
+      const m = stand.kraft.muster[MUSTER[i]];
+      aktuell[MUSTER[i]] = null;
+      if (m) {
+        aktuell[MUSTER[i]] = m.rp;
+      }
+    }
+
+    // Gemerkt wird nur nach oben: Fällt ein Rang und steigt wieder, kommt keine zweite Meldung
+    const aufstiege = neueStufen(merker.gesehen, aktuell);
+    for (let i = 0; i < aufstiege.length; i++) {
+      merker.gesehen[aufstiege[i].schluessel] = aufstiege[i].rp;
+    }
+    merker.hoechsterGesamtRP = Math.max(merker.hoechsterGesamtRP, stand.kraft.gesamt || 0);
+
+    // Neu erreichte Abzeichen bekommen ihr berechnetes Datum. Lässt es sich nicht berechnen, gilt heute,
+    // beim allerersten Mal bleibt es offen.
+    const abzeichen = abzeichenListe(stand, merker);
+    const neueAbzeichen = [];
+    for (let i = 0; i < abzeichen.length; i++) {
+      const a = abzeichen[i];
+      if (a.erreicht && merker.abzeichenGesehen[a.id] === undefined) {
+        if (a.datum === "" && !erstesMal) {
+          a.datum = new Date().toISOString();
+        }
+        merker.abzeichenGesehen[a.id] = a.datum;
+        neueAbzeichen.push(a);
+      }
+    }
+
+    if (erstesMal || JSON.stringify(merker) !== vorher) {
+      einstellungen.rangMerker = merker;
+      einstellungenSpeichern();
+    }
+    if (melden && !erstesMal && aufstiege.length + neueAbzeichen.length > 0) {
+      rangMeldungZeigen(aufstiege, neueAbzeichen);
+    }
+    return { stand: stand, abzeichen: abzeichen };
+  }
+
+  // ---------- Ränge: Meldung ----------
+
+  // So viele Ränge oder Abzeichen nennt eine Meldung höchstens einzeln, der Rest steht als "+2" dahinter
+  const RANG_MELDUNG_ANZAHL = 3;
+
+  // Fasst Namen für die Meldung zusammen: "A, B, C +2"
+  function meldungNamen(namen) {
+    let text = namen.slice(0, RANG_MELDUNG_ANZAHL).join(", ");
+    if (namen.length > RANG_MELDUNG_ANZAHL) {
+      text += " +" + (namen.length - RANG_MELDUNG_ANZAHL);
+    }
+    return text;
+  }
+
+  // Zeigt über der Navigationsleiste eine Meldung für alle neuen Stufen und Abzeichen zusammen,
+  // z. B. "Neuer Rang: Stark I · Drücken horizontal". Sie bleibt, bis sie angetippt oder geschlossen wird.
+  function rangMeldungZeigen(aufstiege, abzeichen) {
+    const zeilen = [];
+    if (aufstiege.length > 0) {
+      const namen = [];
+      for (let i = 0; i < aufstiege.length; i++) {
+        namen.push(rangName(aufstiege[i].rp) + " · " + txt("muster." + aufstiege[i].schluessel));
+      }
+      zeilen.push(txtAnzahl("rang.neu", aufstiege.length, { text: meldungNamen(namen) }));
+    }
+    if (abzeichen.length > 0) {
+      const namen = [];
+      for (let i = 0; i < abzeichen.length; i++) {
+        namen.push(abzeichenTitel(abzeichen[i]));
+      }
+      zeilen.push(txtAnzahl("abzeichen.neu", abzeichen.length, { text: meldungNamen(namen) }));
+    }
+    document.getElementById("rang-hinweis-text").textContent = zeilen.join("\n");
+    document.getElementById("rang-hinweis").classList.add("sichtbar");
+  }
+
+  function rangMeldungSchliessen() {
+    document.getElementById("rang-hinweis").classList.remove("sichtbar");
+  }
+
+  // Tippen auf die Meldung: das Profil mit dem Reiter "Abzeichen" öffnen
+  function rangMeldungOeffnen() {
+    rangMeldungSchliessen();
+    zusatzSheetsSchliessen();
+    profilReiter = "abzeichen";
+    seiteZeigen("profil");
+  }
+
+  // ---------- Ränge: Anzeige ----------
+
+  // Das Rang-Abzeichen als SVG: ein Sechseck mit der Nummer des Rangs (1 bis 6), darunter ein Winkel je Unterstufe.
+  // Die Farbe wächst mit dem Rang: 1 und 2 grau, 3 und 4 mit grüner Linie, 5 und 6 grün gefüllt.
+  // rp = null zeichnet ein leeres, gestricheltes Sechseck (noch kein Rang).
+  function rangSvg(rp) {
+    let klasse = "rang-svg leer";
+    let innen = "";
+    if (rp !== null) {
+      const r = rpZuRang(rp);
+      klasse = "rang-svg farbe-" + Math.ceil(r.rang / 2);
+      innen = '<text x="24" y="25" text-anchor="middle">' + r.rang + "</text>";
+      for (let i = 0; i < r.stufe; i++) {
+        innen += '<path class="winkel" d="M18 ' + (30 + i * 4) + 'l6 3 6-3"/>';
+      }
+    }
+    return '<svg class="' + klasse + '" viewBox="0 0 48 52" aria-hidden="true">'
+      + '<path class="form" d="M24 2l20 11.5v25L24 50 4 38.5v-25z"/>' + innen + "</svg>";
+  }
+
+  // Eine Medaille als SVG: ein Kreis am Band. Bei Abzeichen mit Stufen zeigt sie ein bis drei Punkte
+  // (Bronze, Silber, Gold), sonst einen Haken. Die Farbe kommt aus dem CSS (erreicht oder offen).
+  function medailleSvg(stufe) {
+    let innen = '<path class="zeichen" d="M18.5 30l4 4 7.5-8"/>';
+    if (stufe) {
+      innen = "";
+      for (let i = 0; i < stufe; i++) {
+        innen += '<circle class="punkt" cx="' + (24 + (i - (stufe - 1) / 2) * 7) + '" cy="30" r="2.4"/>';
+      }
+    }
+    return '<svg class="medaille" viewBox="0 0 48 48" aria-hidden="true">'
+      + '<path class="band" d="M17 4l4.5 13M31 4l-4.5 13"/><circle class="form" cx="24" cy="30" r="13"/>' + innen + "</svg>";
+  }
+
+  // Ein Balken, der zu einem Anteil (0 bis 1) gefüllt ist
+  function rangBalken(anteil) {
+    const balken = element("div", "rang-balken");
+    const fuellung = element("div", "");
+    fuellung.style.width = Math.max(0, Math.min(1, anteil)) * 100 + "%";
+    balken.appendChild(fuellung);
+    return balken;
+  }
+
+  // Der Kopf einer Rang-Karte: links das Rang-Abzeichen, rechts die kleine Überschrift und der Name des Rangs
+  function rangKopf(rp, titel, name) {
+    const kopf = element("div", "rang-kopf");
+    const bild = element("span", "rang-bild");
+    bild.innerHTML = rangSvg(rp);
+    kopf.appendChild(bild);
+    const text = element("div", "rang-kopf-text");
+    text.appendChild(element("div", "kachel-titel", titel));
+    text.appendChild(element("div", "rang-name", name));
+    kopf.appendChild(text);
+    return kopf;
+  }
+
+  // Der Balken einer Stufe mit dem Text darunter, was bis zur nächsten fehlt
+  function rangFortschritt(karte, rp, fehltText) {
+    const r = rpZuRang(rp);
+    karte.appendChild(rangBalken(r.rpInStufe / RP_JE_STUFE));
+    if (r.rpBisNaechste > 0) {
+      karte.appendChild(element("div", "routine-info", fehltText(rangName(rp + r.rpBisNaechste), r.rpBisNaechste)));
+    } else {
+      karte.appendChild(element("div", "routine-info", txt("rang.maximum")));
+    }
+  }
+
+  // "Noch ca. 4,3 kg (geschätztes 1RM) bis Stark II · Drücken horizontal, mit Bankdrücken (Langhantel)."
+  // Bei Kurzhantel-Übungen steht "pro Hantel" dabei.
+  function schrittText(schritt) {
+    let schluessel = "rang.schritt";
+    if (proHantel(schritt.uebungId)) {
+      schluessel = "rang.schrittHantel";
+    }
+    return txt(schluessel, {
+      gewicht: kgText(schritt.fehltKg),
+      rang: rangName(schritt.zielRp),
+      muster: txt("muster." + schritt.muster),
+      uebung: uebungName(schritt.uebungId)
+    });
+  }
+
+  // Oben: der Gesamt-Kraftrang groß. Solange es ihn nicht gibt, steht da, was fehlt.
+  function gesamtRangKarte(stand) {
+    const karte = element("div", "karte rang-karte gross");
+    const gesamt = stand.kraft.gesamt;
+
+    if (gesamt === null) {
+      karte.appendChild(rangKopf(null, txt("rang.gesamt"), txt("rang.keiner")));
+      if (eintraege.length === 0) {
+        karte.appendChild(element("div", "routine-info", txt("rang.leerEintraege")));
+      } else if (stand.messungen === 0) {
+        karte.appendChild(element("div", "routine-info", txt("rang.leerKoerper")));
+        const knopf = element("button", "knopf rang-knopf", txt("rang.koerperEintragen"));
+        knopf.onclick = gewichtSheetOeffnen;
+        karte.appendChild(knopf);
+      } else {
+        karte.appendChild(element("div", "routine-info", txtAnzahl("rang.fehlen", stand.kraft.fehlen)));
+      }
+      return karte;
+    }
+
+    karte.appendChild(rangKopf(gesamt, txt("rang.gesamt"), rangName(gesamt)));
+    rangFortschritt(karte, gesamt, function (name, rp) {
+      return txt("rang.nochRp", { rp: rp, rang: name });
+    });
+    if (stand.schritt) {
+      karte.appendChild(element("div", "rang-schritt", schrittText(stand.schritt)));
+    }
+    return karte;
+  }
+
+  // Der Konstanz-Rang: die Serie in Wochen und die angesparten Pausenwochen als kleine Symbole
+  function konstanzKarte(stand) {
+    const karte = element("div", "karte rang-karte");
+    const serie = stand.zahlen.serie;
+
+    if (serie === 0) {
+      karte.appendChild(rangKopf(null, txt("rang.konstanz"), txt("rang.keineSerie")));
+      karte.appendChild(element("div", "routine-info", txt("rang.konstanzLeer", { n: SERIE_TAGE_PRO_WOCHE })));
+      return karte;
+    }
+
+    const kopf = rangKopf(stand.konstanzRp, txt("rang.konstanz"), rangName(stand.konstanzRp));
+    const pausen = element("div", "rang-pausen");
+    pausen.setAttribute("role", "img");
+    pausen.setAttribute("aria-label", txtAnzahl("rang.pausen", stand.zahlen.pausen));
+    pausen.title = txtAnzahl("rang.pausen", stand.zahlen.pausen);
+    for (let i = 0; i < SERIE_PAUSEN_MAX; i++) {
+      const symbol = element("span", "rang-pause");
+      symbol.classList.toggle("voll", i < stand.zahlen.pausen);
+      symbol.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M9.5 8.5v7M14.5 8.5v7"/></svg>';
+      pausen.appendChild(symbol);
+    }
+    kopf.appendChild(pausen);
+    karte.appendChild(kopf);
+
+    karte.appendChild(element("div", "rang-serie", txtAnzahl("profil.serieText", serie) + " · " + txtAnzahl("rang.pausen", stand.zahlen.pausen)));
+    rangFortschritt(karte, stand.konstanzRp, function (name, rp) {
+      // Aus den fehlenden RP die fehlenden Wochen machen, aufgerundet auf ganze Wochen
+      const wochen = Math.max(1, Math.ceil(wertFuerRP(stand.konstanzRp + rp, KONSTANZ_SCHWELLEN) - serie - 1e-9));
+      return txtAnzahl("rang.nochWochen", wochen, { rang: name });
+    });
+    return karte;
+  }
+
+  // Die Karte eines Bewegungsmusters: Rang, Balken und die Übung, aus der der Wert stammt.
+  // Antippen öffnet den Verlauf dieser Übung. Ohne Wert steht da, womit sich das Muster füllen lässt.
+  function musterKarte(id, m) {
+    if (!m) {
+      const leer = element("div", "karte muster-karte leer");
+      leer.appendChild(element("div", "kachel-titel", txt("muster." + id)));
+      leer.appendChild(element("div", "muster-rang", txt("muster.leer")));
+      leer.appendChild(element("div", "muster-aus", txt("muster.beispiel", { uebung: uebungName(MUSTER_REFERENZ[id]) })));
+      return leer;
+    }
+
+    const karte = element("button", "karte muster-karte");
+    karte.appendChild(element("div", "kachel-titel", txt("muster." + id)));
+    if (m.rp === null) {
+      karte.appendChild(element("div", "muster-rang", "–"));
+      karte.appendChild(element("div", "muster-aus", txt("muster.ohneKoerper")));
+    } else {
+      karte.appendChild(element("div", "muster-rang", rangName(m.rp)));
+      karte.appendChild(rangBalken(rpZuRang(m.rp).rpInStufe / RP_JE_STUFE));
+    }
+    karte.appendChild(element("div", "muster-aus", txt("muster.aus", { uebung: uebungName(m.uebungId) })));
+    karte.onclick = function () {
+      verlaufOeffnen(uebungName(m.uebungId), m.uebungId);
+    };
+    return karte;
+  }
+
+  // Der Name eines Abzeichens, z. B. "50 Workouts", "100 t bewegt" oder "Allrounder"
+  function abzeichenTitel(a) {
+    if (a.gruppe === "volumen") {
+      // In kg stehen runde Tonnen da, in lbs das umgerechnete Gewicht
+      let gewicht = (a.ziel / 1000).toLocaleString(gebiet()) + " t";
+      if (einheit() === "lbs") {
+        gewicht = volumenText(a.ziel);
+      }
+      return txt("abzeichen.volumen", { gewicht: gewicht });
+    }
+    if (a.gruppe === "gesamtRang") {
+      return txt("abzeichen.gesamtRang", { rang: txt("rang.name." + rpZuRang(a.ziel).rang) });
+    }
+    if (a.gruppe) {
+      return txt("abzeichen." + a.gruppe, { n: a.ziel });
+    }
+    return txt("abzeichen." + a.id);
+  }
+
+  // Die Zeile unter dem Namen: bei erreichten das Datum, bei offenen der Fortschritt oder was noch fehlt
+  function abzeichenInfo(a, stand) {
+    if (a.erreicht) {
+      if (a.datum) {
+        return datumMitJahr(new Date(a.datum));
+      }
+      return txt("abzeichen.erreicht");
+    }
+    if (a.gruppe === "volumen") {
+      if (einheit() === "lbs") {
+        return volumenText(a.wert) + " / " + volumenText(a.ziel);
+      }
+      return zahlKurz(a.wert / 1000) + " / " + (a.ziel / 1000).toLocaleString(gebiet()) + " t";
+    }
+    if (a.gruppe === "gesamtRang") {
+      if (stand.kraft.gesamt === null) {
+        return txt("rang.keiner");
+      }
+      return txt("abzeichen.jetzt", { rang: rangName(stand.kraft.gesamt) });
+    }
+    if (a.gruppe) {
+      return a.wert.toLocaleString(gebiet()) + " / " + a.ziel.toLocaleString(gebiet());
+    }
+    if (a.id === "allrounder") {
+      return txt("abzeichen.allrounder.info", { rang: txt("rang.name." + rpZuRang(ALLROUNDER_RP).rang) });
+    }
+    return txt("abzeichen." + a.id + ".info");
+  }
+
+  // Ein Abzeichen im Raster: erreichte farbig mit Datum, offene grau mit Fortschritt
+  function abzeichenKachel(a, stand) {
+    const kachel = element("div", "abzeichen");
+    kachel.classList.toggle("erreicht", a.erreicht);
+    const bild = element("span", "abzeichen-bild");
+    bild.innerHTML = medailleSvg(a.stufe);
+    kachel.appendChild(bild);
+    kachel.appendChild(element("div", "abzeichen-titel", abzeichenTitel(a)));
+    kachel.appendChild(element("div", "abzeichen-info", abzeichenInfo(a, stand)));
+    return kachel;
+  }
+
+  // Der Fortschritts-Rang einer Übung als Karte für den Verlauf. Ohne Rang steht da, was fehlt.
+  function fortschrittRangAnzeigen(bereich, name, id) {
+    bereich.innerHTML = "";
+    const punkte = verlaufPunkte(name, id, "rang");
+    const f = fortschrittRang(punkte, Date.now());
+    const karte = element("div", "karte rang-karte");
+    if (!f) {
+      karte.appendChild(rangKopf(null, txt("rang.fortschritt"), txt("rang.keiner")));
+      karte.appendChild(element("div", "routine-info", txt("rang.fortschrittLeer", { n: FORTSCHRITT_MIN_TAGE, tage: BESTWERT_TAGE })));
+    } else {
+      karte.appendChild(rangKopf(f.rp, txt("rang.fortschritt"), rangName(f.rp)));
+      karte.appendChild(rangBalken(rpZuRang(f.rp).rpInStufe / RP_JE_STUFE));
+      karte.appendChild(element("div", "routine-info", txt("rang.fortschrittText", {
+        start: kraftText(ausKg(f.start)),
+        bestwert: kraftText(ausKg(f.bestwert)),
+        prozent: prozentText(f.steigerung)
+      })));
+    }
+    bereich.appendChild(karte);
   }
 
   // ---------- Einstellungen ----------
@@ -7372,6 +8021,9 @@ if (pause) {
   pauseTaktStarten();
 }
 trainingBeimStartPruefen();
+
+// Neue Ränge und Abzeichen seit dem letzten Öffnen melden. Beim allerersten Mal wird nur gemerkt, was schon erreicht ist.
+rangPruefen(true);
 
 // ---------- Offline und Updates ----------
 

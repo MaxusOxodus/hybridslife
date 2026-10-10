@@ -68,19 +68,25 @@ const MUSKELN = {
 // hilfs:   die Hilfsmuskeln (aus MUSKELN)
 // auch:    Muskelgruppen, bei denen die Übung zusätzlich unter "Trainiert auch" erscheint
 // alias:   weitere Namen, unter denen die Suche die Übung findet (nur wenn es welche gibt)
+// rang:    nur bei Übungen, die für einen Kraft-Rang zählen (siehe raenge.js):
+//          muster:   das Bewegungsmuster, z. B. "drueckenH"
+//          faktor:   1RM der Übung ÷ faktor = 1RM der Referenz-Übung des Musters
+//          zaehlung: "normal" (eingetragenes Gewicht), "summe" (Kurzhanteln: eingetragen wird eine Hantel,
+//                    gezählt werden beide), "proSeite" (einarmig: das eingetragene Gewicht zählt, wie es ist)
+//                    oder "koerpergewicht" (Körpergewicht + Zusatzgewicht, nur bei Bereich "eigen")
 const UEBUNGEN = [
 
   // ---------- Brust: Maschine ----------
-  { id: "brustpresse-steck", de: "Brustpresse (Steckgewicht)", en: "Pin-Loaded Machine Chest Press", bereich: "maschine", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [] },
+  { id: "brustpresse-steck", de: "Brustpresse (Steckgewicht)", en: "Pin-Loaded Machine Chest Press", bereich: "maschine", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [], rang: { muster: "drueckenH", faktor: 1, zaehlung: "normal" } },
   { id: "butterfly", de: "Butterfly (Pec Deck)", en: "Pec Deck Fly", bereich: "maschine", haupt: "brust", hilfs: ["schulter-vorn"], auch: [] },
-  { id: "bankdruecken-multi", de: "Bankdrücken an der Multipresse", en: "Smith Machine Bench Press", bereich: "maschine", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [] },
+  { id: "bankdruecken-multi", de: "Bankdrücken an der Multipresse", en: "Smith Machine Bench Press", bereich: "maschine", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [], rang: { muster: "drueckenH", faktor: 1, zaehlung: "normal" } },
   { id: "schraegbank-45-multi", de: "Schrägbankdrücken 45° an der Multipresse", en: "45° Incline Smith Machine Press", bereich: "maschine", haupt: "brust-oben", hilfs: ["schulter-vorn", "trizeps"], auch: [] },
   { id: "kabelfly-hoch-tief", de: "Kabelfly von oben nach unten", en: "High to Low Cable Fly", bereich: "maschine", haupt: "brust-unten", hilfs: ["schulter-vorn"], auch: [] },
   { id: "kabelfly-tief-hoch", de: "Kabelfly von unten nach oben", en: "Low to High Cable Fly", bereich: "maschine", haupt: "brust-oben", hilfs: ["schulter-vorn"], auch: [] },
   { id: "schraegpresse-scheibe", de: "Schrägbankpresse sitzend (Scheibengewicht)", en: "Seated Plate-Loaded Machine Incline Press", bereich: "maschine", haupt: "brust-oben", hilfs: ["schulter-vorn", "trizeps"], auch: [] },
   { id: "butterfly-obergriff", de: "Butterfly mit Obergriff (Pec Deck)", en: "Overhand Grip Pec Deck Fly", bereich: "maschine", haupt: "brust", hilfs: ["schulter-vorn"], auch: [] },
   { id: "brustpresse-steck-neutral", de: "Brustpresse, Neutralgriff (Steckgewicht)", en: "Neutral Grip Pin-Loaded Machine Chest Press", bereich: "maschine", haupt: "brust", hilfs: ["trizeps", "schulter-vorn"], auch: [] },
-  { id: "brustpresse-scheibe", de: "Brustpresse sitzend (Scheibengewicht)", en: "Seated Plate-Loaded Machine Chest Press", bereich: "maschine", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [] },
+  { id: "brustpresse-scheibe", de: "Brustpresse sitzend (Scheibengewicht)", en: "Seated Plate-Loaded Machine Chest Press", bereich: "maschine", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [], rang: { muster: "drueckenH", faktor: 1, zaehlung: "normal" } },
   { id: "brustpresse-scheibe-neutral", de: "Brustpresse sitzend, Neutralgriff (Scheibengewicht)", en: "Seated Neutral Grip Plate-Loaded Machine Chest Press", bereich: "maschine", haupt: "brust", hilfs: ["trizeps", "schulter-vorn"], auch: [] },
   { id: "schraegpresse-scheibe-einarmig", de: "Schrägbankpresse sitzend, einarmig (Scheibengewicht)", en: "Seated Single Arm Plate-Loaded Machine Incline Press", bereich: "maschine", haupt: "brust-oben", hilfs: ["schulter-vorn", "trizeps", "bauch"], auch: [] },
   { id: "bankdruecken-multi-breit", de: "Breites Bankdrücken an der Multipresse", en: "Wide Grip Smith Machine Bench Press", bereich: "maschine", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [] },
@@ -103,10 +109,10 @@ const UEBUNGEN = [
   { id: "machine-assisted-dip", de: "Dips an der Unterstützungsmaschine", en: "Machine-Assisted Dip", bereich: "maschine", haupt: "brust", hilfs: [], auch: [] },
 
   // ---------- Brust: Freie Gewichte ----------
-  { id: "bankdruecken-lh", de: "Bankdrücken (Langhantel)", en: "Barbell Bench Press", bereich: "frei", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [] },
-  { id: "bankdruecken-kh", de: "Bankdrücken (Kurzhantel)", en: "Dumbbell Bench Press", bereich: "frei", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [] },
-  { id: "schraegbank-45-kh", de: "Schrägbankdrücken 45° (Kurzhantel)", en: "45° Incline Dumbbell Press", bereich: "frei", haupt: "brust-oben", hilfs: ["schulter-vorn", "trizeps"], auch: [], alias: ["Incline Dumbbell Bench Press"] },
-  { id: "schraegbank-45-lh", de: "Schrägbankdrücken 45° (Langhantel)", en: "45° Incline Barbell Press", bereich: "frei", haupt: "brust-oben", hilfs: ["schulter-vorn", "trizeps"], auch: [], alias: ["Incline Barbell Bench Press"] },
+  { id: "bankdruecken-lh", de: "Bankdrücken (Langhantel)", en: "Barbell Bench Press", bereich: "frei", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [], rang: { muster: "drueckenH", faktor: 1, zaehlung: "normal" } },
+  { id: "bankdruecken-kh", de: "Bankdrücken (Kurzhantel)", en: "Dumbbell Bench Press", bereich: "frei", haupt: "brust", hilfs: ["schulter-vorn", "trizeps"], auch: [], rang: { muster: "drueckenH", faktor: 0.8, zaehlung: "summe" } },
+  { id: "schraegbank-45-kh", de: "Schrägbankdrücken 45° (Kurzhantel)", en: "45° Incline Dumbbell Press", bereich: "frei", haupt: "brust-oben", hilfs: ["schulter-vorn", "trizeps"], auch: [], alias: ["Incline Dumbbell Bench Press"], rang: { muster: "drueckenH", faktor: 0.68, zaehlung: "summe" } },
+  { id: "schraegbank-45-lh", de: "Schrägbankdrücken 45° (Langhantel)", en: "45° Incline Barbell Press", bereich: "frei", haupt: "brust-oben", hilfs: ["schulter-vorn", "trizeps"], auch: [], alias: ["Incline Barbell Bench Press"], rang: { muster: "drueckenH", faktor: 0.82, zaehlung: "normal" } },
   { id: "fliegende-kh", de: "Fliegende (Kurzhantel)", en: "Dumbbell Fly", bereich: "frei", haupt: "brust", hilfs: ["schulter-vorn"], auch: [] },
   { id: "fliegende-45-kh", de: "Schräge Fliegende 45° (Kurzhantel)", en: "45° Incline Dumbbell Fly", bereich: "frei", haupt: "brust-oben", hilfs: ["schulter-vorn"], auch: [], alias: ["Incline Dumbbell Fly"] },
   { id: "negativbank-lh", de: "Negativ-Bankdrücken (Langhantel)", en: "Decline Barbell Press", bereich: "frei", haupt: "brust-unten", hilfs: ["trizeps", "schulter-vorn"], auch: [], alias: ["Decline Barbell Bench Press"] },
@@ -135,7 +141,7 @@ const UEBUNGEN = [
 
   // ---------- Brust: Eigengewicht ----------
   { id: "liegestuetze", de: "Liegestütze", en: "Push-Up", bereich: "eigen", haupt: "brust", hilfs: ["schulter-vorn", "trizeps", "bauch"], auch: [] },
-  { id: "brust-dips", de: "Brust-Dips", en: "Chest Dip", bereich: "eigen", haupt: "brust-unten", hilfs: ["trizeps", "schulter-vorn"], auch: ["trizeps"], alias: ["Chest-Leaning Dips"] },
+  { id: "brust-dips", de: "Brust-Dips", en: "Chest Dip", bereich: "eigen", haupt: "brust-unten", hilfs: ["trizeps", "schulter-vorn"], auch: ["trizeps"], alias: ["Chest-Leaning Dips"], rang: { muster: "drueckenH", faktor: 1.35, zaehlung: "koerpergewicht" } },
   { id: "liegestuetze-fuesse-hoch", de: "Liegestütze mit erhöhten Füßen", en: "Decline Push-Up", bereich: "eigen", haupt: "brust-oben", hilfs: ["schulter-vorn", "trizeps", "bauch"], auch: [] },
   { id: "liegestuetze-haende-hoch", de: "Liegestütze mit erhöhten Händen", en: "Incline Push-Up", bereich: "eigen", haupt: "brust-unten", hilfs: ["schulter-vorn", "trizeps", "bauch"], auch: [] },
   { id: "liegestuetze-breit", de: "Breite Liegestütze", en: "Wide Grip Push-Up", bereich: "eigen", haupt: "brust", hilfs: ["schulter-vorn", "trizeps", "bauch"], auch: [], alias: ["Wide-Grip Push-Up"] },
@@ -143,24 +149,24 @@ const UEBUNGEN = [
   { id: "liegestuetze-gewicht", de: "Liegestütze mit Zusatzgewicht", en: "Weighted Push-Up", bereich: "eigen", haupt: "brust", hilfs: ["schulter-vorn", "trizeps", "bauch"], auch: [] },
   { id: "liegestuetze-defizit", de: "Defizit-Liegestütze", en: "Deficit Push-Up", bereich: "eigen", haupt: "brust", hilfs: ["schulter-vorn", "trizeps", "bauch"], auch: [] },
   { id: "liegestuetze-einarmig", de: "Einarmige Liegestütze", en: "Single Arm Push-Up", bereich: "eigen", haupt: "brust", hilfs: ["trizeps", "schulter-vorn", "bauch"], auch: [], alias: ["One-Arm Push-Up"] },
-  { id: "brust-dips-gewicht", de: "Brust-Dips mit Zusatzgewicht", en: "Weighted Chest Dip", bereich: "eigen", haupt: "brust-unten", hilfs: ["trizeps", "schulter-vorn"], auch: ["trizeps"] },
+  { id: "brust-dips-gewicht", de: "Brust-Dips mit Zusatzgewicht", en: "Weighted Chest Dip", bereich: "eigen", haupt: "brust-unten", hilfs: ["trizeps", "schulter-vorn"], auch: ["trizeps"], rang: { muster: "drueckenH", faktor: 1.35, zaehlung: "koerpergewicht" } },
   { id: "archer-push-up", de: "Archer-Liegestütze", en: "Archer Push-Up", bereich: "eigen", haupt: "brust", hilfs: [], auch: [] },
   { id: "pseudo-planche-push-up", de: "Pseudo-Planche-Liegestütze", en: "Pseudo Planche Push-Up", bereich: "eigen", haupt: "brust", hilfs: ["trizeps"], auch: [] },
   { id: "ring-push-up", de: "Liegestütze an den Ringen", en: "Ring Push-Up", bereich: "eigen", haupt: "brust", hilfs: [], auch: [] },
   { id: "ring-chest-fly", de: "Fliegende an den Ringen", en: "Ring Chest Fly", bereich: "eigen", haupt: "brust", hilfs: [], auch: [] },
-  { id: "dips", de: "Dip", en: "Dip", bereich: "eigen", haupt: "brust", hilfs: [], auch: [], alias: ["Dips"] },
+  { id: "dips", de: "Dip", en: "Dip", bereich: "eigen", haupt: "brust", hilfs: [], auch: [], alias: ["Dips"], rang: { muster: "drueckenH", faktor: 1.35, zaehlung: "koerpergewicht" } },
   { id: "explosive-push-up", de: "Explosive Liegestütze", en: "Explosive Push-Up", bereich: "eigen", haupt: "brust", hilfs: [], auch: [] },
   { id: "clap-push-up", de: "Liegestütze mit Klatschen", en: "Clap Push-Up", bereich: "eigen", haupt: "brust", hilfs: [], auch: [] },
 
   // ---------- Latissimus: Maschine ----------
-  { id: "latzug", de: "Latzug", en: "Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: ["bizeps", "ruecken-oben"], auch: [] },
+  { id: "latzug", de: "Latzug", en: "Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: ["bizeps", "ruecken-oben"], auch: [], rang: { muster: "ziehenV", faktor: 0.85, zaehlung: "normal" } },
   { id: "wide-grip-cable-lat-pulldown", de: "Latzug breit am Kabelzug", en: "Wide Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
   { id: "overhand-grip-cable-lat-pulldown", de: "Latzug im Obergriff am Kabelzug", en: "Overhand Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
-  { id: "machine-lat-pulldown", de: "Latzug-Maschine", en: "Machine Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
-  { id: "cable-lat-pulldown", de: "Latzug am Kabelzug", en: "Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
-  { id: "neutral-close-grip-cable-lat-pulldown", de: "Latzug eng im Neutralgriff am Kabelzug", en: "Neutral Close Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
+  { id: "machine-lat-pulldown", de: "Latzug-Maschine", en: "Machine Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.85, zaehlung: "normal" } },
+  { id: "cable-lat-pulldown", de: "Latzug am Kabelzug", en: "Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.85, zaehlung: "normal" } },
+  { id: "neutral-close-grip-cable-lat-pulldown", de: "Latzug eng im Neutralgriff am Kabelzug", en: "Neutral Close Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.88, zaehlung: "normal" } },
   { id: "underhand-wide-grip-cable-lat-pulldown", de: "Latzug breit im Untergriff am Kabelzug", en: "Underhand Wide Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
-  { id: "underhand-close-grip-cable-lat-pulldown", de: "Latzug eng im Untergriff am Kabelzug", en: "Underhand Close Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
+  { id: "underhand-close-grip-cable-lat-pulldown", de: "Latzug eng im Untergriff am Kabelzug", en: "Underhand Close Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.88, zaehlung: "normal" } },
   { id: "half-kneeling-single-arm-elbow-lat-pulldown", de: "Latzug einarmig am Kabelzug, halbkniend", en: "Half-Kneeling Single Arm Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], alias: ["Half-Kneeling Single Arm Elbow-Lat Pulldown"] },
   { id: "single-arm-cable-lat-pulldown", de: "Latzug einarmig am Kabelzug", en: "Single Arm Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
   { id: "kneeling-cable-straight-arm-lat-pulldown", de: "Latzug mit gestreckten Armen am Kabelzug, kniend", en: "Kneeling Cable Straight Arm Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
@@ -171,7 +177,7 @@ const UEBUNGEN = [
   { id: "machine-assisted-chin-up", de: "Klimmzüge im Untergriff an der Unterstützungsmaschine", en: "Machine-Assisted Chin-Up", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
 
   // ---------- Latissimus: Freie Gewichte ----------
-  { id: "kurzhantelrudern", de: "Kurzhantelrudern", en: "Dumbbell Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben", "bizeps"], auch: [], alias: ["One-Arm Dumbbell Row", "Kurzhantelrudern einarmig"] },
+  { id: "kurzhantelrudern", de: "Kurzhantelrudern", en: "Dumbbell Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben", "bizeps"], auch: [], alias: ["One-Arm Dumbbell Row", "Kurzhantelrudern einarmig"], rang: { muster: "ziehenH", faktor: 0.65, zaehlung: "proSeite" } },
   { id: "dumbbell-pullover", de: "Überzüge (Kurzhantel)", en: "Dumbbell Pullover", bereich: "frei", haupt: "lat", hilfs: [], auch: [] },
   { id: "barbell-pullover", de: "Überzüge (Langhantel)", en: "Barbell Pullover", bereich: "frei", haupt: "lat", hilfs: [], auch: [] },
   { id: "meadows-row", de: "Meadows Row", en: "Meadows Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
@@ -182,10 +188,10 @@ const UEBUNGEN = [
   { id: "chest-supported-dumbbell-row", de: "Kurzhantelrudern mit Brustauflage", en: "Chest-Supported Dumbbell Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
 
   // ---------- Latissimus: Eigengewicht ----------
-  { id: "klimmzuege", de: "Klimmzüge", en: "Pull-Up", bereich: "eigen", haupt: "lat", hilfs: ["bizeps", "ruecken-oben"], auch: [] },
+  { id: "klimmzuege", de: "Klimmzüge", en: "Pull-Up", bereich: "eigen", haupt: "lat", hilfs: ["bizeps", "ruecken-oben"], auch: [], rang: { muster: "ziehenV", faktor: 1, zaehlung: "koerpergewicht" } },
   { id: "wide-grip-pull-up", de: "Breite Klimmzüge", en: "Wide-Grip Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
   { id: "neutral-grip-pull-up", de: "Klimmzüge im Neutralgriff", en: "Neutral-Grip Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
-  { id: "chin-up", de: "Klimmzüge im Untergriff", en: "Chin-Up", bereich: "eigen", haupt: "lat", hilfs: ["bizeps"], auch: [] },
+  { id: "chin-up", de: "Klimmzüge im Untergriff", en: "Chin-Up", bereich: "eigen", haupt: "lat", hilfs: ["bizeps"], auch: [], rang: { muster: "ziehenV", faktor: 1.05, zaehlung: "koerpergewicht" } },
   { id: "close-grip-chin-up", de: "Enge Klimmzüge im Untergriff", en: "Close-Grip Chin-Up", bereich: "eigen", haupt: "lat", hilfs: ["bizeps"], auch: [] },
   { id: "commando-pull-up", de: "Commando-Klimmzüge", en: "Commando Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
   { id: "archer-pull-up", de: "Archer-Klimmzüge", en: "Archer Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
@@ -197,7 +203,7 @@ const UEBUNGEN = [
   { id: "towel-pull-up", de: "Klimmzüge am Handtuch", en: "Towel Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
 
   // ---------- Oberer Rücken: Maschine ----------
-  { id: "kabelrudern", de: "Rudern am Kabelzug", en: "Seated Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: ["lat", "bizeps"], auch: [] },
+  { id: "kabelrudern", de: "Rudern am Kabelzug", en: "Seated Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: ["lat", "bizeps"], auch: [], rang: { muster: "ziehenH", faktor: 0.9, zaehlung: "normal" } },
   { id: "chest-supported-overhand-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, Obergriff", en: "Chest-Supported Overhand Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
   { id: "chest-supported-neutral-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, Neutralgriff", en: "Chest-Supported Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
   { id: "chest-supported-semi-neutral-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, halbneutraler Griff", en: "Chest-Supported Semi-Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
@@ -218,12 +224,12 @@ const UEBUNGEN = [
   { id: "bent-over-underhand-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, Untergriff", en: "Bent-Over Underhand Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
   { id: "bent-over-semi-neutral-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, halbneutraler Griff", en: "Bent-Over Semi-Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
   { id: "bent-over-wide-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, breit", en: "Bent-Over Wide Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "pin-loaded-row-machine", de: "Rudermaschine (Steckgewicht)", en: "Pin-Loaded Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], alias: ["Pin-Loaded Row Machine"] },
+  { id: "pin-loaded-row-machine", de: "Rudermaschine (Steckgewicht)", en: "Pin-Loaded Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], alias: ["Pin-Loaded Row Machine"], rang: { muster: "ziehenH", faktor: 0.9, zaehlung: "normal" } },
   { id: "moto-cable-row", de: "Moto Row am Kabelzug", en: "Moto Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
 
   // ---------- Oberer Rücken: Freie Gewichte ----------
-  { id: "langhantelrudern", de: "Langhantelrudern", en: "Barbell Row", bereich: "frei", haupt: "ruecken-oben", hilfs: ["lat", "bizeps", "ruecken-unten"], auch: [] },
-  { id: "t-bar-rudern", de: "T-Bar-Rudern", en: "T-Bar Row", bereich: "frei", haupt: "ruecken-oben", hilfs: ["lat", "bizeps"], auch: [] },
+  { id: "langhantelrudern", de: "Langhantelrudern", en: "Barbell Row", bereich: "frei", haupt: "ruecken-oben", hilfs: ["lat", "bizeps", "ruecken-unten"], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "t-bar-rudern", de: "T-Bar-Rudern", en: "T-Bar Row", bereich: "frei", haupt: "ruecken-oben", hilfs: ["lat", "bizeps"], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
   { id: "wide-grip-barbell-row", de: "Breites Langhantelrudern", en: "Wide-Grip Barbell Row", bereich: "frei", haupt: "ruecken-oben", hilfs: [], auch: [] },
   { id: "dumbbell-rear-delt-row", de: "Rear Delt Row (Kurzhantel)", en: "Dumbbell Rear Delt Row", bereich: "frei", haupt: "ruecken-oben", hilfs: ["schulter-hinten"], auch: [] },
 
@@ -247,11 +253,11 @@ const UEBUNGEN = [
   { id: "shrug-machine-deadlift", de: "Kreuzheben an der Shrug-Maschine", en: "Shrug Machine Deadlift", bereich: "maschine", haupt: "ruecken-unten", hilfs: [], auch: [] },
 
   // ---------- Unterer Rücken: Freie Gewichte ----------
-  { id: "kreuzheben", de: "Kreuzheben", en: "Deadlift", bereich: "frei", haupt: "ruecken-unten", hilfs: ["po", "beinbeuger", "ruecken-oben", "unterarme"], auch: ["po", "beinbeuger"], alias: ["Conventional Deadlift"] },
-  { id: "dumbbell-romanian-deadlift", de: "Rumänisches Kreuzheben (Kurzhantel)", en: "Dumbbell Romanian Deadlift", bereich: "frei", haupt: "ruecken-unten", hilfs: ["beinbeuger"], auch: [] },
-  { id: "sumo-deadlift", de: "Sumo-Kreuzheben", en: "Sumo Deadlift", bereich: "frei", haupt: "ruecken-unten", hilfs: ["beinbeuger", "po", "adduktoren"], auch: [] },
+  { id: "kreuzheben", de: "Kreuzheben", en: "Deadlift", bereich: "frei", haupt: "ruecken-unten", hilfs: ["po", "beinbeuger", "ruecken-oben", "unterarme"], auch: ["po", "beinbeuger"], alias: ["Conventional Deadlift"], rang: { muster: "huefte", faktor: 1, zaehlung: "normal" } },
+  { id: "dumbbell-romanian-deadlift", de: "Rumänisches Kreuzheben (Kurzhantel)", en: "Dumbbell Romanian Deadlift", bereich: "frei", haupt: "ruecken-unten", hilfs: ["beinbeuger"], auch: [], rang: { muster: "huefte", faktor: 0.6, zaehlung: "summe" } },
+  { id: "sumo-deadlift", de: "Sumo-Kreuzheben", en: "Sumo Deadlift", bereich: "frei", haupt: "ruecken-unten", hilfs: ["beinbeuger", "po", "adduktoren"], auch: [], rang: { muster: "huefte", faktor: 1, zaehlung: "normal" } },
   { id: "stiff-leg-deadlift", de: "Kreuzheben mit gestreckten Beinen", en: "Stiff-Leg Deadlift", bereich: "frei", haupt: "ruecken-unten", hilfs: ["beinbeuger"], auch: [] },
-  { id: "good-morning", de: "Good Morning", en: "Good Morning", bereich: "frei", haupt: "ruecken-unten", hilfs: ["beinbeuger"], auch: [] },
+  { id: "good-morning", de: "Good Morning", en: "Good Morning", bereich: "frei", haupt: "ruecken-unten", hilfs: ["beinbeuger"], auch: [], rang: { muster: "huefte", faktor: 0.45, zaehlung: "normal" } },
   { id: "deficit-deadlift", de: "Defizit-Kreuzheben", en: "Deficit Deadlift", bereich: "frei", haupt: "ruecken-unten", hilfs: [], auch: [] },
   { id: "rack-pull", de: "Rack Pull", en: "Rack Pull", bereich: "frei", haupt: "ruecken-unten", hilfs: [], auch: [] },
   { id: "jefferson-deadlift", de: "Jefferson-Kreuzheben", en: "Jefferson Deadlift", bereich: "frei", haupt: "ruecken-unten", hilfs: [], auch: [] },
@@ -310,7 +316,7 @@ const UEBUNGEN = [
   { id: "prone-y-t-w-raises", de: "Y-T-W-Raises in Bauchlage", en: "Prone Y-T-W Raise", bereich: "eigen", haupt: "schulter-hinten", hilfs: [], auch: [], alias: ["Prone Y-T-W Raises"] },
 
   // ---------- Vordere Schulter: Maschine ----------
-  { id: "plate-loaded-machine-shoulder-press", de: "Schulterpresse (Scheibengewicht)", en: "Plate-Loaded Machine Shoulder Press", bereich: "maschine", haupt: "schulter-vorn", hilfs: [], auch: [] },
+  { id: "plate-loaded-machine-shoulder-press", de: "Schulterpresse (Scheibengewicht)", en: "Plate-Loaded Machine Shoulder Press", bereich: "maschine", haupt: "schulter-vorn", hilfs: [], auch: [], rang: { muster: "drueckenV", faktor: 1, zaehlung: "normal" } },
   { id: "neutral-grip-machine-shoulder-press", de: "Schulterpresse, Neutralgriff", en: "Neutral Grip Machine Shoulder Press", bereich: "maschine", haupt: "schulter-vorn", hilfs: [], auch: [] },
   { id: "neutral-grip-plate-loaded-machine-shoulder-press", de: "Schulterpresse, Neutralgriff (Scheibengewicht)", en: "Neutral Grip Plate-Loaded Machine Shoulder Press", bereich: "maschine", haupt: "schulter-vorn", hilfs: [], auch: [] },
   { id: "smith-machine-overhead-press", de: "Schulterdrücken an der Multipresse", en: "Smith Machine Overhead Press", bereich: "maschine", haupt: "schulter-vorn", hilfs: [], auch: [] },
@@ -319,13 +325,13 @@ const UEBUNGEN = [
   { id: "single-arm-cable-front-raise", de: "Frontheben am Kabelzug, einarmig", en: "Single Arm Cable Front Raise", bereich: "maschine", haupt: "schulter-vorn", hilfs: [], auch: [] },
 
   // ---------- Vordere Schulter: Freie Gewichte ----------
-  { id: "schulterdruecken", de: "Schulterdrücken", en: "Shoulder Press", bereich: "frei", haupt: "schulter-vorn", hilfs: ["schulter-seite", "trizeps"], auch: [] },
-  { id: "military-press", de: "Military Press", en: "Military Press", bereich: "frei", haupt: "schulter-vorn", hilfs: ["schulter-seite", "trizeps"], auch: [] },
+  { id: "schulterdruecken", de: "Schulterdrücken", en: "Shoulder Press", bereich: "frei", haupt: "schulter-vorn", hilfs: ["schulter-seite", "trizeps"], auch: [], rang: { muster: "drueckenV", faktor: 1, zaehlung: "normal" } },
+  { id: "military-press", de: "Military Press", en: "Military Press", bereich: "frei", haupt: "schulter-vorn", hilfs: ["schulter-seite", "trizeps"], auch: [], rang: { muster: "drueckenV", faktor: 1, zaehlung: "normal" } },
   { id: "frontheben", de: "Frontheben", en: "Front Raise", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [] },
-  { id: "arnold-press", de: "Arnold Press", en: "Arnold Press", bereich: "frei", haupt: "schulter-vorn", hilfs: ["schulter-seite", "trizeps"], auch: [] },
-  { id: "barbell-overhead-press", de: "Überkopfdrücken (Langhantel)", en: "Barbell Overhead Press", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [] },
-  { id: "dumbbell-overhead-press", de: "Überkopfdrücken (Kurzhantel)", en: "Dumbbell Overhead Press", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [] },
-  { id: "seated-dumbbell-shoulder-press", de: "Schulterdrücken sitzend (Kurzhantel)", en: "Seated Dumbbell Shoulder Press", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [] },
+  { id: "arnold-press", de: "Arnold Press", en: "Arnold Press", bereich: "frei", haupt: "schulter-vorn", hilfs: ["schulter-seite", "trizeps"], auch: [], rang: { muster: "drueckenV", faktor: 0.75, zaehlung: "summe" } },
+  { id: "barbell-overhead-press", de: "Überkopfdrücken (Langhantel)", en: "Barbell Overhead Press", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [], rang: { muster: "drueckenV", faktor: 1, zaehlung: "normal" } },
+  { id: "dumbbell-overhead-press", de: "Überkopfdrücken (Kurzhantel)", en: "Dumbbell Overhead Press", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [], rang: { muster: "drueckenV", faktor: 0.85, zaehlung: "summe" } },
+  { id: "seated-dumbbell-shoulder-press", de: "Schulterdrücken sitzend (Kurzhantel)", en: "Seated Dumbbell Shoulder Press", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [], rang: { muster: "drueckenV", faktor: 0.85, zaehlung: "summe" } },
   { id: "z-press", de: "Z-Press", en: "Z-Press", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [] },
   { id: "bradford-press", de: "Bradford Press", en: "Bradford Press", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [] },
   { id: "single-arm-dumbbell-press", de: "Schulterdrücken einarmig (Kurzhantel)", en: "Single-Arm Dumbbell Press", bereich: "frei", haupt: "schulter-vorn", hilfs: [], auch: [] },
@@ -447,13 +453,13 @@ const UEBUNGEN = [
   { id: "ring-triceps-extension", de: "Trizepsstrecken an den Ringen", en: "Ring Triceps Extension", bereich: "eigen", haupt: "trizeps", hilfs: [], auch: [] },
 
   // ---------- Quadrizeps: Maschine ----------
-  { id: "beinpresse", de: "Beinpresse", en: "Leg Press", bereich: "maschine", haupt: "quadrizeps", hilfs: ["po"], auch: [] },
-  { id: "beinstrecker", de: "Beinstrecker", en: "Leg Extension", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
-  { id: "45-leg-press", de: "Beinpresse 45°", en: "45° Leg Press", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
+  { id: "beinpresse", de: "Beinpresse", en: "Leg Press", bereich: "maschine", haupt: "quadrizeps", hilfs: ["po"], auch: [], rang: { muster: "beine", faktor: 2, zaehlung: "normal" } },
+  { id: "beinstrecker", de: "Beinstrecker", en: "Leg Extension", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 0.55, zaehlung: "normal" } },
+  { id: "45-leg-press", de: "Beinpresse 45°", en: "45° Leg Press", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 2, zaehlung: "normal" } },
   { id: "pin-loaded-leg-press", de: "Beinpresse (Steckgewicht)", en: "Pin-Loaded Leg Press", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
   { id: "single-leg-45-leg-press", de: "Beinpresse 45°, einbeinig", en: "Single Leg 45° Leg Press", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
   { id: "single-leg-pin-loaded-leg-press", de: "Beinpresse einbeinig (Steckgewicht)", en: "Single Leg Pin-Loaded Leg Press", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
-  { id: "hack-squat", de: "Hack Squat", en: "Hack Squat", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
+  { id: "hack-squat", de: "Hack Squat", en: "Hack Squat", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 1.1, zaehlung: "normal" } },
   { id: "pause-hack-squat", de: "Hack Squat mit Pause", en: "Pause Hack Squat", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
   { id: "pin-loaded-quad-biased-leg-press", de: "Beinpresse, Fokus Quadrizeps (Steckgewicht)", en: "Pin-Loaded Quad-Biased Leg Press", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
   { id: "smith-machine-back-squat", de: "Kniebeuge an der Multipresse", en: "Smith Machine Back Squat", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
@@ -465,17 +471,17 @@ const UEBUNGEN = [
   { id: "single-leg-leg-extension", de: "Beinstrecker einbeinig", en: "Single Leg Leg Extension", bereich: "maschine", haupt: "quadrizeps", hilfs: [], auch: [] },
 
   // ---------- Quadrizeps: Freie Gewichte ----------
-  { id: "kniebeuge", de: "Kniebeuge", en: "Squat", bereich: "frei", haupt: "quadrizeps", hilfs: ["po", "ruecken-unten"], auch: ["po"], alias: ["Barbell Back Squat"] },
+  { id: "kniebeuge", de: "Kniebeuge", en: "Squat", bereich: "frei", haupt: "quadrizeps", hilfs: ["po", "ruecken-unten"], auch: ["po"], alias: ["Barbell Back Squat"], rang: { muster: "beine", faktor: 1, zaehlung: "normal" } },
   { id: "ausfallschritte", de: "Ausfallschritte", en: "Lunge", bereich: "frei", haupt: "quadrizeps", hilfs: ["po"], auch: ["po"] },
-  { id: "bulgarian-split-squats", de: "Bulgarian Split Squats", en: "Bulgarian Split Squat", bereich: "frei", haupt: "quadrizeps", hilfs: ["po"], auch: ["po"] },
-  { id: "high-bar-back-squat", de: "High-Bar-Kniebeuge", en: "High-Bar Back Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
-  { id: "low-bar-back-squat", de: "Low-Bar-Kniebeuge", en: "Low-Bar Back Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
-  { id: "front-squat", de: "Frontkniebeuge", en: "Front Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
-  { id: "goblet-squat", de: "Goblet Squat", en: "Goblet Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
+  { id: "bulgarian-split-squats", de: "Bulgarian Split Squats", en: "Bulgarian Split Squat", bereich: "frei", haupt: "quadrizeps", hilfs: ["po"], auch: ["po"], rang: { muster: "beine", faktor: 0.45, zaehlung: "summe" } },
+  { id: "high-bar-back-squat", de: "High-Bar-Kniebeuge", en: "High-Bar Back Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 1, zaehlung: "normal" } },
+  { id: "low-bar-back-squat", de: "Low-Bar-Kniebeuge", en: "Low-Bar Back Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 1, zaehlung: "normal" } },
+  { id: "front-squat", de: "Frontkniebeuge", en: "Front Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 0.82, zaehlung: "normal" } },
+  { id: "goblet-squat", de: "Goblet Squat", en: "Goblet Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 0.4, zaehlung: "normal" } },
   { id: "dumbbell-split-squat", de: "Split Squats (Kurzhantel)", en: "Dumbbell Split Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
-  { id: "walking-dumbbell-lunge", de: "Ausfallschritte im Gehen (Kurzhantel)", en: "Walking Dumbbell Lunge", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
-  { id: "reverse-dumbbell-lunge", de: "Ausfallschritte rückwärts (Kurzhantel)", en: "Reverse Dumbbell Lunge", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
-  { id: "forward-dumbbell-lunge", de: "Ausfallschritte vorwärts (Kurzhantel)", en: "Forward Dumbbell Lunge", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
+  { id: "walking-dumbbell-lunge", de: "Ausfallschritte im Gehen (Kurzhantel)", en: "Walking Dumbbell Lunge", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 0.45, zaehlung: "summe" } },
+  { id: "reverse-dumbbell-lunge", de: "Ausfallschritte rückwärts (Kurzhantel)", en: "Reverse Dumbbell Lunge", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 0.45, zaehlung: "summe" } },
+  { id: "forward-dumbbell-lunge", de: "Ausfallschritte vorwärts (Kurzhantel)", en: "Forward Dumbbell Lunge", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [], rang: { muster: "beine", faktor: 0.45, zaehlung: "summe" } },
   { id: "barbell-lunge", de: "Ausfallschritte (Langhantel)", en: "Barbell Lunge", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
   { id: "dumbbell-step-up", de: "Step-ups (Kurzhantel)", en: "Dumbbell Step-Up", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
   { id: "zercher-squat", de: "Zercher-Kniebeuge", en: "Zercher Squat", bereich: "frei", haupt: "quadrizeps", hilfs: [], auch: [] },
@@ -499,15 +505,15 @@ const UEBUNGEN = [
   { id: "cyclist-squat", de: "Cyclist Squat", en: "Cyclist Squat", bereich: "eigen", haupt: "quadrizeps", hilfs: [], auch: [] },
 
   // ---------- Beinbeuger: Maschine ----------
-  { id: "beinbeuger-maschine", de: "Beinbeuger", en: "Leg Curl", bereich: "maschine", haupt: "beinbeuger", hilfs: [], auch: [] },
-  { id: "lying-hamstring-curl", de: "Beinbeuger liegend", en: "Lying Hamstring Curl", bereich: "maschine", haupt: "beinbeuger", hilfs: [], auch: [] },
-  { id: "seated-hamstring-curl", de: "Beinbeuger sitzend", en: "Seated Hamstring Curl", bereich: "maschine", haupt: "beinbeuger", hilfs: [], auch: [] },
+  { id: "beinbeuger-maschine", de: "Beinbeuger", en: "Leg Curl", bereich: "maschine", haupt: "beinbeuger", hilfs: [], auch: [], rang: { muster: "huefte", faktor: 0.3, zaehlung: "normal" } },
+  { id: "lying-hamstring-curl", de: "Beinbeuger liegend", en: "Lying Hamstring Curl", bereich: "maschine", haupt: "beinbeuger", hilfs: [], auch: [], rang: { muster: "huefte", faktor: 0.3, zaehlung: "normal" } },
+  { id: "seated-hamstring-curl", de: "Beinbeuger sitzend", en: "Seated Hamstring Curl", bereich: "maschine", haupt: "beinbeuger", hilfs: [], auch: [], rang: { muster: "huefte", faktor: 0.3, zaehlung: "normal" } },
   { id: "seated-single-leg-hamstring-curl", de: "Beinbeuger sitzend, einbeinig", en: "Seated Single Leg Hamstring Curl", bereich: "maschine", haupt: "beinbeuger", hilfs: [], auch: [] },
   { id: "seated-accentuated-eccentric-hamstring-curl", de: "Beinbeuger sitzend, betont exzentrisch", en: "Seated Accentuated Eccentric Hamstring Curl", bereich: "maschine", haupt: "beinbeuger", hilfs: [], auch: [] },
   { id: "standing-cable-leg-curl", de: "Beinbeuger stehend am Kabelzug", en: "Standing Cable Leg Curl", bereich: "maschine", haupt: "beinbeuger", hilfs: [], auch: [] },
 
   // ---------- Beinbeuger: Freie Gewichte ----------
-  { id: "rumaenisches-kreuzheben", de: "Rumänisches Kreuzheben", en: "Romanian Deadlift", bereich: "frei", haupt: "beinbeuger", hilfs: ["po", "ruecken-unten"], auch: ["po"], alias: ["Barbell Romanian Deadlift"] },
+  { id: "rumaenisches-kreuzheben", de: "Rumänisches Kreuzheben", en: "Romanian Deadlift", bereich: "frei", haupt: "beinbeuger", hilfs: ["po", "ruecken-unten"], auch: ["po"], alias: ["Barbell Romanian Deadlift"], rang: { muster: "huefte", faktor: 0.75, zaehlung: "normal" } },
   { id: "dumbbell-leg-curl", de: "Beinbeuger mit Kurzhantel", en: "Dumbbell Leg Curl", bereich: "frei", haupt: "beinbeuger", hilfs: [], auch: [] },
 
   // ---------- Beinbeuger: Eigengewicht ----------
@@ -529,7 +535,7 @@ const UEBUNGEN = [
   { id: "45-glute-biased-leg-press", de: "Beinpresse 45°, Fokus Po", en: "45° Glute-Biased Leg Press", bereich: "maschine", haupt: "po", hilfs: [], auch: [] },
 
   // ---------- Po: Freie Gewichte ----------
-  { id: "hip-thrust", de: "Hip Thrust", en: "Hip Thrust", bereich: "frei", haupt: "po", hilfs: ["beinbeuger"], auch: [], alias: ["Barbell Hip Thrust"] },
+  { id: "hip-thrust", de: "Hip Thrust", en: "Hip Thrust", bereich: "frei", haupt: "po", hilfs: ["beinbeuger"], auch: [], alias: ["Barbell Hip Thrust"], rang: { muster: "huefte", faktor: 1.1, zaehlung: "normal" } },
   { id: "sumo-kniebeuge", de: "Sumo-Kniebeuge", en: "Sumo Squat", bereich: "frei", haupt: "po", hilfs: ["quadrizeps"], auch: ["quadrizeps"] },
   { id: "dumbbell-hip-thrust", de: "Hip Thrust (Kurzhantel)", en: "Dumbbell Hip Thrust", bereich: "frei", haupt: "po", hilfs: [], auch: [] },
   { id: "barbell-glute-bridge", de: "Glute Bridge (Langhantel)", en: "Barbell Glute Bridge", bereich: "frei", haupt: "po", hilfs: [], auch: [] },

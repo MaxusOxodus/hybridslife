@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=28">
+  <link rel="stylesheet" href="style.css?v=29">
 </head>
 <body>
 
@@ -409,6 +409,12 @@
     <button onclick="verwerfenRueckgaengig()" data-t="rueckgaengig">Rückgängig</button>
   </div>
 
+  <!-- Meldung "Neuer Rang" oder "Neues Abzeichen": Antippen öffnet die Abzeichen im Profil -->
+  <div id="rang-hinweis" role="status">
+    <button id="rang-hinweis-text" onclick="rangMeldungOeffnen()"></button>
+    <button class="rang-hinweis-zu" onclick="rangMeldungSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+  </div>
+
   <div id="sheet-hintergrund" onclick="sheetSchliessen()"></div>
   <div id="sheet">
     <div class="sheet-griff"></div>
@@ -473,6 +479,8 @@
       <!-- Veränderung des letzten Werts über vier Abstände: Die Kacheln baut die app.js -->
       <h2 id="verlauf-kacheln-titel" class="abschnitt" data-t="verlauf.veraenderung">Veränderung</h2>
       <div id="verlauf-kacheln" class="kacheln"></div>
+      <!-- Der Fortschritts-Rang der Übung: Die Karte baut die app.js -->
+      <div id="verlauf-rang"></div>
       <p id="verlauf-hinweis" class="meldung"></p>
     </div>
   </div>
@@ -783,9 +791,10 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=28"></script>
-<script src="uebungen.js?v=28"></script>
-<script src="app.js?v=28"></script>
+<script src="texte.js?v=29"></script>
+<script src="uebungen.js?v=29"></script>
+<script src="raenge.js?v=29"></script>
+<script src="app.js?v=29"></script>
 
 </body>
 </html>

@@ -1,8 +1,8 @@
 // Service Worker: speichert alle Dateien der App, damit sie auch ohne Internet startet.
 
-// Dieselbe Nummer wie bei style.css?v=N, texte.js?v=N, uebungen.js?v=N und app.js?v=N in der index.html.
+// Dieselbe Nummer wie bei style.css?v=N, texte.js?v=N, uebungen.js?v=N, raenge.js?v=N und app.js?v=N in der index.html.
 // Erst wenn sich diese Zahl ändert, bemerkt der Browser eine neue Version.
-const VERSION = 28;
+const VERSION = 29;
 
 const CACHE = "gymstead-v" + VERSION;
 
@@ -13,6 +13,7 @@ const DATEIEN = [
   "style.css?v=" + VERSION,
   "texte.js?v=" + VERSION,
   "uebungen.js?v=" + VERSION,
+  "raenge.js?v=" + VERSION,
   "app.js?v=" + VERSION,
   "manifest.json",
   "icons/icon-32.png",

@@ -325,6 +325,58 @@ h1 {
   animation: seite-einblenden 0.3s ease-out;
 }
 
+/* ---------- Meldung "Neuer Rang": an derselben Stelle, bleibt bis zum Antippen ---------- */
+
+#rang-hinweis {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  z-index: 16;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  max-width: 448px;
+  min-height: 44px;
+  margin: 0 auto;
+  padding: 4px 6px 4px 16px;
+  border: 1px solid var(--rand);
+  border-radius: 22px;
+  background: var(--glas);
+  -webkit-backdrop-filter: var(--glas-filter);
+  backdrop-filter: var(--glas-filter);
+}
+
+#rang-hinweis.sichtbar {
+  display: flex;
+  animation: seite-einblenden 0.3s ease-out;
+}
+
+#rang-hinweis button {
+  min-height: 36px;
+  border: none;
+  background: none;
+  color: var(--akzent-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Jede Zeile der Meldung steht für sich: erst die Ränge, dann die Abzeichen */
+#rang-hinweis-text {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 0;
+  text-align: left;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+#rang-hinweis .rang-hinweis-zu {
+  flex-shrink: 0;
+  width: 36px;
+  color: var(--text-leise);
+}
+
 #verworfen-hinweis button {
   min-height: 36px;
   padding: 0 12px;
@@ -2514,29 +2566,317 @@ button.einst-zeile:first-child {
   background: var(--fuellung);
 }
 
-/* Abzeichen: Platzhalter mit Icon in der Mitte */
-.abzeichen-leer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32px 20px;
-  text-align: center;
+/* ---------- Ränge und Abzeichen ---------- */
+
+/* Eine Karte mit Rang: oben das Rang-Abzeichen mit Namen, darunter der Balken und was noch fehlt */
+.rang-karte {
+  margin-bottom: 10px;
 }
 
-.abzeichen-leer .icon {
+.rang-kopf {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  margin-bottom: 12px;
-  border-radius: 28px;
-  background: var(--akzent-leicht);
+  gap: 14px;
+}
+
+.rang-bild {
+  flex-shrink: 0;
+  display: flex;
+  width: 48px;
+}
+
+.rang-karte.gross .rang-bild {
+  width: 68px;
+}
+
+.rang-kopf-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.rang-kopf-text .kachel-titel {
+  margin-top: 0;
+}
+
+.rang-name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.rang-karte.gross .rang-name {
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+/* Das Rang-Abzeichen: ein Sechseck. Rang 1 und 2 sind grau, 3 und 4 haben eine grüne Linie, 5 und 6 sind grün gefüllt. */
+.rang-svg {
+  display: block;
+  width: 100%;
+}
+
+.rang-svg .form {
+  fill: var(--fuellung);
+  stroke: var(--text-leise);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.rang-svg text {
+  fill: var(--text-leise);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.rang-svg .winkel {
+  fill: none;
+  stroke: var(--text-leise);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rang-svg.farbe-2 .form {
+  fill: var(--akzent-leicht);
+  stroke: var(--akzent-text);
+}
+
+.rang-svg.farbe-2 text {
+  fill: var(--akzent-text);
+}
+
+.rang-svg.farbe-2 .winkel {
+  stroke: var(--akzent-text);
+}
+
+.rang-svg.farbe-3 .form {
+  fill: var(--akzent);
+  stroke: var(--akzent-text);
+}
+
+.rang-svg.farbe-3 text {
+  fill: var(--auf-akzent);
+}
+
+.rang-svg.farbe-3 .winkel {
+  stroke: var(--auf-akzent);
+}
+
+/* Noch kein Rang: nur ein gestrichelter Umriss */
+.rang-svg.leer .form {
+  fill: none;
+  stroke: var(--text-aus);
+  stroke-dasharray: 4 4;
+}
+
+.rang-balken {
+  height: 6px;
+  margin-top: 14px;
+  border-radius: 3px;
+  background: var(--fuellung);
+  overflow: hidden;
+}
+
+.rang-balken div {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--akzent-text);
+}
+
+.rang-karte .routine-info {
+  margin-top: 10px;
+}
+
+.rang-schritt {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rand);
+  font-size: 15px;
+}
+
+.rang-serie {
+  margin-top: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rang-knopf {
+  width: 100%;
+  margin-top: 14px;
+  color: var(--akzent-text);
+  font-weight: 600;
+}
+
+/* Die angesparten Pausenwochen: zwei kleine Symbole, die vollen in Grün */
+.rang-pausen {
+  flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+}
+
+.rang-pause {
+  display: flex;
+  width: 24px;
+  height: 24px;
+  color: var(--text-aus);
+}
+
+.rang-pause.voll {
   color: var(--akzent-text);
 }
 
-.abzeichen-leer .icon svg {
-  width: 28px;
-  height: 28px;
+.rang-pause svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.rang-pause.voll rect {
+  fill: var(--akzent-leicht);
+}
+
+/* Die sechs Bewegungsmuster: zwei Spalten */
+.muster-raster {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.muster-karte {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 16px;
+  color: var(--text);
+  font-size: 17px;
+  text-align: left;
+}
+
+.muster-karte .kachel-titel {
+  margin-top: 0;
+}
+
+.muster-rang {
+  margin-top: 6px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.muster-karte.leer .muster-rang {
+  color: var(--text-leise);
+}
+
+.muster-karte .rang-balken {
+  margin-top: 10px;
+}
+
+.muster-aus {
+  margin-top: 10px;
+  color: var(--text-leise);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+/* Die Abzeichen: drei Spalten. Offene sind grau, erreichte grün. */
+.abzeichen-raster {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.abzeichen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 14px 6px;
+  border: 1px solid var(--rand);
+  border-radius: 16px;
+  background: var(--karte);
+  color: var(--text-leise);
+  text-align: center;
+}
+
+.abzeichen-bild {
+  display: flex;
+  width: 44px;
+  color: var(--text-aus);
+}
+
+.abzeichen.erreicht .abzeichen-bild {
+  color: var(--akzent-text);
+}
+
+.medaille {
+  display: block;
+  width: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.medaille .punkt {
+  fill: currentColor;
+  stroke: none;
+}
+
+.abzeichen.erreicht .medaille .form {
+  fill: var(--akzent-leicht);
+}
+
+.abzeichen-titel {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.abzeichen.erreicht .abzeichen-titel {
+  color: var(--text);
+}
+
+.abzeichen-info {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.rang-fussnote {
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Im Fortschritt-Tab: der Name der Übung, darunter klein ihr Fortschritts-Rang */
+.listen-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rang-zeile {
+  color: var(--akzent-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Im Verlauf einer Übung steht die Karte mit dem Fortschritts-Rang unter den Kacheln */
+#verlauf-rang {
+  margin-top: 10px;
+}
+
+#verlauf-rang .rang-karte {
+  margin-bottom: 0;
 }
 
 /* ---------- Dialog-Buttons ---------- */

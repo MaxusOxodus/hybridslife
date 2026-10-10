@@ -60,6 +60,7 @@ const TEXTE = {
   // ---------- Gewicht und Zahlenfelder ----------
   "gewicht": { de: "Gewicht", en: "Weight" },
   "gewicht.titel": { de: "Gewicht ({einheit})", en: "Weight ({einheit})" },
+  "gewicht.titelHantel": { de: "Gewicht pro Hantel ({einheit})", en: "Weight per dumbbell ({einheit})" },
   "gewicht.in": { de: "Gewicht in {einheit}", en: "Weight in {einheit}" },
   "gewicht.weniger": { de: "{schritt} {einheit} weniger", en: "{schritt} {einheit} less" },
   "gewicht.mehr": { de: "{schritt} {einheit} mehr", en: "{schritt} {einheit} more" },
@@ -421,10 +422,6 @@ const TEXTE = {
   "profil.mehr": { de: "Mehr anzeigen", en: "Show more" },
   "profil.serieText.eins": { de: "Serie: 1 Woche", en: "Streak: 1 week" },
   "profil.serieText.viele": { de: "Serie: {n} Wochen", en: "Streak: {n} weeks" },
-  "profil.abzeichenText": {
-    de: "Abzeichen für deine Erfolge folgen in einem späteren Update.",
-    en: "Badges for your achievements will follow in a later update."
-  },
   "anzahl.trainings.eins": { de: "1 Training", en: "1 workout" },
   "anzahl.trainings.viele": { de: "{n} Trainings", en: "{n} workouts" },
 
@@ -518,8 +515,8 @@ const TEXTE = {
   },
   "faq.7.frage": { de: "Wie wird die Serie gezählt?", en: "How is the streak counted?" },
   "faq.7.antwort": {
-    de: "Eine Woche zählt, wenn du an mindestens {n} Tagen trainiert hast. Die Serie ist die Zahl solcher Wochen in Folge. Die laufende Woche unterbricht sie nicht, solange sie noch nicht vorbei ist.",
-    en: "A week counts when you trained on at least {n} days. The streak is the number of such weeks in a row. The current week does not break it while it is still running."
+    de: "Eine Woche zählt, wenn du an mindestens {n} Tagen trainiert hast. Die Serie ist die Zahl solcher Wochen in Folge. Die laufende Woche zählt erst mit, wenn sie vorbei ist, unterbricht die Serie aber nicht. Nach je 8 Wochen Serie sparst du eine Pausenwoche an, höchstens 2. Verpasst du eine Woche, wird eine Pausenwoche verbraucht und die Serie läuft weiter.",
+    en: "A week counts when you trained on at least {n} days. The streak is the number of such weeks in a row. The current week only counts once it is over, but it does not break the streak. Every 8 weeks of a streak earn you one rest week, 2 at most. If you miss a week, a rest week is used up and the streak continues."
   },
   "faq.8.frage": { de: "Funktioniert die App ohne Internet?", en: "Does the app work offline?" },
   "faq.8.antwort": {
@@ -581,5 +578,116 @@ const TEXTE = {
   "backup.gewichteErsetzt": { de: "{n} Messungen des Körpergewichts wurden wiederhergestellt.", en: "{n} body weight measurements were restored." },
   "backup.gewichteErgaenzt": { de: "{n} Messungen des Körpergewichts hinzugefügt.", en: "{n} body weight measurements added." },
   "backup.eigeneErsetzt": { de: "{n} eigene Übungen wurden wiederhergestellt.", en: "{n} exercises of your own were restored." },
-  "backup.eigeneErgaenzt": { de: "{n} eigene Übungen hinzugefügt.", en: "{n} exercises of your own added." }
+  "backup.eigeneErgaenzt": { de: "{n} eigene Übungen hinzugefügt.", en: "{n} exercises of your own added." },
+
+  // ---------- Ränge ----------
+
+  // Die Namen der sechs Ränge sind Platzhalter und stehen nur hier
+  "rang.name.1": { de: "Starter", en: "Starter" },
+  "rang.name.2": { de: "Aufbau", en: "Builder" },
+  "rang.name.3": { de: "Solide", en: "Solid" },
+  "rang.name.4": { de: "Stark", en: "Strong" },
+  "rang.name.5": { de: "Elite", en: "Elite" },
+  "rang.name.6": { de: "Legende", en: "Legend" },
+
+  "muster.drueckenH": { de: "Drücken horizontal", en: "Horizontal push" },
+  "muster.drueckenV": { de: "Drücken vertikal", en: "Vertical push" },
+  "muster.beine": { de: "Beine", en: "Legs" },
+  "muster.huefte": { de: "Hüfte", en: "Hips" },
+  "muster.ziehenV": { de: "Ziehen vertikal", en: "Vertical pull" },
+  "muster.ziehenH": { de: "Ziehen horizontal", en: "Horizontal pull" },
+  "muster.gesamt": { de: "Gesamt", en: "Overall" },
+  "muster.konstanz": { de: "Konstanz", en: "Consistency" },
+  "muster.aus": { de: "aus: {uebung}", en: "from: {uebung}" },
+  "muster.leer": { de: "Noch kein Wert", en: "No value yet" },
+  "muster.beispiel": { de: "Fehlt noch, z. B. {uebung}", en: "Still missing, e.g. {uebung}" },
+  "muster.ohneKoerper": { de: "Körpergewicht fehlt", en: "Body weight missing" },
+
+  "rang.muster": { de: "Bewegungsmuster", en: "Movement patterns" },
+  "rang.gesamt": { de: "Gesamt-Kraftrang", en: "Overall strength rank" },
+  "rang.konstanz": { de: "Konstanz-Rang", en: "Consistency rank" },
+  "rang.fortschritt": { de: "Fortschritts-Rang", en: "Progress rank" },
+  "rang.keiner": { de: "Noch kein Rang", en: "No rank yet" },
+  "rang.maximum": { de: "Höchste Stufe erreicht.", en: "Highest level reached." },
+  "rang.leerEintraege": {
+    de: "Noch keine Einträge. Trage ein Training ein, dann erscheint hier dein Rang.",
+    en: "No entries yet. Log a workout and your rank shows up here."
+  },
+  "rang.leerKoerper": {
+    de: "Trage dein Körpergewicht ein. Die Kraft-Ränge vergleichen deine Kraft mit deinem Körpergewicht.",
+    en: "Log your body weight. The strength ranks compare your strength to your body weight."
+  },
+  "rang.koerperEintragen": { de: "Körpergewicht eintragen", en: "Log body weight" },
+  "rang.fehlen.eins": {
+    de: "Trainiere noch 1 Bewegungsmuster für deinen Gesamt-Rang. Es zählen Sätze mit 1 bis 10 Wiederholungen.",
+    en: "Train 1 more movement pattern for your overall rank. Sets with 1 to 10 reps count."
+  },
+  "rang.fehlen.viele": {
+    de: "Trainiere noch {n} Bewegungsmuster für deinen Gesamt-Rang. Es zählen Sätze mit 1 bis 10 Wiederholungen.",
+    en: "Train {n} more movement patterns for your overall rank. Sets with 1 to 10 reps count."
+  },
+  "rang.nochRp": { de: "Noch {rp} RP bis {rang}", en: "{rp} RP to {rang}" },
+  "rang.schritt": {
+    de: "Am nächsten dran: noch ca. {gewicht} (geschätztes 1RM) bis {rang} · {muster}, mit {uebung}.",
+    en: "Closest: about {gewicht} more (estimated 1RM) to {rang} · {muster}, with {uebung}."
+  },
+  "rang.schrittHantel": {
+    de: "Am nächsten dran: noch ca. {gewicht} pro Hantel (geschätztes 1RM) bis {rang} · {muster}, mit {uebung}.",
+    en: "Closest: about {gewicht} more per dumbbell (estimated 1RM) to {rang} · {muster}, with {uebung}."
+  },
+  "rang.keineSerie": { de: "Noch keine Serie", en: "No streak yet" },
+  "rang.konstanzLeer": {
+    de: "Eine Woche zählt ab {n} Trainingstagen, sobald sie vorbei ist.",
+    en: "A week counts from {n} training days, once it is over."
+  },
+  "rang.pausen.eins": { de: "1 Pausenwoche angespart", en: "1 rest week saved" },
+  "rang.pausen.viele": { de: "{n} Pausenwochen angespart", en: "{n} rest weeks saved" },
+  "rang.nochWochen.eins": { de: "Noch 1 Woche bis {rang}", en: "1 week to {rang}" },
+  "rang.nochWochen.viele": { de: "Noch {n} Wochen bis {rang}", en: "{n} weeks to {rang}" },
+  "rang.neu.eins": { de: "Neuer Rang: {text}", en: "New rank: {text}" },
+  "rang.neu.viele": { de: "Neue Ränge: {text}", en: "New ranks: {text}" },
+  "rang.fortschrittKurz": { de: "{rang} · {prozent}", en: "{rang} · {prozent}" },
+  "rang.fortschrittText": {
+    de: "Start {start} → Bestwert {bestwert} ({prozent}), geschätztes 1RM aus Sätzen mit 1 bis 10 Wdh.",
+    en: "Start {start} → best {bestwert} ({prozent}), estimated 1RM from sets with 1 to 10 reps."
+  },
+  "rang.fortschrittLeer": {
+    de: "Ab {n} Trainingstagen mit Sätzen von 1 bis 10 Wdh., davon einer in den letzten {tage} Tagen.",
+    en: "From {n} training days with sets of 1 to 10 reps, one of them in the last {tage} days."
+  },
+  "rang.hinweis": {
+    de: "Ränge sind Richtwerte und vergleichen Kraft im Verhältnis zum Körpergewicht.",
+    en: "Ranks are rough guides and compare strength relative to body weight."
+  },
+
+  "plausibel.titel": { de: "Stimmt der Wert?", en: "Is this value correct?" },
+  "plausibel.text": {
+    de: "{name}: {satz} liegt mehr als 15 % über deinem Bestwert der letzten {tage} Tage. Der Satz ist gespeichert.",
+    en: "{name}: {satz} is more than 15% above your best of the last {tage} days. The set is saved."
+  },
+  "plausibel.ja": { de: "Ja, stimmt", en: "Yes, correct" },
+  "plausibel.bearbeiten": { de: "Bearbeiten", en: "Edit" },
+
+  // ---------- Abzeichen ----------
+
+  "abzeichen.neu.eins": { de: "Neues Abzeichen: {text}", en: "New badge: {text}" },
+  "abzeichen.neu.viele": { de: "Neue Abzeichen: {text}", en: "New badges: {text}" },
+  "abzeichen.erreicht": { de: "Erreicht", en: "Earned" },
+  "abzeichen.jetzt": { de: "Jetzt: {rang}", en: "Now: {rang}" },
+  "abzeichen.workouts": { de: "{n} Workouts", en: "{n} workouts" },
+  "abzeichen.volumen": { de: "{gewicht} bewegt", en: "{gewicht} lifted" },
+  "abzeichen.serie": { de: "{n} Wochen Serie", en: "{n}-week streak" },
+  "abzeichen.gesamtRang": { de: "Gesamt-Rang {rang}", en: "Overall rank {rang}" },
+  "abzeichen.rekorde": { de: "{n} Rekorde", en: "{n} records" },
+  "abzeichen.erstesTraining": { de: "Erstes Training", en: "First workout" },
+  "abzeichen.erstesTraining.info": { de: "Trage ein Training ein", en: "Log a workout" },
+  "abzeichen.koerpergewicht": { de: "Körpergewicht eingetragen", en: "Body weight logged" },
+  "abzeichen.koerpergewicht.info": { de: "Trage dein Gewicht ein", en: "Log your weight" },
+  "abzeichen.ersteRoutine": { de: "Erste Routine", en: "First routine" },
+  "abzeichen.ersteRoutine.info": { de: "Lege eine Routine an", en: "Create a routine" },
+  "abzeichen.erstesBackup": { de: "Erstes Backup", en: "First backup" },
+  "abzeichen.erstesBackup.info": { de: "Exportiere ein Backup", en: "Export a backup" },
+  "abzeichen.allrounder": { de: "Allrounder", en: "All-rounder" },
+  "abzeichen.allrounder.info": { de: "Alle 6 Muster ab {rang}", en: "All 6 patterns at {rang}" },
+  "abzeichen.fruehaufsteher": { de: "Frühaufsteher", en: "Early bird" }
 };

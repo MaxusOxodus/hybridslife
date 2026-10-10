@@ -111,7 +111,16 @@ const BILDER = {
   "rumaenisches-kreuzheben": '<path class="g" d="M12 57h40"/><circle cx="47" cy="21" r="4"/><path d="M42 26L26 36l8 9-1 11h6M42 26v17"/><circle class="a" cx="42" cy="45" r="6"/><path class="a" d="M42 45h.01"/>',
 
   // Sumo-Kreuzheben von vorn: sehr breiter Stand, die Arme greifen zwischen den Knien
-  "sumo-kreuzheben": '<circle cx="32" cy="15" r="4"/><path d="M32 20v16M14 57l5-13 9-8h8l9 8 5 13M27 24h10M27 24v24M37 24v24"/><path class="a" d="M9 48h46"/><rect class="a" x="4" y="41" width="5" height="14" rx="2"/><rect class="a" x="55" y="41" width="5" height="14" rx="2"/>'
+  "sumo-kreuzheben": '<circle cx="32" cy="15" r="4"/><path d="M32 20v16M14 57l5-13 9-8h8l9 8 5 13M27 24h10M27 24v24M37 24v24"/><path class="a" d="M9 48h46"/><rect class="a" x="4" y="41" width="5" height="14" rx="2"/><rect class="a" x="55" y="41" width="5" height="14" rx="2"/>',
+
+  // Shrugs von vorn: stehend, die Stange an gestreckten Armen, die Schultern ziehen hoch
+  "shrugs": '<circle cx="32" cy="12" r="4"/><path d="M32 17v21M32 38l-5 19M32 38l5 19M24 20h16M24 20l-1 20M40 20l1 20"/><path class="a" d="M11 41h42"/><rect class="a" x="6" y="35" width="5" height="12" rx="2"/><rect class="a" x="53" y="35" width="5" height="12" rx="2"/>',
+
+  // Farmer's Walk von der Seite: gehend, das Gewicht am gestreckten Arm
+  "farmers-walk": '<path class="g" d="M10 57h44"/><circle cx="32" cy="11" r="4"/><path d="M32 16v20M32 36l-8 20M32 36l9 20M32 19l1 18"/><circle class="a" cx="33" cy="42" r="5"/><path class="a" d="M33 42h.01"/>',
+
+  // Aufrechtes Rudern von vorn: die Stange vor der Brust, die Ellbogen zeigen nach oben außen
+  "aufrechtes-rudern": '<circle cx="32" cy="11" r="4"/><path d="M32 16v22M32 38l-5 19M32 38l5 19M32 20l-14-2 9 10M32 20l14-2-9 10"/><path class="a" d="M14 29h36"/><rect class="a" x="9" y="23" width="5" height="12" rx="2"/><rect class="a" x="50" y="23" width="5" height="12" rx="2"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -341,7 +350,29 @@ const BILD_ZU_UEBUNG = {
   "shrug-machine-deadlift": "kreuzheben",
   "rack-pull": "kreuzheben",
   "jefferson-deadlift": "kreuzheben",
-  "sumo-deadlift": "sumo-kreuzheben"
+  "sumo-deadlift": "sumo-kreuzheben",
+
+  // Trapez
+  "smith-machine-shrug": "shrugs",
+  "standing-machine-shrug": "shrugs",
+  "cable-shrug": "shrugs",
+  "single-arm-cable-shrug": "shrugs",
+  "machine-cheat-shrug": "shrugs",
+  "smith-machine-cheat-shrug": "shrugs",
+  "pause-cable-shrug-in": "shrugs",
+  "cable-shrug-in": "shrugs",
+  "barbell-shrug": "shrugs",
+  "dumbbell-shrug": "shrugs",
+  "behind-the-back-barbell-shrug": "shrugs",
+  "pin-loaded-row-machine-kelso-shrug": "rudern",
+  "seated-cable-kelso-shrug": "rudern",
+  "t-bar-kelso-shrug": "t-bar-rudern",
+  "incline-dumbbell-shrug": "rudern-brustauflage",
+  "farmers-walk": "farmers-walk",
+  "trap-bar-carry": "farmers-walk",
+  "high-pull": "aufrechtes-rudern",
+  "barbell-upright-row": "aufrechtes-rudern",
+  "dumbbell-upright-row": "aufrechtes-rudern"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

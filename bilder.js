@@ -65,8 +65,8 @@ const BILDER = {
   // Bizeps-Curl von der Seite: stehend, der Unterarm ist angewinkelt
   "bizeps-curl": '<circle cx="29" cy="10" r="4"/><path d="M29 15v21M29 36l-3 21M29 36l4 21M29 18l2 13 10-8"/><circle class="a" cx="44" cy="20" r="5"/><path class="a" d="M44 20h.01"/>',
 
-  // Trizepsdrücken am Kabel von der Seite: stehend vor dem Turm, der Griff wird nach unten gedrückt
-  "trizepsdruecken": '<path class="g" d="M55 6v51M55 6H44M44 8l-4 27"/><circle cx="25" cy="12" r="4"/><path d="M26 17l2 20M28 37l-3 20M28 37l4 20M27 20l2 11 10 5"/><path class="a" d="M36 36h8"/><rect class="a" x="51" y="30" width="8" height="14" rx="2"/>',
+  // Trizepsdrücken am Kabel von der Seite: Das Seil kommt senkrecht von oben, der Oberarm bleibt am Körper, der Unterarm drückt den Griff nach unten
+  "trizepsdruecken": '<path class="g" d="M56 5v52M56 7H42v24"/><circle cx="25" cy="11" r="4"/><path d="M26 16l1 21M27 37l-4 20M27 37l4 20M27 20l2 12 10 1"/><path class="a" d="M38 33h8"/><rect class="a" x="52" y="32" width="8" height="14" rx="2"/>',
 
   // Kniebeuge von der Seite: tief in der Hocke, die Stange auf dem Rücken
   "kniebeuge": '<path class="g" d="M12 57h40"/><circle cx="41" cy="16" r="4"/><path d="M37 22L26 40l16 2-8 14h7"/><circle class="a" cx="30" cy="22" r="6"/><path class="a" d="M30 22h.01"/>',
@@ -74,20 +74,20 @@ const BILDER = {
   // Beinpresse 45° von der Seite: zurückgelehnt, die Füße drücken den Schlitten schräg nach oben
   "beinpresse": '<path class="g" d="M9 35l11 18h9M30 57l28-28"/><circle cx="13" cy="29" r="4"/><path d="M15 35l9 14 7-15 12-5"/><path class="a" d="M40 24l8 8"/><circle class="a" cx="52" cy="21" r="5"/>',
 
-  // Kreuzheben von der Seite: vorgebeugt, die Arme gestreckt an der Stange am Boden
-  "kreuzheben": '<path class="g" d="M10 57h44"/><circle cx="44" cy="19" r="4"/><path d="M38 24L22 36l15 8-4 12h6M38 24l2 25"/><circle class="a" cx="40" cy="49" r="7"/><path class="a" d="M40 49h.01"/>',
+  // Kreuzheben von der Seite: Die große Scheibe steht am Boden, die Hüfte ist tief, die Knie sind gebeugt, die Arme gestreckt
+  "kreuzheben": '<path class="g" d="M10 57h44"/><circle cx="45" cy="19" r="4"/><path d="M40 24L22 40l17 4-4 12h6M40 24l2 23"/><circle class="a" cx="42" cy="49" r="8"/><path class="a" d="M42 49h.01"/>',
 
   // Latzug mit gestreckten Armen von der Seite: stehend vor dem Turm, die Arme bleiben gestreckt
   "latzug-gestreckt": '<path class="g" d="M56 6v51M56 6H46M46 8l-6 22"/><circle cx="24" cy="13" r="4"/><path d="M25 18l2 20M27 38l-4 19M27 38l4 19M26 21l14 9"/><path class="a" d="M38 27l4 6"/><rect class="a" x="52" y="32" width="8" height="14" rx="2"/>',
 
-  // Kurzhantelrudern von der Seite: eine Hand und ein Knie auf der Bank, der andere Arm zieht die Hantel hoch
-  "kurzhantelrudern": '<path class="g" d="M10 45h30M14 45v11M36 45v11"/><circle cx="12" cy="28" r="4"/><path d="M17 31h19M19 31l-1 13M36 31l-4 13h8M36 31l8 25M22 31l6-8-1 13"/><rect class="a" x="22" y="36" width="10" height="5" rx="2.5"/>',
+  // Kurzhantelrudern von der Seite: eine Hand stützt auf der Bank, der Rücken ist flach, der andere Arm zieht die Hantel hoch
+  "kurzhantelrudern": '<path class="g" d="M4 46h16M7 46v11M17 46v11M26 57h26"/><circle cx="13" cy="23" r="4"/><path d="M18 28h22l3 28M19 28l-8 17M23 28l8-8-1 17"/><rect class="a" x="24" y="38" width="12" height="5" rx="2.5"/>',
 
   // Überzüge von der Seite: auf der Bank liegend, das Gewicht geht hinter den Kopf
   "ueberzuege": '<path class="g" d="M14 43h36M21 43v13M43 43v13"/><circle cx="19" cy="37" r="4"/><path d="M24 39h16l10 1 2 16M26 37L13 24"/><circle class="a" cx="10" cy="21" r="4.5"/><path class="a" d="M10 21h.01"/>',
 
-  // Langhantelrudern von der Seite: vorgebeugt, die Stange wird zum Bauch gezogen
-  "langhantelrudern": '<path class="g" d="M10 57h44"/><circle cx="45" cy="22" r="4"/><path d="M40 27L22 38l13 7-3 11h6M40 27l-6 5 4 6"/><circle class="a" cx="38" cy="40" r="6"/><path class="a" d="M38 40h.01"/>',
+  // Langhantelrudern von der Seite: der Rücken fast waagerecht, der Ellbogen zieht über den Rücken, die Stange ist am Bauch
+  "langhantelrudern": '<path class="g" d="M10 57h44"/><circle cx="48" cy="25" r="4"/><path d="M42 28l-20 4 8 12-3 12h6M41 28l-9-9 3 18"/><circle class="a" cx="35" cy="42" r="5.5"/><path class="a" d="M35 42h.01"/>',
 
   // T-Bar-Rudern von der Seite: Die Stange ist hinten am Boden verankert, vorn sitzen die Scheiben
   "t-bar-rudern": '<path class="g" d="M6 57h50"/><circle cx="45" cy="20" r="4"/><path d="M40 25L22 37l12 8-3 11h6M40 25v15"/><path class="a" d="M8 56l33-16M43 34l4 11M47 33l4 11"/>',
@@ -101,14 +101,14 @@ const BILDER = {
   // Armheben in Bauchlage von der Seite: auf dem Bauch liegend, die Arme heben vom Boden ab
   "bauchlage-heben": '<path class="g" d="M6 53h52"/><circle cx="49" cy="43" r="4"/><path d="M43 46L10 50M42 45l9-15"/>',
 
-  // Rückenstrecker von der Seite: die Hüfte auf dem Polster, die Füße eingehakt, der Oberkörper hängt nach vorn
-  "rueckenstrecker": '<path class="g" d="M22 57h30M42 57L30 39M25 35l9 7M46 57v-6"/><circle cx="11" cy="45" r="4"/><path d="M47 51L28 33 15 42"/>',
+  // Rückenstrecker von der Seite: die Hüfte auf dem schrägen Polster, die Füße unter der Rolle, der Oberkörper senkt sich nach vorn
+  "rueckenstrecker": '<path class="g" d="M22 57h34M46 57L33 41M27 37l10 8"/><circle class="g" cx="53" cy="53" r="2.5"/><circle cx="9" cy="26" r="4"/><path d="M50 50L30 34l-16-6"/>',
 
   // Good Morning von der Seite: die Stange im Nacken, der Oberkörper beugt sich mit geradem Rücken vor
   "good-morning": '<path class="g" d="M12 57h40"/><circle cx="52" cy="30" r="4"/><path d="M46 31l-16 7 2 18h6"/><circle class="a" cx="42" cy="26" r="5.5"/><path class="a" d="M42 26h.01"/>',
 
-  // Rumänisches Kreuzheben von der Seite: die Beine fast gestreckt, die Stange auf Höhe der Knie
-  "rumaenisches-kreuzheben": '<path class="g" d="M12 57h40"/><circle cx="47" cy="21" r="4"/><path d="M42 26L26 36l8 9-1 11h6M42 26v17"/><circle class="a" cx="42" cy="45" r="6"/><path class="a" d="M42 45h.01"/>',
+  // Rumänisches Kreuzheben von der Seite: die Beine gestreckt, der Oberkörper mit geradem Rücken vorgebeugt, die Stange hängt auf Höhe der Knie
+  "rumaenisches-kreuzheben": '<path class="g" d="M12 57h40"/><circle cx="47" cy="20" r="4"/><path d="M42 24L28 36l2 20h6M42 24v15"/><circle class="a" cx="42" cy="42" r="5"/><path class="a" d="M42 42h.01"/>',
 
   // Sumo-Kreuzheben von vorn: sehr breiter Stand, die Arme greifen zwischen den Knien
   "sumo-kreuzheben": '<circle cx="32" cy="15" r="4"/><path d="M32 20v16M14 57l5-13 9-8h8l9 8 5 13M27 24h10M27 24v24M37 24v24"/><path class="a" d="M9 48h46"/><rect class="a" x="4" y="41" width="5" height="14" rx="2"/><rect class="a" x="55" y="41" width="5" height="14" rx="2"/>',
@@ -128,8 +128,8 @@ const BILDER = {
   // Reverse Butterfly von vorn: die Brust am Polster, die Arme gehen gestreckt nach außen
   "reverse-butterfly": '<path class="g" d="M27 29h10v9H27zM24 45h16"/><circle cx="32" cy="16" r="4"/><path d="M32 21v21M32 42l-7 4-1 11M32 42l7 4 1 11M32 25l-20-2M32 25l20-2"/><path class="a" d="M11 17v12M53 17v12"/>',
 
-  // Reverse Flys von vorn: weit vorgebeugt, die Arme heben seitlich an
-  "reverse-flys": '<circle cx="32" cy="27" r="4"/><path d="M32 32v9M32 41l-6 16M32 41l6 16M32 34l-19-7M32 34l19-7"/><rect class="a" x="7" y="22" width="5" height="9" rx="2.5"/><rect class="a" x="52" y="22" width="5" height="9" rx="2.5"/>',
+  // Reverse Flys von vorn: weit vorgebeugt, der Kopf hängt unter der Schulterlinie, die Arme heben wie Flügel nach oben außen
+  "reverse-flys": '<path class="g" d="M10 57h44"/><circle cx="32" cy="40" r="4"/><path d="M22 34h20M25 34l-2 23M39 34l2 23M22 34L8 24M42 34l14-10"/><rect class="a" x="3" y="18" width="5" height="9" rx="2.5"/><rect class="a" x="56" y="18" width="5" height="9" rx="2.5"/>',
 
   // Frontheben von der Seite: stehend, ein Arm hebt das Gewicht gestreckt nach vorn
   "frontheben": '<circle cx="28" cy="11" r="4"/><path d="M28 16v21M28 37l-4 20M28 37l5 20M28 20h17M28 20l-2 16"/><circle class="a" cx="49" cy="20" r="4.5"/><path class="a" d="M49 20h.01"/>',
@@ -197,8 +197,8 @@ const BILDER = {
   // Bein am Kabelzug von der Seite: am Turm abgestützt, das Seil am Fuß, das Bein geht gestreckt nach hinten
   "kickback-kabel": '<path class="g" d="M8 8v49M8 55l44-7"/><circle cx="21" cy="15" r="4"/><path d="M24 20l10 16-2 21M34 36l18 12M25 22L9 26"/><circle class="a" cx="53" cy="48" r="3"/>',
 
-  // Nordic Curl von der Seite: kniend, die Füße festgehalten, der gestreckte Körper senkt sich nach vorn
-  "nordic-curl": '<path class="g" d="M6 57h52M50 50h7"/><circle cx="12" cy="31" r="4"/><path d="M54 54H36L17 36M18 38l-6 9"/>',
+  // Nordic Curl von der Seite: kniend, die Füße unter der Rolle, der gestreckte Körper neigt sich nach vorn
+  "nordic-curl": '<path class="g" d="M6 57h52"/><circle class="g" cx="52" cy="48" r="3"/><circle cx="13" cy="19" r="4"/><path d="M53 55H31L17 25M18 28l-8 7"/>',
 
   // Glute Bridge von der Seite: auf dem Rücken liegend, die Füße aufgestellt, die Hüfte hebt ab
   "glute-bridge": '<path class="g" d="M5 57h54"/><circle cx="10" cy="50" r="4"/><path d="M15 52l19-12 12-3 2 19M16 53l11 2"/>',
@@ -221,8 +221,8 @@ const BILDER = {
   // Wadenheben sitzend von der Seite: das Polster auf den Knien, die Fußballen auf dem Block
   "wadenheben-sitzend": '<path class="g" d="M12 41h16M17 41v15M40 54h12v3M8 57h48"/><circle cx="20" cy="12" r="4"/><path d="M20 17l1 21h17l-1 12 6 4"/><rect class="a" x="30" y="30" width="11" height="5" rx="2.5"/>',
 
-  // Cable Crunch von der Seite: kniend vor dem Turm, das Seil am Kopf, der Oberkörper rollt sich ein
-  "cable-crunch": '<path class="g" d="M56 6v51M56 8H46M46 8l-6 17M6 57h50"/><circle cx="43" cy="33" r="4"/><path d="M18 55h16l-6-15 10-10 2-4"/><path class="a" d="M37 24l6 3"/>',
+  // Cable Crunch von der Seite: kniend vor dem Turm, das Seil am Kopf, der Oberkörper rollt sich nach vorn ein
+  "cable-crunch": '<path class="g" d="M56 5v52M56 7H44v15M6 57h50"/><circle cx="45" cy="31" r="4"/><path d="M12 55h18l-6-17 14-10 6-4"/><path class="a" d="M41 23h6"/><rect class="a" x="52" y="32" width="8" height="14" rx="2"/>',
 
   // Crunches und Sit-ups von der Seite: auf dem Rücken, die Knie angewinkelt, die Schultern heben ab
   "crunches": '<path class="g" d="M5 57h54"/><circle cx="12" cy="39" r="4"/><path d="M17 44l13 9 12-13 8 15M18 45l10 2"/>',
@@ -233,8 +233,8 @@ const BILDER = {
   // Beinheben im Liegen von der Seite: auf dem Rücken, die gestreckten Beine heben an
   "beinheben-liegend": '<path class="g" d="M5 57h54"/><circle cx="10" cy="50" r="4"/><path d="M15 53h19l12-30"/>',
 
-  // Beinheben im Hang: an der Stange hängend, die Beine heben nach vorn
-  "beinheben-hang": '<path class="a" d="M18 7h24"/><circle cx="30" cy="18" r="4"/><path d="M25 8l3 16h4l3-16M30 24v18l20-3"/>',
+  // Beinheben im Hang von der Seite: an der Stange hängend, die gestreckten Beine heben nach vorn
+  "beinheben-hang": '<path class="g" d="M12 5v52M12 7h14"/><circle class="a" cx="29" cy="7" r="3"/><circle cx="35" cy="20" r="4"/><path d="M29 10v32l21-3"/>',
 
   // Ab Wheel von der Seite: kniend, die Arme rollen das Rad nach vorn
   "ab-wheel": '<path class="g" d="M4 57h56"/><circle cx="40" cy="36" r="4"/><path d="M6 52l10 3 19-14 13 10"/><circle class="a" cx="49" cy="51" r="5"/>',

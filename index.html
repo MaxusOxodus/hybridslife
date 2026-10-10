@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=38">
+  <link rel="stylesheet" href="style.css?v=39">
 </head>
 <body>
 
@@ -788,6 +788,24 @@
         <p id="profil-benutzer-meldung" class="meldung form-meldung"></p>
 
         <p class="einst-fuss" data-t="profil.nurHier">Name und Benutzername bleiben auf diesem Gerät und stehen im Backup.</p>
+
+        <!-- Freiwillige Angaben zur Person. Die Möglichkeiten der beiden Auswahlfelder baut die app.js. -->
+        <label class="form-titel" for="profil-feld-geschlecht" data-t="profil.geschlecht">Geschlecht</label>
+        <select id="profil-feld-geschlecht" class="form-feld" onchange="profilFelderGeaendert()"></select>
+
+        <label class="form-titel" for="profil-feld-geburt" data-t="profil.geburtstag">Geburtstag</label>
+        <input id="profil-feld-geburt" class="datum-feld" type="date" oninput="profilFelderGeaendert()" onchange="profilFelderGeaendert()">
+        <div id="profil-geburt-zeile" class="geburt-zeile versteckt">
+          <span id="profil-alter"></span>
+          <button class="text-btn" onclick="profilGeburtLeeren()" data-t="loeschen">Löschen</button>
+        </div>
+        <p id="profil-geburt-meldung" class="meldung form-meldung"></p>
+
+        <label class="form-titel" for="profil-feld-aktivitaet" data-t="profil.aktivitaet">Aktivitätsniveau</label>
+        <select id="profil-feld-aktivitaet" class="form-feld" onchange="profilFelderGeaendert()"></select>
+        <p id="profil-aktivitaet-text" class="meldung form-meldung"></p>
+
+        <p class="einst-fuss" data-t="profil.angabenHinweis">Diese Angaben bleiben auf deinem Gerät und werden später für Empfehlungen im Coach genutzt.</p>
         <button class="speichern-btn" onclick="profilSpeichern()" data-t="speichern">Speichern</button>
       </div>
 
@@ -861,10 +879,10 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=38"></script>
-<script src="uebungen.js?v=38"></script>
-<script src="raenge.js?v=38"></script>
-<script src="app.js?v=38"></script>
+<script src="texte.js?v=39"></script>
+<script src="uebungen.js?v=39"></script>
+<script src="raenge.js?v=39"></script>
+<script src="app.js?v=39"></script>
 
 </body>
 </html>

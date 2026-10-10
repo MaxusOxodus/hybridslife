@@ -282,6 +282,16 @@
   const BENUTZER_MIN = 3;
   const BENUTZER_MAX = 20;
 
+  // Die Angaben zum Geschlecht ("" heißt: keine Angabe). Die Texte stehen unter "profil.geschlecht.m" usw.
+  const GESCHLECHTER = ["m", "w", "d"];
+
+  // So viele Stufen hat das Aktivitätsniveau, von 1 (sitzend) bis 5 (extrem aktiv). 0 heißt: nicht gesetzt.
+  // Name und Erklärung jeder Stufe stehen unter "profil.aktivitaet.1" und "profil.aktivitaetText.1" usw.
+  const AKTIVITAET_STUFEN = 5;
+
+  // Der früheste Geburtstag, den das Feld annimmt
+  const GEBURTSTAG_MIN = "1920-01-01";
+
   // So viele Trainingstage zeigt der Verlauf im Profil sofort, der Rest steckt hinter "Mehr anzeigen"
   const VERLAUF_ANZAHL = 30;
 
@@ -7663,7 +7673,7 @@
   function backupText() {
     const backup = {
       app: "gymstead",
-      version: 9,
+      version: 10,
       exportiert: new Date().toISOString(),
       profil: profil,
       eintraege: eintraege,
@@ -7799,7 +7809,8 @@
       importEinstellungen = einstellungenBereinigen(daten.einstellungen);
     }
 
-    // Name und Benutzername gibt es erst ab Backup-Version 7. Ältere Backups lassen das Profil, wie es ist.
+    // Name und Benutzername gibt es erst ab Backup-Version 7, Geschlecht, Geburtstag und Aktivitätsniveau ab Version 10.
+    // Ältere Backups lassen am Profil, was sie nicht kennen, wie es ist.
     importProfil = null;
     if (daten && !Array.isArray(daten) && daten.profil && typeof daten.profil === "object") {
       importProfil = profilBereinigen(daten.profil);
@@ -8085,11 +8096,60 @@
     return "";
   }
 
+  // Ist das ein gültiger Geburtstag? Er steht als "JJJJ-MM-TT" da, ist ein echter Kalendertag
+  // und liegt zwischen GEBURTSTAG_MIN und heute.
+  function geburtstagGueltig(text) {
+    if (typeof text !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+      return false;
+    }
+    const teile = text.split("-").map(Number);
+    const datum = new Date(teile[0], teile[1] - 1, teile[2]);
+    // Aus dem 30. Februar macht der Browser den 2. März: Dann stimmt der Text nicht mehr
+    if (datumFeldText(datum) !== text) {
+      return false;
+    }
+    return text >= GEBURTSTAG_MIN && text <= datumFeldText(new Date());
+  }
+
+  // Das Alter in ganzen Jahren an einem Tag (heute, wenn keiner angegeben ist). Am Geburtstag selbst zählt
+  // das neue Jahr schon. Wer am 29. Februar geboren ist, wird in Jahren ohne Schalttag am 1. März älter.
+  // Ohne gültigen Geburtstag: null.
+  function alterAus(geburtstag, am) {
+    if (!geburtstagGueltig(geburtstag)) {
+      return null;
+    }
+    const heute = am || new Date();
+    const teile = geburtstag.split("-").map(Number);
+    let jahre = heute.getFullYear() - teile[0];
+    const monat = heute.getMonth() + 1;
+    if (monat < teile[1] || (monat === teile[1] && heute.getDate() < teile[2])) {
+      jahre--;
+    }
+    return jahre;
+  }
+
+  // Die Angaben zur Person für den Coach und das Rang-System, alle von einer Stelle:
+  // geschlecht: "m", "w", "d" oder "" (keine Angabe)
+  // alter:      in ganzen Jahren, aus dem Geburtstag berechnet, null ohne Geburtstag
+  // aktivitaet: 1 bis AKTIVITAET_STUFEN, 0 heißt: nicht gesetzt
+  function profilDaten() {
+    return { geschlecht: profil.geschlecht, alter: alterAus(profil.geburtstag), aktivitaet: profil.aktivitaet };
+  }
+
   // Macht aus gespeicherten oder importierten Daten ein sauberes Profil. Was fehlt oder ungültig ist, bleibt leer.
   function profilBereinigen(p) {
-    const sauber = { name: "", benutzername: "" };
+    const sauber = { name: "", benutzername: "", geschlecht: "", geburtstag: "", aktivitaet: 0 };
     if (!p || typeof p !== "object") {
       return sauber;
+    }
+    if (GESCHLECHTER.indexOf(p.geschlecht) !== -1) {
+      sauber.geschlecht = p.geschlecht;
+    }
+    if (geburtstagGueltig(p.geburtstag)) {
+      sauber.geburtstag = p.geburtstag;
+    }
+    if (Number.isInteger(p.aktivitaet) && p.aktivitaet >= 1 && p.aktivitaet <= AKTIVITAET_STUFEN) {
+      sauber.aktivitaet = p.aktivitaet;
     }
     if (typeof p.name === "string" && nameFehler(nameSaeubern(p.name)) === "") {
       sauber.name = nameSaeubern(p.name);
@@ -8104,42 +8164,111 @@
     localStorage.setItem("profil", JSON.stringify(profil));
   }
 
-  // Übernimmt Name und Benutzername aus einem Backup. Beim Ersetzen gilt, was im Backup steht.
+  // Übernimmt das Profil aus einem Backup. Beim Ersetzen gilt, was im Backup steht.
   // Beim Ergänzen füllt das Backup nur, was hier noch leer ist. Ein leeres Feld im Backup ändert nie etwas.
+  // Geschlecht, Geburtstag und Aktivitätsniveau gibt es erst ab Backup-Version 10.
   function profilUebernehmen(neu, art) {
-    if (neu.name && (art === "ersetzen" || !profil.name)) {
-      profil.name = neu.name;
-    }
-    if (neu.benutzername && (art === "ersetzen" || !profil.benutzername)) {
-      profil.benutzername = neu.benutzername;
+    const felder = ["name", "benutzername", "geschlecht", "geburtstag", "aktivitaet"];
+    for (let i = 0; i < felder.length; i++) {
+      if (neu[felder[i]] && (art === "ersetzen" || !profil[felder[i]])) {
+        profil[felder[i]] = neu[felder[i]];
+      }
     }
     profilSichern();
   }
 
-  // Einstellungen: füllt die Felder "Name" und "Benutzername" mit dem gespeicherten Profil
+  // Füllt ein Auswahlfeld: zuerst die leere Möglichkeit, dann die übrigen als { wert, text }
+  function auswahlFuellen(feld, leerText, liste, gewaehlt) {
+    feld.innerHTML = "";
+    const leer = element("option", "", leerText);
+    leer.value = "";
+    feld.appendChild(leer);
+    for (let i = 0; i < liste.length; i++) {
+      const option = element("option", "", liste[i].text);
+      option.value = liste[i].wert;
+      feld.appendChild(option);
+    }
+    feld.value = gewaehlt;
+  }
+
+  // Einstellungen: füllt die Felder von "Profil bearbeiten" mit dem gespeicherten Profil
   function profilFormFuellen() {
     document.getElementById("profil-feld-name").value = profil.name;
     document.getElementById("profil-feld-benutzer").value = profil.benutzername;
+
+    auswahlFuellen(document.getElementById("profil-feld-geschlecht"), txt("profil.keineAngabe"), GESCHLECHTER.map(function (g) {
+      return { wert: g, text: txt("profil.geschlecht." + g) };
+    }), profil.geschlecht);
+
+    const geburt = document.getElementById("profil-feld-geburt");
+    geburt.min = GEBURTSTAG_MIN;
+    geburt.max = datumFeldText(new Date());
+    geburt.value = profil.geburtstag;
+
+    const stufen = [];
+    for (let i = 1; i <= AKTIVITAET_STUFEN; i++) {
+      stufen.push({ wert: String(i), text: txt("profil.aktivitaet." + i) });
+    }
+    auswahlFuellen(document.getElementById("profil-feld-aktivitaet"), txt("profil.nichtGesetzt"), stufen, profil.aktivitaet ? String(profil.aktivitaet) : "");
+
     profilFelderGeaendert();
   }
 
-  // Beim Tippen verschwinden die Fehlermeldungen wieder
+  // Beim Tippen und Wählen verschwinden die Fehlermeldungen wieder. Unter dem Geburtstag steht das Alter,
+  // unter dem Aktivitätsniveau die Erklärung der gewählten Stufe.
   function profilFelderGeaendert() {
     document.getElementById("profil-name-meldung").textContent = "";
     document.getElementById("profil-benutzer-meldung").textContent = "";
+    document.getElementById("profil-geburt-meldung").textContent = "";
+
+    const geburt = document.getElementById("profil-feld-geburt").value;
+    const alter = alterAus(geburt);
+    let alterText = "";
+    if (alter !== null) {
+      alterText = txtAnzahl("anzahl.jahre", alter);
+    }
+    document.getElementById("profil-alter").textContent = alterText;
+    document.getElementById("profil-geburt-zeile").classList.toggle("versteckt", geburt === "");
+
+    const stufe = document.getElementById("profil-feld-aktivitaet").value;
+    let erklaerung = "";
+    if (stufe !== "") {
+      erklaerung = txt("profil.aktivitaetText." + stufe);
+    }
+    document.getElementById("profil-aktivitaet-text").textContent = erklaerung;
   }
 
-  // Prüft die beiden Felder und speichert das Profil. Bei einem Fehler steht die Meldung unter dem Feld.
+  // Der Knopf "Löschen" unter dem Geburtstag leert das Feld wieder
+  function profilGeburtLeeren() {
+    document.getElementById("profil-feld-geburt").value = "";
+    profilFelderGeaendert();
+  }
+
+  // Prüft die Felder und speichert das Profil. Bei einem Fehler steht die Meldung unter dem Feld.
   function profilSpeichern() {
     const name = nameSaeubern(document.getElementById("profil-feld-name").value);
     const benutzername = benutzerLesen(document.getElementById("profil-feld-benutzer").value);
+    const geburtFeld = document.getElementById("profil-feld-geburt");
+    const geburtstag = geburtFeld.value;
+    // Ein halb ausgefülltes Datum liefert einen leeren Wert, gilt für den Browser aber als ungültig
+    let geburtFehler = "";
+    if ((geburtstag !== "" && !geburtstagGueltig(geburtstag)) || (geburtFeld.validity && geburtFeld.validity.badInput)) {
+      geburtFehler = txt("profil.geburtFehler", { jahr: GEBURTSTAG_MIN.slice(0, 4) });
+    }
     document.getElementById("profil-name-meldung").textContent = nameFehler(name);
     document.getElementById("profil-benutzer-meldung").textContent = benutzerFehler(benutzername);
-    if (nameFehler(name) !== "" || benutzerFehler(benutzername) !== "") {
+    document.getElementById("profil-geburt-meldung").textContent = geburtFehler;
+    if (nameFehler(name) !== "" || benutzerFehler(benutzername) !== "" || geburtFehler !== "") {
       return;
     }
 
-    profil = { name: name, benutzername: benutzername };
+    profil = profilBereinigen({
+      name: name,
+      benutzername: benutzername,
+      geschlecht: document.getElementById("profil-feld-geschlecht").value,
+      geburtstag: geburtstag,
+      aktivitaet: Number(document.getElementById("profil-feld-aktivitaet").value)
+    });
     profilSichern();
     einstLinks();
   }
@@ -8297,11 +8426,16 @@
     name.textContent = profil.name || txt("profil.ohneName");
     name.classList.toggle("leise", profil.name === "");
 
-    let benutzer = "";
+    // Unter dem Namen: der Benutzername und, wenn der Geburtstag gesetzt ist, das Alter
+    const angaben = [];
     if (profil.benutzername) {
-      benutzer = "@" + profil.benutzername;
+      angaben.push("@" + profil.benutzername);
     }
-    document.getElementById("profil-benutzer").textContent = benutzer;
+    const alter = profilDaten().alter;
+    if (alter !== null) {
+      angaben.push(txtAnzahl("anzahl.jahre", alter));
+    }
+    document.getElementById("profil-benutzer").textContent = angaben.join(" · ");
 
     const zahlen = gesamtZahlen();
     const bereich = document.getElementById("profil-zahlen");

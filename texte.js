@@ -455,6 +455,34 @@ const TEXTE = {
     de: "Name und Benutzername bleiben auf diesem Gerät und stehen im Backup.",
     en: "Name and username stay on this device and are part of the backup."
   },
+  "profil.geschlecht": { de: "Geschlecht", en: "Gender" },
+  "profil.keineAngabe": { de: "Keine Angabe", en: "Prefer not to say" },
+  "profil.geschlecht.m": { de: "Männlich", en: "Male" },
+  "profil.geschlecht.w": { de: "Weiblich", en: "Female" },
+  "profil.geschlecht.d": { de: "Divers", en: "Non-binary" },
+  "profil.geburtstag": { de: "Geburtstag", en: "Date of birth" },
+  "profil.geburtFehler": {
+    de: "Bitte gib ein Datum zwischen {jahr} und heute ein.",
+    en: "Please enter a date between {jahr} and today."
+  },
+  "anzahl.jahre.eins": { de: "1 Jahr", en: "1 year" },
+  "anzahl.jahre.viele": { de: "{n} Jahre", en: "{n} years" },
+  "profil.aktivitaet": { de: "Aktivitätsniveau", en: "Activity level" },
+  "profil.nichtGesetzt": { de: "Nicht gesetzt", en: "Not set" },
+  "profil.aktivitaet.1": { de: "Sitzend", en: "Sedentary" },
+  "profil.aktivitaet.2": { de: "Leicht aktiv", en: "Lightly active" },
+  "profil.aktivitaet.3": { de: "Mäßig aktiv", en: "Moderately active" },
+  "profil.aktivitaet.4": { de: "Sehr aktiv", en: "Very active" },
+  "profil.aktivitaet.5": { de: "Extrem aktiv", en: "Extremely active" },
+  "profil.aktivitaetText.1": { de: "Büro, wenig Bewegung im Alltag.", en: "Desk job, little movement in daily life." },
+  "profil.aktivitaetText.2": { de: "Sport an 1 bis 2 Tagen pro Woche oder viel zu Fuß.", en: "Exercise 1 to 2 days a week or a lot of walking." },
+  "profil.aktivitaetText.3": { de: "Sport an 3 bis 5 Tagen pro Woche.", en: "Exercise 3 to 5 days a week." },
+  "profil.aktivitaetText.4": { de: "Sport an 6 bis 7 Tagen pro Woche.", en: "Exercise 6 to 7 days a week." },
+  "profil.aktivitaetText.5": { de: "Körperliche Arbeit plus Sport.", en: "Physical job plus exercise." },
+  "profil.angabenHinweis": {
+    de: "Diese Angaben bleiben auf deinem Gerät und werden später für Empfehlungen im Coach genutzt.",
+    en: "This information stays on your device and will later be used for recommendations in the coach."
+  },
   "profil.nameZuLang": { de: "Der Name darf höchstens {max} Zeichen haben.", en: "The name can have at most {max} characters." },
   "profil.benutzerLaenge": {
     de: "Der Benutzername braucht {min} bis {max} Zeichen.",

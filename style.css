@@ -1699,6 +1699,17 @@ h1 {
   box-shadow: inset 0 0 0 2px var(--akzent-text);
 }
 
+/* Unter dem Geburtstag: links das Alter, rechts der Knopf zum Leeren des Feldes */
+.geburt-zeile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 4px 0;
+  color: var(--text-leise);
+  font-size: 15px;
+}
+
 /* Hinweis direkt unter einem Feld */
 .form-meldung {
   margin: 8px 4px 0;

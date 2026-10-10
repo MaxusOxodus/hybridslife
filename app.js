@@ -5683,7 +5683,8 @@
   //   tasten: true bei der Linie, deren Punkte man antippen kann.
   // ablesen(punkt) liefert den Text für den angetippten Punkt.
   // von und bis legen die Zeitachse fest. Ohne Angabe reicht sie vom ersten bis zum letzten Punkt.
-  function diagrammZeichnen(behaelter, reihen, ablesen, von, bis) {
+  // Mit hinweis ist am Anfang kein Punkt gewählt: Über dem Diagramm steht dann dieser Text, bis man einen antippt.
+  function diagrammZeichnen(behaelter, reihen, ablesen, von, bis, hinweis) {
     // Maße der Zeichenfläche in SVG-Einheiten und die Ränder für die Beschriftung
     const BREITE = 340;
     const HOEHE = 190;
@@ -5763,7 +5764,8 @@
         for (let i = 0; i < punkte.length; i++) {
           weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit).toFixed(1) + " " + y(punkte[i].wert).toFixed(1);
         }
-        svg += '<path class="linie-' + reihen[r].art + '" d="' + weg + '"/>';
+        // Bei sehr vielen Werten wird die Linie feiner (Klasse "viele"), damit sie lesbar bleibt
+        svg += '<path class="linie-' + reihen[r].art + (punkte.length > 45 ? " viele" : "") + '" d="' + weg + '"/>';
       }
       // Bei sehr vielen Werten würden die Punkte die Linie verdecken. Ein einzelner Wert braucht immer einen.
       if ((reihen[r].mitPunkten && punkte.length <= 45) || punkte.length === 1) {
@@ -5794,6 +5796,7 @@
     // Markiert einen Punkt der antippbaren Linie und zeigt darüber Wert und Datum
     function punktZeigen(index) {
       const p = taster.punkte[index];
+      bild.classList.remove("ohne-wahl");
       faden.setAttribute("x1", x(p.zeit));
       faden.setAttribute("x2", x(p.zeit));
       marke.setAttribute("cx", x(p.zeit));
@@ -5821,8 +5824,13 @@
     bild.onpointerdown = beiZeiger;
     bild.onpointermove = beiZeiger;
 
-    // Am Anfang ist der neueste Wert gewählt
-    punktZeigen(taster.punkte.length - 1);
+    // Am Anfang ist der neueste Wert gewählt, außer es gibt einen Hinweis
+    if (hinweis) {
+      bild.classList.add("ohne-wahl");
+      infoDatum.textContent = hinweis;
+    } else {
+      punktZeigen(taster.punkte.length - 1);
+    }
   }
 
   // Füllt einen Umschalter mit Buttons. auswahl ist eine Liste von { id, text },
@@ -6480,9 +6488,6 @@
   // Startwert des Rades, solange noch kein Gewicht eingetragen ist
   const START_KOERPERGEWICHT = 75;
 
-  // So viele Messungen zeigt die Liste unter dem Diagramm
-  const MESSUNGEN_ANZAHL = 7;
-
   // Die Zeiträume des Diagramms in Tagen. 0 heißt: alles.
   const KG_ZEITRAEUME = [
     { id: 7, text: "1W" },
@@ -6495,10 +6500,6 @@
 
   // Der Verlauf einer Übung hat dieselben Zeiträume, nur ohne die einzelne Woche: Dafür wird zu selten trainiert.
   const VERLAUF_ZEITRAEUME = KG_ZEITRAEUME.slice(1);
-
-  // Der gewählte Zeitraum in Tagen, für jedes der zwei Diagramme einzeln
-  let kgZeitraum = 30;
-  let fettZeitraum = 30;
 
   // Grenzen für das Körperfett in Prozent
   const FETT_MIN = 3;
@@ -6550,15 +6551,15 @@
     localStorage.setItem("koerpergewicht", JSON.stringify(koerpergewicht));
   }
 
-  // Alle gültigen Messungen als { zeit, wert, fett, index }, die älteste zuerst.
+  // Alle Messungen mit gültigem Gewicht als { zeit, wert, fett }, die älteste zuerst.
   // fett ist das Körperfett in Prozent oder null, wenn es nicht angegeben wurde.
-  // index ist die Stelle in der gespeicherten Liste, damit Löschen die richtige Messung trifft.
+  // Einträge, die nur ein Körperfett haben, zählen hier nicht mit.
   function gewichtMessungen() {
     const liste = [];
     for (let i = 0; i < koerpergewicht.length; i++) {
       const m = koerpergewicht[i];
       if (hatDatum(m) && typeof m.gewicht === "number" && !isNaN(m.gewicht)) {
-        liste.push({ zeit: new Date(m.datum).getTime(), wert: m.gewicht, fett: koerperfettVon(m), index: i });
+        liste.push({ zeit: new Date(m.datum).getTime(), wert: m.gewicht, fett: koerperfettVon(m) });
       }
     }
     liste.sort(function (a, b) {
@@ -6567,15 +6568,19 @@
     return liste;
   }
 
-  // Nur die Messungen mit Körperfett als { zeit, wert }, die älteste zuerst. wert ist hier das Körperfett.
+  // Alle Messungen mit Körperfett als { zeit, wert }, die älteste zuerst. wert ist hier das Körperfett.
+  // Ein Gewicht braucht der Eintrag dafür nicht.
   function fettMessungen() {
-    const alle = gewichtMessungen();
     const liste = [];
-    for (let i = 0; i < alle.length; i++) {
-      if (alle[i].fett !== null) {
-        liste.push({ zeit: alle[i].zeit, wert: alle[i].fett });
+    for (let i = 0; i < koerpergewicht.length; i++) {
+      const m = koerpergewicht[i];
+      if (hatDatum(m) && koerperfettVon(m) !== null) {
+        liste.push({ zeit: new Date(m.datum).getTime(), wert: m.koerperfett });
       }
     }
+    liste.sort(function (a, b) {
+      return a.zeit - b.zeit;
+    });
     return liste;
   }
 
@@ -6630,54 +6635,77 @@
     return Math.round(ausKg(schnittAm(liste, letzter) - damals) * 10) / 10;
   }
 
-  // Der Text zu einer solchen Veränderung: Pfeil und Betrag, z. B. "↓ 0,4 kg"
-  function schnittAenderungText(unterschied) {
+  // Der Text zu einer Veränderung: Pfeil und Betrag, z. B. "↓ 0,4 kg".
+  // text macht aus dem Betrag den Text mit Einheit.
+  function aenderungText(unterschied, text) {
     let pfeil = "→";
     if (unterschied > 0) {
       pfeil = "↑";
     } else if (unterschied < 0) {
       pfeil = "↓";
     }
-    return pfeil + " " + einheitText(Math.abs(unterschied));
+    return pfeil + " " + text(Math.abs(unterschied));
   }
 
-  // Öffnet das Eintragen. Das Rad steht auf dem letzten Gewicht.
-  // Das Körperfett-Feld ist leer, außer für heute wurde schon eins eingetragen.
-  function gewichtSheetOeffnen() {
-    const liste = gewichtMessungen();
-    let start = START_KOERPERGEWICHT;
-    let fett = null;
-    if (liste.length > 0) {
-      const letzte = liste[liste.length - 1];
-      start = letzte.wert;
-      if (tagSchluessel(new Date(letzte.zeit)) === tagSchluessel(new Date())) {
-        fett = letzte.fett;
+  // Dasselbe für eine Veränderung des Gewichts in der gewählten Einheit
+  function schnittAenderungText(unterschied) {
+    return aenderungText(unterschied, einheitText);
+  }
+
+  // ---------- Messungen: einen Tag lesen und schreiben ----------
+
+  // Ein Datum als Text für das Datumsfeld, z. B. "2026-10-09"
+  function datumFeldText(datum) {
+    return datum.getFullYear() + "-" + String(datum.getMonth() + 1).padStart(2, "0") + "-" + String(datum.getDate()).padStart(2, "0");
+  }
+
+  // Macht aus einem tagSchluessel (z. B. 20261009) wieder ein Datum, um Mitternacht
+  function tagDatum(tag) {
+    return new Date(Math.floor(tag / 10000), Math.floor(tag / 100) % 100 - 1, tag % 100);
+  }
+
+  // Was für einen Tag gespeichert ist: { gewicht, fett }. gewicht ist in kg, fett in Prozent.
+  // Was fehlt, ist null. Ein Eintrag darf auch nur eins von beiden haben.
+  function messungAm(tag) {
+    const werte = { gewicht: null, fett: null };
+    for (let i = 0; i < koerpergewicht.length; i++) {
+      const m = koerpergewicht[i];
+      if (hatDatum(m) && tagSchluessel(new Date(m.datum)) === tag) {
+        if (typeof m.gewicht === "number" && !isNaN(m.gewicht)) {
+          werte.gewicht = m.gewicht;
+        }
+        if (koerperfettVon(m) !== null) {
+          werte.fett = m.koerperfett;
+        }
       }
     }
-    koerperfettFeldSetzen(fett);
-    // Das Rad zeigt die gewählte Einheit und kennt nur Werte innerhalb seiner Grenzen
-    const grenzen = GEWICHT_EINHEITEN[einheit()];
-    const wert = Math.round(ausKg(start) * 10) / 10;
-    zusatzSheetOeffnen("gewicht-sheet");
-    radSetzen("rad-koerpergewicht", Math.max(grenzen.koerperMin, Math.min(wert, grenzen.koerperMax)));
+    return werte;
   }
 
-  // Speichert das Gewicht vom Rad für heute, dazu das Körperfett, wenn eins im Feld steht.
-  // Eine frühere Messung von heute wird ersetzt.
-  function gewichtSpeichern() {
-    const jetzt = new Date();
+  // Schreibt die Werte eines Tages: Was bisher für den Tag gespeichert war, weicht einem neuen Eintrag.
+  // gewicht (in kg) und fett (in Prozent) dürfen null sein. Sind beide null, ist der Tag danach leer.
+  function tagSchreiben(tag, gewicht, fett) {
     koerpergewicht = koerpergewicht.filter(function (m) {
-      return !hatDatum(m) || tagSchluessel(new Date(m.datum)) !== tagSchluessel(jetzt);
+      return !hatDatum(m) || tagSchluessel(new Date(m.datum)) !== tag;
     });
-    const messung = { datum: jetzt.toISOString(), gewicht: zuKg(radWert("rad-koerpergewicht")) };
-    const fett = koerperfettLesen(document.getElementById("feld-koerperfett").value);
-    if (fett !== null) {
-      messung.koerperfett = fett;
+    if (gewicht !== null || fett !== null) {
+      // Heute gilt die Uhrzeit von jetzt, ein früherer Tag bekommt 12 Uhr mittags
+      let zeit = new Date();
+      if (tagSchluessel(zeit) !== tag) {
+        zeit = tagDatum(tag);
+        zeit.setHours(12);
+      }
+      const messung = { datum: zeit.toISOString() };
+      if (gewicht !== null) {
+        messung.gewicht = gewicht;
+      }
+      if (fett !== null) {
+        messung.koerperfett = fett;
+      }
+      koerpergewicht.push(messung);
     }
-    koerpergewicht.push(messung);
     gewichteSpeichern();
 
-    zusatzSheetsSchliessen();
     homeGewichtAnzeigen();
     koerpergewichtAnzeigen();
     if (aktiveSeite === "profil") {
@@ -6685,18 +6713,211 @@
     }
   }
 
-  function gewichtLoeschen(index) {
-    koerpergewicht.splice(index, 1);
-    gewichteSpeichern();
-    homeGewichtAnzeigen();
-    koerpergewichtAnzeigen();
+  // Löscht den Wert eines Tages: bei "kg" das Gewicht, bei "fett" das Körperfett. Der andere Wert bleibt.
+  function messwertLoeschen(kennung, tag) {
+    const alt = messungAm(tag);
+    if (kennung === "fett") {
+      tagSchreiben(tag, alt.gewicht, null);
+    } else {
+      tagSchreiben(tag, null, alt.fett);
+    }
+  }
+
+  // ---------- Messungen: das Sheet zum Eintragen ----------
+
+  // Was das Sheet gerade einträgt. art ist "kg" (Gewicht, dazu freiwillig das Körperfett) oder "fett"
+  // (nur das Körperfett). aendern ist der Tag, dessen Wert über "Ändern" geöffnet wurde, sonst null.
+  let messSheet = { art: "kg", aendern: null };
+
+  // Der Tag aus dem Datumsfeld als tagSchluessel. Leer, unvollständig oder in der Zukunft: null.
+  function messTagLesen() {
+    const teile = document.getElementById("feld-messdatum").value.split("-");
+    if (teile.length !== 3 || Number(teile[0]) < 1900) {
+      return null;
+    }
+    const datum = new Date(Number(teile[0]), Number(teile[1]) - 1, Number(teile[2]));
+    if (isNaN(datum) || tagSchluessel(datum) > tagSchluessel(new Date())) {
+      return null;
+    }
+    return tagSchluessel(datum);
+  }
+
+  // Stellt Rad und Körperfett-Feld auf den Tag im Datumsfeld ein.
+  // Beim Öffnen steht das Rad auf dem Gewicht des Tages, sonst auf dem letzten davor.
+  // Nach einem Wechsel des Datums bewegt sich das Rad nur, wenn der neue Tag schon ein Gewicht hat.
+  function messSheetFuellen(beimOeffnen) {
+    const tag = messTagLesen();
+    if (tag === null) {
+      return;
+    }
+    const alt = messungAm(tag);
+
+    if (messSheet.art === "kg") {
+      koerperfettFeldSetzen(alt.fett);
+      let start = alt.gewicht;
+      if (start === null && beimOeffnen) {
+        start = koerpergewichtAm(tagDatum(tag));
+        if (start === null) {
+          start = START_KOERPERGEWICHT;
+        }
+      }
+      if (start !== null) {
+        // Das Rad zeigt die gewählte Einheit und kennt nur Werte innerhalb seiner Grenzen
+        const grenzen = GEWICHT_EINHEITEN[einheit()];
+        const wert = Math.round(ausKg(start) * 10) / 10;
+        radSetzen("rad-koerpergewicht", Math.max(grenzen.koerperMin, Math.min(wert, grenzen.koerperMax)));
+      }
+    } else if (alt.fett !== null || beimOeffnen) {
+      koerperfettFeldSetzen(alt.fett);
+    }
+  }
+
+  // Öffnet das Eintragen für "kg" oder "fett". tag ist der Tag als tagSchluessel, ohne Angabe gilt heute.
+  // aendern ist true, wenn der Wert dieses Tages geändert werden soll: Dann fragt das Speichern nicht nach.
+  function messSheetOeffnen(art, tag, aendern) {
+    const heute = new Date();
+    if (tag === undefined) {
+      tag = tagSchluessel(heute);
+    }
+    messSheet = { art: art, aendern: null };
+    if (aendern) {
+      messSheet.aendern = tag;
+    }
+
+    let titel = "koerpergewicht";
+    let fettTitel = "messung.fettFeld";
+    if (art === "fett") {
+      titel = "koerperfett";
+      fettTitel = "messung.fettFeldAllein";
+    }
+    document.getElementById("gewicht-sheet-titel").textContent = txt(titel);
+    document.getElementById("fett-feld-titel").textContent = txt(fettTitel);
+    document.getElementById("gewicht-sheet-rad").classList.toggle("versteckt", art === "fett");
+
+    // Die Zukunft ist gesperrt
+    const feld = document.getElementById("feld-messdatum");
+    feld.max = datumFeldText(heute);
+    feld.value = datumFeldText(tagDatum(tag));
+
+    zusatzSheetOeffnen("gewicht-sheet");
+    messSheetFuellen(true);
+  }
+
+  function gewichtSheetOeffnen() {
+    messSheetOeffnen("kg");
+  }
+
+  function fettSheetOeffnen() {
+    messSheetOeffnen("fett");
+  }
+
+  // Das Datum wurde geändert: Ein Tag in der Zukunft springt auf heute zurück, dann zeigt das Sheet,
+  // was für den Tag schon eingetragen ist.
+  function messDatumGeaendert() {
+    const feld = document.getElementById("feld-messdatum");
+    if (feld.value > feld.max) {
+      feld.value = feld.max;
+    }
+    messSheetFuellen(false);
+  }
+
+  // Speichert die Werte aus dem Sheet für den gewählten Tag. Pro Tag gibt es einen Wert:
+  // Steht für den Tag schon einer da, fragt die App vorher nach. Nach "Ändern" fragt sie nicht.
+  function gewichtSpeichern() {
+    const tag = messTagLesen();
+    if (tag === null) {
+      const feld = document.getElementById("feld-messdatum");
+      feld.value = feld.max;
+      feld.focus();
+      return;
+    }
+    const art = messSheet.art;
+    const alt = messungAm(tag);
+    let gewicht = alt.gewicht;
+    const fett = koerperfettLesen(document.getElementById("feld-koerperfett").value);
+    let bisher = null;
+    if (art === "fett") {
+      // Ohne Wert gibt es nichts zu speichern
+      if (fett === null) {
+        document.getElementById("feld-koerperfett").focus();
+        return;
+      }
+      if (alt.fett !== null) {
+        bisher = fettText(alt.fett);
+      }
+    } else {
+      gewicht = zuKg(radWert("rad-koerpergewicht"));
+      if (alt.gewicht !== null) {
+        bisher = kgText(alt.gewicht);
+      }
+    }
+
+    // Danach zeigt der Kalender den Monat des Eintrags und hat den Tag gewählt
+    function speichern() {
+      messStand[art].monat = Math.floor(tag / 10000) * 12 + Math.floor(tag / 100) % 100 - 1;
+      messStand[art].tag = tag;
+      zusatzSheetsSchliessen();
+      tagSchreiben(tag, gewicht, fett);
+    }
+
+    if (bisher !== null && messSheet.aendern !== tag) {
+      frageZeigen(txt("messung.ersetzenFrage"), txt("messung.ersetzenText", { datum: datumMitJahr(tagDatum(tag)), wert: bisher }), [
+        { text: txt("messung.ersetzen"), art: "haupt", aktion: speichern },
+        { text: txt("abbrechen"), art: "leise" }
+      ]);
+      return;
+    }
+    speichern();
+  }
+
+  // ---------- Messungen: Kopf, Diagramm und Kalender ----------
+
+  // Körpergewicht ("kg") und Körperfett ("fett") teilen sich Kopf, Diagramm und Kalender. Je Art steht hier,
+  // woher die Messungen kommen, wie aus einem gespeicherten Wert der gezeigte wird (umrechnen),
+  // wie ein gezeigter Wert als Text mit Einheit aussieht (text) und was ohne jede Messung da steht (leer).
+  function messArt(kennung) {
+    if (kennung === "fett") {
+      return {
+        messungen: fettMessungen,
+        umrechnen: function (wert) {
+          return wert;
+        },
+        text: fettText,
+        leer: txt("messung.fettLeer")
+      };
+    }
+    return { messungen: gewichtMessungen, umrechnen: ausKg, text: einheitText, leer: txt("messung.gewichtLeer") };
+  }
+
+  // Ein gespeicherter Wert in der gezeigten Einheit, auf eine Nachkommastelle
+  function messWert(art, wert) {
+    return Math.round(art.umrechnen(wert) * 10) / 10;
+  }
+
+  // Der Kopf der Karte: der letzte Eintrag, darunter sein Datum und die Veränderung zum Eintrag davor.
+  // Er gilt unabhängig vom gewählten Zeitraum.
+  function messKopfAnzeigen(kennung, art, liste) {
+    const kopf = document.getElementById(kennung + "-kopf");
+    kopf.innerHTML = "";
+    kopf.classList.toggle("versteckt", liste.length === 0);
+    if (liste.length === 0) {
+      return;
+    }
+    const letzte = liste[liste.length - 1];
+    const wert = messWert(art, letzte.wert);
+    kopf.appendChild(element("div", "home-zahl", art.text(wert)));
+    let zeile = datumMitJahr(new Date(letzte.zeit));
+    if (liste.length > 1) {
+      const unterschied = Math.round((wert - messWert(art, liste[liste.length - 2].wert)) * 10) / 10;
+      zeile += " · " + txt("messung.zurDavor", { wert: aenderungText(unterschied, art.text) });
+    }
+    kopf.appendChild(element("div", "routine-info", zeile));
   }
 
   // Zeichnet Messungen mit ihrem 7-Tage-Schnitt: die Messungen dünn und grau, darüber kräftig der Schnitt.
   // kennung ist "kg" oder "fett" und steht vorn an den ids von Diagramm und Legende.
-  // zeitraum ist die Zahl der Tage (0 = alles). umrechnen macht aus einem gespeicherten Wert den gezeigten,
-  // text macht aus einem gezeigten Wert den Text mit Einheit. leerText steht da, solange es keine Messung gibt.
-  function messungenZeichnen(kennung, liste, zeitraum, umrechnen, text, leerText) {
+  // zeitraum ist die Zahl der Tage (0 = alles, vom ersten Eintrag bis heute).
+  function messungenZeichnen(kennung, art, liste, zeitraum) {
     const diagramm = document.getElementById(kennung + "-diagramm");
     const jetzt = Date.now();
     let von;
@@ -6704,13 +6925,16 @@
     if (zeitraum > 0) {
       von = jetzt - zeitraum * 86400000;
       bis = jetzt;
+    } else if (liste.length > 0 && jetzt - liste[0].zeit > 86400000) {
+      von = liste[0].zeit;
+      bis = Math.max(jetzt, liste[liste.length - 1].zeit);
     }
     const messungen = [];
     const schnitt = [];
     for (let i = 0; i < liste.length; i++) {
       if (von === undefined || liste[i].zeit >= von) {
-        const mittel = umrechnen(schnittAm(liste, new Date(liste[i].zeit)));
-        messungen.push({ zeit: liste[i].zeit, wert: umrechnen(liste[i].wert), zusatz: txt("messung.schnitt", { wert: text(mittel) }) });
+        const mittel = art.umrechnen(schnittAm(liste, new Date(liste[i].zeit)));
+        messungen.push({ zeit: liste[i].zeit, wert: art.umrechnen(liste[i].wert), zusatz: txt("messung.schnitt", { wert: art.text(mittel) }) });
         schnitt.push({ zeit: liste[i].zeit, wert: mittel });
       }
     }
@@ -6720,40 +6944,185 @@
       diagramm.innerHTML = "";
       let hinweis = txt("messung.zeitraumLeer");
       if (liste.length === 0) {
-        hinweis = leerText;
+        hinweis = art.leer;
       }
       diagramm.appendChild(element("p", "meldung", hinweis));
     } else {
+      // Der letzte Wert steht schon im Kopf der Karte. Über dem Diagramm steht erst etwas nach dem Antippen.
       diagrammZeichnen(diagramm, [
         { punkte: messungen, art: "neben", mitPunkten: true, tasten: true },
         { punkte: schnitt, art: "haupt", mitPunkten: false }
       ], function (p) {
-        return text(p.wert);
-      }, von, bis);
+        return art.text(p.wert);
+      }, von, bis, txt("messung.antippen"));
     }
   }
 
-  // Fortschritt-Tab: das Diagramm für das Körperfett, mit denselben Zeiträumen wie beim Gewicht
-  function koerperfettAnzeigen() {
-    umschalterBauen(document.getElementById("fett-zeitraum"), KG_ZEITRAEUME, fettZeitraum, function (tage) {
-      fettZeitraum = tage;
-      koerperfettAnzeigen();
-    });
-    messungenZeichnen("fett", fettMessungen(), fettZeitraum, function (wert) {
-      return wert;
-    }, fettText, txt("messung.fettLeer"));
+  // Je Art: der gewählte Zeitraum des Diagramms in Tagen, der gezeigte Monat des Kalenders
+  // (Jahr mal 12 plus Monat, null ist der laufende Monat) und der angetippte Tag als tagSchluessel.
+  const messStand = {
+    kg: { zeitraum: 30, monat: null, tag: null },
+    fett: { zeitraum: 30, monat: null, tag: null }
+  };
+
+  // Das Kästchen "Alle Einträge": ein Monat als Kalender, Montag ist der erste Tag der Woche.
+  // Tage mit Eintrag sind markiert und zeigen ihren Wert. Ein Tipp auf einen Tag zeigt ihn darunter
+  // mit "Ändern" und "Löschen" oder, ohne Eintrag, mit "Eintragen".
+  function messKalenderAnzeigen(kennung, art, liste) {
+    const stand = messStand[kennung];
+    const bereich = document.getElementById(kennung + "-kalender");
+    bereich.innerHTML = "";
+
+    const heute = new Date();
+    const heuteTag = tagSchluessel(heute);
+    const heuteMonat = heute.getFullYear() * 12 + heute.getMonth();
+
+    // Der Wert jedes Tages. Zurück geht es bis zum Monat des ersten Eintrags, vor bis zum laufenden Monat.
+    const werte = {};
+    let ersterMonat = heuteMonat;
+    for (let i = 0; i < liste.length; i++) {
+      const datum = new Date(liste[i].zeit);
+      werte[tagSchluessel(datum)] = messWert(art, liste[i].wert);
+      ersterMonat = Math.min(ersterMonat, datum.getFullYear() * 12 + datum.getMonth());
+    }
+    // Der gezeigte Monat bleibt stehen, auch wenn sein letzter Eintrag gerade gelöscht wurde
+    let monat = heuteMonat;
+    if (stand.monat !== null) {
+      monat = Math.min(stand.monat, heuteMonat);
+      ersterMonat = Math.min(ersterMonat, monat);
+    }
+    const jahr = Math.floor(monat / 12);
+    const monatImJahr = monat % 12;
+
+    function zeigen(neuerMonat, tag) {
+      stand.monat = neuerMonat;
+      stand.tag = tag;
+      messKalenderAnzeigen(kennung, art, liste);
+    }
+
+    // Oben: Titel und "Heute", darunter der Monat mit den Pfeilen zum Blättern
+    const kopf = element("div", "kal-kopf");
+    kopf.appendChild(element("div", "kal-titel", txt("messung.alleEintraege")));
+    const zuHeute = element("button", "kal-heute", txt("heute"));
+    zuHeute.onclick = function () {
+      zeigen(null, heuteTag);
+    };
+    kopf.appendChild(zuHeute);
+    bereich.appendChild(kopf);
+
+    const leiste = element("div", "kal-monat");
+    const zurueck = element("button", "kal-pfeil", "‹");
+    zurueck.setAttribute("aria-label", txt("kalender.monatZurueck"));
+    zurueck.disabled = monat <= ersterMonat;
+    zurueck.onclick = function () {
+      zeigen(monat - 1, null);
+    };
+    const vor = element("button", "kal-pfeil", "›");
+    vor.setAttribute("aria-label", txt("kalender.monatVor"));
+    vor.disabled = monat >= heuteMonat;
+    vor.onclick = function () {
+      zeigen(monat + 1, null);
+    };
+    leiste.appendChild(zurueck);
+    leiste.appendChild(element("div", "kal-monat-name", new Date(jahr, monatImJahr, 1).toLocaleDateString(gebiet(), { month: "long", year: "numeric" })));
+    leiste.appendChild(vor);
+    bereich.appendChild(leiste);
+
+    // Die Wochentage, dann leere Felder bis zum Wochentag des Monatsersten, dann die Tage
+    const gitter = element("div", "kal-gitter");
+    for (let i = 0; i < 7; i++) {
+      gitter.appendChild(element("div", "kal-wochentag", wochentag(i)));
+    }
+    const versatz = (new Date(jahr, monatImJahr, 1).getDay() + 6) % 7;
+    for (let i = 0; i < versatz; i++) {
+      gitter.appendChild(element("div"));
+    }
+    const tageImMonat = new Date(jahr, monatImJahr + 1, 0).getDate();
+    for (let t = 1; t <= tageImMonat; t++) {
+      const tag = jahr * 10000 + (monatImJahr + 1) * 100 + t;
+      const btn = element("button", "kal-tag");
+      btn.appendChild(element("span", "kal-zahl", t));
+      let ansage = datumMitJahr(tagDatum(tag));
+      if (werte[tag] !== undefined) {
+        btn.classList.add("hat");
+        // Immer mit einer Nachkommastelle, damit alle Tage gleich aussehen, z. B. "81,0"
+        btn.appendChild(element("span", "kal-wert", werte[tag].toLocaleString(gebiet(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })));
+        ansage += ", " + art.text(werte[tag]);
+      }
+      btn.setAttribute("aria-label", ansage);
+      if (tag === heuteTag) {
+        btn.classList.add("heute");
+      }
+      if (tag === stand.tag) {
+        btn.classList.add("gewaehlt");
+      }
+      // Zukünftige Tage lassen sich nicht antippen
+      btn.disabled = tag > heuteTag;
+      btn.onclick = function () {
+        zeigen(monat, tag);
+      };
+      gitter.appendChild(btn);
+    }
+    bereich.appendChild(gitter);
+
+    // Der angetippte Tag, solange er im gezeigten Monat liegt
+    if (stand.tag === null || Math.floor(stand.tag / 100) !== jahr * 100 + monatImJahr + 1) {
+      return;
+    }
+    const tag = stand.tag;
+    const detail = element("div", "kal-detail");
+    const knoepfe = element("div", "kal-knoepfe");
+    if (werte[tag] !== undefined) {
+      detail.appendChild(element("div", "home-zahl", art.text(werte[tag])));
+      // Beim Gewicht steht das Körperfett des Tages dabei, wenn es eins gibt
+      let zeile = tagTextMitJahr(tagDatum(tag));
+      const fett = messungAm(tag).fett;
+      if (kennung === "kg" && fett !== null) {
+        zeile += " · " + txt("messung.fett", { wert: fettText(fett) });
+      }
+      detail.appendChild(element("div", "routine-info", zeile));
+      const aendern = element("button", "kal-knopf", txt("messung.aendern"));
+      aendern.onclick = function () {
+        messSheetOeffnen(kennung, tag, true);
+      };
+      const weg = element("button", "kal-knopf gefahr", txt("loeschen"));
+      weg.onclick = function () {
+        messwertLoeschen(kennung, tag);
+      };
+      knoepfe.appendChild(aendern);
+      knoepfe.appendChild(weg);
+    } else {
+      detail.appendChild(element("div", "routine-info", tagTextMitJahr(tagDatum(tag)) + " · " + txt("messung.keinEintrag")));
+      const neu = element("button", "kal-knopf", txt("messung.eintragen"));
+      neu.onclick = function () {
+        messSheetOeffnen(kennung, tag);
+      };
+      knoepfe.appendChild(neu);
+    }
+    detail.appendChild(knoepfe);
+    bereich.appendChild(detail);
   }
 
-  // Fortschritt-Tab: Diagramm, Kacheln und die Liste der letzten Messungen
+  // Baut Kopf, Diagramm und Kalender für "kg" oder "fett"
+  function messBereichAnzeigen(kennung) {
+    const art = messArt(kennung);
+    const stand = messStand[kennung];
+    const liste = art.messungen();
+
+    messKopfAnzeigen(kennung, art, liste);
+    umschalterBauen(document.getElementById(kennung + "-zeitraum"), KG_ZEITRAEUME, stand.zeitraum, function (tage) {
+      stand.zeitraum = tage;
+      messBereichAnzeigen(kennung);
+    });
+    messungenZeichnen(kennung, art, liste, stand.zeitraum);
+    messKalenderAnzeigen(kennung, art, liste);
+  }
+
+  // Fortschritt-Tab: Körpergewicht und Körperfett mit Kopf, Diagramm und Kalender, dazu die Kacheln
   function koerpergewichtAnzeigen() {
     const liste = gewichtMessungen();
-
-    umschalterBauen(document.getElementById("kg-zeitraum"), KG_ZEITRAEUME, kgZeitraum, function (tage) {
-      kgZeitraum = tage;
-      koerpergewichtAnzeigen();
-    });
-    messungenZeichnen("kg", liste, kgZeitraum, ausKg, einheitText, txt("messung.gewichtLeer"));
-    koerperfettAnzeigen();
+    messBereichAnzeigen("kg");
+    messBereichAnzeigen("fett");
 
     // Kacheln: Schnitt am Tag der letzten Messung minus Schnitt so viele Tage davor
     const kacheln = document.getElementById("kg-kacheln");
@@ -6769,30 +7138,6 @@
       kachel.appendChild(element("div", "home-zahl", text));
       kachel.appendChild(element("div", "kachel-titel", txt("fortschritt.tage", { n: abstaende[i] })));
       kacheln.appendChild(kachel);
-    }
-
-    // Die letzten Messungen, die neueste zuerst, jede mit Löschen
-    const bereich = document.getElementById("kg-liste");
-    bereich.innerHTML = "";
-    if (liste.length === 0) {
-      bereich.appendChild(element("p", "leer-hinweis", txt("fortschritt.keineMessungen")));
-    }
-    for (let i = liste.length - 1; i >= 0 && i >= liste.length - MESSUNGEN_ANZAHL; i--) {
-      const m = liste[i];
-      const zeile = element("div", "listen-zeile");
-      // Unter dem Datum steht das Körperfett, wenn es angegeben wurde
-      zeile.appendChild(element("span", "", kgText(m.wert)));
-      const datum = element("span", "messung-datum", tagTextMitJahr(new Date(m.zeit)));
-      if (m.fett !== null) {
-        datum.appendChild(element("div", "", txt("messung.fett", { wert: fettText(m.fett) })));
-      }
-      zeile.appendChild(datum);
-      const weg = element("button", "", txt("loeschen"));
-      weg.onclick = function () {
-        gewichtLoeschen(m.index);
-      };
-      zeile.appendChild(weg);
-      bereich.appendChild(zeile);
     }
   }
 
@@ -7067,7 +7412,7 @@
   function backupText() {
     const backup = {
       app: "gymstead",
-      version: 8,
+      version: 9,
       exportiert: new Date().toISOString(),
       profil: profil,
       eintraege: eintraege,
@@ -7209,15 +7554,20 @@
       importProfil = profilBereinigen(daten.profil);
     }
 
-    // Das Körpergewicht gibt es erst in neueren Backups. Übernommen wird nur, was Datum und Gewicht hat,
-    // dazu das Körperfett, wenn es angegeben und gültig ist.
+    // Das Körpergewicht gibt es erst in neueren Backups. Übernommen wird, was ein Datum und ein gültiges
+    // Gewicht oder Körperfett hat. Bis Backup-Version 8 hatte jeder Eintrag ein Gewicht,
+    // ab Version 9 darf einer auch nur das Körperfett haben.
     importGewichte = null;
     if (daten && !Array.isArray(daten) && Array.isArray(daten.koerpergewicht)) {
       importGewichte = [];
       for (let i = 0; i < daten.koerpergewicht.length; i++) {
         const m = daten.koerpergewicht[i];
-        if (hatDatum(m) && typeof m.gewicht === "number" && !isNaN(m.gewicht)) {
-          const messung = { datum: m.datum, gewicht: m.gewicht };
+        const mitGewicht = Boolean(m) && typeof m.gewicht === "number" && !isNaN(m.gewicht);
+        if (hatDatum(m) && (mitGewicht || koerperfettVon(m) !== null)) {
+          const messung = { datum: m.datum };
+          if (mitGewicht) {
+            messung.gewicht = m.gewicht;
+          }
           if (koerperfettVon(m) !== null) {
             messung.koerperfett = m.koerperfett;
           }

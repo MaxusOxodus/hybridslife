@@ -360,24 +360,39 @@ const TEXTE = {
   "fortschritt.schnitt": { de: "7-Tage-Schnitt", en: "7-day average" },
   "fortschritt.messung": { de: "Messung", en: "Measurement" },
   "fortschritt.gewichtEintragen": { de: "Gewicht eintragen", en: "Log weight" },
+  "fortschritt.fettEintragen": { de: "Körperfett eintragen", en: "Log body fat" },
   "fortschritt.veraenderung": { de: "Veränderung im 7-Tage-Schnitt", en: "Change in 7-Day Average" },
-  "fortschritt.letzteMessungen": { de: "Letzte Messungen", en: "Recent Measurements" },
   "fortschritt.kraft": { de: "Kraftentwicklung", en: "Strength Progress" },
   "fortschritt.kraftLeer": {
     de: "Sobald du Übungen eingetragen hast, findest du hier ihren Verlauf.",
     en: "Once you've logged exercises, you'll find their history here."
   },
   "fortschritt.tage": { de: "{n} Tage", en: "{n} days" },
-  "fortschritt.keineMessungen": { de: "Noch keine Messungen.", en: "No measurements yet." },
   "messung.schnitt": { de: "Schnitt {wert}", en: "Avg {wert}" },
   "messung.zeitraumLeer": { de: "In diesem Zeitraum gibt es keine Messung.", en: "No measurement in this period." },
   "messung.gewichtLeer": { de: "Noch kein Gewicht eingetragen.", en: "No weight logged yet." },
   "messung.fettLeer": {
-    de: "Noch kein Körperfett eingetragen. Du kannst es beim Körpergewicht mit angeben.",
-    en: "No body fat logged yet. You can add it when you log your body weight."
+    de: "Noch kein Körperfett eingetragen. Du kannst es allein eintragen oder beim Körpergewicht mit angeben.",
+    en: "No body fat logged yet. You can log it on its own or add it when you log your body weight."
   },
   "messung.fett": { de: "Körperfett {wert}", en: "Body fat {wert}" },
   "messung.fettFeld": { de: "Körperfett in % (optional)", en: "Body fat in % (optional)" },
+  "messung.fettFeldAllein": { de: "Körperfett in %", en: "Body fat in %" },
+  "messung.datum": { de: "Datum", en: "Date" },
+  "messung.zurDavor": { de: "{wert} zur Messung davor", en: "{wert} vs. previous" },
+  "messung.antippen": { de: "Tippe auf einen Punkt für den Wert", en: "Tap a point to see its value" },
+  "messung.alleEintraege": { de: "Alle Einträge", en: "All Entries" },
+  "messung.keinEintrag": { de: "Kein Eintrag", en: "No entry" },
+  "messung.eintragen": { de: "Eintragen", en: "Add entry" },
+  "messung.aendern": { de: "Ändern", en: "Edit" },
+  "messung.ersetzenFrage": { de: "Wert ersetzen?", en: "Replace value?" },
+  "messung.ersetzenText": {
+    de: "Für den {datum} sind schon {wert} eingetragen. Pro Tag gibt es einen Wert.",
+    en: "{wert} is already logged for {datum}. There is one value per day."
+  },
+  "messung.ersetzen": { de: "Ersetzen", en: "Replace" },
+  "kalender.monatZurueck": { de: "Vorheriger Monat", en: "Previous month" },
+  "kalender.monatVor": { de: "Nächster Monat", en: "Next month" },
   "zeitraum.jahr": { de: "1J", en: "1Y" },
   "zeitraum.alle": { de: "Alle", en: "All" },
   "diagramm": { de: "Liniendiagramm", en: "Line chart" },

@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=35">
+  <link rel="stylesheet" href="style.css?v=36">
 </head>
 <body>
 
@@ -300,7 +300,8 @@
 
     <h2 id="kg-abschnitt" class="abschnitt" data-t="koerpergewicht">Körpergewicht</h2>
     <div class="karte">
-      <!-- Zeitraum des Diagramms: Die Buttons baut die app.js -->
+      <!-- Kopf mit dem letzten Eintrag und Zeitraum des Diagramms: Beides baut die app.js -->
+      <div id="kg-kopf" class="mess-kopf"></div>
       <div id="kg-zeitraum" class="umschalter"></div>
       <div id="kg-diagramm"></div>
       <div id="kg-legende" class="legende">
@@ -309,16 +310,16 @@
       </div>
     </div>
     <button class="zweit-btn" onclick="gewichtSheetOeffnen()" data-t="fortschritt.gewichtEintragen">Gewicht eintragen</button>
+    <!-- "Alle Einträge": der Kalender mit allen Messungen. Den Inhalt baut die app.js. -->
+    <div id="kg-kalender" class="karte kalender"></div>
 
     <h2 class="abschnitt" data-t="fortschritt.veraenderung">Veränderung im 7-Tage-Schnitt</h2>
     <div id="kg-kacheln" class="kacheln"></div>
 
-    <h2 class="abschnitt" data-t="fortschritt.letzteMessungen">Letzte Messungen</h2>
-    <div id="kg-liste"></div>
-
-    <!-- Körperfett: wird beim Körpergewicht mit eingetragen und hat ein eigenes Diagramm -->
+    <!-- Körperfett: derselbe Aufbau wie beim Körpergewicht. Es lässt sich allein oder beim Gewicht mit eintragen. -->
     <h2 class="abschnitt" data-t="koerperfett">Körperfett</h2>
     <div class="karte">
+      <div id="fett-kopf" class="mess-kopf"></div>
       <div id="fett-zeitraum" class="umschalter"></div>
       <div id="fett-diagramm"></div>
       <div id="fett-legende" class="legende">
@@ -326,6 +327,8 @@
         <span><i class="legende-punkt"></i><span data-t="fortschritt.messung">Messung</span></span>
       </div>
     </div>
+    <button class="zweit-btn" onclick="fettSheetOeffnen()" data-t="fortschritt.fettEintragen">Körperfett eintragen</button>
+    <div id="fett-kalender" class="karte kalender"></div>
 
     <h2 class="abschnitt" data-t="fortschritt.kraft">Kraftentwicklung</h2>
     <div id="fortschritt-uebungen"></div>
@@ -525,21 +528,26 @@
     <div id="kraft-sheet-liste" class="zusatz-inhalt"></div>
   </div>
 
-  <!-- Sheet: Körpergewicht eintragen -->
+  <!-- Sheet: Körpergewicht oder Körperfett eintragen. Titel und was zu sehen ist, stellt die app.js beim Öffnen ein. -->
   <div id="gewicht-sheet" class="zusatz-sheet">
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">
-      <span class="sheet-titel" data-t="koerpergewicht">Körpergewicht</span>
+      <span id="gewicht-sheet-titel" class="sheet-titel" data-t="koerpergewicht">Körpergewicht</span>
       <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
     <div class="zusatz-inhalt">
-      <div class="kg-rad">
+      <!-- Der Tag der Messung: heute oder ein früherer Tag -->
+      <div class="datum-eingabe">
+        <label class="rad-titel" for="feld-messdatum" data-t="messung.datum">Datum</label>
+        <input id="feld-messdatum" class="datum-feld" type="date" onchange="messDatumGeaendert()">
+      </div>
+      <div id="gewicht-sheet-rad" class="kg-rad">
         <div class="rad-titel gewicht-titel">Gewicht (kg)</div>
         <div class="rad-rahmen"><div id="rad-koerpergewicht" class="rad"></div></div>
       </div>
-      <!-- Körperfett: freiwillig. Bleibt das Feld leer, wird nur das Gewicht gespeichert. -->
+      <!-- Körperfett: beim Gewicht freiwillig. Bleibt das Feld dort leer, wird nur das Gewicht gespeichert. -->
       <div class="fett-eingabe">
-        <label class="rad-titel" for="feld-koerperfett" data-t="messung.fettFeld">Körperfett in % (optional)</label>
+        <label id="fett-feld-titel" class="rad-titel" for="feld-koerperfett" data-t="messung.fettFeld">Körperfett in % (optional)</label>
         <input id="feld-koerperfett" class="zahl-feld" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="–" onblur="koerperfettFeldPruefen()" onkeydown="if (event.key === 'Enter') this.blur()">
       </div>
       <button class="speichern-btn" onclick="gewichtSpeichern()" data-t="speichern">Speichern</button>
@@ -846,10 +854,10 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=35"></script>
-<script src="uebungen.js?v=35"></script>
-<script src="raenge.js?v=35"></script>
-<script src="app.js?v=35"></script>
+<script src="texte.js?v=36"></script>
+<script src="uebungen.js?v=36"></script>
+<script src="raenge.js?v=36"></script>
+<script src="app.js?v=36"></script>
 
 </body>
 </html>

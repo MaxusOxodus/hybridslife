@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=39">
+  <link rel="stylesheet" href="style.css?v=40">
 </head>
 <body>
 
@@ -174,17 +174,28 @@
       </div>
       <div class="modus-balken"><div id="modus-fortschritt"></div></div>
 
-      <!-- Übung wechseln: Pfeile für vorherige und nächste, die Mitte öffnet die Übersicht aller Übungen -->
-      <div class="modus-wechsel">
-        <button id="modus-zurueck" onclick="uebungWechseln(-1)" aria-label="Vorherige Übung" data-t-aria="modus.vorherige">‹</button>
-        <button id="modus-schritt" class="modus-schritt" onclick="uebersichtOeffnen()"></button>
-        <button id="modus-vor" onclick="uebungWechseln(1)" aria-label="Nächste Übung" data-t-aria="modus.naechste">›</button>
+      <!-- Die Übungskarte: oben das Wechseln, darunter Bild, Name und Geräte-Zeile -->
+      <div class="modus-karte">
+        <!-- Übung wechseln: Pfeile für vorherige und nächste, die Mitte öffnet die Übersicht aller Übungen -->
+        <div class="modus-wechsel">
+          <button id="modus-zurueck" onclick="uebungWechseln(-1)" aria-label="Vorherige Übung" data-t-aria="modus.vorherige">‹</button>
+          <button id="modus-schritt" class="modus-schritt" onclick="uebersichtOeffnen()"></button>
+          <button id="modus-vor" onclick="uebungWechseln(1)" aria-label="Nächste Übung" data-t-aria="modus.naechste">›</button>
+        </div>
+        <div class="modus-uebung-zeile">
+          <!-- Das Bild der Übung aus der bilder.js. Es ist nur Schmuck, deshalb aria-hidden. -->
+          <div id="modus-bild" class="modus-bild" aria-hidden="true"></div>
+          <div class="modus-uebung-text">
+            <!-- Der Name der Übung: Antippen zeigt ihren Verlauf als Diagramm -->
+            <button class="ansicht-titel name-knopf" onclick="verlaufImModus()">
+              <span id="modus-uebung"></span>
+              <svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>
+            </button>
+            <!-- Geräte-Zeile: Bereich und Muskelgruppe, z. B. "Maschine · Brust" -->
+            <div id="modus-geraet" class="modus-geraet"></div>
+          </div>
+        </div>
       </div>
-      <!-- Der Name der Übung: Antippen zeigt ihren Verlauf als Diagramm -->
-      <button class="ansicht-titel name-knopf" onclick="verlaufImModus()">
-        <span id="modus-uebung"></span>
-        <svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>
-      </button>
       <div id="modus-satz" class="modus-satz"></div>
 
       <!-- Eingabe: die Werte des nächsten Satzes als große Zahlenfelder, darunter Buttons zum Anpassen -->
@@ -192,6 +203,7 @@
         <div id="modus-vorbei" class="heute-label versteckt" data-t="pause.vorbei">Pause vorbei</div>
         <div class="eingaben zwei">
           <div>
+            <span class="feld-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 12h8M5 7v10M8 5v14M16 5v14M19 7v10"/></svg></span>
             <div class="rad-titel gewicht-titel">Gewicht (kg)</div>
             <input id="t-feld-gewicht" class="zahl-feld gross" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" aria-label="Gewicht in kg">
             <div class="schnell">
@@ -200,6 +212,7 @@
             </div>
           </div>
           <div>
+            <span class="feld-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 11a7 7 0 0 1 12-4l2 2M19 4v5h-5M19 13a7 7 0 0 1-12 4l-2-2M5 20v-5h5"/></svg></span>
             <div class="rad-titel" data-t="wdh">Wdh.</div>
             <input id="t-feld-wdh" class="zahl-feld gross" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen" data-t-aria="wiederholungen">
             <div class="schnell">
@@ -878,11 +891,12 @@
     </div>
   </div>
 
-<!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=39"></script>
-<script src="uebungen.js?v=39"></script>
-<script src="raenge.js?v=39"></script>
-<script src="app.js?v=39"></script>
+<!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
+<script src="texte.js?v=40"></script>
+<script src="uebungen.js?v=40"></script>
+<script src="raenge.js?v=40"></script>
+<script src="bilder.js?v=40"></script>
+<script src="app.js?v=40"></script>
 
 </body>
 </html>

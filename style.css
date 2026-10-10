@@ -24,6 +24,11 @@
   --glas: rgba(22, 22, 24, 0.72);
   --glas-sheet: rgba(30, 30, 32, 0.78);
   --glas-filter: saturate(180%) blur(24px);
+  /* Glas-Karten im Trainingsmodus: feiner heller Rand, Glanz von oben links, weicher Schatten, grüner Schimmer dahinter */
+  --glas-rand: rgba(255, 255, 255, 0.13);
+  --glas-glanz: rgba(255, 255, 255, 0.09);
+  --glas-schatten: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --glas-schimmer: rgba(198, 241, 53, 0.17);
   color-scheme: dark;
 }
 
@@ -47,6 +52,10 @@
     --abdunklung-stark: rgba(0, 0, 0, 0.4);
     --glas: rgba(249, 249, 249, 0.78);
     --glas-sheet: rgba(255, 255, 255, 0.8);
+    --glas-rand: rgba(255, 255, 255, 0.9);
+    --glas-glanz: rgba(255, 255, 255, 0.7);
+    --glas-schatten: 0 8px 24px rgba(60, 60, 67, 0.14);
+    --glas-schimmer: rgba(150, 200, 40, 0.22);
     color-scheme: light;
   }
 }
@@ -69,6 +78,10 @@
   --abdunklung-stark: rgba(0, 0, 0, 0.4);
   --glas: rgba(249, 249, 249, 0.78);
   --glas-sheet: rgba(255, 255, 255, 0.8);
+  --glas-rand: rgba(255, 255, 255, 0.9);
+  --glas-glanz: rgba(255, 255, 255, 0.7);
+  --glas-schatten: 0 8px 24px rgba(60, 60, 67, 0.14);
+  --glas-schimmer: rgba(150, 200, 40, 0.22);
   color-scheme: light;
 }
 
@@ -4031,4 +4044,318 @@ button.einst-zeile:first-child {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ---------- Trainingsmodus im Glas-Look ---------- */
+
+/* Alles hier gilt nur im Trainingsmodus und überschreibt dort die Regeln von weiter oben.
+   Die Farben kommen aus den Variablen ganz oben, deshalb passt der Look in Hell und Dunkel. */
+#ansicht-modus {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Grüner Schimmer hinter den Karten: Erst dadurch sieht man, dass sie aus Milchglas sind */
+#ansicht-modus::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -40px;
+  right: -16px;
+  left: -16px;
+  height: 640px;
+  background:
+    radial-gradient(60% 38% at 12% 14%, var(--glas-schimmer), transparent 70%),
+    radial-gradient(55% 34% at 96% 58%, var(--glas-schimmer), transparent 70%);
+  pointer-events: none;
+}
+
+/* Die Glas-Karten: halbtransparent, dahinter weichgezeichnet, feiner Rand, große Rundung, weicher Schatten */
+.modus-karte,
+#ansicht-modus .eingaben.zwei > div,
+#ansicht-modus .rir,
+#ansicht-modus .karte,
+#modus-pause {
+  border: 1px solid var(--glas-rand);
+  border-radius: 24px;
+  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas);
+  -webkit-backdrop-filter: var(--glas-filter);
+  backdrop-filter: var(--glas-filter);
+  box-shadow: var(--glas-schatten);
+}
+
+/* Obere Leiste: Name der Routine als Titel, "Beenden" in Akzentgrün, darunter der dünne Balken */
+#ansicht-modus .modus-kopf {
+  min-height: 44px;
+}
+
+#modus-routine {
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+#ansicht-modus .modus-kopf .text-btn {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+#ansicht-modus .modus-balken {
+  height: 4px;
+  margin-top: 4px;
+}
+
+#modus-fortschritt {
+  background: linear-gradient(90deg, var(--akzent-text), var(--akzent));
+}
+
+/* Übungskarte: grüner Schimmer am Rand */
+.modus-karte {
+  margin-top: 16px;
+  padding: 12px;
+  box-shadow: var(--glas-schatten), 0 0 0 1px var(--akzent-leicht), 0 0 28px var(--akzent-leicht);
+}
+
+#ansicht-modus .modus-wechsel {
+  margin-top: 0;
+}
+
+/* Die Pfeile: runde Glas-Buttons */
+#ansicht-modus .modus-wechsel button {
+  border: 1px solid var(--glas-rand);
+  border-radius: 50%;
+  background: var(--fuellung);
+}
+
+/* "Übung 2 von 6" zwischen den Pfeilen: klein und leise */
+#ansicht-modus .modus-wechsel .modus-schritt {
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--text-leise);
+}
+
+/* Links das Bild in einer Glas-Kachel, daneben Name und Geräte-Zeile */
+.modus-uebung-zeile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.modus-bild {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  padding: 8px;
+  border: 1px solid var(--glas-rand);
+  border-radius: 20px;
+  background: var(--fuellung);
+  color: var(--text);
+}
+
+/* Ein Übungsbild aus der bilder.js: Die Linien haben die Textfarbe, das Gerät ist blasser, das Gewicht grün */
+.uebungsbild {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.uebungsbild .g {
+  opacity: 0.45;
+}
+
+.uebungsbild .a {
+  stroke: var(--akzent-text);
+}
+
+.modus-uebung-text {
+  flex: 1;
+  min-width: 0;
+}
+
+#ansicht-modus .name-knopf {
+  min-height: 44px;
+  margin: 0;
+  font-size: 22px;
+}
+
+.modus-geraet {
+  margin-top: 2px;
+  color: var(--text-leise);
+  font-size: 14px;
+}
+
+.modus-geraet:empty {
+  display: none;
+}
+
+#ansicht-modus .modus-satz {
+  margin-top: 16px;
+}
+
+/* Gewicht und Wdh.: zwei Glas-Karten. Oben links der Icon-Kreis, daneben der Titel, in der Mitte die große Zahl. */
+#ansicht-modus .eingaben.zwei > div {
+  position: relative;
+  min-width: 0;
+  padding: 12px 8px 8px;
+}
+
+.feld-icon {
+  position: absolute;
+  top: 12px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+}
+
+.feld-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#ansicht-modus .eingaben.zwei .rad-titel {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  margin: 0;
+  padding-left: 36px;
+  text-align: left;
+}
+
+/* Die Zahl bleibt ein Eingabefeld, nur ohne eigene Fläche: Die Karte ist die Fläche */
+#ansicht-modus .zahl-feld.gross {
+  height: 76px;
+  border-radius: 16px;
+  background: none;
+}
+
+#ansicht-modus .eingaben.zwei .schnell {
+  gap: 8px;
+  margin-top: 2px;
+}
+
+#ansicht-modus .eingaben.zwei .schnell button {
+  border: 1px solid var(--glas-rand);
+  border-radius: 24px;
+}
+
+/* Reps in Reserve: ein Glas-Streifen, links der Titel, rechts die Auswahl. Auf schmalen Handys rutscht die Auswahl darunter. */
+#ansicht-modus .rir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 12px;
+  padding: 10px 10px 10px 16px;
+}
+
+#ansicht-modus .rir .rad-titel {
+  flex: 1 1 90px;
+  margin: 0;
+  text-align: left;
+}
+
+#ansicht-modus .rir .umschalter {
+  flex: 1 1 232px;
+  border-radius: 25px;
+}
+
+#ansicht-modus .rir .umschalter button {
+  min-height: 44px;
+  border-radius: 22px;
+  font-size: 16px;
+}
+
+/* Der gewählte Wert: in Akzentgrün gefüllt */
+#ansicht-modus .rir .umschalter button.aktiv {
+  background: var(--akzent);
+  color: var(--auf-akzent);
+  font-weight: 700;
+}
+
+/* "Satz fertig": stark abgerundet, mit Haken und leichtem Leuchten. Die zweite Zeile beim Schatten
+   mischt die Akzentfarbe halb durchsichtig, ältere Browser nehmen die erste. */
+#modus-eingabe > .speichern-btn.gross {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+  border-radius: 28px;
+  box-shadow: 0 10px 30px var(--akzent-leicht);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--akzent) 35%, transparent);
+}
+
+/* Der Haken ist eine Maske: So hat er immer die Schriftfarbe des Buttons */
+#modus-eingabe > .speichern-btn.gross::before {
+  content: "";
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Pause: eine Glas-Karte um den Countdown */
+#modus-pause {
+  padding: 18px 14px;
+}
+
+#modus-pause .knopf {
+  border: 1px solid var(--glas-rand);
+  border-radius: 26px;
+}
+
+/* "Nächste Übung" und "+ Satz" nach dem letzten Satz */
+#modus-wahl .speichern-btn,
+#modus-wahl .zweit-btn {
+  border-radius: 27px;
+}
+
+#modus-wahl .zweit-btn,
+#ansicht-modus .klein-btn {
+  border: 1px solid var(--glas-rand);
+  background: var(--fuellung);
+}
+
+#ansicht-modus .klein-btn {
+  border-radius: 22px;
+}
+
+/* Satz-Tabelle und "Letztes Training": die Nummer im Kreis */
+#ansicht-modus .satz-reihe .satz-nummer,
+#ansicht-modus .letztes-zeile .satz-nummer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--fuellung);
+  font-size: 14px;
+}
+
+/* Der aktuelle Satz: grün hervorgehoben, die Nummer in einem gefüllten Kreis */
+#ansicht-modus .satz-reihe.aktuell {
+  color: var(--text);
+}
+
+#ansicht-modus .satz-reihe.aktuell .satz-nummer {
+  background: var(--akzent);
+  color: var(--auf-akzent);
+  font-size: 14px;
 }

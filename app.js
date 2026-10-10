@@ -3621,6 +3621,14 @@
     document.getElementById("modus-zurueck").disabled = t.index === 0;
     document.getElementById("modus-vor").disabled = t.index === t.uebungen.length - 1;
     document.getElementById("modus-uebung").textContent = anzeigeName(u.name, u.uebungId);
+    // Das Bild der Übung aus der bilder.js und darunter die Geräte-Zeile, z. B. "Maschine · Brust"
+    document.getElementById("modus-bild").innerHTML = uebungsBild(u.uebungId);
+    const bekannt = UEBUNG_NACH_ID[u.uebungId];
+    let geraet = "";
+    if (bekannt) {
+      geraet = bereichName(bekannt.bereich) + " · " + anzeigeGruppe("", u.uebungId);
+    }
+    document.getElementById("modus-geraet").textContent = geraet;
     gewichtTitelSetzen("t-feld-gewicht", u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
     document.getElementById("modus-hinweis").textContent = gewichtErhoehenText(u);

@@ -6965,6 +6965,19 @@
     fett: { zeitraum: 30, monat: null, tag: null }
   };
 
+  // Klappt den Kalender "Alle Einträge" von "kg" oder "fett" auf oder zu. Am Anfang ist er zu.
+  // Der Button sagt mit aria-expanded, ob der Kalender offen ist, und zeigt es mit dem Pfeil.
+  function messKalenderKlappen(kennung) {
+    const offen = document.getElementById(kennung + "-klapp").classList.toggle("offen");
+    const btn = document.getElementById(kennung + "-klapp-btn");
+    let pfeil = "▾";
+    if (offen) {
+      pfeil = "▴";
+    }
+    btn.setAttribute("aria-expanded", String(offen));
+    btn.querySelector(".klapp-pfeil").textContent = pfeil;
+  }
+
   // Das Kästchen "Alle Einträge": ein Monat als Kalender, Montag ist der erste Tag der Woche.
   // Tage mit Eintrag sind markiert und zeigen ihren Wert. Ein Tipp auf einen Tag zeigt ihn darunter
   // mit "Ändern" und "Löschen" oder, ohne Eintrag, mit "Eintragen".
@@ -7000,9 +7013,8 @@
       messKalenderAnzeigen(kennung, art, liste);
     }
 
-    // Oben: Titel und "Heute", darunter der Monat mit den Pfeilen zum Blättern
+    // Oben: "Heute", darunter der Monat mit den Pfeilen zum Blättern
     const kopf = element("div", "kal-kopf");
-    kopf.appendChild(element("div", "kal-titel", txt("messung.alleEintraege")));
     const zuHeute = element("button", "kal-heute", txt("heute"));
     zuHeute.onclick = function () {
       zeigen(null, heuteTag);

@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=36">
+  <link rel="stylesheet" href="style.css?v=37">
 </head>
 <body>
 
@@ -310,8 +310,12 @@
       </div>
     </div>
     <button class="zweit-btn" onclick="gewichtSheetOeffnen()" data-t="fortschritt.gewichtEintragen">Gewicht eintragen</button>
-    <!-- "Alle Einträge": der Kalender mit allen Messungen. Den Inhalt baut die app.js. -->
-    <div id="kg-kalender" class="karte kalender"></div>
+    <!-- "Alle Einträge": Der Button klappt den Kalender mit allen Messungen auf und zu. Am Anfang ist er zu.
+         Den Inhalt des Kalenders baut die app.js. -->
+    <button id="kg-klapp-btn" class="zweit-btn" aria-expanded="false" aria-controls="kg-klapp" onclick="messKalenderKlappen('kg')"><span data-t="messung.alleEintraege">Alle Einträge</span><span class="klapp-pfeil" aria-hidden="true">▾</span></button>
+    <div id="kg-klapp" class="klapp"><div class="klapp-innen">
+      <div id="kg-kalender" class="karte kalender"></div>
+    </div></div>
 
     <h2 class="abschnitt" data-t="fortschritt.veraenderung">Veränderung im 7-Tage-Schnitt</h2>
     <div id="kg-kacheln" class="kacheln"></div>
@@ -328,7 +332,10 @@
       </div>
     </div>
     <button class="zweit-btn" onclick="fettSheetOeffnen()" data-t="fortschritt.fettEintragen">Körperfett eintragen</button>
-    <div id="fett-kalender" class="karte kalender"></div>
+    <button id="fett-klapp-btn" class="zweit-btn" aria-expanded="false" aria-controls="fett-klapp" onclick="messKalenderKlappen('fett')"><span data-t="messung.alleEintraege">Alle Einträge</span><span class="klapp-pfeil" aria-hidden="true">▾</span></button>
+    <div id="fett-klapp" class="klapp"><div class="klapp-innen">
+      <div id="fett-kalender" class="karte kalender"></div>
+    </div></div>
 
     <h2 class="abschnitt" data-t="fortschritt.kraft">Kraftentwicklung</h2>
     <div id="fortschritt-uebungen"></div>
@@ -854,10 +861,10 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=36"></script>
-<script src="uebungen.js?v=36"></script>
-<script src="raenge.js?v=36"></script>
-<script src="app.js?v=36"></script>
+<script src="texte.js?v=37"></script>
+<script src="uebungen.js?v=37"></script>
+<script src="raenge.js?v=37"></script>
+<script src="app.js?v=37"></script>
 
 </body>
 </html>

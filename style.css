@@ -1575,19 +1575,26 @@ h1 {
   display: block;
 }
 
+/* So hoch und mit derselben Schrift wie das Feld für das Körperfett. "flex" mit beiden "center"
+   setzt das Datum auf dem iPhone in die Mitte, waagerecht und senkrecht. */
 .datum-feld {
-  display: block;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   min-width: 0;
   height: 52px;
-  padding: 0 8px;
+  margin: 0;
+  padding: 0;
   border: none;
   border-radius: 16px;
   background: var(--fuellung);
   color: var(--text);
   font-family: inherit;
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
   text-align: center;
   -webkit-appearance: none;
   appearance: none;
@@ -1598,9 +1605,34 @@ h1 {
   box-shadow: inset 0 0 0 2px var(--akzent-text);
 }
 
-/* Auf dem iPhone steht das Datum sonst linksbündig im Feld */
+/* iPhone (Safari): Der Datumstext bringt eigenen Abstand und eine eigene Ausrichtung mit */
 .datum-feld::-webkit-date-and-time-value {
+  width: 100%;
+  min-height: 1.2em;
+  margin: 0;
   text-align: center;
+}
+
+/* Chrome: der Datumstext ohne eigenen Abstand */
+.datum-feld::-webkit-datetime-edit {
+  padding: 0;
+}
+
+.datum-feld::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+/* Chrome: Das Kalender-Symbol rechts würde den Text aus der Mitte schieben. Es liegt deshalb
+   unsichtbar über dem ganzen Feld: Ein Tipp irgendwo ins Feld öffnet den Datumswähler. */
+.datum-feld::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
 }
 
 /* Das Feld für das Körperfett unter dem Rad, so breit wie das Rad */
@@ -1958,22 +1990,45 @@ h1 {
 
 /* ---------- Kalender "Alle Einträge" bei Körpergewicht und Körperfett ---------- */
 
+/* Der Pfeil auf dem Button "Alle Einträge" */
+.klapp-pfeil {
+  margin-left: 8px;
+}
+
+/* Auf- und Zuklappen: Die Zeile des Gitters wächst von 0 auf die Höhe des Inhalts ("0fr" zu "1fr").
+   So gleitet der Kalender auf, ohne dass seine Höhe bekannt sein muss. */
+.klapp {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
+}
+
+.klapp.offen {
+  grid-template-rows: 1fr;
+}
+
+/* Zugeklappt ist der Inhalt unsichtbar, damit ihn auch Tastatur und Vorlesen überspringen.
+   Beim Zuklappen verschwindet er erst, wenn die Bewegung fertig ist. */
+.klapp-innen {
+  min-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s 0.3s;
+}
+
+.klapp.offen .klapp-innen {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
 .kalender {
   margin-top: 10px;
 }
 
-/* Oben: links der Titel, rechts "Heute" */
+/* Oben rechts: "Heute" */
 .kal-kopf {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.kal-titel {
-  min-width: 0;
-  font-size: 17px;
-  font-weight: 700;
+  justify-content: flex-end;
 }
 
 .kal-heute,

@@ -26,6 +26,27 @@ const BILDER = {
   // Butterfly von vorn: Arme seitlich angewinkelt an den Polstern
   "butterfly": '<path class="g" d="M15 7h34M15 7v5M49 7v5M24 45h16"/><circle cx="32" cy="16" r="4"/><path d="M32 21v21M32 42l-7 4-1 11M32 42l7 4 1 11M32 25l-11 2V15M32 25l11 2V15"/><rect class="a" x="13" y="12" width="5" height="17" rx="2.5"/><rect class="a" x="46" y="12" width="5" height="17" rx="2.5"/>',
 
+  // Kabelfly von oben nach unten, von vorn: zwischen zwei Türmen, die Seile kommen von oben
+  "kabelfly": '<path class="g" d="M8 6v51M56 6v51M8 10l12 20M56 10L44 30"/><circle cx="32" cy="16" r="4"/><path d="M32 21v19M32 40l-5 17M32 40l5 17M32 24l-12 6M32 24l12 6"/><path class="a" d="M18 27l3 6M46 27l-3 6"/>',
+
+  // Kabelfly von unten nach oben, von vorn: Die Seile kommen von unten, die Hände gehen vor die Brust
+  "kabelfly-tief": '<path class="g" d="M8 6v51M56 6v51M8 54l13-33M56 54L43 21"/><circle cx="32" cy="14" r="4"/><path d="M32 19v21M32 40l-5 17M32 40l5 17M32 25l-11-4M32 25l11-4"/><path class="a" d="M19 18l4 6M45 18l-4 6"/>',
+
+  // Negativbank von der Seite: Der Kopf liegt tiefer als die Hüfte, die Füße sind eingehakt
+  "negativbank": '<path class="g" d="M10 47l34-13M16 45v11M42 35v21"/><circle cx="14" cy="40" r="4"/><path d="M19 40l19-8 9-5 4 11M24 38V23"/><circle class="a" cx="24" cy="17" r="6"/><path class="a" d="M24 17h.01"/>',
+
+  // Floor Press von der Seite: wie Bankdrücken, aber auf dem Boden liegend
+  "floor-press": '<path class="g" d="M8 51h48"/><circle cx="14" cy="44" r="4"/><path d="M19 46h19l8-10 4 13M24 45V31"/><circle class="a" cx="24" cy="25" r="6"/><path class="a" d="M24 25h.01"/>',
+
+  // Fliegende von vorn: auf der Bank liegend, die Arme weit geöffnet
+  "fliegende": '<path class="g" d="M22 46h20M27 46v10M37 46v10"/><circle cx="32" cy="35" r="4"/><path d="M26 42h12M26 42l-11-6-6-10M38 42l11-6 6-10"/><rect class="a" x="4" y="20" width="9" height="5" rx="2.5"/><rect class="a" x="51" y="20" width="9" height="5" rx="2.5"/>',
+
+  // Dips von vorn: zwischen zwei Holmen gestützt, die Füße in der Luft
+  "dips": '<path class="g" d="M16 30v27M48 30v27"/><path class="a" d="M11 30h10M43 30h10"/><circle cx="32" cy="11" r="4"/><path d="M16 30l8-11h16l8 11M32 19v21M32 40l-3 14M32 40l3 14"/>',
+
+  // Liegestütz von der Seite: der Körper gestreckt, die Arme stützen
+  "liegestuetze": '<path class="g" d="M6 55h52"/><circle cx="49" cy="26" r="4"/><path d="M44 31L10 52M43 32l2 22"/>',
+
   // Latzug von vorn: breite Stange am Seil, die Figur sitzt und zieht sie herunter
   "latzug": '<path class="g" d="M26 4h12M32 4v10M24 49h16"/><circle cx="32" cy="26" r="4"/><path d="M32 31v15M32 46l-7 4v8M32 46l7 4v8M32 33L19 14M32 33l13-19"/><path class="a" d="M9 17l3-3h40l3 3"/>',
 
@@ -97,6 +118,48 @@ const BILD_ZU_UEBUNG = {
   "machine-incline-press": "brustpresse",
   "butterfly": "butterfly",
   "butterfly-obergriff": "butterfly",
+  "kabelfly-hoch-tief": "kabelfly",
+  "kabelfly-hoch-tief-einarmig": "kabelfly",
+  "kabelfly-sitzend": "kabelfly",
+  "kabelfly-horizontal": "kabelfly",
+  "kabelfly-horizontal-einarmig": "kabelfly",
+  "kabel-crossover": "kabelfly",
+  "kabelfly-vorgebeugt": "kabelfly",
+  "brustpresse-kabel": "kabelfly",
+  "brustpresse-kabel-einarmig": "kabelfly",
+  "kabelfly-tief-hoch": "kabelfly-tief",
+  "kabelfly-tief-hoch-einarmig": "kabelfly-tief",
+  "negativbank-multi": "negativbank",
+  "negativbank-lh": "negativbank",
+  "negativbank-kh": "negativbank",
+  "negativbank-lh-breit": "negativbank",
+  "floor-press-lh": "floor-press",
+  "floor-press-kh": "floor-press",
+  "floor-press-kb": "floor-press",
+  "fliegende-kh": "fliegende",
+  "fliegende-45-kh": "fliegende",
+  "fliegende-flach-kh": "fliegende",
+  "decline-dumbbell-fly": "fliegende",
+  "brust-dips": "dips",
+  "brust-dips-gewicht": "dips",
+  "brust-dips-assistiert": "dips",
+  "machine-assisted-dip": "dips",
+  "dip-maschine-brust": "dips",
+  "dips": "dips",
+  "liegestuetze": "liegestuetze",
+  "liegestuetze-fuesse-hoch": "liegestuetze",
+  "liegestuetze-haende-hoch": "liegestuetze",
+  "liegestuetze-breit": "liegestuetze",
+  "liegestuetze-knie": "liegestuetze",
+  "liegestuetze-gewicht": "liegestuetze",
+  "liegestuetze-defizit": "liegestuetze",
+  "liegestuetze-einarmig": "liegestuetze",
+  "archer-push-up": "liegestuetze",
+  "pseudo-planche-push-up": "liegestuetze",
+  "ring-push-up": "liegestuetze",
+  "ring-chest-fly": "liegestuetze",
+  "explosive-push-up": "liegestuetze",
+  "clap-push-up": "liegestuetze",
 
   // Rücken
   "latzug": "latzug",

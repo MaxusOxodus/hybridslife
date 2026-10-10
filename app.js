@@ -60,6 +60,7 @@
 
   // Die Kachel "Eigene" in der Übungsauswahl. Steht dieser Wert in sheetGruppe, ist sie geöffnet.
   const KACHEL_SELBST = "selbst";
+  const KACHEL_TAUSCH = "tausch";
 
   // So lang darf der Name einer eigenen Übung höchstens sein
   const SELBST_NAME_MAX = 60;
@@ -302,7 +303,8 @@
   let gewaehlteGruppe = "";
   let gewaehlteUebungId = "";
 
-  // Im Sheet geöffnete Muskelgruppe als ID ("" = Übersicht der Muskelgruppen, KACHEL_SELBST = die eigenen Übungen)
+  // Im Sheet geöffnete Muskelgruppe als ID ("" = Übersicht der Muskelgruppen, KACHEL_SELBST = die eigenen Übungen,
+  // KACHEL_TAUSCH = die Vorschläge beim Tauschen)
   let sheetGruppe = "";
 
   // Wochenleiste: Montag der angezeigten Woche und der angetippte Tag (null = kein Tag gewählt)
@@ -311,7 +313,8 @@
 
   let eintraege = JSON.parse(localStorage.getItem("eintraege")) || [];
 
-  // Wofür das Sheet gerade geöffnet ist: "log" (neuer Eintrag) oder "routine" (Übung zur Routine hinzufügen)
+  // Wofür das Sheet gerade geöffnet ist: "log" (neuer Eintrag), "routine" (Übung zur Routine hinzufügen)
+  // oder "tausch" (im Trainingsmodus die Übung tauschen)
   let sheetZiel = "log";
 
   // Routinen: jede hat eine id, einen Namen und eine Liste von Übungen mit optionalen Zielen
@@ -559,7 +562,10 @@
       listen.push(bearbeiteteRoutine.uebungen);
     }
     if (laufendesTraining) {
-      listen.push(laufendesTraining.uebungen);
+      const trainingListen = trainingUebungListen();
+      for (let i = 0; i < trainingListen.length; i++) {
+        listen.push(trainingListen[i]);
+      }
     }
     for (let i = 0; i < listen.length; i++) {
       for (let j = 0; j < listen[i].length; j++) {
@@ -568,6 +574,18 @@
         }
       }
     }
+  }
+
+  // Die Listen des laufenden Trainings, in denen Übungen stehen: seine Plätze und an jedem Platz
+  // die Übungen, die dort vor einem Tausch dran waren
+  function trainingUebungListen() {
+    const listen = [laufendesTraining.uebungen];
+    for (let i = 0; i < laufendesTraining.uebungen.length; i++) {
+      if (Array.isArray(laufendesTraining.uebungen[i].getauscht)) {
+        listen.push(laufendesTraining.uebungen[i].getauscht);
+      }
+    }
+    return listen;
   }
 
   // Speichert alles, was jedeGespeicherteUebung durchgeht
@@ -692,8 +710,17 @@
       localStorage.setItem("routinen", JSON.stringify(routinen));
     }
 
-    if (laufendesTraining && listeZuordnen(laufendesTraining.uebungen, "name")) {
-      localStorage.setItem("laufendesTraining", JSON.stringify(laufendesTraining));
+    if (laufendesTraining) {
+      let trainingGeaendert = false;
+      const trainingListen = trainingUebungListen();
+      for (let i = 0; i < trainingListen.length; i++) {
+        if (listeZuordnen(trainingListen[i], "name")) {
+          trainingGeaendert = true;
+        }
+      }
+      if (trainingGeaendert) {
+        localStorage.setItem("laufendesTraining", JSON.stringify(laufendesTraining));
+      }
     }
 
     // Die für die Kraft-Karte gewählte Übung: Ist sie unbrauchbar gespeichert, gilt wieder "Automatisch"
@@ -1481,10 +1508,17 @@
 
   // ---------- Bottom Sheet für die Übungsauswahl ----------
 
-  // ziel ist "log" oder "routine". Ohne Angabe gilt "log".
+  // ziel ist "log", "routine" oder "tausch". Ohne Angabe gilt "log".
   function sheetOeffnen(ziel) {
     sheetZiel = ziel || "log";
-    sheetGruppenZeigen();
+    // Der Schalter "Auch in der Routine ändern" gehört nur zum Tauschen und ist bei jedem Öffnen aus
+    tauschSchalterSetzen(false);
+    document.getElementById("tausch-schalter").classList.toggle("versteckt", sheetZiel !== "tausch" || !tauschRoutineStelle());
+    if (sheetZiel === "tausch") {
+      sheetTauschZeigen();
+    } else {
+      sheetGruppenZeigen();
+    }
     document.getElementById("sheet").classList.add("offen");
     document.getElementById("sheet-hintergrund").classList.add("offen");
     document.body.classList.add("sheet-offen");
@@ -1513,10 +1547,30 @@
   function sheetAnsichtZeigen() {
     if (sheetGruppe === "") {
       sheetGruppenZeigen();
+    } else if (sheetGruppe === KACHEL_TAUSCH) {
+      sheetTauschZeigen();
     } else if (sheetGruppe === KACHEL_SELBST) {
       sheetSelbstZeigen();
     } else {
       sheetUebungenZeigen(sheetGruppe);
+    }
+  }
+
+  // Der Zurück-Pfeil im Sheet. Beim Tauschen geht es aus der Suche zur Ansicht davor und von den
+  // Muskelgruppen zurück zu den Vorschlägen, sonst immer zu den Muskelgruppen.
+  function sheetZurueck() {
+    if (sheetZiel !== "tausch") {
+      sheetGruppenZeigen();
+      return;
+    }
+    const suche = document.getElementById("sheet-suche");
+    if (suche.value.trim() !== "") {
+      suche.value = "";
+      sheetAnsichtZeigen();
+    } else if (sheetGruppe === "") {
+      sheetTauschZeigen();
+    } else {
+      sheetGruppenZeigen();
     }
   }
 
@@ -1543,7 +1597,8 @@
   function sheetGruppenZeigen() {
     sheetGruppe = "";
     document.getElementById("sheet-suche").value = "";
-    const inhalt = sheetLeeren(txt("sheet.muskelgruppe"), false);
+    // Beim Tauschen führt der Pfeil von hier zurück zu den Vorschlägen
+    const inhalt = sheetLeeren(txt("sheet.muskelgruppe"), sheetZiel === "tausch");
     inhalt.appendChild(selbstNeuKnopf());
     const raster = element("div", "muskel-raster");
     raster.appendChild(kachelSelbst());
@@ -1692,6 +1747,12 @@
     }
     zweit.appendChild(document.createTextNode(teile.join(" · ")));
     btn.appendChild(zweit);
+
+    // Beim Tauschen: Eine Übung, die schon an einem anderen Platz des Trainings steht, lässt sich nicht wählen
+    if (sheetZiel === "tausch" && tauschVergeben(u.de, u.id)) {
+      btn.disabled = true;
+      btn.appendChild(element("span", "sheet-zeile-zweit", txt("tausch.vergeben")));
+    }
 
     // Gespeichert wird neben der ID immer der deutsche Name, als Reserve
     btn.onclick = function () {
@@ -2042,6 +2103,11 @@
     if (sheetZiel === "routine") {
       sheetSchliessen();
       routineUebungHinzufuegen(name, gruppe, id);
+      return;
+    }
+    // Aus dem Trainingsmodus geöffnet: Die Übung ersetzt die aktuelle Übung des Trainings
+    if (sheetZiel === "tausch") {
+      uebungTauschen(name, gruppe, id);
       return;
     }
 
@@ -3239,6 +3305,7 @@
   function trainingBeginnen(routine) {
     // Mit einem neuen Training lässt sich ein verworfenes nicht mehr zurückholen
     verworfenHinweisSchliessen();
+    routineHinweisSchliessen();
     laufendesTraining = {
       routineId: routine.id,
       routineName: routine.name,
@@ -3261,7 +3328,9 @@
         // So bleibt alles erhalten, wenn man zwischen den Übungen wechselt.
         saetze: [],
         eintragId: "",
-        extraSatz: false
+        extraSatz: false,
+        // Nach einem Tausch: die Übungen, die an diesem Platz schon Sätze haben (siehe uebungTauschen)
+        getauscht: []
       });
     }
     gemerkteTrainingWerte = null;
@@ -3271,6 +3340,7 @@
 
   // Bringt ein gespeichertes Training in die heutige Form. Ältere Versionen kannten nur die Sätze
   // der aktuellen Übung (t.saetze, t.eintragId), jetzt hat jede Übung ihre eigenen.
+  // Ein Training aus der Zeit vor dem Tauschen bekommt an jedem Platz eine leere Liste "getauscht".
   function trainingUmwandeln(t) {
     const alt = !Array.isArray(t.uebungen[t.index].saetze);
 
@@ -3283,6 +3353,21 @@
         u.eintragId = "";
       }
       u.extraSatz = Boolean(u.extraSatz);
+
+      // Nur brauchbare getauschte Übungen bleiben: mit Namen und Sätzen
+      const getauscht = [];
+      if (Array.isArray(u.getauscht)) {
+        for (let j = 0; j < u.getauscht.length; j++) {
+          const g = u.getauscht[j];
+          if (g && typeof g.name === "string" && Array.isArray(g.saetze) && g.saetze.length > 0 && typeof g.eintragId === "string") {
+            getauscht.push(g);
+          }
+        }
+      }
+      u.getauscht = getauscht;
+      if (u.ursprung && typeof u.ursprung.name !== "string") {
+        delete u.ursprung;
+      }
     }
     if (!alt) {
       return;
@@ -3537,7 +3622,7 @@
     const t = laufendesTraining;
     let begonnen = 0;
     for (let i = 0; i < t.uebungen.length; i++) {
-      if (t.uebungen[i].saetze.length > 0) {
+      if (platzBegonnen(t.uebungen[i])) {
         begonnen++;
       }
     }
@@ -3991,26 +4076,34 @@
 
     // Gehört der Eintrag zum laufenden Training, bekommt dessen Übung dieselben Sätze.
     // Ohne Sätze ist die Übung wieder offen.
+    // Das gilt auch für eine Übung, die vor einem Tausch an ihrem Platz dran war. Hat sie keinen Satz mehr,
+    // verschwindet sie aus der Liste der getauschten Übungen.
     const t = laufendesTraining;
     if (t) {
-      for (let i = 0; i < t.uebungen.length; i++) {
-        const u = t.uebungen[i];
-        if (u.eintragId !== eintrag.id) {
-          continue;
-        }
-        u.saetze = [];
-        for (let j = 0; j < saetze.length; j++) {
-          const satz = { gewicht: saetze[j].gewicht, wdh: saetze[j].wdh };
-          if (rirLesen(saetze[j].rir) !== null) {
-            satz.rir = saetze[j].rir;
+      const listen = trainingUebungListen();
+      for (let l = 0; l < listen.length; l++) {
+        for (let i = listen[l].length - 1; i >= 0; i--) {
+          const u = listen[l][i];
+          if (u.eintragId !== eintrag.id) {
+            continue;
           }
-          u.saetze.push(satz);
-        }
-        if (saetze.length === 0) {
-          u.eintragId = "";
-          for (let j = t.erledigt.length - 1; j >= 0; j--) {
-            if (t.erledigt[j].id === eintrag.id) {
-              t.erledigt.splice(j, 1);
+          u.saetze = [];
+          for (let j = 0; j < saetze.length; j++) {
+            const satz = { gewicht: saetze[j].gewicht, wdh: saetze[j].wdh };
+            if (rirLesen(saetze[j].rir) !== null) {
+              satz.rir = saetze[j].rir;
+            }
+            u.saetze.push(satz);
+          }
+          if (saetze.length === 0) {
+            u.eintragId = "";
+            for (let j = t.erledigt.length - 1; j >= 0; j--) {
+              if (t.erledigt[j].id === eintrag.id) {
+                t.erledigt.splice(j, 1);
+              }
+            }
+            if (l > 0) {
+              listen[l].splice(i, 1);
             }
           }
         }
@@ -4081,12 +4174,18 @@
     window.scrollTo(0, 0);
   }
 
+  // Hat dieser Platz des Trainings schon einen Satz? Es zählen auch die Sätze einer Übung,
+  // die an diesem Platz vor einem Tausch dran war.
+  function platzBegonnen(u) {
+    return u.saetze.length > 0 || u.getauscht.length > 0;
+  }
+
   // Die Plätze aller Übungen, die noch keinen Satz haben. ohne lässt eine Übung aus.
   function offeneUebungen(ohne) {
     const t = laufendesTraining;
     const liste = [];
     for (let i = 0; i < t.uebungen.length; i++) {
-      if (i !== ohne && t.uebungen[i].saetze.length === 0) {
+      if (i !== ohne && !platzBegonnen(t.uebungen[i])) {
         liste.push(i);
       }
     }
@@ -4101,6 +4200,263 @@
       namen.push(anzeigeName(t.uebungen[offen[i]].name, t.uebungen[offen[i]].uebungId));
     }
     return txtAnzahl("modus.offen", offen.length, { namen: namen.join(", ") });
+  }
+
+  // ---------- Training: Übung tauschen ----------
+
+  // Ist diese Stelle (ein Platz des Trainings, eine getauschte Übung oder eine Übung der Routine) die genannte Übung?
+  // Verglichen wird wie bei den Einträgen: über die ID, ohne ID über den Namen.
+  function stelleIst(stelle, name, id) {
+    return gleicheUebung({ uebung: stelle.name, uebungId: stelle.uebungId }, name, id);
+  }
+
+  // Steht die Übung schon an einem anderen Platz des laufenden Trainings, als aktuelle oder als getauschte Übung?
+  function tauschVergeben(name, id) {
+    const t = laufendesTraining;
+    if (!t) {
+      return false;
+    }
+    for (let i = 0; i < t.uebungen.length; i++) {
+      if (i === t.index) {
+        continue;
+      }
+      if (stelleIst(t.uebungen[i], name, id)) {
+        return true;
+      }
+      for (let j = 0; j < t.uebungen[i].getauscht.length; j++) {
+        if (stelleIst(t.uebungen[i].getauscht[j], name, id)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Die Übung der Routine, die zum aktuellen Platz des Trainings gehört, oder null:
+  // wenn es die Routine nicht mehr gibt oder die Übung dort nicht mehr steht.
+  // Gesucht wird die Übung, die die Routine an diesem Platz vorsieht, zuerst an derselben Stelle.
+  function tauschRoutineStelle() {
+    const t = laufendesTraining;
+    if (!t) {
+      return null;
+    }
+    const routine = routineFinden(t.routineId);
+    if (!routine || !Array.isArray(routine.uebungen)) {
+      return null;
+    }
+    const gesucht = t.uebungen[t.index].ursprung || t.uebungen[t.index];
+    const gleicherPlatz = routine.uebungen[t.index];
+    if (gleicherPlatz && stelleIst(gleicherPlatz, gesucht.name, gesucht.uebungId)) {
+      return gleicherPlatz;
+    }
+    for (let i = 0; i < routine.uebungen.length; i++) {
+      if (stelleIst(routine.uebungen[i], gesucht.name, gesucht.uebungId)) {
+        return routine.uebungen[i];
+      }
+    }
+    return null;
+  }
+
+  // Der Schalter "Auch in der Routine ändern" im Sheet
+  let tauschAuchRoutine = false;
+
+  function tauschSchalterSetzen(an) {
+    tauschAuchRoutine = an;
+    document.getElementById("tausch-schalter").setAttribute("aria-checked", String(an));
+  }
+
+  function tauschSchalterUmlegen() {
+    tauschSchalterSetzen(!tauschAuchRoutine);
+  }
+
+  // Der Knopf "Übung tauschen" im Trainingsmodus
+  function tauschOeffnen() {
+    if (laufendesTraining) {
+      sheetOeffnen("tausch");
+    }
+  }
+
+  // Die Vorschläge für den Tausch: Übungen mit demselben Bewegungsmuster, danach die übrigen derselben
+  // Muskelgruppe. In beiden Teilen stehen die Übungen vorn, zu denen es schon Einträge gibt.
+  // Ohne bekannte Übung (ein frei eingetippter Name aus einer alten Version) gibt es keine Vorschläge.
+  function tauschVorschlaege() {
+    const t = laufendesTraining;
+    const u = t.uebungen[t.index];
+    const aktuelle = UEBUNG_NACH_ID[u.uebungId];
+    if (!aktuelle) {
+      return { titel: "", liste: [] };
+    }
+    const gruppe = uebungGruppe(aktuelle);
+    let muster = "";
+    if (aktuelle.rang) {
+      muster = aktuelle.rang.muster;
+    }
+
+    const bekannt = {};
+    for (let i = 0; i < eintraege.length; i++) {
+      if (eintraege[i].uebungId) {
+        bekannt[eintraege[i].uebungId] = true;
+      }
+    }
+
+    // Vier Töpfe in der Reihenfolge der Anzeige: gleiches Muster (schon gemacht, neu), gleiche Gruppe (schon gemacht, neu)
+    const toepfe = [[], [], [], []];
+    const alle = selbstListe.concat(UEBUNGEN);
+    for (let i = 0; i < alle.length; i++) {
+      const k = alle[i];
+      if (k.id === aktuelle.id || tauschVergeben(k.de, k.id)) {
+        continue;
+      }
+      const gleichesMuster = muster !== "" && Boolean(k.rang) && k.rang.muster === muster;
+      if (!gleichesMuster && uebungGruppe(k) !== gruppe) {
+        continue;
+      }
+      let topf = 0;
+      if (!gleichesMuster) {
+        topf = 2;
+      }
+      if (!bekannt[k.id]) {
+        topf++;
+      }
+      toepfe[topf].push(k);
+    }
+
+    let titel = GRUPPE_NACH_ID[gruppe][sprache];
+    if (muster !== "") {
+      titel = txt("muster." + muster);
+    }
+    return { titel: txt("tausch.vorschlaege") + " · " + titel, liste: toepfe[0].concat(toepfe[1], toepfe[2], toepfe[3]) };
+  }
+
+  // Die erste Ansicht des Sheets beim Tauschen: die Vorschläge, darunter der Weg zu allen Muskelgruppen.
+  // Das Suchfeld darüber sucht wie immer in allen Übungen.
+  function sheetTauschZeigen() {
+    sheetGruppe = KACHEL_TAUSCH;
+    document.getElementById("sheet-suche").value = "";
+    const inhalt = sheetLeeren(txt("tausch.titel"), false);
+
+    const vorschlaege = tauschVorschlaege();
+    sheetAbschnitt(inhalt, vorschlaege.titel, vorschlaege.liste, false);
+    if (vorschlaege.liste.length === 0) {
+      inhalt.appendChild(element("p", "leer-hinweis", txt("tausch.keineVorschlaege")));
+    }
+
+    const alle = element("button", "sheet-neu", txt("tausch.alle"));
+    alle.onclick = sheetGruppenZeigen;
+    inhalt.appendChild(alle);
+  }
+
+  // Tauscht die aktuelle Übung des Trainings gegen eine andere. Der Platz in der Reihenfolge, die Ziele
+  // und die Pause bleiben. Die neue Übung beginnt ohne Sätze, ihre Vorgaben kommen aus ihrem eigenen Verlauf.
+  // Die Sätze der alten Übung bleiben in ihrem Eintrag und im Training: Die alte Übung wandert mit ihnen
+  // in die Liste "getauscht" des Platzes. Wird später zu ihr zurückgetauscht, geht es dort weiter.
+  // Der Tausch gilt nur für dieses Training, außer der Schalter "Auch in der Routine ändern" ist an.
+  function uebungTauschen(name, gruppe, id) {
+    const t = laufendesTraining;
+    if (!t) {
+      sheetSchliessen();
+      return;
+    }
+    const u = t.uebungen[t.index];
+    // Dieselbe Übung noch einmal gewählt: Es ändert sich nichts
+    if (stelleIst(u, name, id)) {
+      sheetSchliessen();
+      return;
+    }
+    if (tauschVergeben(name, id)) {
+      return;
+    }
+
+    // Vor dem Tausch nachsehen, denn danach steht am Platz schon die neue Übung
+    let routineStelle = null;
+    if (tauschAuchRoutine) {
+      routineStelle = tauschRoutineStelle();
+    }
+
+    const alt = { name: u.name, uebungId: u.uebungId, muskelgruppe: u.muskelgruppe, saetze: u.saetze, eintragId: u.eintragId };
+    const ursprungVorher = u.ursprung || null;
+    if (!u.ursprung) {
+      u.ursprung = { name: u.name, uebungId: u.uebungId, muskelgruppe: u.muskelgruppe };
+    }
+
+    // War die neue Übung an diesem Platz schon einmal dran, kommt sie mit ihren Sätzen zurück
+    let neu = { name: name, uebungId: id || "", muskelgruppe: gruppe, saetze: [], eintragId: "" };
+    for (let i = 0; i < u.getauscht.length; i++) {
+      if (stelleIst(u.getauscht[i], name, id)) {
+        neu = u.getauscht.splice(i, 1)[0];
+        break;
+      }
+    }
+    if (alt.saetze.length > 0) {
+      u.getauscht.push(alt);
+    }
+
+    u.name = neu.name;
+    u.uebungId = neu.uebungId || "";
+    u.muskelgruppe = neu.muskelgruppe;
+    u.saetze = neu.saetze;
+    u.eintragId = neu.eintragId;
+    u.extraSatz = false;
+
+    if (routineStelle) {
+      routineUebungErsetzen(routineStelle, u, ursprungVorher);
+    }
+
+    gemerkteTrainingWerte = null;
+    trainingMerken();
+    sheetSchliessen();
+    modusAnzeigen();
+    window.scrollTo(0, 0);
+  }
+
+  // Die zuletzt über den Tausch geänderte Routine für "Rückgängig" (null = keine).
+  // Es gilt nur, solange der Hinweis zu sehen ist.
+  let geaenderteRoutine = null;
+  let routineHinweisUhr = null;
+
+  // Ersetzt in der Routine die Übung: Name, ID und Muskelgruppe werden die des Platzes, Ziele und Pause bleiben.
+  // Damit sieht die Routine an diesem Platz jetzt die neue Übung vor.
+  function routineUebungErsetzen(stelle, platz, ursprungVorher) {
+    geaenderteRoutine = {
+      stelle: stelle,
+      vorher: { name: stelle.name, uebungId: stelle.uebungId || "", muskelgruppe: stelle.muskelgruppe || "" },
+      platz: platz,
+      ursprungVorher: ursprungVorher || platz.ursprung
+    };
+    stelle.name = platz.name;
+    stelle.uebungId = platz.uebungId;
+    stelle.muskelgruppe = platz.muskelgruppe;
+    platz.ursprung = { name: platz.name, uebungId: platz.uebungId, muskelgruppe: platz.muskelgruppe };
+    routinenSpeichern();
+    trainingAnzeigen();
+
+    document.getElementById("routine-hinweis").classList.add("sichtbar");
+    clearTimeout(routineHinweisUhr);
+    routineHinweisUhr = setTimeout(routineHinweisSchliessen, VERWORFEN_ANZEIGE);
+  }
+
+  // Blendet den Hinweis "Routine geändert" aus. Damit ist auch "Rückgängig" vorbei.
+  function routineHinweisSchliessen() {
+    clearTimeout(routineHinweisUhr);
+    routineHinweisUhr = null;
+    geaenderteRoutine = null;
+    document.getElementById("routine-hinweis").classList.remove("sichtbar");
+  }
+
+  // "Rückgängig": Die Routine bekommt ihre Übung zurück. Der Tausch im laufenden Training bleibt.
+  function routineTauschRueckgaengig() {
+    const g = geaenderteRoutine;
+    routineHinweisSchliessen();
+    if (!g) {
+      return;
+    }
+    g.stelle.name = g.vorher.name;
+    g.stelle.uebungId = g.vorher.uebungId;
+    g.stelle.muskelgruppe = g.vorher.muskelgruppe;
+    g.platz.ursprung = g.ursprungVorher;
+    routinenSpeichern();
+    trainingMerken();
+    trainingAnzeigen();
   }
 
   // Wie weit eine Übung im laufenden Training ist: "offen", "2 von 3 Sätzen" oder "fertig · 3 Sätze"
@@ -4135,7 +4491,12 @@
         zeile.classList.add("aktuell");
       }
       zeile.appendChild(element("span", "sheet-zeile-name", (i + 1) + ". " + anzeigeName(u.name, u.uebungId)));
-      zeile.appendChild(element("span", "sheet-zeile-zweit", uebungStandText(u)));
+      let stand = uebungStandText(u);
+      // Nach einem Tausch steht dabei, welche Übung die Routine an diesem Platz vorsieht
+      if (u.ursprung && !stelleIst(u, u.ursprung.name, u.ursprung.uebungId)) {
+        stand += " · " + txt("tausch.statt", { name: anzeigeName(u.ursprung.name, u.ursprung.uebungId) });
+      }
+      zeile.appendChild(element("span", "sheet-zeile-zweit", stand));
       zeile.onclick = function () {
         zusatzSheetsSchliessen();
         uebungZeigen(i);
@@ -4187,9 +4548,10 @@
       bewegt += eintragVolumen(eintrag, 0);
     }
 
-    let text = t.routineName + " · " + txt("fertig.gespeichert", { x: t.erledigt.length, uebungen: uebungenText(t.uebungen.length) });
-    // Übersprungen ist jede Übung, die keinen einzigen Satz hat
+    // "3 von 4 Übungen" zählt die Plätze der Routine: Nach einem Tausch kann ein Platz zwei Einträge haben
     const uebersprungen = offeneUebungen(-1).length;
+    let text = t.routineName + " · " + txt("fertig.gespeichert", { x: t.uebungen.length - uebersprungen, uebungen: uebungenText(t.uebungen.length) });
+    // Übersprungen ist jede Übung, die keinen einzigen Satz hat
     if (uebersprungen > 0) {
       text += ", " + txt("fertig.uebersprungen", { n: uebersprungen });
     }

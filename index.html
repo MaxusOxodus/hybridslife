@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=30">
+  <link rel="stylesheet" href="style.css?v=31">
 </head>
 <body>
 
@@ -221,6 +221,8 @@
       </div>
 
       <button id="modus-weiter" class="zweit-btn" onclick="uebungBeenden()">Übung überspringen</button>
+      <!-- Gerät besetzt oder nicht da: die Übung für dieses Training gegen eine andere tauschen -->
+      <button id="modus-tausch" class="zweit-btn leise" onclick="tauschOeffnen()" data-t="tausch.knopf">⇄ Übung tauschen</button>
 
       <!-- Die schon eingetragenen Sätze der Übung: Antippen öffnet das Bearbeiten. Die Zeilen baut die app.js. -->
       <div id="modus-saetze"></div>
@@ -409,6 +411,12 @@
     <button onclick="verwerfenRueckgaengig()" data-t="rueckgaengig">Rückgängig</button>
   </div>
 
+  <!-- Bestätigung nach "Übung tauschen" mit "Auch in der Routine ändern": bleibt kurz stehen und bietet "Rückgängig" an -->
+  <div id="routine-hinweis" role="status">
+    <span data-t="tausch.routineGeaendert">Routine geändert</span>
+    <button onclick="routineTauschRueckgaengig()" data-t="rueckgaengig">Rückgängig</button>
+  </div>
+
   <!-- Meldung "Neuer Rang" oder "Neues Abzeichen": Antippen öffnet die Abzeichen im Profil -->
   <div id="rang-hinweis" role="status">
     <button id="rang-hinweis-text" onclick="rangMeldungOeffnen()"></button>
@@ -419,7 +427,7 @@
   <div id="sheet">
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">
-      <button id="sheet-zurueck" class="versteckt" onclick="sheetGruppenZeigen()" aria-label="Zurück" data-t-aria="zurueck">←</button>
+      <button id="sheet-zurueck" class="versteckt" onclick="sheetZurueck()" aria-label="Zurück" data-t-aria="zurueck">←</button>
       <span id="sheet-titel">Muskelgruppe</span>
       <button onclick="sheetSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
@@ -427,6 +435,11 @@
     <div class="sheet-suche">
       <input id="sheet-suche" placeholder="Übung suchen oder eigene anlegen" data-t-platzhalter="sheet.suchfeld" autocomplete="off" enterkeyhint="search" oninput="sheetSucheGeaendert()" onkeydown="if (event.key === 'Enter') this.blur()">
     </div>
+    <!-- Nur beim Tauschen im Trainingsmodus: Der Schalter ersetzt die Übung auch in der Routine. Er ist bei jedem Öffnen aus. -->
+    <button id="tausch-schalter" class="sheet-schalter versteckt" role="switch" aria-checked="false" onclick="tauschSchalterUmlegen()">
+      <span data-t="tausch.auchRoutine">Auch in der Routine ändern</span>
+      <span class="schalter-bild" aria-hidden="true"></span>
+    </button>
     <div id="sheet-inhalt"></div>
   </div>
 
@@ -791,10 +804,10 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=30"></script>
-<script src="uebungen.js?v=30"></script>
-<script src="raenge.js?v=30"></script>
-<script src="app.js?v=30"></script>
+<script src="texte.js?v=31"></script>
+<script src="uebungen.js?v=31"></script>
+<script src="raenge.js?v=31"></script>
+<script src="app.js?v=31"></script>
 
 </body>
 </html>

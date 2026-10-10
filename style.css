@@ -294,9 +294,10 @@ h1 {
   animation: seite-einblenden 0.3s ease-out;
 }
 
-/* ---------- Bestätigung "Training verworfen" mit "Rückgängig": an derselben Stelle ---------- */
+/* ---------- Bestätigung "Training verworfen" und "Routine geändert" mit "Rückgängig": an derselben Stelle ---------- */
 
-#verworfen-hinweis {
+#verworfen-hinweis,
+#routine-hinweis {
   position: fixed;
   left: 16px;
   right: 16px;
@@ -320,7 +321,8 @@ h1 {
   font-weight: 600;
 }
 
-#verworfen-hinweis.sichtbar {
+#verworfen-hinweis.sichtbar,
+#routine-hinweis.sichtbar {
   display: flex;
   animation: seite-einblenden 0.3s ease-out;
 }
@@ -377,7 +379,8 @@ h1 {
   color: var(--text-leise);
 }
 
-#verworfen-hinweis button {
+#verworfen-hinweis button,
+#routine-hinweis button {
   min-height: 36px;
   padding: 0 12px;
   border: none;
@@ -1038,6 +1041,61 @@ h1 {
 .sheet-suche input:focus {
   outline: none;
   box-shadow: inset 0 0 0 2px var(--akzent-text);
+}
+
+/* Der Schalter "Auch in der Routine ändern" unter dem Suchfeld: links der Text, rechts das Bild des Schalters.
+   Ob er an ist, steht im Attribut aria-checked. */
+.sheet-schalter {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  margin: 0 16px 10px;
+  padding: 6px 2px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 16px;
+  text-align: left;
+}
+
+.schalter-bild {
+  position: relative;
+  flex-shrink: 0;
+  width: 50px;
+  height: 30px;
+  border-radius: 15px;
+  background: var(--fuellung);
+  transition: background 0.2s;
+}
+
+.schalter-bild::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--text-leise);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.sheet-schalter[aria-checked="true"] .schalter-bild {
+  background: var(--akzent);
+}
+
+.sheet-schalter[aria-checked="true"] .schalter-bild::after {
+  background: var(--auf-akzent);
+  transform: translateX(20px);
+}
+
+/* Eine Übung, die sich gerade nicht wählen lässt, z. B. beim Tauschen eine, die schon im Training steht */
+.sheet-zeile:disabled {
+  color: var(--text-leise);
+  opacity: 1;
 }
 
 #sheet-inhalt {
@@ -2995,6 +3053,15 @@ button.einst-zeile:first-child {
 /* Im Sheet steht der Button auf dem Sheet-Hintergrund, deshalb bekommt er eine leichte Füllung */
 .zusatz-sheet .zweit-btn.gefahr {
   background: var(--fuellung);
+}
+
+/* Ein Button, der seltener gebraucht wird, z. B. "Übung tauschen": ohne Fläche und in leiser Farbe */
+.zweit-btn.leise {
+  min-height: 48px;
+  margin-top: 4px;
+  background: none;
+  color: var(--text-leise);
+  font-size: 16px;
 }
 
 /* ---------- Training: Ansichten ---------- */

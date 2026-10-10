@@ -319,6 +319,20 @@ const TEXTE = {
   "stand.fertig": { de: "fertig · {saetze}", en: "done · {saetze}" },
   "stand.xVonY": { de: "{x} von {y} Sätzen", en: "{x} of {y} sets" },
 
+  // ---------- Training: Übung tauschen ----------
+  "tausch.knopf": { de: "⇄ Übung tauschen", en: "⇄ Swap exercise" },
+  "tausch.titel": { de: "Übung tauschen", en: "Swap exercise" },
+  "tausch.vorschlaege": { de: "Vorschläge", en: "Suggestions" },
+  "tausch.keineVorschlaege": {
+    de: "Keine Vorschläge. Such oben nach einer Übung oder wähle eine Muskelgruppe.",
+    en: "No suggestions. Search above or pick a muscle group."
+  },
+  "tausch.alle": { de: "Alle Muskelgruppen", en: "All muscle groups" },
+  "tausch.auchRoutine": { de: "Auch in der Routine ändern", en: "Also change in the routine" },
+  "tausch.vergeben": { de: "Ist schon Teil dieses Trainings", en: "Already part of this workout" },
+  "tausch.statt": { de: "statt {name}", en: "instead of {name}" },
+  "tausch.routineGeaendert": { de: "Routine geändert", en: "Routine updated" },
+
   // ---------- Training: Zusammenfassung ----------
   "fertig.titel": { de: "Geschafft!", en: "Done!" },
   "fertig.bewegt": { de: "Bewegtes Gewicht", en: "Weight moved" },

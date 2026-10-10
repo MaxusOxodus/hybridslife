@@ -99,7 +99,19 @@ const BILDER = {
   "inverted-row": '<path class="g" d="M52 8v49M6 57h52"/><path class="a" d="M52 22H33"/><circle cx="42" cy="35" r="4"/><path d="M8 55l28-18V22"/>',
 
   // Armheben in Bauchlage von der Seite: auf dem Bauch liegend, die Arme heben vom Boden ab
-  "bauchlage-heben": '<path class="g" d="M6 53h52"/><circle cx="49" cy="43" r="4"/><path d="M43 46L10 50M42 45l9-15"/>'
+  "bauchlage-heben": '<path class="g" d="M6 53h52"/><circle cx="49" cy="43" r="4"/><path d="M43 46L10 50M42 45l9-15"/>',
+
+  // Rückenstrecker von der Seite: die Hüfte auf dem Polster, die Füße eingehakt, der Oberkörper hängt nach vorn
+  "rueckenstrecker": '<path class="g" d="M22 57h30M42 57L30 39M25 35l9 7M46 57v-6"/><circle cx="11" cy="45" r="4"/><path d="M47 51L28 33 15 42"/>',
+
+  // Good Morning von der Seite: die Stange im Nacken, der Oberkörper beugt sich mit geradem Rücken vor
+  "good-morning": '<path class="g" d="M12 57h40"/><circle cx="52" cy="30" r="4"/><path d="M46 31l-16 7 2 18h6"/><circle class="a" cx="42" cy="26" r="5.5"/><path class="a" d="M42 26h.01"/>',
+
+  // Rumänisches Kreuzheben von der Seite: die Beine fast gestreckt, die Stange auf Höhe der Knie
+  "rumaenisches-kreuzheben": '<path class="g" d="M12 57h40"/><circle cx="47" cy="21" r="4"/><path d="M42 26L26 36l8 9-1 11h6M42 26v17"/><circle class="a" cx="42" cy="45" r="6"/><path class="a" d="M42 45h.01"/>',
+
+  // Sumo-Kreuzheben von vorn: sehr breiter Stand, die Arme greifen zwischen den Knien
+  "sumo-kreuzheben": '<circle cx="32" cy="15" r="4"/><path d="M32 20v16M14 57l5-13 9-8h8l9 8 5 13M27 24h10M27 24v24M37 24v24"/><path class="a" d="M9 48h46"/><rect class="a" x="4" y="41" width="5" height="14" rx="2"/><rect class="a" x="55" y="41" width="5" height="14" rx="2"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -309,7 +321,27 @@ const BILD_ZU_UEBUNG = {
   "scapular-push-up": "liegestuetze",
   "prone-y-raise": "bauchlage-heben",
   "prone-t-raise": "bauchlage-heben",
-  "reverse-snow-angel": "bauchlage-heben"
+  "reverse-snow-angel": "bauchlage-heben",
+
+  // Unterer Rücken
+  "machine-back-extension": "rueckenstrecker",
+  "smith-machine-good-morning": "good-morning",
+  "wide-stance-smith-machine-good-morning": "good-morning",
+  "good-morning": "good-morning",
+  "dumbbell-good-morning": "good-morning",
+  "bodyweight-good-morning": "good-morning",
+  "smith-machine-deficit-romanian-deadlift": "rumaenisches-kreuzheben",
+  "cable-romanian-deadlift": "rumaenisches-kreuzheben",
+  "dumbbell-romanian-deadlift": "rumaenisches-kreuzheben",
+  "stiff-leg-deadlift": "rumaenisches-kreuzheben",
+  "single-leg-romanian-deadlift-eigen": "rumaenisches-kreuzheben",
+  "seated-cable-romanian-deadlift": "rudern",
+  "seated-single-leg-cable-romanian-deadlift": "rudern",
+  "seated-cable-deadlift": "rudern",
+  "shrug-machine-deadlift": "kreuzheben",
+  "rack-pull": "kreuzheben",
+  "jefferson-deadlift": "kreuzheben",
+  "sumo-deadlift": "sumo-kreuzheben"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

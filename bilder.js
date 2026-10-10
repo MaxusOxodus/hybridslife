@@ -213,7 +213,13 @@ const BILDER = {
   "seitstuetz": '<path class="g" d="M6 57h52"/><circle cx="15" cy="26" r="4"/><path d="M20 32l34 23M20 32l-2 23h9M21 31l3-15"/>',
 
   // Hip Thrust von der Seite: die Schultern auf der Bank, die Stange auf der Hüfte, die Hüfte oben
-  "hip-thrust": '<path class="g" d="M5 39h13M7 39v18M16 39v18M22 57h36"/><circle cx="12" cy="31" r="4"/><path d="M17 36h29l1 20"/><circle class="a" cx="33" cy="29" r="6"/><path class="a" d="M33 29h.01"/>'
+  "hip-thrust": '<path class="g" d="M5 39h13M7 39v18M16 39v18M22 57h36"/><circle cx="12" cy="31" r="4"/><path d="M17 36h29l1 20"/><circle class="a" cx="33" cy="29" r="6"/><path class="a" d="M33 29h.01"/>',
+
+  // Wadenheben stehend von der Seite: auf der Stufe, die Fersen gehen hoch
+  "wadenheben": '<path class="g" d="M27 50h20v7H27zM8 57h19"/><circle cx="31" cy="7" r="4"/><path d="M31 12v16l-2 16 6 5M31 15l3 13"/><circle class="a" cx="34" cy="32" r="4"/>',
+
+  // Wadenheben sitzend von der Seite: das Polster auf den Knien, die Fußballen auf dem Block
+  "wadenheben-sitzend": '<path class="g" d="M12 41h16M17 41v15M40 54h12v3M8 57h48"/><circle cx="20" cy="12" r="4"/><path d="M20 17l1 21h17l-1 12 6 4"/><rect class="a" x="30" y="30" width="11" height="5" rx="2.5"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -665,7 +671,28 @@ const BILD_ZU_UEBUNG = {
   "high-step-up": "step-up",
   "step-ups": "step-up",
   "deficit-reverse-lunge": "ausfallschritt",
-  "curtsy-lunge-eigen": "ausfallschritt"
+  "curtsy-lunge-eigen": "ausfallschritt",
+
+  // Waden
+  "wadenheben": "wadenheben",
+  "standing-smith-machine-calf-raise": "wadenheben",
+  "dumbbell-standing-calf-raise": "wadenheben",
+  "barbell-standing-calf-raise": "wadenheben",
+  "standing-calf-raise": "wadenheben",
+  "single-leg-standing-calf-raise": "wadenheben",
+  "donkey-calf-raise": "wadenheben",
+  "single-leg-calf-raise": "wadenheben",
+  "deficit-calf-raise": "wadenheben",
+  "bent-knee-calf-raise": "wadenheben",
+  "jumping-calf-raise": "wadenheben",
+  "pogo-jumps": "wadenheben",
+  "45-leg-press-calf-raise": "beinpresse",
+  "pin-loaded-leg-press-calf-jump": "beinpresse",
+  "single-leg-45-leg-press-calf-raise": "beinpresse",
+  "45-leg-press-calf-jump": "beinpresse",
+  "seated-calf-raise": "wadenheben-sitzend",
+  "dumbbell-seated-calf-raise": "wadenheben-sitzend",
+  "barbell-seated-calf-raise": "wadenheben-sitzend"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

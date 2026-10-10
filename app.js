@@ -3610,11 +3610,85 @@
     gewichtTitelSetzen("t-feld-gewicht", u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
     document.getElementById("modus-hinweis").textContent = gewichtErhoehenText(u);
-    document.getElementById("modus-letztesMal").textContent = letztesMalText(u.name, u.uebungId, u.eintragId) || txt("letztesMal.leer");
 
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
     modusSaetzeAnzeigen();
+    modusLetztesAnzeigen();
+  }
+
+  // Das letzte Training einer Übung: { datum, saetze, bester }. Ohne früheren Eintrag mit Sätzen: null.
+  // datum ist null, wenn der Eintrag keins hat. bester ist der Platz des Satzes mit dem höchsten
+  // geschätzten 1RM (bei Eigengewicht-Übungen mit dem Körpergewicht des Tages), der frühere gewinnt
+  // bei Gleichstand. Sind alle Sätze gleich stark, ist bester -1.
+  // ohneId lässt einen Eintrag aus: den der Übung, die gerade läuft.
+  function letztesTrainingDaten(name, id, ohneId) {
+    const e = letzterEintrag(name, id, ohneId);
+    if (!e) {
+      return null;
+    }
+    const saetze = saetzeVon(e);
+    if (saetze.length === 0) {
+      return null;
+    }
+
+    let datum = null;
+    let zusatz = 0;
+    if (hatDatum(e)) {
+      datum = new Date(e.datum);
+      zusatz = koerperZusatz(e.uebungId, datum);
+    }
+
+    let bester = 0;
+    let hoechstes = -Infinity;
+    let niedrigstes = Infinity;
+    for (let i = 0; i < saetze.length; i++) {
+      const wert = epley1RM(saetze[i].gewicht + zusatz, saetze[i].wdh);
+      if (wert > hoechstes) {
+        hoechstes = wert;
+        bester = i;
+      }
+      niedrigstes = Math.min(niedrigstes, wert);
+    }
+    if (hoechstes === niedrigstes) {
+      bester = -1;
+    }
+    return { datum: datum, saetze: saetze, bester: bester };
+  }
+
+  // Im Trainingsmodus: das letzte Training der gezeigten Übung als kleine Tabelle, eine Zeile je Satz.
+  // Ohne früheres Training steht dort nur ein kurzer Hinweis.
+  function modusLetztesAnzeigen() {
+    const bereich = document.getElementById("modus-letztes");
+    bereich.innerHTML = "";
+    const t = laufendesTraining;
+    if (!t || !t.uebungen[t.index]) {
+      return;
+    }
+    const u = t.uebungen[t.index];
+    const daten = letztesTrainingDaten(u.name, u.uebungId, u.eintragId);
+    if (!daten) {
+      bereich.appendChild(element("p", "letztes-mal", txt("letztesMal.leer")));
+      return;
+    }
+
+    let titel = txt("letztes.titel");
+    if (daten.datum) {
+      titel += " · " + datumMitJahr(daten.datum);
+    }
+    bereich.appendChild(element("h2", "abschnitt", titel));
+
+    const karte = element("div", "karte satz-liste");
+    for (let i = 0; i < daten.saetze.length; i++) {
+      const zeile = element("div", "letztes-zeile");
+      zeile.appendChild(element("span", "satz-nummer", i + 1));
+      zeile.appendChild(element("span", "satz-werte", satzText(daten.saetze[i])));
+      if (i === daten.bester) {
+        zeile.appendChild(element("span", "letztes-bestes", txt("letztes.bestes")));
+      }
+      karte.appendChild(zeile);
+    }
+    bereich.appendChild(karte);
   }
 
   // Der Balken oben füllt sich mit jeder Übung, die mindestens einen Satz hat
@@ -3922,7 +3996,9 @@
     }
   }
 
-  // Im Trainingsmodus: die schon eingetragenen Sätze der gezeigten Übung
+  // Im Trainingsmodus: die Sätze der gezeigten Übung als Tabelle mit Satz, Gewicht, Wdh. und Häkchen.
+  // Erst die erledigten Sätze (Antippen öffnet das Bearbeiten), dann der aktuelle, dann die offenen
+  // bis zum Ziel der Routine. Der aktuelle und die offenen zeigen in Grau das Wdh.-Ziel, ohne Ziel einen Strich.
   function modusSaetzeAnzeigen() {
     const bereich = document.getElementById("modus-saetze");
     bereich.innerHTML = "";
@@ -3930,13 +4006,69 @@
     if (!t || !t.uebungen[t.index]) {
       return;
     }
-    const eintrag = eintragFinden(t.uebungen[t.index].eintragId);
-    if (!eintrag || saetzeVon(eintrag).length === 0) {
-      return;
+    const u = t.uebungen[t.index];
+    const eintrag = eintragFinden(u.eintragId);
+    let saetze = [];
+    if (eintrag) {
+      saetze = saetzeVon(eintrag);
     }
+
+    // Nach dem letzten Ziel-Satz gibt es keinen aktuellen Satz, bis "+ Satz" einen weiteren startet
+    const ziel = u.zielSaetze || 0;
+    const zielErreicht = ziel > 0 && saetze.length >= ziel && !u.extraSatz;
+    let zeilen = Math.max(saetze.length, ziel);
+    if (!zielErreicht) {
+      zeilen = Math.max(saetze.length + 1, ziel);
+    }
+
+    let zielWdh = "–";
+    if (u.zielWdh) {
+      zielWdh = String(u.zielWdh);
+      if (wdhBis(u)) {
+        zielWdh += "–" + wdhBis(u);
+      }
+    }
+
     bereich.appendChild(element("h2", "abschnitt", txt("satz.deine")));
-    const karte = element("div", "karte satz-liste");
-    satzZeilenBauen(karte, eintrag);
+    const karte = element("div", "karte satz-tabelle");
+    const kopf = element("div", "satz-reihe kopf");
+    kopf.appendChild(element("span", "", txt("satz.spalte")));
+    kopf.appendChild(element("span", "", txt("gewicht")));
+    kopf.appendChild(element("span", "", txt("wdh")));
+    kopf.appendChild(element("span", ""));
+    karte.appendChild(kopf);
+
+    for (let i = 0; i < zeilen; i++) {
+      let zeile;
+      if (i < saetze.length) {
+        const satz = saetze[i];
+        zeile = element("button", "satz-reihe erledigt");
+        zeile.appendChild(element("span", "satz-nummer", i + 1));
+        zeile.appendChild(element("span", "", gewichtText(satz.gewicht)));
+        const wdh = element("span", "", satz.wdh);
+        if (rirLesen(satz.rir) !== null) {
+          wdh.appendChild(element("span", "satz-rir", rirText(satz.rir)));
+        }
+        zeile.appendChild(wdh);
+        const haken = element("span", "satz-haken", "✓");
+        haken.setAttribute("aria-hidden", "true");
+        zeile.appendChild(haken);
+        zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: i + 1 }) + ": " + satzText(satz));
+        zeile.onclick = function () {
+          satzSheetOeffnen(eintrag.id, i);
+        };
+      } else {
+        zeile = element("div", "satz-reihe offen");
+        if (i === saetze.length && !zielErreicht) {
+          zeile.className = "satz-reihe aktuell";
+        }
+        zeile.appendChild(element("span", "satz-nummer", i + 1));
+        zeile.appendChild(element("span", "", "–"));
+        zeile.appendChild(element("span", "", zielWdh));
+        zeile.appendChild(element("span", ""));
+      }
+      karte.appendChild(zeile);
+    }
     bereich.appendChild(karte);
   }
 
@@ -4140,6 +4272,7 @@
     gemerkteTrainingWerte = null;
     trainingMerken();
     modusZustandAnzeigen(true);
+    modusSaetzeAnzeigen();
   }
 
   // "Nächste Übung" oder "Übung überspringen": weiter zur nächsten Übung der Routine.

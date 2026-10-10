@@ -69,6 +69,7 @@ const TEXTE = {
   "satz.weniger": { de: "Ein Satz weniger", en: "One set less" },
   "satz.mehr": { de: "Ein Satz mehr", en: "One set more" },
   "satz.deine": { de: "Deine Sätze", en: "Your sets" },
+  "satz.spalte": { de: "Satz", en: "Set" },
   "satz.bearbeiten": { de: "Satz {n} bearbeiten", en: "Edit set {n}" },
   "satz.loeschen": { de: "Satz löschen", en: "Delete set" },
   "satz.loeschenFrage": { de: "Satz löschen?", en: "Delete set?" },
@@ -113,6 +114,8 @@ const TEXTE = {
   "log.tagLeer": { de: "Keine Einträge an diesem Tag.", en: "No entries on this day." },
   "letztesMal": { de: "Letztes Mal{datum}: {saetze}", en: "Last time{datum}: {saetze}" },
   "letztesMal.leer": { de: "Letztes Mal: noch kein Eintrag", en: "Last time: no entry yet" },
+  "letztes.titel": { de: "Letztes Training", en: "Last workout" },
+  "letztes.bestes": { de: "Bestes", en: "Best" },
   "eintrag.gleich.eins": { de: "1 Satz × {wdh} Wdh. à {gewicht}", en: "1 set × {wdh} reps at {gewicht}" },
   "eintrag.gleich.viele": { de: "{n} Sätze × {wdh} Wdh. à {gewicht}", en: "{n} sets × {wdh} reps at {gewicht}" },
 

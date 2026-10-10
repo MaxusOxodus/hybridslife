@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=33">
+  <link rel="stylesheet" href="style.css?v=34">
 </head>
 <body>
 
@@ -216,20 +216,23 @@
 
       <!-- Nach dem letzten Ziel-Satz: weiter zur nächsten Übung oder noch ein Satz -->
       <div id="modus-wahl" class="versteckt">
-        <button id="modus-wahl-weiter" class="speichern-btn gross" onclick="uebungBeenden()">Nächste Übung</button>
+        <button id="modus-wahl-weiter" class="speichern-btn" onclick="uebungBeenden()">Nächste Übung</button>
         <button class="zweit-btn" onclick="extraSatzStarten()" data-t="modus.extraSatz">+ Satz</button>
       </div>
 
-      <button id="modus-weiter" class="zweit-btn" onclick="uebungBeenden()">Übung überspringen</button>
-      <!-- Gerät besetzt oder nicht da: die Übung für dieses Training gegen eine andere tauschen -->
-      <button id="modus-tausch" class="zweit-btn leise" onclick="tauschOeffnen()" data-t="tausch.knopf">⇄ Übung tauschen</button>
+      <!-- Die zwei kleinen Buttons nebeneinander: links tauschen (Gerät besetzt oder nicht da), rechts weiter zur nächsten Übung -->
+      <div class="modus-neben">
+        <button id="modus-tausch" class="zweit-btn leise" onclick="tauschOeffnen()" data-t="tausch.knopf">⇄ Übung tauschen</button>
+        <button id="modus-weiter" class="klein-btn" onclick="uebungBeenden()">Übung überspringen</button>
+      </div>
 
-      <!-- Die schon eingetragenen Sätze der Übung: Antippen öffnet das Bearbeiten. Die Zeilen baut die app.js. -->
+      <!-- Die Sätze der Übung als Tabelle: erledigte (Antippen öffnet das Bearbeiten), der aktuelle und die offenen. Die Zeilen baut die app.js. -->
       <div id="modus-saetze"></div>
 
       <p id="modus-ziel" class="modus-ziel"></p>
       <p id="modus-hinweis" class="modus-hinweis"></p>
-      <p id="modus-letztesMal" class="letztes-mal"></p>
+      <!-- Das letzte Training dieser Übung als kleine Tabelle. Die Zeilen baut die app.js. -->
+      <div id="modus-letztes"></div>
     </div>
 
     <!-- Ansicht: Zusammenfassung nach dem Training -->
@@ -829,10 +832,10 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=33"></script>
-<script src="uebungen.js?v=33"></script>
-<script src="raenge.js?v=33"></script>
-<script src="app.js?v=33"></script>
+<script src="texte.js?v=34"></script>
+<script src="uebungen.js?v=34"></script>
+<script src="raenge.js?v=34"></script>
+<script src="app.js?v=34"></script>
 
 </body>
 </html>

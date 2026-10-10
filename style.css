@@ -2619,6 +2619,153 @@ button.einst-zeile:first-child {
   overflow-wrap: anywhere;
 }
 
+/* Die Sätze im Trainingsmodus als Tabelle: Satz, Gewicht, Wdh., Häkchen. Jede Reihe hat dieselben vier Spalten. */
+.satz-tabelle {
+  padding: 4px 0;
+  overflow: hidden;
+}
+
+.satz-reihe {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1.2fr) minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  padding: 6px 14px 6px 11px;
+  border: none;
+  border-left: 3px solid transparent;
+  background: none;
+  color: var(--text);
+  font-size: 17px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.satz-reihe + .satz-reihe {
+  border-top: 1px solid var(--rand);
+}
+
+.satz-reihe.kopf {
+  min-height: 32px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Der aktuelle Satz: Balken links, leichte Fläche, fette Nummer */
+.satz-reihe.aktuell {
+  border-left-color: var(--akzent-text);
+  background: var(--akzent-leicht);
+  color: var(--text-leise);
+}
+
+.satz-reihe.aktuell .satz-nummer {
+  color: var(--akzent-text);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Offene Sätze: niedriger und alles in leiser Farbe */
+.satz-reihe.offen {
+  min-height: 40px;
+  color: var(--text-leise);
+  font-size: 15px;
+}
+
+.satz-reihe.erledigt {
+  font-weight: 600;
+}
+
+.satz-haken {
+  color: var(--akzent-text);
+  font-weight: 700;
+  text-align: right;
+}
+
+.satz-rir {
+  margin-left: 8px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* "Letztes Training" im Trainingsmodus: eine Zeile je Satz, die beste dezent markiert */
+.letztes-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  padding: 6px 0;
+  font-size: 16px;
+}
+
+.letztes-zeile + .letztes-zeile {
+  border-top: 1px solid var(--rand);
+}
+
+.letztes-bestes {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Nach dem letzten Ziel-Satz: "Nächste Übung" und "+ Satz" nebeneinander, beide in normaler Höhe */
+#modus-wahl {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+#modus-wahl .speichern-btn {
+  flex: 2;
+  min-height: 54px;
+  margin-top: 0;
+}
+
+#modus-wahl .zweit-btn {
+  flex: 1;
+  width: auto;
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+/* Die zwei kleinen Buttons unter der Eingabe: links "Übung tauschen", rechts "Nächste Übung" */
+.modus-neben {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+  margin-top: 10px;
+}
+
+.modus-neben .zweit-btn.leise {
+  width: auto;
+  min-height: 44px;
+  margin-top: 0;
+  padding: 8px 4px;
+  font-size: 15px;
+}
+
+/* Kleiner, ruhiger Button, z. B. "Nächste Übung" im Trainingsmodus */
+.klein-btn {
+  min-height: 44px;
+  margin-left: auto;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--karte);
+  color: var(--akzent-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
 /* Die Zahlenfelder im Sheet "Satz bearbeiten" */
 #satz-sheet .zahl-feld {
   background: var(--fuellung);

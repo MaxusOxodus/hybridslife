@@ -2841,6 +2841,12 @@ button.einst-zeile:first-child {
   overflow-wrap: anywhere;
 }
 
+/* Die Liste "Diese Übungen zählen": Zeilen nur zum Lesen, deshalb flacher als die zum Antippen */
+#muster-sheet-liste .sheet-zeile {
+  min-height: 0;
+  padding: 12px 0;
+}
+
 /* Die Abzeichen: drei Spalten. Offene sind grau, erreichte grün. */
 .abzeichen-raster {
   display: grid;

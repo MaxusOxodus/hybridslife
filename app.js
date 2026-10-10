@@ -5453,7 +5453,7 @@
     }
   }
 
-  // Öffnet eines der Sheets ("verlauf-sheet", "gewicht-sheet", "uebungen-sheet", "tag-sheet" oder "satz-sheet")
+  // Öffnet eines der Sheets ("verlauf-sheet", "gewicht-sheet", "uebungen-sheet", "tag-sheet", "satz-sheet" oder "muster-sheet")
   function zusatzSheetOeffnen(id) {
     document.getElementById(id).classList.add("offen");
     document.getElementById("zusatz-hintergrund").classList.add("offen");
@@ -5467,6 +5467,7 @@
     document.getElementById("tag-sheet").classList.remove("offen");
     document.getElementById("satz-sheet").classList.remove("offen");
     document.getElementById("kraft-sheet").classList.remove("offen");
+    document.getElementById("muster-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
     document.body.classList.remove("sheet-offen");
   }
@@ -7655,7 +7656,7 @@
     inhalt.appendChild(element("h2", "abschnitt", txt("rang.muster")));
     const muster = element("div", "muster-raster");
     for (let i = 0; i < MUSTER.length; i++) {
-      muster.appendChild(musterKarte(MUSTER[i], stand.kraft.muster[MUSTER[i]]));
+      muster.appendChild(musterKarte(MUSTER[i], stand.kraft.muster[MUSTER[i]], stand.gruende[MUSTER[i]]));
     }
     inhalt.appendChild(muster);
 
@@ -7699,6 +7700,7 @@
   // zahlen:     Workouts, Volumen und Serie wie überall in der App
   // konstanzRp: die Rangpunkte der Serie
   // messungen:  die Zahl der Körpergewicht-Messungen
+  // gruende:    zu jedem Muster ohne Wert, warum es leer ist (siehe musterGruende)
   function rangStand() {
     const jetzt = Date.now();
     const messungen = gewichtMessungen();
@@ -7719,11 +7721,68 @@
     return {
       uebungen: uebungen,
       kraft: kraft,
+      gruende: musterGruende(uebungen, kraft, messungen.length, jetzt),
       schritt: naechsterSchritt(kraft),
       zahlen: zahlen,
       konstanzRp: rpAusSchwellen(zahlen.serie, KONSTANZ_SCHWELLEN),
       messungen: messungen.length
     };
+  }
+
+  // Was eine Übung in den letzten BESTWERT_TAGE Tagen an Sätzen hat, ohne auf die Last zu schauen:
+  // saetze = es gibt Sätze, wdhPasst = mindestens einer hat 1 bis 10 Wiederholungen.
+  function rangSaetzeZuletzt(name, id, jetzt) {
+    const stand = { saetze: false, wdhPasst: false };
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (!hatDatum(e) || typeof e.uebung !== "string" || !gleicheUebung(e, name, id)) {
+        continue;
+      }
+      // Der Tag zählt wie in verlaufPunkte ab Mitternacht
+      const datum = new Date(e.datum);
+      const zeit = new Date(datum.getFullYear(), datum.getMonth(), datum.getDate()).getTime();
+      if (zeit <= jetzt - BESTWERT_TAGE * TAG_MS || zeit > jetzt) {
+        continue;
+      }
+      const saetze = saetzeVon(e);
+      for (let j = 0; j < saetze.length; j++) {
+        stand.saetze = true;
+        if (saetze[j].wdh >= RANG_WDH_MIN && saetze[j].wdh <= RANG_WDH_MAX) {
+          stand.wdhPasst = true;
+        }
+      }
+    }
+    return stand;
+  }
+
+  // Warum ein Muster keinen Wert hat, obwohl eine Übung dafür trainiert wurde. Zu jedem leeren Muster
+  // kommt null (nichts Passendes trainiert) oder { art, uebungId }:
+  // art "koerper": eine Eigengewicht-Übung mit passenden Sätzen, aber es gibt keine Körpergewicht-Messung.
+  //                Ohne Messung ist ihre Last 0, deshalb fehlt sie in der Rechnung.
+  // art "wdh":     eine Übung des Musters ist eingetragen, aber kein Satz hat 1 bis 10 Wiederholungen.
+  // uebungen und kraft kommen aus rangStand, messungen ist die Zahl der Körpergewicht-Messungen.
+  function musterGruende(uebungen, kraft, messungen, jetzt) {
+    const gruende = {};
+    for (let i = 0; i < MUSTER.length; i++) {
+      gruende[MUSTER[i]] = null;
+    }
+    for (let i = 0; i < uebungen.length; i++) {
+      const u = uebungen[i];
+      if (!u.rang || kraft.muster[u.rang.muster] !== null) {
+        continue;
+      }
+      const stand = rangSaetzeZuletzt(u.name, u.id, jetzt);
+      const bisher = gruende[u.rang.muster];
+      if (stand.wdhPasst && messungen === 0 && istEigengewicht(u.id)) {
+        // Das fehlende Körpergewicht geht vor: Mit einer Messung hätte das Muster sofort einen Wert
+        if (!bisher || bisher.art !== "koerper") {
+          gruende[u.rang.muster] = { art: "koerper", uebungId: u.id };
+        }
+      } else if (stand.saetze && !stand.wdhPasst && !bisher) {
+        gruende[u.rang.muster] = { art: "wdh", uebungId: u.id };
+      }
+    }
+    return gruende;
   }
 
   // Alle Abzeichen mit ihrem Stand. Jedes hat: id, erreicht, datum (ISO-Text, "" = unbekannt),
@@ -8067,13 +8126,26 @@
   }
 
   // Die Karte eines Bewegungsmusters: Rang, Balken und die Übung, aus der der Wert stammt.
-  // Antippen öffnet den Verlauf dieser Übung. Ohne Wert steht da, womit sich das Muster füllen lässt.
-  function musterKarte(id, m) {
+  // Antippen öffnet den Verlauf dieser Übung. Ohne Wert steht da, warum er fehlt (grund aus musterGruende)
+  // oder womit sich das Muster füllen lässt. Antippen öffnet dann die Liste der Übungen, die zählen.
+  function musterKarte(id, m, grund) {
     if (!m) {
-      const leer = element("div", "karte muster-karte leer");
+      const leer = element("button", "karte muster-karte leer");
       leer.appendChild(element("div", "kachel-titel", txt("muster." + id)));
-      leer.appendChild(element("div", "muster-rang", txt("muster.leer")));
-      leer.appendChild(element("div", "muster-aus", txt("muster.beispiel", { uebung: uebungName(MUSTER_REFERENZ[id]) })));
+      if (grund && grund.art === "koerper") {
+        leer.appendChild(element("div", "muster-rang", "–"));
+        leer.appendChild(element("div", "muster-aus", txt("muster.ohneKoerper")));
+        leer.appendChild(element("div", "muster-aus", txt("muster.aus", { uebung: uebungName(grund.uebungId) })));
+      } else if (grund && grund.art === "wdh") {
+        leer.appendChild(element("div", "muster-rang", txt("muster.leer")));
+        leer.appendChild(element("div", "muster-aus", txt("muster.nurWdh", { von: RANG_WDH_MIN, bis: RANG_WDH_MAX })));
+      } else {
+        leer.appendChild(element("div", "muster-rang", txt("muster.leer")));
+        leer.appendChild(element("div", "muster-aus", txt("muster.beispiel", { uebung: uebungName(MUSTER_REFERENZ[id]) })));
+      }
+      leer.onclick = function () {
+        musterListeOeffnen(id);
+      };
       return leer;
     }
 
@@ -8091,6 +8163,30 @@
       verlaufOeffnen(uebungName(m.uebungId), m.uebungId);
     };
     return karte;
+  }
+
+  // Öffnet die Liste "Diese Übungen zählen" für ein Muster. Sie entsteht aus den rang-Feldern der uebungen.js,
+  // die Referenz-Übung steht oben, die anderen folgen nach dem Alphabet.
+  function musterListeOeffnen(id) {
+    const namen = [];
+    for (let i = 0; i < UEBUNGEN.length; i++) {
+      if (UEBUNGEN[i].rang && UEBUNGEN[i].rang.muster === id && UEBUNGEN[i].id !== MUSTER_REFERENZ[id]) {
+        namen.push(UEBUNGEN[i][sprache]);
+      }
+    }
+    namen.sort(function (a, b) {
+      return a.localeCompare(b, sprache);
+    });
+    namen.unshift(uebungName(MUSTER_REFERENZ[id]));
+
+    document.getElementById("muster-sheet-titel").textContent = txt("muster." + id);
+    const liste = document.getElementById("muster-sheet-liste");
+    liste.innerHTML = "";
+    liste.appendChild(element("p", "meldung", txt("muster.listeText", { von: RANG_WDH_MIN, bis: RANG_WDH_MAX })));
+    for (let i = 0; i < namen.length; i++) {
+      liste.appendChild(element("div", "sheet-zeile", namen[i]));
+    }
+    zusatzSheetOeffnen("muster-sheet");
   }
 
   // Der Name eines Abzeichens, z. B. "50 Workouts", "100 t bewegt" oder "Allrounder"
@@ -8170,6 +8266,13 @@
         bestwert: kraftText(ausKg(f.bestwert)),
         prozent: prozentText(f.steigerung)
       })));
+    }
+    // Zählt die Übung für einen Kraft-Rang? Übungen ohne rang-Feld, eigene Übungen und Einträge ohne ID zählen nicht.
+    const fest = UEBUNG_NACH_ID[id];
+    if (fest && fest.rang) {
+      karte.appendChild(element("div", "routine-info", txt("rang.zaehltFuer", { muster: txt("muster." + fest.rang.muster) })));
+    } else {
+      karte.appendChild(element("div", "routine-info", txt("rang.zaehltNicht")));
     }
     bereich.appendChild(karte);
   }

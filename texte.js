@@ -616,6 +616,11 @@ const TEXTE = {
   "muster.leer": { de: "Noch kein Wert", en: "No value yet" },
   "muster.beispiel": { de: "Fehlt noch, z. B. {uebung}", en: "Still missing, e.g. {uebung}" },
   "muster.ohneKoerper": { de: "Körpergewicht fehlt", en: "Body weight missing" },
+  "muster.nurWdh": { de: "Nur Sätze mit {von} bis {bis} Wdh. zählen", en: "Only sets with {von} to {bis} reps count" },
+  "muster.listeText": {
+    de: "Diese Übungen zählen für das Muster, mit Sätzen von {von} bis {bis} Wdh. Alle anderen haben nur einen Fortschritts-Rang.",
+    en: "These exercises count for this pattern, with sets of {von} to {bis} reps. All others only have a progress rank."
+  },
 
   "rang.muster": { de: "Bewegungsmuster", en: "Movement patterns" },
   "rang.gesamt": { de: "Gesamt-Kraftrang", en: "Overall strength rank" },
@@ -669,6 +674,8 @@ const TEXTE = {
     de: "Ab {n} Trainingstagen mit Sätzen von 1 bis 10 Wdh., davon einer in den letzten {tage} Tagen.",
     en: "From {n} training days with sets of 1 to 10 reps, one of them in the last {tage} days."
   },
+  "rang.zaehltFuer": { de: "Zählt für: {muster}", en: "Counts for: {muster}" },
+  "rang.zaehltNicht": { de: "Zählt nicht in den Kraft-Rang", en: "Does not count for the strength rank" },
   "rang.hinweis": {
     de: "Ränge sind Richtwerte und vergleichen Kraft im Verhältnis zum Körpergewicht.",
     en: "Ranks are rough guides and compare strength relative to body weight."

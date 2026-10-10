@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=31">
+  <link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
 
@@ -539,6 +539,16 @@
     <div id="uebungen-sheet-liste" class="zusatz-inhalt"></div>
   </div>
 
+  <!-- Sheet: die Übungen, die für ein Bewegungsmuster zählen. Titel und Liste füllt die app.js. -->
+  <div id="muster-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span id="muster-sheet-titel" class="sheet-titel"></span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+    </div>
+    <div id="muster-sheet-liste" class="zusatz-inhalt"></div>
+  </div>
+
   <!-- Sheet: ein Trainingstag mit allen Übungen und Sätzen. Den Inhalt füllt die app.js. -->
   <div id="tag-sheet" class="zusatz-sheet">
     <div class="sheet-griff"></div>
@@ -804,10 +814,10 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=31"></script>
-<script src="uebungen.js?v=31"></script>
-<script src="raenge.js?v=31"></script>
-<script src="app.js?v=31"></script>
+<script src="texte.js?v=32"></script>
+<script src="uebungen.js?v=32"></script>
+<script src="raenge.js?v=32"></script>
+<script src="app.js?v=32"></script>
 
 </body>
 </html>

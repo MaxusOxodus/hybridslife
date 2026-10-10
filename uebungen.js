@@ -60,6 +60,15 @@ const MUSKELN = {
   "ganzkoerper": { de: "Ganzkörper", en: "Full Body", gruppe: "ganzkoerper" }
 };
 
+// Geschätzte Faktoren für Kraft-Ränge. Für diese Übungen gibt es keinen abgestimmten Wert, deshalb stehen sie
+// hier oben und lassen sich an einer Stelle ändern. Ein höherer Faktor ergibt einen niedrigeren Rang.
+// Die einarmigen Übungen am Kabelzug und die Meadows Row zählen "normal": Das eingetragene Gewicht gilt,
+// wie es ist ("proSeite" rechnet genauso, schreibt aber "pro Hantel" über das Gewichtsfeld).
+const FAKTOR_LATZUG_EINARMIG = 0.45;         // halber Latzug (0,85 ÷ 2), aufgerundet
+const FAKTOR_KABELRUDERN_EINARMIG = 0.50;    // halbes Rudern am Kabelzug (0,90 ÷ 2), aufgerundet
+const FAKTOR_MEADOWS_ROW = 0.75;             // einarmig an der Landmine: mehr Gewicht als beim Kurzhantelrudern (0,65)
+const FAKTOR_KH_RUDERN_BRUSTAUFLAGE = 0.80;  // zwei Kurzhanteln zusammen, wie Bankdrücken (Kurzhantel)
+
 // Alle Übungen. Jede Übung steht hier genau einmal, auch wenn sie bei mehreren Muskelgruppen erscheint.
 // id:      feste Kennung. Sie wird in Einträgen und Routinen gespeichert und darf sich nie ändern.
 // bereich: "maschine", "frei" oder "eigen". Bei "eigen" zählen meist nur die Wiederholungen,
@@ -160,15 +169,15 @@ const UEBUNGEN = [
 
   // ---------- Latissimus: Maschine ----------
   { id: "latzug", de: "Latzug", en: "Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: ["bizeps", "ruecken-oben"], auch: [], rang: { muster: "ziehenV", faktor: 0.85, zaehlung: "normal" } },
-  { id: "wide-grip-cable-lat-pulldown", de: "Latzug breit am Kabelzug", en: "Wide Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
-  { id: "overhand-grip-cable-lat-pulldown", de: "Latzug im Obergriff am Kabelzug", en: "Overhand Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
+  { id: "wide-grip-cable-lat-pulldown", de: "Latzug breit am Kabelzug", en: "Wide Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.85, zaehlung: "normal" } },
+  { id: "overhand-grip-cable-lat-pulldown", de: "Latzug im Obergriff am Kabelzug", en: "Overhand Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.85, zaehlung: "normal" } },
   { id: "machine-lat-pulldown", de: "Latzug-Maschine", en: "Machine Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.85, zaehlung: "normal" } },
   { id: "cable-lat-pulldown", de: "Latzug am Kabelzug", en: "Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.85, zaehlung: "normal" } },
   { id: "neutral-close-grip-cable-lat-pulldown", de: "Latzug eng im Neutralgriff am Kabelzug", en: "Neutral Close Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.88, zaehlung: "normal" } },
-  { id: "underhand-wide-grip-cable-lat-pulldown", de: "Latzug breit im Untergriff am Kabelzug", en: "Underhand Wide Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
+  { id: "underhand-wide-grip-cable-lat-pulldown", de: "Latzug breit im Untergriff am Kabelzug", en: "Underhand Wide Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.88, zaehlung: "normal" } },
   { id: "underhand-close-grip-cable-lat-pulldown", de: "Latzug eng im Untergriff am Kabelzug", en: "Underhand Close Grip Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 0.88, zaehlung: "normal" } },
-  { id: "half-kneeling-single-arm-elbow-lat-pulldown", de: "Latzug einarmig am Kabelzug, halbkniend", en: "Half-Kneeling Single Arm Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], alias: ["Half-Kneeling Single Arm Elbow-Lat Pulldown"] },
-  { id: "single-arm-cable-lat-pulldown", de: "Latzug einarmig am Kabelzug", en: "Single Arm Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
+  { id: "half-kneeling-single-arm-elbow-lat-pulldown", de: "Latzug einarmig am Kabelzug, halbkniend", en: "Half-Kneeling Single Arm Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], alias: ["Half-Kneeling Single Arm Elbow-Lat Pulldown"], rang: { muster: "ziehenV", faktor: FAKTOR_LATZUG_EINARMIG, zaehlung: "normal" } },
+  { id: "single-arm-cable-lat-pulldown", de: "Latzug einarmig am Kabelzug", en: "Single Arm Cable Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: FAKTOR_LATZUG_EINARMIG, zaehlung: "normal" } },
   { id: "kneeling-cable-straight-arm-lat-pulldown", de: "Latzug mit gestreckten Armen am Kabelzug, kniend", en: "Kneeling Cable Straight Arm Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
   { id: "cable-rope-straight-arm-lat-pulldown", de: "Latzug mit gestreckten Armen am Kabelzug (Seil)", en: "Cable Rope Straight Arm Lat Pulldown", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
   { id: "cross-body-cable-lat-pull-around", de: "Lat Pull-Around am Kabelzug", en: "Cross-Body Cable Lat Pull-Around", bereich: "maschine", haupt: "lat", hilfs: [], auch: [] },
@@ -180,19 +189,19 @@ const UEBUNGEN = [
   { id: "kurzhantelrudern", de: "Kurzhantelrudern", en: "Dumbbell Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben", "bizeps"], auch: [], alias: ["One-Arm Dumbbell Row", "Kurzhantelrudern einarmig"], rang: { muster: "ziehenH", faktor: 0.65, zaehlung: "proSeite" } },
   { id: "dumbbell-pullover", de: "Überzüge (Kurzhantel)", en: "Dumbbell Pullover", bereich: "frei", haupt: "lat", hilfs: [], auch: [] },
   { id: "barbell-pullover", de: "Überzüge (Langhantel)", en: "Barbell Pullover", bereich: "frei", haupt: "lat", hilfs: [], auch: [] },
-  { id: "meadows-row", de: "Meadows Row", en: "Meadows Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
-  { id: "pendlay-row", de: "Pendlay Row", en: "Pendlay Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
-  { id: "underhand-barbell-row", de: "Langhantelrudern im Untergriff", en: "Underhand Barbell Row", bereich: "frei", haupt: "lat", hilfs: [], auch: [] },
-  { id: "landmine-row", de: "Landmine Row", en: "Landmine Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
+  { id: "meadows-row", de: "Meadows Row", en: "Meadows Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [], rang: { muster: "ziehenH", faktor: FAKTOR_MEADOWS_ROW, zaehlung: "normal" } },
+  { id: "pendlay-row", de: "Pendlay Row", en: "Pendlay Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "underhand-barbell-row", de: "Langhantelrudern im Untergriff", en: "Underhand Barbell Row", bereich: "frei", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1.05, zaehlung: "normal" } },
+  { id: "landmine-row", de: "Landmine Row", en: "Landmine Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
   { id: "seal-row", de: "Seal Row", en: "Seal Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [], alias: ["Dumbbell Seal Row", "Seal Row (Kurzhantel)"] },
-  { id: "chest-supported-dumbbell-row", de: "Kurzhantelrudern mit Brustauflage", en: "Chest-Supported Dumbbell Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [] },
+  { id: "chest-supported-dumbbell-row", de: "Kurzhantelrudern mit Brustauflage", en: "Chest-Supported Dumbbell Row", bereich: "frei", haupt: "lat", hilfs: ["ruecken-oben"], auch: [], rang: { muster: "ziehenH", faktor: FAKTOR_KH_RUDERN_BRUSTAUFLAGE, zaehlung: "summe" } },
 
   // ---------- Latissimus: Eigengewicht ----------
   { id: "klimmzuege", de: "Klimmzüge", en: "Pull-Up", bereich: "eigen", haupt: "lat", hilfs: ["bizeps", "ruecken-oben"], auch: [], rang: { muster: "ziehenV", faktor: 1, zaehlung: "koerpergewicht" } },
-  { id: "wide-grip-pull-up", de: "Breite Klimmzüge", en: "Wide-Grip Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
-  { id: "neutral-grip-pull-up", de: "Klimmzüge im Neutralgriff", en: "Neutral-Grip Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
+  { id: "wide-grip-pull-up", de: "Breite Klimmzüge", en: "Wide-Grip Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 1, zaehlung: "koerpergewicht" } },
+  { id: "neutral-grip-pull-up", de: "Klimmzüge im Neutralgriff", en: "Neutral-Grip Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [], rang: { muster: "ziehenV", faktor: 1.05, zaehlung: "koerpergewicht" } },
   { id: "chin-up", de: "Klimmzüge im Untergriff", en: "Chin-Up", bereich: "eigen", haupt: "lat", hilfs: ["bizeps"], auch: [], rang: { muster: "ziehenV", faktor: 1.05, zaehlung: "koerpergewicht" } },
-  { id: "close-grip-chin-up", de: "Enge Klimmzüge im Untergriff", en: "Close-Grip Chin-Up", bereich: "eigen", haupt: "lat", hilfs: ["bizeps"], auch: [] },
+  { id: "close-grip-chin-up", de: "Enge Klimmzüge im Untergriff", en: "Close-Grip Chin-Up", bereich: "eigen", haupt: "lat", hilfs: ["bizeps"], auch: [], rang: { muster: "ziehenV", faktor: 1.05, zaehlung: "koerpergewicht" } },
   { id: "commando-pull-up", de: "Commando-Klimmzüge", en: "Commando Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
   { id: "archer-pull-up", de: "Archer-Klimmzüge", en: "Archer Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
   { id: "typewriter-pull-up", de: "Typewriter-Klimmzüge", en: "Typewriter Pull-Up", bereich: "eigen", haupt: "lat", hilfs: [], auch: [] },
@@ -204,33 +213,33 @@ const UEBUNGEN = [
 
   // ---------- Oberer Rücken: Maschine ----------
   { id: "kabelrudern", de: "Rudern am Kabelzug", en: "Seated Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: ["lat", "bizeps"], auch: [], rang: { muster: "ziehenH", faktor: 0.9, zaehlung: "normal" } },
-  { id: "chest-supported-overhand-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, Obergriff", en: "Chest-Supported Overhand Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "chest-supported-neutral-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, Neutralgriff", en: "Chest-Supported Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "chest-supported-semi-neutral-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, halbneutraler Griff", en: "Chest-Supported Semi-Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "chest-supported-wide-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, breit", en: "Chest-Supported Wide Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "neutral-wide-grip-cable-row", de: "Rudern am Kabelzug, breit im Neutralgriff", en: "Neutral Wide Grip Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "wide-grip-cable-row", de: "Rudern am Kabelzug, breit", en: "Wide Grip Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "underhand-grip-cable-row", de: "Rudern am Kabelzug, Untergriff", en: "Underhand Grip Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "neutral-grip-machine-row", de: "Rudermaschine, Neutralgriff", en: "Neutral Grip Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "standing-single-arm-cable-row", de: "Rudern am Kabelzug, einarmig stehend", en: "Standing Single Arm Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "seated-single-arm-cable-row", de: "Rudern am Kabelzug, einarmig sitzend", en: "Seated Single Arm Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
+  { id: "chest-supported-overhand-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, Obergriff", en: "Chest-Supported Overhand Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "chest-supported-neutral-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, Neutralgriff", en: "Chest-Supported Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "chest-supported-semi-neutral-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, halbneutraler Griff", en: "Chest-Supported Semi-Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "chest-supported-wide-grip-t-bar-row", de: "T-Bar-Rudern mit Brustauflage, breit", en: "Chest-Supported Wide Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "neutral-wide-grip-cable-row", de: "Rudern am Kabelzug, breit im Neutralgriff", en: "Neutral Wide Grip Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 0.9, zaehlung: "normal" } },
+  { id: "wide-grip-cable-row", de: "Rudern am Kabelzug, breit", en: "Wide Grip Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 0.9, zaehlung: "normal" } },
+  { id: "underhand-grip-cable-row", de: "Rudern am Kabelzug, Untergriff", en: "Underhand Grip Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 0.9, zaehlung: "normal" } },
+  { id: "neutral-grip-machine-row", de: "Rudermaschine, Neutralgriff", en: "Neutral Grip Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 0.9, zaehlung: "normal" } },
+  { id: "standing-single-arm-cable-row", de: "Rudern am Kabelzug, einarmig stehend", en: "Standing Single Arm Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: FAKTOR_KABELRUDERN_EINARMIG, zaehlung: "normal" } },
+  { id: "seated-single-arm-cable-row", de: "Rudern am Kabelzug, einarmig sitzend", en: "Seated Single Arm Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: FAKTOR_KABELRUDERN_EINARMIG, zaehlung: "normal" } },
   { id: "cable-rope-high-row", de: "High Row am Kabelzug (Seil)", en: "Cable Rope High Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "neutral-grip-plate-loaded-machine-row", de: "Rudermaschine, Neutralgriff (Scheibengewicht)", en: "Neutral Grip Plate-Loaded Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "wide-grip-plate-loaded-machine-row", de: "Rudermaschine, breit (Scheibengewicht)", en: "Wide Grip Plate-Loaded Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "smith-machine-row", de: "Rudern an der Multipresse", en: "Smith Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "smith-machine-deficit-row", de: "Defizit-Rudern an der Multipresse", en: "Smith Machine Deficit Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "smith-machine-pendlay-row", de: "Pendlay Row an der Multipresse", en: "Smith Machine Pendlay Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "bent-over-neutral-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, Neutralgriff", en: "Bent-Over Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "bent-over-underhand-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, Untergriff", en: "Bent-Over Underhand Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "bent-over-semi-neutral-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, halbneutraler Griff", en: "Bent-Over Semi-Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
-  { id: "bent-over-wide-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, breit", en: "Bent-Over Wide Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
+  { id: "neutral-grip-plate-loaded-machine-row", de: "Rudermaschine, Neutralgriff (Scheibengewicht)", en: "Neutral Grip Plate-Loaded Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "wide-grip-plate-loaded-machine-row", de: "Rudermaschine, breit (Scheibengewicht)", en: "Wide Grip Plate-Loaded Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "smith-machine-row", de: "Rudern an der Multipresse", en: "Smith Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "smith-machine-deficit-row", de: "Defizit-Rudern an der Multipresse", en: "Smith Machine Deficit Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "smith-machine-pendlay-row", de: "Pendlay Row an der Multipresse", en: "Smith Machine Pendlay Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "bent-over-neutral-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, Neutralgriff", en: "Bent-Over Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "bent-over-underhand-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, Untergriff", en: "Bent-Over Underhand Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "bent-over-semi-neutral-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, halbneutraler Griff", en: "Bent-Over Semi-Neutral Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
+  { id: "bent-over-wide-grip-t-bar-row", de: "T-Bar-Rudern vorgebeugt, breit", en: "Bent-Over Wide Grip T-Bar Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
   { id: "pin-loaded-row-machine", de: "Rudermaschine (Steckgewicht)", en: "Pin-Loaded Machine Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [], alias: ["Pin-Loaded Row Machine"], rang: { muster: "ziehenH", faktor: 0.9, zaehlung: "normal" } },
   { id: "moto-cable-row", de: "Moto Row am Kabelzug", en: "Moto Cable Row", bereich: "maschine", haupt: "ruecken-oben", hilfs: [], auch: [] },
 
   // ---------- Oberer Rücken: Freie Gewichte ----------
   { id: "langhantelrudern", de: "Langhantelrudern", en: "Barbell Row", bereich: "frei", haupt: "ruecken-oben", hilfs: ["lat", "bizeps", "ruecken-unten"], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
   { id: "t-bar-rudern", de: "T-Bar-Rudern", en: "T-Bar Row", bereich: "frei", haupt: "ruecken-oben", hilfs: ["lat", "bizeps"], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
-  { id: "wide-grip-barbell-row", de: "Breites Langhantelrudern", en: "Wide-Grip Barbell Row", bereich: "frei", haupt: "ruecken-oben", hilfs: [], auch: [] },
+  { id: "wide-grip-barbell-row", de: "Breites Langhantelrudern", en: "Wide-Grip Barbell Row", bereich: "frei", haupt: "ruecken-oben", hilfs: [], auch: [], rang: { muster: "ziehenH", faktor: 1, zaehlung: "normal" } },
   { id: "dumbbell-rear-delt-row", de: "Rear Delt Row (Kurzhantel)", en: "Dumbbell Rear Delt Row", bereich: "frei", haupt: "ruecken-oben", hilfs: ["schulter-hinten"], auch: [] },
 
   // ---------- Oberer Rücken: Eigengewicht ----------

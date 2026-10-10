@@ -246,7 +246,10 @@ const BILDER = {
   "seitbeugen": '<circle cx="38" cy="13" r="4"/><path d="M36 18l-4 20M32 38l-5 19M32 38l5 19M36 22l8 15M35 22l-10 8"/><rect class="a" x="41" y="38" width="6" height="10" rx="3"/>',
 
   // Russian Twist von der Seite: sitzend zurückgelehnt, die Füße in der Luft, das Gewicht vor dem Bauch
-  "russian-twist": '<path class="g" d="M5 55h54"/><circle cx="15" cy="26" r="4"/><path d="M18 31l10 20 12-11 12 6M19 35l12 1"/><circle class="a" cx="35" cy="36" r="4.5"/><path class="a" d="M35 36h.01"/>'
+  "russian-twist": '<path class="g" d="M5 55h54"/><circle cx="15" cy="26" r="4"/><path d="M18 31l10 20 12-11 12 6M19 35l12 1"/><circle class="a" cx="35" cy="36" r="4.5"/><path class="a" d="M35 36h.01"/>',
+
+  // Handgelenkcurls von der Seite: sitzend, der Unterarm liegt auf dem Oberschenkel, nur die Hand bewegt das Gewicht
+  "handgelenkcurls": '<path class="g" d="M10 43h20M14 43v13M26 43v13"/><circle cx="26" cy="16" r="4"/><path d="M25 21l-3 19h18v16M25 24l3 12h16l3-4"/><circle class="a" cx="49" cy="29" r="4.5"/><path class="a" d="M49 29h.01"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -764,7 +767,24 @@ const BILD_ZU_UEBUNG = {
   "landmine-rotation": "landmine",
   "landmine-anti-rotation": "landmine",
   "side-plank": "seitstuetz",
-  "side-plank-hip-raise": "seitstuetz"
+  "side-plank-hip-raise": "seitstuetz",
+
+  // Unterarme
+  "seated-cable-wrist-curl": "handgelenkcurls",
+  "single-arm-cable-wrist-curl": "handgelenkcurls",
+  "standing-cable-wrist-curl": "handgelenkcurls",
+  "seated-cable-wrist-extension": "handgelenkcurls",
+  "standing-cable-wrist-extension": "handgelenkcurls",
+  "wrist-curl": "handgelenkcurls",
+  "reverse-wrist-curl": "handgelenkcurls",
+  "dumbbell-wrist-curl": "handgelenkcurls",
+  "farmers-hold": "farmers-walk",
+  "dumbbell-hold": "farmers-walk",
+  "plate-pinch": "farmers-walk",
+  "barbell-hold": "shrugs",
+  "dead-hang": "klimmzug",
+  "towel-hang": "klimmzug",
+  "push-up-auf-fingerspitzen": "liegestuetze"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

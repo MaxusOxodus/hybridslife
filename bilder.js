@@ -75,7 +75,28 @@ const BILDER = {
   "beinpresse": '<path class="g" d="M9 35l11 18h9M30 57l28-28"/><circle cx="13" cy="29" r="4"/><path d="M15 35l9 14 7-15 12-5"/><path class="a" d="M40 24l8 8"/><circle class="a" cx="52" cy="21" r="5"/>',
 
   // Kreuzheben von der Seite: vorgebeugt, die Arme gestreckt an der Stange am Boden
-  "kreuzheben": '<path class="g" d="M10 57h44"/><circle cx="44" cy="19" r="4"/><path d="M38 24L22 36l15 8-4 12h6M38 24l2 25"/><circle class="a" cx="40" cy="49" r="7"/><path class="a" d="M40 49h.01"/>'
+  "kreuzheben": '<path class="g" d="M10 57h44"/><circle cx="44" cy="19" r="4"/><path d="M38 24L22 36l15 8-4 12h6M38 24l2 25"/><circle class="a" cx="40" cy="49" r="7"/><path class="a" d="M40 49h.01"/>',
+
+  // Latzug mit gestreckten Armen von der Seite: stehend vor dem Turm, die Arme bleiben gestreckt
+  "latzug-gestreckt": '<path class="g" d="M56 6v51M56 6H46M46 8l-6 22"/><circle cx="24" cy="13" r="4"/><path d="M25 18l2 20M27 38l-4 19M27 38l4 19M26 21l14 9"/><path class="a" d="M38 27l4 6"/><rect class="a" x="52" y="32" width="8" height="14" rx="2"/>',
+
+  // Kurzhantelrudern von der Seite: eine Hand und ein Knie auf der Bank, der andere Arm zieht die Hantel hoch
+  "kurzhantelrudern": '<path class="g" d="M10 45h30M14 45v11M36 45v11"/><circle cx="12" cy="28" r="4"/><path d="M17 31h19M19 31l-1 13M36 31l-4 13h8M36 31l8 25M22 31l6-8-1 13"/><rect class="a" x="22" y="36" width="10" height="5" rx="2.5"/>',
+
+  // Überzüge von der Seite: auf der Bank liegend, das Gewicht geht hinter den Kopf
+  "ueberzuege": '<path class="g" d="M14 43h36M21 43v13M43 43v13"/><circle cx="19" cy="37" r="4"/><path d="M24 39h16l10 1 2 16M26 37L13 24"/><circle class="a" cx="10" cy="21" r="4.5"/><path class="a" d="M10 21h.01"/>',
+
+  // Langhantelrudern von der Seite: vorgebeugt, die Stange wird zum Bauch gezogen
+  "langhantelrudern": '<path class="g" d="M10 57h44"/><circle cx="45" cy="22" r="4"/><path d="M40 27L22 38l13 7-3 11h6M40 27l-6 5 4 6"/><circle class="a" cx="38" cy="40" r="6"/><path class="a" d="M38 40h.01"/>',
+
+  // T-Bar-Rudern von der Seite: Die Stange ist hinten am Boden verankert, vorn sitzen die Scheiben
+  "t-bar-rudern": '<path class="g" d="M6 57h50"/><circle cx="45" cy="20" r="4"/><path d="M40 25L22 37l12 8-3 11h6M40 25v15"/><path class="a" d="M8 56l33-16M43 34l4 11M47 33l4 11"/>',
+
+  // Rudern mit Brustauflage von der Seite: bäuchlings auf der schrägen Bank, die Arme hängen nach unten
+  "rudern-brustauflage": '<path class="g" d="M16 25l20 20M24 33v23M14 56h34"/><circle cx="13" cy="16" r="4"/><path d="M18 21l20 20 11 15M20 23l-7 13"/><rect class="a" x="7" y="36" width="11" height="5" rx="2.5"/>',
+
+  // Inverted Row von der Seite: unter der Stange hängend, der Körper gestreckt, die Fersen am Boden
+  "inverted-row": '<path class="g" d="M52 8v49M6 57h52"/><path class="a" d="M52 22H33"/><circle cx="42" cy="35" r="4"/><path d="M8 55l28-18V22"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -235,7 +256,31 @@ const BILD_ZU_UEBUNG = {
   "single-leg-45-leg-press": "beinpresse",
   "single-leg-pin-loaded-leg-press": "beinpresse",
   "pin-loaded-quad-biased-leg-press": "beinpresse",
-  "45-glute-biased-leg-press": "beinpresse"
+  "45-glute-biased-leg-press": "beinpresse",
+
+  // Latissimus
+  "half-kneeling-single-arm-elbow-lat-pulldown": "latzug",
+  "cross-body-cable-lat-pull-around": "latzug",
+  "scapular-pulldown": "latzug",
+  "kneeling-cable-straight-arm-lat-pulldown": "latzug-gestreckt",
+  "cable-rope-straight-arm-lat-pulldown": "latzug-gestreckt",
+  "machine-assisted-pull-up": "klimmzug",
+  "machine-assisted-chin-up": "klimmzug",
+  "archer-pull-up": "klimmzug",
+  "typewriter-pull-up": "klimmzug",
+  "muscle-up": "klimmzug",
+  "kurzhantelrudern": "kurzhantelrudern",
+  "dumbbell-pullover": "ueberzuege",
+  "barbell-pullover": "ueberzuege",
+  "meadows-row": "t-bar-rudern",
+  "landmine-row": "t-bar-rudern",
+  "pendlay-row": "langhantelrudern",
+  "underhand-barbell-row": "langhantelrudern",
+  "seal-row": "rudern-brustauflage",
+  "chest-supported-dumbbell-row": "rudern-brustauflage",
+  "australian-pull-up": "inverted-row",
+  "ring-row": "inverted-row",
+  "feet-elevated-inverted-row": "inverted-row"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

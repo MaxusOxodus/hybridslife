@@ -144,7 +144,16 @@ const BILDER = {
   "handstand": '<path class="g" d="M8 57h48"/><circle cx="32" cy="48" r="4"/><path d="M25 56l4-15h6l4 15M32 41V23M32 23L29 6M32 23l3-17"/>',
 
   // Seitheben am Kabelzug von vorn: Das Seil kommt von unten quer vor dem Körper, ein Arm hebt seitlich an
-  "seitheben-kabel": '<path class="g" d="M8 8v49M8 54l42-29"/><circle cx="34" cy="12" r="4"/><path d="M34 17v21M34 38l-5 19M34 38l5 19M34 20l16 5M34 20l-6 15"/><path class="a" d="M51 20v9"/>'
+  "seitheben-kabel": '<path class="g" d="M8 8v49M8 54l42-29"/><circle cx="34" cy="12" r="4"/><path d="M34 17v21M34 38l-5 19M34 38l5 19M34 20l16 5M34 20l-6 15"/><path class="a" d="M51 20v9"/>',
+
+  // Kabelcurls von der Seite: stehend vor dem Turm, das Seil kommt von unten
+  "kabelcurls": '<path class="g" d="M56 8v49M56 54L41 25"/><circle cx="26" cy="10" r="4"/><path d="M26 15v21M26 36l-3 21M26 36l4 21M26 18l2 13 12-7"/><path class="a" d="M38 21l4 7"/><rect class="a" x="52" y="18" width="8" height="14" rx="2"/>',
+
+  // Scottcurls von der Seite: sitzend, der Oberarm liegt auf dem schrägen Polster
+  "scottcurls": '<path class="g" d="M27 29l15 13M38 39v17M15 45h13M21 45v11"/><circle cx="21" cy="16" r="4"/><path d="M21 21l1 21 12 1 1 13M22 25l17 11 5-13"/><circle class="a" cx="46" cy="19" r="4.5"/><path class="a" d="M46 19h.01"/>',
+
+  // Konzentrationscurls von der Seite: sitzend vorgebeugt, der Ellbogen stützt am Oberschenkel
+  "konzentrationscurls": '<path class="g" d="M12 45h20M16 45v11M28 45v11"/><circle cx="33" cy="19" r="4"/><path d="M31 24l-7 18h16l1 14M31 26l5 13 6-9"/><circle class="a" cx="44" cy="27" r="4.5"/><path class="a" d="M44 27h.01"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -445,7 +454,33 @@ const BILD_ZU_UEBUNG = {
   "leaning-dumbbell-lateral-raise": "seitheben",
   "incline-dumbbell-lateral-raise": "seitheben",
   "cable-upright-row": "aufrechtes-rudern",
-  "smith-machine-upright-row": "aufrechtes-rudern"
+  "smith-machine-upright-row": "aufrechtes-rudern",
+
+  // Bizeps
+  "kabelcurls": "kabelcurls",
+  "cable-rope-hammer-curl": "kabelcurls",
+  "cable-straight-bar-biceps-curl": "kabelcurls",
+  "cable-ez-bar-biceps-curl": "kabelcurls",
+  "single-arm-bayesian-curl": "kabelcurls",
+  "single-arm-cable-biceps-curl": "kabelcurls",
+  "dual-cable-bayesian-curl": "kabelcurls",
+  "low-pulley-dual-cable-biceps-curl": "kabelcurls",
+  "single-arm-elbow-out-cable-biceps-curl": "kabelcurls",
+  "single-arm-crucifix-curl": "kabelcurls",
+  "seated-crucifix-curl": "kabelcurls",
+  "seated-dual-cable-bayesian-curl": "kabelcurls",
+  "cable-reverse-curl": "kabelcurls",
+  "single-arm-pin-loaded-machine-preacher-curl": "scottcurls",
+  "pin-loaded-machine-preacher-curl": "scottcurls",
+  "machine-biceps-curl-with-arms-at-sides": "scottcurls",
+  "scottcurls": "scottcurls",
+  "cable-concentration-curl": "konzentrationscurls",
+  "konzentrationscurls": "konzentrationscurls",
+  "seated-dumbbell-curl": "bizeps-curl",
+  "incline-dumbbell-curl": "bizeps-curl",
+  "archer-chin-up": "klimmzug",
+  "ring-chin-up": "klimmzug",
+  "inverted-row-mit-supiniertem-griff": "inverted-row"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

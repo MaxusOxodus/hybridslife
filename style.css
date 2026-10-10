@@ -2851,6 +2851,18 @@ button.einst-zeile:first-child {
   overflow-wrap: anywhere;
 }
 
+/* Auf sehr schmalen Handys passen lange Wörter wie "Körpergewicht" sonst nicht in eine Zeile
+   und brechen mitten im Wort um: weniger Rand links und rechts, etwas kleinere Schrift */
+@media (max-width: 359px) {
+  .abzeichen {
+    padding: 14px 2px;
+  }
+
+  .abzeichen-titel {
+    font-size: 12px;
+  }
+}
+
 .rang-fussnote {
   font-size: 13px;
   text-align: center;

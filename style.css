@@ -28,7 +28,7 @@
   --glas-rand: rgba(255, 255, 255, 0.13);
   --glas-glanz: rgba(255, 255, 255, 0.09);
   --glas-schatten: 0 12px 32px rgba(0, 0, 0, 0.45);
-  --glas-schimmer: rgba(198, 241, 53, 0.17);
+  --glas-schimmer: rgba(198, 241, 53, 0.11);
   color-scheme: dark;
 }
 
@@ -4358,4 +4358,212 @@ button.einst-zeile:first-child {
   background: var(--akzent);
   color: var(--auf-akzent);
   font-size: 14px;
+}
+
+/* ---------- Trainingsmodus: Angleichen an die Design-Vorlage ---------- */
+
+/* Obere Leiste: der Titel in der Mitte, "Beenden" rechts. Lange Routinennamen laufen über höchstens zwei Zeilen. */
+#ansicht-modus .modus-kopf {
+  position: relative;
+  justify-content: flex-end;
+}
+
+#modus-routine {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: -webkit-box;
+  width: calc(100% - 190px);
+  overflow: hidden;
+  font-size: 17px;
+  line-height: 1.25;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+#ansicht-modus .modus-balken {
+  height: 6px;
+}
+
+/* Die Pfeile wie in der Vorlage: abgerundete Quadrate statt Kreise */
+#ansicht-modus .modus-wechsel button {
+  border-radius: 16px;
+}
+
+/* "Übung 2 von 6": normale Schreibweise statt Großbuchstaben */
+#ansicht-modus .modus-wechsel .modus-schritt {
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Lange Übungsnamen trennt der Browser an Silben statt mitten im Wort */
+#modus-uebung {
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+/* Der Name bekommt die ganze Breite, das Verlaufs-Symbol hängt hinter dem letzten Wort.
+   So passt auch ein langes Wort wie "Schrägbankdrücken" in eine Zeile. */
+#ansicht-modus .name-knopf {
+  display: block;
+  padding: 8px 0;
+}
+
+#ansicht-modus .name-knopf .verlauf-icon {
+  display: inline-block;
+  margin-left: 6px;
+}
+
+/* Auf schmalen Handys (zwei Reihen) sind Bild und Name etwas kleiner, damit lange Wörter ganz bleiben */
+@media (max-width: 379px) {
+  .modus-bild {
+    width: 68px;
+    height: 68px;
+    padding: 6px;
+  }
+
+  #ansicht-modus .name-knopf {
+    font-size: 19px;
+  }
+}
+
+/* Ab 380 px Breite steht die Übungskarte wie in der Vorlage in einer Reihe:
+   Pfeil, Bild, Text (Zähler, Name, Geräte-Zeile), Pfeil. Die drei Hüllen lösen sich dafür auf
+   (display: contents), ihre Kinder liegen dann direkt im Raster der Karte.
+   Auf schmaleren Handys bleibt es bei zwei Reihen, sonst wäre der Name nur noch gut 90 px breit. */
+@media (min-width: 380px) {
+  .modus-karte {
+    display: grid;
+    grid-template-columns: 44px 56px minmax(0, 1fr) 44px;
+    align-items: center;
+    column-gap: 8px;
+  }
+
+  .modus-karte .modus-wechsel,
+  .modus-uebung-zeile,
+  .modus-uebung-text {
+    display: contents;
+  }
+
+  #modus-zurueck {
+    grid-row: 1 / span 3;
+    grid-column: 1;
+  }
+
+  #modus-vor {
+    grid-row: 1 / span 3;
+    grid-column: 4;
+  }
+
+  .modus-bild {
+    grid-row: 1 / span 3;
+    grid-column: 2;
+    width: 56px;
+    height: 56px;
+    padding: 4px;
+    border-radius: 16px;
+  }
+
+  /* Zähler und Name bleiben je 44 px hoch zum Antippen, ihre Texte rücken aber aneinander */
+  #ansicht-modus .modus-wechsel .modus-schritt {
+    display: flex;
+    grid-row: 1;
+    grid-column: 3;
+    align-items: flex-end;
+    justify-self: start;
+    padding: 0 0 3px;
+    text-align: left;
+  }
+
+  #ansicht-modus .name-knopf {
+    grid-row: 2;
+    grid-column: 3;
+    padding: 2px 0 0;
+    font-size: 17px;
+  }
+
+  .modus-geraet {
+    grid-row: 3;
+    grid-column: 3;
+    margin-top: 0;
+    font-size: 13px;
+  }
+}
+
+/* Reps in Reserve: ab 350 px Breite in einer Zeile. Der Titel bekommt den Platz, der neben den
+   fünf 44 px breiten Feldern übrig ist, und bricht dort um. Darunter reicht der Platz nicht. */
+@media (min-width: 350px) {
+  #ansicht-modus .rir {
+    flex-wrap: nowrap;
+    padding-left: 14px;
+  }
+
+  #ansicht-modus .rir .rad-titel {
+    flex: 1 1 0;
+    min-width: 0;
+    line-height: 1.2;
+  }
+
+  #ansicht-modus .rir .umschalter {
+    flex: 0 0 232px;
+  }
+}
+
+/* "Letztes Training": Überschrift und Datum liegen mit den Sätzen in einer Glas-Karte.
+   Die innere Karte verliert dafür Fläche und Rand. Ohne früheres Training gibt es keine Karte. */
+#modus-letztes:has(.karte) {
+  margin-top: 28px;
+  padding: 16px 14px 14px;
+  border: 1px solid var(--glas-rand);
+  border-radius: 24px;
+  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas);
+  -webkit-backdrop-filter: var(--glas-filter);
+  backdrop-filter: var(--glas-filter);
+  box-shadow: var(--glas-schatten);
+}
+
+#modus-letztes .abschnitt {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 4px 4px;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Das Datum rechts oben */
+.letztes-datum {
+  flex-shrink: 0;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+#modus-letztes .karte {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* Jeder Satz ist ein eigenes Kästchen */
+#modus-letztes .letztes-zeile {
+  min-height: 52px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--glas-rand);
+  border-radius: 16px;
+  background: var(--fuellung);
+  font-weight: 600;
 }

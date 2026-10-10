@@ -3694,11 +3694,12 @@
       return;
     }
 
-    let titel = txt("letztes.titel");
+    // Das Datum steht in einem eigenen Element, damit es rechts neben der Überschrift stehen kann
+    const kopf = element("h2", "abschnitt", txt("letztes.titel"));
     if (daten.datum) {
-      titel += " · " + datumMitJahr(daten.datum);
+      kopf.appendChild(element("span", "letztes-datum", datumMitJahr(daten.datum)));
     }
-    bereich.appendChild(element("h2", "abschnitt", titel));
+    bereich.appendChild(kopf);
 
     const karte = element("div", "karte satz-liste");
     for (let i = 0; i < daten.saetze.length; i++) {

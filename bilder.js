@@ -162,7 +162,55 @@ const BILDER = {
   "kickbacks": '<path class="g" d="M12 57h40"/><circle cx="49" cy="25" r="4"/><path d="M44 29l-16 8 8 8-2 11h6M43 29l-21-4"/><circle class="a" cx="18" cy="24" r="4"/><path class="a" d="M18 24h.01"/>',
 
   // French Press von der Seite: auf der Bank liegend, die Unterarme senken das Gewicht zur Stirn
-  "french-press": '<path class="g" d="M12 43h40M19 43v13M45 43v13"/><circle cx="17" cy="37" r="4"/><path d="M22 39h18l10 1 2 16M26 38l1-14-10 1"/><circle class="a" cx="12" cy="25" r="5"/><path class="a" d="M12 25h.01"/>'
+  "french-press": '<path class="g" d="M12 43h40M19 43v13M45 43v13"/><circle cx="17" cy="37" r="4"/><path d="M22 39h18l10 1 2 16M26 38l1-14-10 1"/><circle class="a" cx="12" cy="25" r="5"/><path class="a" d="M12 25h.01"/>',
+
+  // Beinstrecker von der Seite: sitzend, der Unterschenkel streckt gegen das Polster nach vorn
+  "beinstrecker": '<path class="g" d="M16 18l2 25h17M26 43v13M14 56h30"/><circle cx="23" cy="13" r="4"/><path d="M23 18l2 22h14l13-3"/><circle class="a" cx="51" cy="31" r="3.5"/>',
+
+  // Beinbeuger sitzend von der Seite: Der Unterschenkel zieht das Polster nach hinten unten
+  "beinbeuger-sitzend": '<path class="g" d="M16 18l2 25h17M26 43v13M14 57h34"/><circle cx="23" cy="13" r="4"/><path d="M23 18l2 22h14l-3 13"/><circle class="a" cx="40" cy="53" r="3.5"/>',
+
+  // Beinbeuger liegend von der Seite: bäuchlings auf der Bank, die Fersen ziehen das Polster hoch
+  "beinbeuger-liegend": '<path class="g" d="M10 43h34M16 43v13M38 43v13"/><circle cx="12" cy="35" r="4"/><path d="M17 39h26l3-15"/><circle class="a" cx="50" cy="24" r="3.5"/>',
+
+  // Hack Squat von der Seite: der Rücken am schrägen Schlitten, die Füße auf der Platte
+  "hack-squat": '<path class="g" d="M14 24l24 32M38 56h18"/><circle cx="21" cy="17" r="4"/><path d="M23 23l12 17 12-6 2 16"/><path class="a" d="M43 52l12-3"/><circle class="a" cx="10" cy="14" r="4.5"/>',
+
+  // Ausfallschritt von der Seite: das vordere Knie im rechten Winkel, das hintere knapp über dem Boden
+  "ausfallschritt": '<path class="g" d="M8 57h48"/><circle cx="30" cy="13" r="4"/><path d="M30 18v22h14v16M30 40l-6 13-11 3M30 22l1 16"/><circle class="a" cx="31" cy="43" r="4"/>',
+
+  // Bulgarian Split Squat von der Seite: wie der Ausfallschritt, der hintere Fuß liegt auf der Bank
+  "bulgarian-split-squat": '<path class="g" d="M5 44h14M8 44v13M16 44v13M24 57h32"/><circle cx="32" cy="13" r="4"/><path d="M32 18v22h13v16M32 40l-6 12-9-10M32 22l1 16"/><circle class="a" cx="33" cy="43" r="4"/>',
+
+  // Frontkniebeuge von der Seite: das Gewicht vor den Schultern, der Oberkörper bleibt aufrecht
+  "frontkniebeuge": '<path class="g" d="M12 57h40"/><circle cx="31" cy="15" r="4"/><path d="M30 21l-4 20 16 2-8 13h7M30 24l6 3"/><circle class="a" cx="39" cy="25" r="6"/><path class="a" d="M39 25h.01"/>',
+
+  // Step-up von der Seite: ein Fuß steht auf der Kiste, das andere Bein ist noch am Boden
+  "step-up": '<path class="g" d="M34 45h20v12H34zM8 57h26"/><circle cx="28" cy="9" r="4"/><path d="M28 14v16l12 3-2 12M28 30l-2 26M28 17l3 13"/><circle class="a" cx="31" cy="34" r="3.5"/>',
+
+  // Kniebeuge ohne Gewicht von der Seite: in der Hocke, die Arme nach vorn gestreckt
+  "kniebeuge-eigen": '<path class="g" d="M12 57h40"/><circle cx="38" cy="18" r="4"/><path d="M35 24l-9 17 16 2-8 13h7M35 26h15"/>',
+
+  // Einbeinige Kniebeuge von der Seite: ein Bein in der Hocke, das andere gestreckt nach vorn
+  "pistol-squat": '<path class="g" d="M10 57h44"/><circle cx="34" cy="19" r="4"/><path d="M31 25l-9 17 16 3-9 11h6M22 42l29 5M31 27l15 2"/>',
+
+  // Bein am Kabelzug von der Seite: am Turm abgestützt, das Seil am Fuß, das Bein geht gestreckt nach hinten
+  "kickback-kabel": '<path class="g" d="M8 8v49M8 55l44-7"/><circle cx="21" cy="15" r="4"/><path d="M24 20l10 16-2 21M34 36l18 12M25 22L9 26"/><circle class="a" cx="53" cy="48" r="3"/>',
+
+  // Nordic Curl von der Seite: kniend, die Füße festgehalten, der gestreckte Körper senkt sich nach vorn
+  "nordic-curl": '<path class="g" d="M6 57h52M50 50h7"/><circle cx="12" cy="31" r="4"/><path d="M54 54H36L17 36M18 38l-6 9"/>',
+
+  // Glute Bridge von der Seite: auf dem Rücken liegend, die Füße aufgestellt, die Hüfte hebt ab
+  "glute-bridge": '<path class="g" d="M5 57h54"/><circle cx="10" cy="50" r="4"/><path d="M15 52l19-12 12-3 2 19M16 53l11 2"/>',
+
+  // Adduktoren- und Abduktorenmaschine von vorn: sitzend, die Polster an den Knien
+  "ab-adduktoren-maschine": '<path class="g" d="M25 41h14M32 41v15"/><circle cx="32" cy="13" r="4"/><path d="M32 18v20M32 38l-13 6-2 13M32 38l13 6 2 13"/><rect class="a" x="10" y="37" width="5" height="13" rx="2.5"/><rect class="a" x="49" y="37" width="5" height="13" rx="2.5"/>',
+
+  // Cossack Squat von vorn: tief auf einem Bein, das andere seitlich gestreckt
+  "cossack-squat": '<path class="g" d="M8 57h50"/><circle cx="25" cy="15" r="4"/><path d="M26 20l2 20-12 2 2 14M28 40l26 16M26 25l10 6"/>',
+
+  // Seitstütz: seitlich auf dem Unterarm, der Körper gestreckt, der obere Arm zeigt nach oben
+  "seitstuetz": '<path class="g" d="M6 57h52"/><circle cx="15" cy="26" r="4"/><path d="M20 32l34 23M20 32l-2 23h9M21 31l3-15"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -523,7 +571,76 @@ const BILD_ZU_UEBUNG = {
   "diamant-liegestuetze": "liegestuetze",
   "enge-liegestuetze-knie": "liegestuetze",
   "bodyweight-triceps-extension": "liegestuetze",
-  "ring-triceps-extension": "liegestuetze"
+  "ring-triceps-extension": "liegestuetze",
+
+  // Beine
+  "beinstrecker": "beinstrecker",
+  "single-leg-leg-extension": "beinstrecker",
+  "hack-squat": "hack-squat",
+  "pause-hack-squat": "hack-squat",
+  "hack-squat-mit-langhantel": "kniebeuge",
+  "cable-belt-squat": "kniebeuge",
+  "smith-machine-lunge": "ausfallschritt",
+  "smith-machine-split-squat": "ausfallschritt",
+  "smith-machine-front-foot-elevated-split-squat": "ausfallschritt",
+  "ausfallschritte": "ausfallschritt",
+  "dumbbell-split-squat": "ausfallschritt",
+  "walking-dumbbell-lunge": "ausfallschritt",
+  "reverse-dumbbell-lunge": "ausfallschritt",
+  "forward-dumbbell-lunge": "ausfallschritt",
+  "barbell-lunge": "ausfallschritt",
+  "walking-lunge-eigen": "ausfallschritt",
+  "reverse-lunge-eigen": "ausfallschritt",
+  "forward-lunge": "ausfallschritt",
+  "split-squat": "ausfallschritt",
+  "smith-machine-bulgarian-split-squat": "bulgarian-split-squat",
+  "bulgarian-split-squats": "bulgarian-split-squat",
+  "bulgarian-split-squat-eigen": "bulgarian-split-squat",
+  "front-squat": "frontkniebeuge",
+  "zercher-squat": "frontkniebeuge",
+  "goblet-squat": "frontkniebeuge",
+  "heel-elevated-goblet-squat": "frontkniebeuge",
+  "dumbbell-step-up": "step-up",
+  "lateral-step-up-eigen": "step-up",
+  "sissy-squat-eigen": "kniebeuge-eigen",
+  "bodyweight-squat": "kniebeuge-eigen",
+  "jump-squat": "kniebeuge-eigen",
+  "cyclist-squat": "kniebeuge-eigen",
+  "wide-stance-squat-eigen": "kniebeuge-eigen",
+  "banded-lateral-walk": "kniebeuge-eigen",
+  "banded-monster-walk": "kniebeuge-eigen",
+  "shrimp-squat": "pistol-squat",
+  "pistol-squat": "pistol-squat",
+  "assisted-pistol-squat": "pistol-squat",
+  "single-leg-squat-eigen": "pistol-squat",
+  "skater-squat": "pistol-squat",
+  "beinbeuger-maschine": "beinbeuger-liegend",
+  "lying-hamstring-curl": "beinbeuger-liegend",
+  "dumbbell-leg-curl": "beinbeuger-liegend",
+  "seated-hamstring-curl": "beinbeuger-sitzend",
+  "seated-single-leg-hamstring-curl": "beinbeuger-sitzend",
+  "seated-accentuated-eccentric-hamstring-curl": "beinbeuger-sitzend",
+  "standing-cable-leg-curl": "kickback-kabel",
+  "cable-hip-adduction": "kickback-kabel",
+  "cable-hip-abduction-leg-behind-body": "kickback-kabel",
+  "cable-hip-abduction-leg-in-front-of-body": "kickback-kabel",
+  "standing-hip-abduction": "kickback-kabel",
+  "rumaenisches-kreuzheben": "rumaenisches-kreuzheben",
+  "wide-stance-romanian-deadlift": "rumaenisches-kreuzheben",
+  "nordic-hamstring-curl": "nordic-curl",
+  "glute-ham-raise-eigen": "nordic-curl",
+  "razor-curl-eigen": "nordic-curl",
+  "assisted-nordic-curl": "nordic-curl",
+  "sliding-leg-curl-eigen": "glute-bridge",
+  "single-leg-sliding-leg-curl": "glute-bridge",
+  "reclined-machine-hip-adduction": "ab-adduktoren-maschine",
+  "abduktorenmaschine": "ab-adduktoren-maschine",
+  "leaning-forward-machine-hip-abduction": "ab-adduktoren-maschine",
+  "deficit-cossack-squat": "cossack-squat",
+  "cossack-squat-eigen": "cossack-squat",
+  "lateral-lunge-eigen": "cossack-squat",
+  "copenhagen-plank": "seitstuetz",
+  "side-lying-leg-raise-eigen": "seitstuetz"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

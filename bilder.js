@@ -153,7 +153,16 @@ const BILDER = {
   "scottcurls": '<path class="g" d="M27 29l15 13M38 39v17M15 45h13M21 45v11"/><circle cx="21" cy="16" r="4"/><path d="M21 21l1 21 12 1 1 13M22 25l17 11 5-13"/><circle class="a" cx="46" cy="19" r="4.5"/><path class="a" d="M46 19h.01"/>',
 
   // Konzentrationscurls von der Seite: sitzend vorgebeugt, der Ellbogen stützt am Oberschenkel
-  "konzentrationscurls": '<path class="g" d="M12 45h20M16 45v11M28 45v11"/><circle cx="33" cy="19" r="4"/><path d="M31 24l-7 18h16l1 14M31 26l5 13 6-9"/><circle class="a" cx="44" cy="27" r="4.5"/><path class="a" d="M44 27h.01"/>'
+  "konzentrationscurls": '<path class="g" d="M12 45h20M16 45v11M28 45v11"/><circle cx="33" cy="19" r="4"/><path d="M31 24l-7 18h16l1 14M31 26l5 13 6-9"/><circle class="a" cx="44" cy="27" r="4.5"/><path class="a" d="M44 27h.01"/>',
+
+  // Überkopf-Trizepsstrecken von der Seite: der Oberarm zeigt nach oben, das Gewicht hängt hinter dem Kopf
+  "ueberkopf-trizeps": '<circle cx="30" cy="17" r="4"/><path d="M30 22v18M30 40l-4 17M30 40l4 17M31 24l8-15-15-3"/><circle class="a" cx="20" cy="7" r="4.5"/><path class="a" d="M20 7h.01"/>',
+
+  // Kickbacks von der Seite: vorgebeugt, der Arm streckt sich nach hinten
+  "kickbacks": '<path class="g" d="M12 57h40"/><circle cx="49" cy="25" r="4"/><path d="M44 29l-16 8 8 8-2 11h6M43 29l-21-4"/><circle class="a" cx="18" cy="24" r="4"/><path class="a" d="M18 24h.01"/>',
+
+  // French Press von der Seite: auf der Bank liegend, die Unterarme senken das Gewicht zur Stirn
+  "french-press": '<path class="g" d="M12 43h40M19 43v13M45 43v13"/><circle cx="17" cy="37" r="4"/><path d="M22 39h18l10 1 2 16M26 38l1-14-10 1"/><circle class="a" cx="12" cy="25" r="5"/><path class="a" d="M12 25h.01"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -480,7 +489,41 @@ const BILD_ZU_UEBUNG = {
   "incline-dumbbell-curl": "bizeps-curl",
   "archer-chin-up": "klimmzug",
   "ring-chin-up": "klimmzug",
-  "inverted-row-mit-supiniertem-griff": "inverted-row"
+  "inverted-row-mit-supiniertem-griff": "inverted-row",
+
+  // Trizeps
+  "trizeps-dips-assistiert": "dips",
+  "dip-maschine-trizeps": "dips",
+  "pause-machine-assisted-dip": "dips",
+  "trizeps-dips": "dips",
+  "trizeps-dips-gewicht": "dips",
+  "bench-parallel-bar-dip": "dips",
+  "ring-dip": "dips",
+  "korean-dip": "dips",
+  "jm-press-multi": "bankdruecken",
+  "jm-press-lh": "bankdruecken",
+  "lockout-bank-lh": "bankdruecken",
+  "enges-negativbank-lh": "negativbank",
+  "single-arm-cable-overhead-triceps-extension": "ueberkopf-trizeps",
+  "cable-v-bar-overhead-triceps-extension": "ueberkopf-trizeps",
+  "high-pulley-cable-straight-bar-overhead-triceps-extension": "ueberkopf-trizeps",
+  "ueberkopf-trizepsstrecken": "ueberkopf-trizeps",
+  "dumbbell-overhead-triceps-extension": "ueberkopf-trizeps",
+  "single-arm-dumbbell-overhead-extension": "ueberkopf-trizeps",
+  "machine-triceps-extension": "trizepsdruecken",
+  "dual-cable-triceps-press": "trizepsdruecken",
+  "neutral-grip-cable-triceps-kickback": "kickbacks",
+  "kickbacks": "kickbacks",
+  "cable-skull-crusher": "french-press",
+  "french-press": "french-press",
+  "ez-bar-skull-crusher": "french-press",
+  "dumbbell-skull-crusher": "french-press",
+  "dumbbell-tate-press": "french-press",
+  "enge-liegestuetze": "liegestuetze",
+  "diamant-liegestuetze": "liegestuetze",
+  "enge-liegestuetze-knie": "liegestuetze",
+  "bodyweight-triceps-extension": "liegestuetze",
+  "ring-triceps-extension": "liegestuetze"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

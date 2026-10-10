@@ -121,7 +121,7 @@ const TEXTE = {
   "log.tagLeer": { de: "Keine Einträge an diesem Tag.", en: "No entries on this day." },
   "letztesMal": { de: "Letztes Mal{datum}: {saetze}", en: "Last time{datum}: {saetze}" },
   "letztesMal.leer": { de: "Letztes Mal: noch kein Eintrag", en: "Last time: no entry yet" },
-  "letztes.titel": { de: "Letztes Training", en: "Last workout" },
+  "letztes.titel": { de: "Letzte Trainingsergebnisse", en: "Last workout results" },
   "letztes.bestes": { de: "Bestes", en: "Best" },
   "eintrag.gleich.eins": { de: "1 Satz × {wdh} Wdh. à {gewicht}", en: "1 set × {wdh} reps at {gewicht}" },
   "eintrag.gleich.viele": { de: "{n} Sätze × {wdh} Wdh. à {gewicht}", en: "{n} sets × {wdh} reps at {gewicht}" },

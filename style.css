@@ -4557,13 +4557,67 @@ button.einst-zeile:first-child {
   box-shadow: none;
 }
 
-/* Jeder Satz ist ein eigenes Kästchen */
+/* Jeder Satz ist ein eigenes Kästchen: links die Nummer im Kreis, daneben die Spalten Gewicht, Wdh. und RIR */
 #modus-letztes .letztes-zeile {
-  min-height: 52px;
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  min-height: 60px;
   margin-top: 8px;
   padding: 8px 12px;
   border: 1px solid var(--glas-rand);
   border-radius: 16px;
   background: var(--fuellung);
-  font-weight: 600;
+}
+
+#modus-letztes .letztes-zeile .satz-nummer {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+}
+
+/* Eine Spalte: kleiner Titel, darunter der Wert. Ein feiner Strich trennt sie von der Spalte davor. */
+.letztes-spalte {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding-left: 10px;
+  border-left: 1px solid var(--rand);
+}
+
+.letztes-titel {
+  color: var(--text-leise);
+  font-size: 12px;
+}
+
+.letztes-wert {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* "Bestes" sitzt als kleines Schild auf dem oberen Rand, so nimmt es den Spalten keinen Platz weg */
+#modus-letztes .letztes-bestes {
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  padding: 1px 8px;
+  background: var(--karte);
+  box-shadow: inset 0 0 0 1px var(--akzent-leicht);
+  font-size: 11px;
+}
+
+/* Der Satz, der heute dran ist: grüner Rand, grüne Fläche und ein grüner Ring um die Nummer */
+#modus-letztes .letztes-zeile.aktuell {
+  border-color: var(--akzent-text);
+  background: var(--akzent-leicht);
+}
+
+#modus-letztes .letztes-zeile.aktuell .satz-nummer {
+  border: 1.5px solid var(--akzent-text);
+  background: none;
+  color: var(--akzent-text);
+  font-weight: 700;
 }

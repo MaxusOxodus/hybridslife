@@ -3678,7 +3678,8 @@
     return { datum: datum, saetze: saetze, bester: bester };
   }
 
-  // Im Trainingsmodus: das letzte Training der gezeigten Übung als kleine Tabelle, eine Zeile je Satz.
+  // Im Trainingsmodus: das letzte Training der gezeigten Übung, ein Kästchen je Satz mit den Spalten
+  // Gewicht, Wdh. und RIR. Der Satz mit der Nummer, die heute dran ist, ist hervorgehoben.
   // Ohne früheres Training steht dort nur ein kurzer Hinweis.
   function modusLetztesAnzeigen() {
     const bereich = document.getElementById("modus-letztes");
@@ -3701,11 +3702,43 @@
     }
     bereich.appendChild(kopf);
 
+    // Der Platz des Satzes, der heute dran ist. Nach dem letzten Ziel-Satz ist keiner dran,
+    // bis "+ Satz" einen weiteren startet (dieselbe Regel wie in modusSaetzeAnzeigen).
+    const eintrag = eintragFinden(u.eintragId);
+    let dran = 0;
+    if (eintrag) {
+      dran = saetzeVon(eintrag).length;
+    }
+    const ziel = u.zielSaetze || 0;
+    if (ziel > 0 && dran >= ziel && !u.extraSatz) {
+      dran = -1;
+    }
+
     const karte = element("div", "karte satz-liste");
     for (let i = 0; i < daten.saetze.length; i++) {
+      const satz = daten.saetze[i];
       const zeile = element("div", "letztes-zeile");
+      if (i === dran) {
+        zeile.classList.add("aktuell");
+      }
       zeile.appendChild(element("span", "satz-nummer", i + 1));
-      zeile.appendChild(element("span", "satz-werte", satzText(daten.saetze[i])));
+
+      // Drei Spalten, jede mit kleinem Titel und dem Wert darunter. Ohne RIR-Angabe steht ein Strich.
+      let rir = "–";
+      if (rirLesen(satz.rir) !== null) {
+        rir = rirText(satz.rir).replace("RIR ", "");
+      }
+      const spalten = [
+        { titel: txt("gewicht"), wert: gewichtText(satz.gewicht) },
+        { titel: txt("wdh"), wert: satz.wdh },
+        { titel: "RIR", wert: rir }
+      ];
+      for (let s = 0; s < spalten.length; s++) {
+        const spalte = element("span", "letztes-spalte");
+        spalte.appendChild(element("span", "letztes-titel", spalten[s].titel));
+        spalte.appendChild(element("span", "letztes-wert", spalten[s].wert));
+        zeile.appendChild(spalte);
+      }
       if (i === daten.bester) {
         zeile.appendChild(element("span", "letztes-bestes", txt("letztes.bestes")));
       }
@@ -3918,6 +3951,7 @@
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(false);
     modusSaetzeAnzeigen();
+    modusLetztesAnzeigen();
     window.scrollTo(0, 0);
     bestwertPruefen(eintrag, u.saetze.length - 1);
   }
@@ -4274,6 +4308,7 @@
       modusFortschrittAnzeigen();
       modusZustandAnzeigen(false);
       modusSaetzeAnzeigen();
+      modusLetztesAnzeigen();
     }
 
     // Das Profil mit dem offenen Trainingstag. Hat der Tag keinen Eintrag mehr, schließt sich sein Sheet.
@@ -4296,6 +4331,7 @@
     trainingMerken();
     modusZustandAnzeigen(true);
     modusSaetzeAnzeigen();
+    modusLetztesAnzeigen();
   }
 
   // "Nächste Übung" oder "Übung überspringen": weiter zur nächsten Übung der Routine.

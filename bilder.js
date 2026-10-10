@@ -219,7 +219,34 @@ const BILDER = {
   "wadenheben": '<path class="g" d="M27 50h20v7H27zM8 57h19"/><circle cx="31" cy="7" r="4"/><path d="M31 12v16l-2 16 6 5M31 15l3 13"/><circle class="a" cx="34" cy="32" r="4"/>',
 
   // Wadenheben sitzend von der Seite: das Polster auf den Knien, die Fußballen auf dem Block
-  "wadenheben-sitzend": '<path class="g" d="M12 41h16M17 41v15M40 54h12v3M8 57h48"/><circle cx="20" cy="12" r="4"/><path d="M20 17l1 21h17l-1 12 6 4"/><rect class="a" x="30" y="30" width="11" height="5" rx="2.5"/>'
+  "wadenheben-sitzend": '<path class="g" d="M12 41h16M17 41v15M40 54h12v3M8 57h48"/><circle cx="20" cy="12" r="4"/><path d="M20 17l1 21h17l-1 12 6 4"/><rect class="a" x="30" y="30" width="11" height="5" rx="2.5"/>',
+
+  // Cable Crunch von der Seite: kniend vor dem Turm, das Seil am Kopf, der Oberkörper rollt sich ein
+  "cable-crunch": '<path class="g" d="M56 6v51M56 8H46M46 8l-6 17M6 57h50"/><circle cx="43" cy="33" r="4"/><path d="M18 55h16l-6-15 10-10 2-4"/><path class="a" d="M37 24l6 3"/>',
+
+  // Crunches und Sit-ups von der Seite: auf dem Rücken, die Knie angewinkelt, die Schultern heben ab
+  "crunches": '<path class="g" d="M5 57h54"/><circle cx="12" cy="39" r="4"/><path d="M17 44l13 9 12-13 8 15M18 45l10 2"/>',
+
+  // Plank von der Seite: auf den Unterarmen, der Körper gestreckt
+  "plank": '<path class="g" d="M5 57h54"/><circle cx="12" cy="37" r="4"/><path d="M18 41l36 13M18 41v14h10"/>',
+
+  // Beinheben im Liegen von der Seite: auf dem Rücken, die gestreckten Beine heben an
+  "beinheben-liegend": '<path class="g" d="M5 57h54"/><circle cx="10" cy="50" r="4"/><path d="M15 53h19l12-30"/>',
+
+  // Beinheben im Hang: an der Stange hängend, die Beine heben nach vorn
+  "beinheben-hang": '<path class="a" d="M18 7h24"/><circle cx="30" cy="18" r="4"/><path d="M25 8l3 16h4l3-16M30 24v18l20-3"/>',
+
+  // Ab Wheel von der Seite: kniend, die Arme rollen das Rad nach vorn
+  "ab-wheel": '<path class="g" d="M4 57h56"/><circle cx="40" cy="36" r="4"/><path d="M6 52l10 3 19-14 13 10"/><circle class="a" cx="49" cy="51" r="5"/>',
+
+  // Cable Chop und Pallof Press von vorn: Das Seil kommt von der Seite, beide Hände halten den Griff vor dem Körper
+  "cable-chop": '<path class="g" d="M8 6v51M8 31h38"/><circle cx="34" cy="12" r="4"/><path d="M34 17v21M34 38l-6 19M34 38l6 19M34 21l12 8M34 26l12 5"/><path class="a" d="M47 26v9"/>',
+
+  // Seitbeugen von vorn: stehend, der Oberkörper neigt sich mit dem Gewicht zur Seite
+  "seitbeugen": '<circle cx="38" cy="13" r="4"/><path d="M36 18l-4 20M32 38l-5 19M32 38l5 19M36 22l8 15M35 22l-10 8"/><rect class="a" x="41" y="38" width="6" height="10" rx="3"/>',
+
+  // Russian Twist von der Seite: sitzend zurückgelehnt, die Füße in der Luft, das Gewicht vor dem Bauch
+  "russian-twist": '<path class="g" d="M5 55h54"/><circle cx="15" cy="26" r="4"/><path d="M18 31l10 20 12-11 12 6M19 35l12 1"/><circle class="a" cx="35" cy="36" r="4.5"/><path class="a" d="M35 36h.01"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -692,7 +719,52 @@ const BILD_ZU_UEBUNG = {
   "45-leg-press-calf-jump": "beinpresse",
   "seated-calf-raise": "wadenheben-sitzend",
   "dumbbell-seated-calf-raise": "wadenheben-sitzend",
-  "barbell-seated-calf-raise": "wadenheben-sitzend"
+  "barbell-seated-calf-raise": "wadenheben-sitzend",
+
+  // Bauch
+  "cable-crunches": "cable-crunch",
+  "kneeling-cable-crunch": "cable-crunch",
+  "standing-cable-crunch": "cable-crunch",
+  "machine-crunch": "crunches",
+  "weighted-crunch": "crunches",
+  "dumbbell-crunch": "crunches",
+  "weighted-sit-up": "crunches",
+  "crunches": "crunches",
+  "sit-ups": "crunches",
+  "decline-sit-up-eigen": "crunches",
+  "v-up": "crunches",
+  "plank": "plank",
+  "mountain-climbers": "plank",
+  "hollow-body-hold": "plank",
+  "rkc-plank": "plank",
+  "beinheben": "beinheben-liegend",
+  "lying-leg-raise-eigen": "beinheben-liegend",
+  "reverse-crunch-eigen": "beinheben-liegend",
+  "dragon-flag-eigen": "beinheben-liegend",
+  "windshield-wipers-eigen": "beinheben-liegend",
+  "hanging-knee-raise-eigen": "beinheben-hang",
+  "hanging-leg-raise-eigen": "beinheben-hang",
+  "toes-to-bar": "beinheben-hang",
+  "hanging-oblique-knee-raise": "beinheben-hang",
+  "hanging-windshield-wipers": "beinheben-hang",
+  "l-sit": "beinheben-hang",
+  "v-sit": "beinheben-hang",
+  "ab-wheel-rollout-eigen": "ab-wheel",
+  "cable-pallof-press": "cable-chop",
+  "half-kneeling-cable-pallof-press": "cable-chop",
+  "machine-upper-torso-rotation": "cable-chop",
+  "horizontal-cable-chop": "cable-chop",
+  "low-to-high-cable-chop": "cable-chop",
+  "high-to-low-cable-chop": "cable-chop",
+  "cable-side-bend": "seitbeugen",
+  "dumbbell-side-bend": "seitbeugen",
+  "weighted-russian-twist": "russian-twist",
+  "russian-twist": "russian-twist",
+  "suitcase-carry": "farmers-walk",
+  "landmine-rotation": "landmine",
+  "landmine-anti-rotation": "landmine",
+  "side-plank": "seitstuetz",
+  "side-plank-hip-raise": "seitstuetz"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

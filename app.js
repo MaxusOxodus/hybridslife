@@ -5468,6 +5468,7 @@
     document.getElementById("satz-sheet").classList.remove("offen");
     document.getElementById("kraft-sheet").classList.remove("offen");
     document.getElementById("muster-sheet").classList.remove("offen");
+    document.getElementById("teilen-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
     document.body.classList.remove("sheet-offen");
   }
@@ -6718,8 +6719,16 @@
     dateiHerunterladen(datei);
   }
 
-  // Normaler Download über einen unsichtbaren Link
+  // Download des Backups: Danach gilt das Backup als exportiert
   function dateiHerunterladen(datei) {
+    dateiSpeichern(datei);
+    backupDatumMerken();
+    datenMeldung(txt("backup.exportiert", { n: eintraege.length }));
+  }
+
+  // Normaler Download einer Datei über einen unsichtbaren Link. Mehr passiert hier nicht:
+  // Auch das Bild der Teilen-Karte kommt so aufs Gerät, und das ist kein Backup.
+  function dateiSpeichern(datei) {
     const adresse = URL.createObjectURL(datei);
     const link = document.createElement("a");
     link.href = adresse;
@@ -6730,8 +6739,6 @@
     setTimeout(function () {
       URL.revokeObjectURL(adresse);
     }, 60000);
-    backupDatumMerken();
-    datenMeldung(txt("backup.exportiert", { n: eintraege.length }));
   }
 
   // Merkt sich, wann zuletzt ein Backup exportiert wurde. Das Datum bleibt auf dem Gerät und steht nicht im Backup.
@@ -8078,6 +8085,8 @@
       } else {
         karte.appendChild(element("div", "routine-info", txtAnzahl("rang.fehlen", stand.kraft.fehlen)));
       }
+      // Ohne Gesamt-Rang gibt es nichts zu teilen. Der Text darüber sagt, was noch fehlt.
+      karte.appendChild(teilenKnopf(false));
       return karte;
     }
 
@@ -8088,7 +8097,275 @@
     if (stand.schritt) {
       karte.appendChild(element("div", "rang-schritt", schrittText(stand.schritt)));
     }
+    karte.appendChild(teilenKnopf(true));
     return karte;
+  }
+
+  // ---------- Ränge: Teilen-Karte ----------
+
+  // Die Karte ist ein Bild im Hochformat 9:16, so groß wie eine Instagram-Story.
+  // Oben und unten bleiben je rund 250 px frei, dort liegen in einer Story die Leisten von Instagram.
+  const KARTE_BREITE = 1080;
+  const KARTE_HOEHE = 1920;
+  const KARTE_RAND = 72;
+
+  // Die Karte ist immer dunkel, egal welches Design in der App gewählt ist.
+  // Es sind die Farben des dunklen Designs aus der style.css.
+  const KARTE_FARBEN = {
+    grund: "#000000",
+    feld: "#1C1C1E",
+    text: "#FFFFFF",
+    leise: "#98989F",
+    aus: "rgba(255, 255, 255, 0.3)",
+    akzent: "#C6F135",
+    akzentLeicht: "rgba(198, 241, 53, 0.15)",
+    fuellung: "rgba(255, 255, 255, 0.09)",
+    aufAkzent: "#000000"
+  };
+
+  const KARTE_SCHRIFT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif';
+
+  // Die Farben des Rang-Abzeichens für die Karte. Es sind dieselben Regeln wie bei .rang-svg in der style.css,
+  // nur mit festen Farben: Ein SVG, das als Bild gezeichnet wird, kennt die Farben der Seite nicht.
+  const KARTE_SVG_STIL = ".form{fill:" + KARTE_FARBEN.fuellung + ";stroke:" + KARTE_FARBEN.leise + ";stroke-width:2.5;stroke-linejoin:round}"
+    + "text{fill:" + KARTE_FARBEN.leise + ";font-family:" + KARTE_SCHRIFT.replace(/"/g, "'") + ";font-size:15px;font-weight:800}"
+    + ".winkel{fill:none;stroke:" + KARTE_FARBEN.leise + ";stroke-width:2;stroke-linecap:round;stroke-linejoin:round}"
+    + ".farbe-2 .form{fill:" + KARTE_FARBEN.akzentLeicht + ";stroke:" + KARTE_FARBEN.akzent + "}"
+    + ".farbe-2 text{fill:" + KARTE_FARBEN.akzent + "}.farbe-2 .winkel{stroke:" + KARTE_FARBEN.akzent + "}"
+    + ".farbe-3 .form{fill:" + KARTE_FARBEN.akzent + ";stroke:" + KARTE_FARBEN.akzent + "}"
+    + ".farbe-3 text{fill:" + KARTE_FARBEN.aufAkzent + "}.farbe-3 .winkel{stroke:" + KARTE_FARBEN.aufAkzent + "}"
+    + ".leer .form{fill:none;stroke:" + KARTE_FARBEN.aus + ";stroke-dasharray:4 4}";
+
+  // Der Knopf "Teilen" in der Karte des Gesamt-Kraftrangs. Ohne Gesamt-Rang ist er ausgegraut.
+  function teilenKnopf(aktiv) {
+    const knopf = element("button", "knopf rang-knopf teilen-knopf", txt("teilen"));
+    knopf.disabled = !aktiv;
+    knopf.onclick = teilenOeffnen;
+    return knopf;
+  }
+
+  // Lädt das Rang-Abzeichen aus rangSvg als Bild, damit es sich auf das Canvas zeichnen lässt.
+  // rp = null ergibt das leere, gestrichelte Sechseck.
+  function rangBildLaden(rp) {
+    return new Promise(function (fertig, fehler) {
+      // Als eigenständiges Bild braucht das SVG seinen Namensraum, eine Größe und die Farben im Bild selbst
+      const svg = rangSvg(rp)
+        .replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="520" ')
+        .replace('aria-hidden="true">', 'aria-hidden="true"><style>' + KARTE_SVG_STIL + "</style>");
+      const bild = new Image();
+      bild.onload = function () {
+        fertig(bild);
+      };
+      bild.onerror = fehler;
+      bild.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    });
+  }
+
+  // Schreibt eine Zeile Text auf das Canvas. Ist sie breiter als maxBreite, wird die Schrift kleiner,
+  // höchstens bis auf 70 %. Passt sie dann immer noch nicht (oder soll sie gleich gekürzt werden),
+  // endet sie mit "…". Gibt die Breite des geschriebenen Textes zurück.
+  function karteText(ctx, text, x, y, maxBreite, stil) {
+    let groesse = stil.groesse;
+    const schrift = function () {
+      ctx.font = stil.gewicht + " " + groesse + "px " + KARTE_SCHRIFT;
+    };
+    schrift();
+    if (!stil.kuerzen) {
+      while (ctx.measureText(text).width > maxBreite && groesse > stil.groesse * 0.7) {
+        groesse -= 1;
+        schrift();
+      }
+    }
+    let zeile = text;
+    if (ctx.measureText(zeile).width > maxBreite) {
+      const zeichen = Array.from(text);
+      while (zeichen.length > 1 && ctx.measureText(zeichen.join("") + "…").width > maxBreite) {
+        zeichen.pop();
+      }
+      zeile = zeichen.join("") + "…";
+    }
+    ctx.fillStyle = stil.farbe;
+    ctx.textAlign = stil.ausrichtung || "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(zeile, x, y);
+    return ctx.measureText(zeile).width;
+  }
+
+  // Ein Rechteck mit runden Ecken als Fläche
+  function karteFeld(ctx, x, y, breite, hoehe, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + breite, y, x + breite, y + hoehe, radius);
+    ctx.arcTo(x + breite, y + hoehe, x, y + hoehe, radius);
+    ctx.arcTo(x, y + hoehe, x, y, radius);
+    ctx.arcTo(x, y, x + breite, y, radius);
+    ctx.closePath();
+    ctx.fillStyle = KARTE_FARBEN.feld;
+    ctx.fill();
+  }
+
+  // Zeichnet die Karte aus dem Stand der Ränge (von rangStand) und gibt das Canvas zurück, sobald es fertig ist.
+  // Auf der Karte stehen nur Ränge, die Serie, der Benutzername und der Name der App:
+  // kein Körpergewicht, keine Gewichte, kein Datum.
+  function teilenKarteZeichnen(stand) {
+    const gesamt = stand.kraft.gesamt;
+    const serie = stand.zahlen.serie;
+    let konstanzRp = null;
+    if (serie > 0) {
+      konstanzRp = stand.konstanzRp;
+    }
+
+    // Erst alle Abzeichen laden: das große, eins je Muster und das der Konstanz
+    const rps = [gesamt];
+    for (let i = 0; i < MUSTER.length; i++) {
+      const m = stand.kraft.muster[MUSTER[i]];
+      if (m && m.rp !== null) {
+        rps.push(m.rp);
+      } else {
+        rps.push(null);
+      }
+    }
+    rps.push(konstanzRp);
+
+    return Promise.all(rps.map(rangBildLaden)).then(function (bilder) {
+      const canvas = document.createElement("canvas");
+      canvas.width = KARTE_BREITE;
+      canvas.height = KARTE_HOEHE;
+      const ctx = canvas.getContext("2d");
+      const innen = KARTE_BREITE - 2 * KARTE_RAND;
+      const mitte = KARTE_BREITE / 2;
+
+      // Hintergrund: schwarz, hinter dem großen Abzeichen ein schwacher grüner Schein
+      ctx.fillStyle = KARTE_FARBEN.grund;
+      ctx.fillRect(0, 0, KARTE_BREITE, KARTE_HOEHE);
+      const schein = ctx.createRadialGradient(mitte, 420, 0, mitte, 420, 620);
+      schein.addColorStop(0, "rgba(198, 241, 53, 0.22)");
+      schein.addColorStop(1, "rgba(198, 241, 53, 0)");
+      ctx.fillStyle = schein;
+      ctx.fillRect(0, 0, KARTE_BREITE, 1100);
+
+      // Gesamt-Kraftrang: das Abzeichen (300 px hoch, das SVG ist 48 zu 52), darunter Name und Unterstufe
+      const abzeichenHoehe = 300;
+      const abzeichenBreite = abzeichenHoehe * 48 / 52;
+      ctx.drawImage(bilder[0], mitte - abzeichenBreite / 2, 270, abzeichenBreite, abzeichenHoehe);
+      karteText(ctx, rangName(gesamt), mitte, 700, innen, { groesse: 120, gewicht: 800, farbe: KARTE_FARBEN.text, ausrichtung: "center" });
+      karteText(ctx, txt("rang.gesamt"), mitte, 765, innen, { groesse: 40, gewicht: 500, farbe: KARTE_FARBEN.leise, ausrichtung: "center" });
+
+      // Die sechs Bewegungsmuster: zwei Spalten, drei Zeilen. Ohne Wert steht ein Strich da.
+      const abstandX = 28;
+      const abstandY = 20;
+      const feldBreite = (innen - abstandX) / 2;
+      const feldHoehe = 150;
+      const kleinHoehe = 84;
+      const kleinBreite = kleinHoehe * 48 / 52;
+      for (let i = 0; i < MUSTER.length; i++) {
+        const x = KARTE_RAND + (i % 2) * (feldBreite + abstandX);
+        const y = 840 + Math.floor(i / 2) * (feldHoehe + abstandY);
+        const rp = rps[i + 1];
+        karteFeld(ctx, x, y, feldBreite, feldHoehe, 32);
+        ctx.drawImage(bilder[i + 1], x + 24, y + (feldHoehe - kleinHoehe) / 2, kleinBreite, kleinHoehe);
+        const textX = x + 24 + kleinBreite + 20;
+        const textBreite = feldBreite - (textX - x) - 24;
+        karteText(ctx, txt("muster." + MUSTER[i]), textX, y + 62, textBreite, { groesse: 34, gewicht: 500, farbe: KARTE_FARBEN.leise });
+        if (rp === null) {
+          karteText(ctx, "–", textX, y + 116, textBreite, { groesse: 46, gewicht: 700, farbe: KARTE_FARBEN.aus });
+        } else {
+          karteText(ctx, rangName(rp), textX, y + 116, textBreite, { groesse: 46, gewicht: 700, farbe: KARTE_FARBEN.text });
+        }
+      }
+
+      // Konstanz: ein Feld über die ganze Breite. Links die Serie in Wochen, rechts der Rang.
+      const konstanzY = 1360;
+      const konstanzHoehe = 120;
+      const serieHoehe = 72;
+      const serieBreite = serieHoehe * 48 / 52;
+      karteFeld(ctx, KARTE_RAND, konstanzY, innen, konstanzHoehe, 32);
+      ctx.drawImage(bilder[bilder.length - 1], KARTE_RAND + 24, konstanzY + (konstanzHoehe - serieHoehe) / 2, serieBreite, serieHoehe);
+      const rechts = KARTE_RAND + innen - 28;
+      const links = KARTE_RAND + 24 + serieBreite + 20;
+      let rangBreite = 0;
+      if (konstanzRp === null) {
+        rangBreite = karteText(ctx, "–", rechts, konstanzY + 74, 300, { groesse: 40, gewicht: 700, farbe: KARTE_FARBEN.aus, ausrichtung: "right" });
+        karteText(ctx, txt("rang.konstanz"), links, konstanzY + 74, rechts - rangBreite - 24 - links, { groesse: 40, gewicht: 500, farbe: KARTE_FARBEN.leise });
+      } else {
+        rangBreite = karteText(ctx, rangName(konstanzRp), rechts, konstanzY + 74, 320, { groesse: 40, gewicht: 700, farbe: KARTE_FARBEN.akzent, ausrichtung: "right" });
+        karteText(ctx, txtAnzahl("profil.serieText", serie), links, konstanzY + 74, rechts - rangBreite - 24 - links, { groesse: 40, gewicht: 700, farbe: KARTE_FARBEN.text });
+      }
+
+      // Unten: links der Benutzername (ein zu langer wird gekürzt), rechts der Name der App.
+      // Ohne Benutzername steht der Name der App in der Mitte.
+      const fussY = 1590;
+      if (profil.benutzername) {
+        const appBreite = karteText(ctx, APP_NAME, KARTE_RAND + innen, fussY, innen / 2, { groesse: 38, gewicht: 800, farbe: KARTE_FARBEN.akzent, ausrichtung: "right" });
+        karteText(ctx, "@" + profil.benutzername, KARTE_RAND, fussY, innen - appBreite - 40, { groesse: 38, gewicht: 500, farbe: KARTE_FARBEN.leise, kuerzen: true });
+      } else {
+        karteText(ctx, APP_NAME, mitte, fussY, innen, { groesse: 38, gewicht: 800, farbe: KARTE_FARBEN.akzent, ausrichtung: "center" });
+      }
+      return canvas;
+    });
+  }
+
+  // Das fertige Bild der Karte als Datei (null = keins), solange die Vorschau offen ist
+  let teilenDatei = null;
+
+  // "Teilen" in der Rang-Karte: zeichnet die Karte und zeigt sie als Vorschau.
+  // Das Bild ist fertig, bevor in der Vorschau "Teilen" angetippt wird. Das Teilen-Menü des Handys
+  // öffnet sich nur direkt nach einem Tipp, nicht erst nach dem Zeichnen.
+  function teilenOeffnen() {
+    const stand = rangStand();
+    if (stand.kraft.gesamt === null) {
+      return;
+    }
+    teilenDatei = null;
+    const bild = document.getElementById("teilen-bild");
+    const meldung = document.getElementById("teilen-meldung");
+    const knopf = document.getElementById("teilen-ausfuehren");
+    bild.alt = txt("teilen.alt");
+    meldung.textContent = "";
+
+    teilenKarteZeichnen(stand).then(function (canvas) {
+      return new Promise(function (fertig) {
+        canvas.toBlob(fertig, "image/png");
+      });
+    }).then(function (blob) {
+      if (!blob) {
+        throw new Error("kein Bild");
+      }
+      teilenDatei = new File([blob], APP_NAME.toLowerCase() + "-rang.png", { type: "image/png" });
+      if (bild.src) {
+        URL.revokeObjectURL(bild.src);
+      }
+      bild.src = URL.createObjectURL(blob);
+      bild.classList.remove("versteckt");
+      knopf.disabled = false;
+      zusatzSheetOeffnen("teilen-sheet");
+    }).catch(function () {
+      bild.classList.add("versteckt");
+      knopf.disabled = true;
+      meldung.textContent = txt("teilen.fehler");
+      zusatzSheetOeffnen("teilen-sheet");
+    });
+  }
+
+  // "Teilen" in der Vorschau: das Teilen-Menü des Handys mit dem Bild als Datei.
+  // Kann das Gerät keine Dateien teilen oder schlägt es fehl, wird das Bild heruntergeladen.
+  // Ein geschlossenes Teilen-Menü ist kein Fehler, die Vorschau bleibt dann einfach offen.
+  function teilenAusfuehren() {
+    const datei = teilenDatei;
+    if (!datei) {
+      return;
+    }
+    if (navigator.canShare && navigator.canShare({ files: [datei] })) {
+      navigator.share({ files: [datei] }).then(zusatzSheetsSchliessen).catch(function (fehler) {
+        if (fehler.name !== "AbortError") {
+          dateiSpeichern(datei);
+          zusatzSheetsSchliessen();
+        }
+      });
+      return;
+    }
+    dateiSpeichern(datei);
+    zusatzSheetsSchliessen();
   }
 
   // Der Konstanz-Rang: die Serie in Wochen und die angesparten Pausenwochen als kleine Symbole

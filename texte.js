@@ -676,6 +676,10 @@ const TEXTE = {
   },
   "rang.zaehltFuer": { de: "Zählt für: {muster}", en: "Counts for: {muster}" },
   "rang.zaehltNicht": { de: "Zählt nicht in den Kraft-Rang", en: "Does not count for the strength rank" },
+  "teilen": { de: "Teilen", en: "Share" },
+  "teilen.titel": { de: "Rang teilen", en: "Share rank" },
+  "teilen.alt": { de: "Vorschau der Karte mit deinen Rängen", en: "Preview of the card with your ranks" },
+  "teilen.fehler": { de: "Das Bild konnte nicht erstellt werden.", en: "The image could not be created." },
   "rang.hinweis": {
     de: "Ränge sind Richtwerte und vergleichen Kraft im Verhältnis zum Körpergewicht.",
     en: "Ranks are rough guides and compare strength relative to body weight."

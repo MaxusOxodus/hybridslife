@@ -4,6 +4,9 @@
 // Welche Übung zu welchem Bewegungsmuster gehört, steht in der uebungen.js im Feld "rang".
 // Die Namen der Ränge und Muster stehen in der texte.js.
 
+// Der Name der App, wie er auf der Teilen-Karte steht
+const APP_NAME = "Gymstead";
+
 // ---------- Rang-Leiter ----------
 
 // 6 Ränge mit je 3 Unterstufen (I, II, III). Jede Stufe hat 100 Rangpunkte (RP), ein Rang also 300.

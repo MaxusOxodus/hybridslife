@@ -210,7 +210,10 @@ const BILDER = {
   "cossack-squat": '<path class="g" d="M8 57h50"/><circle cx="25" cy="15" r="4"/><path d="M26 20l2 20-12 2 2 14M28 40l26 16M26 25l10 6"/>',
 
   // Seitstütz: seitlich auf dem Unterarm, der Körper gestreckt, der obere Arm zeigt nach oben
-  "seitstuetz": '<path class="g" d="M6 57h52"/><circle cx="15" cy="26" r="4"/><path d="M20 32l34 23M20 32l-2 23h9M21 31l3-15"/>'
+  "seitstuetz": '<path class="g" d="M6 57h52"/><circle cx="15" cy="26" r="4"/><path d="M20 32l34 23M20 32l-2 23h9M21 31l3-15"/>',
+
+  // Hip Thrust von der Seite: die Schultern auf der Bank, die Stange auf der Hüfte, die Hüfte oben
+  "hip-thrust": '<path class="g" d="M5 39h13M7 39v18M16 39v18M22 57h36"/><circle cx="12" cy="31" r="4"/><path d="M17 36h29l1 20"/><circle class="a" cx="33" cy="29" r="6"/><path class="a" d="M33 29h.01"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -640,7 +643,29 @@ const BILD_ZU_UEBUNG = {
   "cossack-squat-eigen": "cossack-squat",
   "lateral-lunge-eigen": "cossack-squat",
   "copenhagen-plank": "seitstuetz",
-  "side-lying-leg-raise-eigen": "seitstuetz"
+  "side-lying-leg-raise-eigen": "seitstuetz",
+
+  // Po
+  "kickbacks-kabel": "kickback-kabel",
+  "standing-pin-loaded-machine-glute-kickback": "kickback-kabel",
+  "plate-loaded-machine-hip-thrust": "hip-thrust",
+  "smith-machine-hip-thrust": "hip-thrust",
+  "single-leg-smith-machine-hip-thrust": "hip-thrust",
+  "single-leg-plate-loaded-machine-hip-thrust": "hip-thrust",
+  "hip-thrust": "hip-thrust",
+  "dumbbell-hip-thrust": "hip-thrust",
+  "hip-thrust-eigen": "hip-thrust",
+  "single-leg-hip-thrust": "hip-thrust",
+  "barbell-glute-bridge": "glute-bridge",
+  "dumbbell-glute-bridge": "glute-bridge",
+  "glute-bridge": "glute-bridge",
+  "single-leg-glute-bridge": "glute-bridge",
+  "cable-pull-through": "rumaenisches-kreuzheben",
+  "sumo-kniebeuge": "kniebeuge",
+  "high-step-up": "step-up",
+  "step-ups": "step-up",
+  "deficit-reverse-lunge": "ausfallschritt",
+  "curtsy-lunge-eigen": "ausfallschritt"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

@@ -4431,69 +4431,6 @@ button.einst-zeile:first-child {
   }
 }
 
-/* Ab 380 px Breite steht die Übungskarte wie in der Vorlage in einer Reihe:
-   Pfeil, Bild, Text (Zähler, Name, Geräte-Zeile), Pfeil. Die drei Hüllen lösen sich dafür auf
-   (display: contents), ihre Kinder liegen dann direkt im Raster der Karte.
-   Auf schmaleren Handys bleibt es bei zwei Reihen, sonst wäre der Name nur noch gut 90 px breit. */
-@media (min-width: 380px) {
-  .modus-karte {
-    display: grid;
-    grid-template-columns: 44px 56px minmax(0, 1fr) 44px;
-    align-items: center;
-    column-gap: 8px;
-  }
-
-  .modus-karte .modus-wechsel,
-  .modus-uebung-zeile,
-  .modus-uebung-text {
-    display: contents;
-  }
-
-  #modus-zurueck {
-    grid-row: 1 / span 3;
-    grid-column: 1;
-  }
-
-  #modus-vor {
-    grid-row: 1 / span 3;
-    grid-column: 4;
-  }
-
-  .modus-bild {
-    grid-row: 1 / span 3;
-    grid-column: 2;
-    width: 56px;
-    height: 56px;
-    padding: 4px;
-    border-radius: 16px;
-  }
-
-  /* Zähler und Name bleiben je 44 px hoch zum Antippen, ihre Texte rücken aber aneinander */
-  #ansicht-modus .modus-wechsel .modus-schritt {
-    display: flex;
-    grid-row: 1;
-    grid-column: 3;
-    align-items: flex-end;
-    justify-self: start;
-    padding: 0 0 3px;
-    text-align: left;
-  }
-
-  #ansicht-modus .name-knopf {
-    grid-row: 2;
-    grid-column: 3;
-    padding: 2px 0 0;
-    font-size: 17px;
-  }
-
-  .modus-geraet {
-    grid-row: 3;
-    grid-column: 3;
-    margin-top: 0;
-    font-size: 13px;
-  }
-}
-
 /* Reps in Reserve: ab 350 px Breite in einer Zeile. Der Titel bekommt den Platz, der neben den
    fünf 44 px breiten Feldern übrig ist, und bricht dort um. Darunter reicht der Platz nicht. */
 @media (min-width: 350px) {

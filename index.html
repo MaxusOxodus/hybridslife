@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=34">
+  <link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
 
@@ -49,11 +49,25 @@
 
       <div id="home-heute"></div>
 
-      <h2 class="abschnitt" data-t="home.dieseWoche">Diese Woche</h2>
-      <div id="home-woche"></div>
+      <!-- Die Woche zum Blättern: mit den Pfeilen oder durch seitliches Wischen über die Tage.
+           Titel, Zeitraum, Tage und Zahlen füllt die app.js. -->
+      <div class="wochen-kopf home-wochen-kopf">
+        <button id="home-woche-zurueck" onclick="homeWocheBlaettern(-1)" aria-label="Woche zurück" data-t-aria="log.wocheZurueck">‹</button>
+        <div class="home-wochen-text" aria-live="polite">
+          <h2 id="home-woche-titel" class="abschnitt"></h2>
+          <div id="home-woche-zeitraum"></div>
+        </div>
+        <button id="home-woche-vor" onclick="homeWocheBlaettern(1)" aria-label="Woche vor" data-t-aria="log.wocheVor">›</button>
+      </div>
+      <div id="home-woche-rahmen">
+        <div id="home-woche"></div>
+      </div>
+      <div id="home-woche-zahlen" class="karte"></div>
 
       <h2 class="abschnitt" data-t="home.letztesTraining">Letztes Training</h2>
       <div id="home-letztes"></div>
+
+      <h2 class="abschnitt" data-t="home.insights">Insights &amp; Analytics</h2>
 
       <!-- Zwei quadratische Kacheln nebeneinander, jede mit kleinem Diagramm. Den Inhalt füllt die app.js.
            Kraft: Ein Tipp öffnet den großen Verlauf der Übung. Körpergewicht: Ein Tipp öffnet das Diagramm im Fortschritt-Tab. -->
@@ -832,10 +846,10 @@
   </div>
 
 <!-- Erst die Texte und die Übungsdaten, dann die App, die beides benutzt -->
-<script src="texte.js?v=34"></script>
-<script src="uebungen.js?v=34"></script>
-<script src="raenge.js?v=34"></script>
-<script src="app.js?v=34"></script>
+<script src="texte.js?v=35"></script>
+<script src="uebungen.js?v=35"></script>
+<script src="raenge.js?v=35"></script>
+<script src="app.js?v=35"></script>
 
 </body>
 </html>

@@ -84,6 +84,12 @@ const TEXTE = {
 
   // ---------- Home ----------
   "home.dieseWoche": { de: "Diese Woche", en: "This Week" },
+  "home.letzteWoche": { de: "Letzte Woche", en: "Last Week" },
+  "home.zeitraum": { de: "{von} bis {bis}", en: "{von} – {bis}" },
+  "home.zeitraum.kurz": { de: "{von}. bis {bis}", en: "{von} – {bis}" },
+  "home.wocheLeer": { de: "Keine Trainings in dieser Woche.", en: "No workouts this week." },
+  "home.wocheLeerNoch": { de: "Noch kein Training in dieser Woche.", en: "No workouts yet this week." },
+  "home.insights": { de: "Insights & Analytics", en: "Insights & Analytics" },
   "home.letztesTraining": { de: "Letztes Training", en: "Last Workout" },
   "home.laeuft": { de: "Läuft gerade", en: "In progress" },
   "home.erledigt": { de: "Heute erledigt", en: "Done today" },
@@ -97,6 +103,7 @@ const TEXTE = {
   "home.tag.nichts": { de: "nichts geplant", en: "nothing planned" },
   "home.tag.ruhe": { de: "Ruhe", en: "Rest" },
   "home.tag.trainiert": { de: "trainiert", en: "trained" },
+  "home.tag.frei": { de: "kein Training", en: "no workout" },
   "home.keinTraining": { de: "Noch kein Training eingetragen", en: "No workout logged yet" },
   "home.bewegt": { de: "Bewegt", en: "Moved" },
   "freiesTraining": { de: "Freies Training", en: "Free workout" },

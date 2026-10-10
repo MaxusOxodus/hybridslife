@@ -492,11 +492,58 @@ h1 {
   margin-top: 16px;
 }
 
-/* Wochenleiste der Übersicht: wie im Log, zusätzlich mit geplanter Routine und Punkt */
+/* Kopf über der Wochenleiste der Übersicht: links und rechts die Pfeile, dazwischen Titel und Zeitraum */
+.home-wochen-kopf {
+  margin-top: 28px;
+}
+
+.home-wochen-text {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.home-wochen-text .abschnitt {
+  margin: 0;
+}
+
+#home-woche-zeitraum {
+  margin-top: 2px;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+/* Der Rahmen zeigt immer nur eine Woche, die Nachbarwochen links und rechts schneidet er ab.
+   "pan-y": Wischen nach oben und unten scrollt weiter die Seite, seitlich blättert es die Woche. */
+#home-woche-rahmen {
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+/* Drei Wochen nebeneinander: die davor, die gezeigte und die danach. In Ruhe steht die mittlere im Rahmen. */
 #home-woche {
+  display: flex;
+  gap: 6px;
+  transform: translateX(calc(-100% - 6px));
+  transition: transform 0.22s ease-out;
+}
+
+/* Eine Woche der Übersicht: wie im Log, zusätzlich mit Routine und Punkt */
+.home-woche-seite {
+  flex: 0 0 100%;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
+  min-width: 0;
+}
+
+/* Die Karte mit den Zahlen der gezeigten Woche */
+#home-woche-zahlen {
+  margin-top: 10px;
+}
+
+.home-woche-leer {
+  margin-top: 0;
 }
 
 .home-tag {
@@ -565,12 +612,12 @@ h1 {
   margin-top: 4px;
 }
 
-/* Die zwei Kacheln "Kraft" und "Körpergewicht" stehen nebeneinander */
+/* Die zwei Kacheln "Kraft" und "Körpergewicht" stehen nebeneinander.
+   Den Abstand nach oben bringt die Überschrift "Insights & Analytics" mit. */
 .home-kacheln {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-top: 36px;
 }
 
 #home-kraft,

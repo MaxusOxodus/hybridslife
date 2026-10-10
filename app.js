@@ -311,7 +311,11 @@
   let angezeigterMontag = montagDerWoche(new Date());
   let gewaehlterTag = null;
 
-  let eintraege = JSON.parse(localStorage.getItem("eintraege")) || [];
+  // Home: Montag der Woche, die über den Tagen gerade gezeigt wird. Er wird nicht gespeichert,
+  // nach dem Öffnen der App ist es also wieder die aktuelle Woche.
+  let homeMontag = montagDerWoche(new Date());
+
+  let eintraege =JSON.parse(localStorage.getItem("eintraege")) || [];
 
   // Wofür das Sheet gerade geöffnet ist: "log" (neuer Eintrag), "routine" (Übung zur Routine hinzufügen)
   // oder "tausch" (im Trainingsmodus die Übung tauschen)
@@ -4779,7 +4783,7 @@
     homeAnsichtZeigen("home");
   }
 
-  // Öffnet das Log mit einem Tag der aktuellen Woche, so als wäre er dort angetippt worden
+  // Öffnet das Log mit einem Tag, so als wäre er dort angetippt worden
   function logFuerTagZeigen(tag) {
     angezeigterMontag = montagDerWoche(tag);
     gewaehlterTag = tag;
@@ -4928,44 +4932,116 @@
     karte.appendChild(zumPlan);
   }
 
-  // Die sieben Tage der aktuellen Woche: geplante Routine und ein grüner Punkt, wenn trainiert wurde
-  function homeWocheAnzeigen() {
-    const heute = new Date();
-    const montag = montagDerWoche(heute);
+  // ---------- Home: die Woche zum Blättern ----------
 
-    // Jeder Tag mit mindestens einem Eintrag gilt als trainiert
-    const trainiert = {};
-    for (let i = 0; i < eintraege.length; i++) {
-      if (hatDatum(eintraege[i])) {
-        trainiert[tagSchluessel(new Date(eintraege[i].datum))] = true;
+  // So lange dauert das Hinübergleiten zur nächsten Woche (in Millisekunden, wie in der style.css)
+  const HOME_WOCHE_DAUER = 220;
+
+  // Die Trainingstage, aus denen Home die Woche baut (Schlüssel wie bei tagSchluessel)
+  let homeTage = {};
+
+  // Gleitet die Leiste gerade zur nächsten Woche? Solange lässt sich nicht weiterblättern.
+  let homeWocheWechselt = false;
+
+  // Der Montag eine oder mehrere Wochen davor (wochen negativ) oder danach
+  function montagVerschieben(montag, wochen) {
+    return new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + wochen * 7);
+  }
+
+  // Der Montag der ersten Woche mit Einträgen. Ohne Einträge ist es die aktuelle Woche.
+  function homeErsterMontag() {
+    let erster = montagDerWoche(new Date());
+    Object.keys(homeTage).forEach(function (schluessel) {
+      const montag = montagDerWoche(homeTage[schluessel].datum);
+      if (montag < erster) {
+        erster = montag;
       }
-    }
+    });
+    return erster;
+  }
 
-    const leiste = document.getElementById("home-woche");
-    leiste.innerHTML = "";
+  // Gibt es in dieser Richtung (-1 zurück, 1 vor) noch eine Woche? Zurück geht es bis zur ersten Woche
+  // mit Einträgen, vor bis zur aktuellen.
+  function homeWocheErlaubt(richtung) {
+    const ziel = montagVerschieben(homeMontag, richtung);
+    return ziel >= homeErsterMontag() && ziel <= montagDerWoche(new Date());
+  }
+
+  // Der Zeitraum einer Woche als Text, z. B. "5. bis 11. Okt.", "28. Sept. bis 4. Okt." oder
+  // "29. Dez. 2025 bis 4. Jan. 2026". Das Jahr steht nur dabei, wenn es nicht das aktuelle ist.
+  // Geschrieben wird immer in der Schreibweise der Sprache (Englisch britisch: "5 – 11 Oct"),
+  // sonst stünde bei amerikanisch eingestellten Geräten der Monat mitten im Zeitraum.
+  function homeZeitraum(montag) {
+    const sonntag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 6);
+    const jahreswechsel = montag.getFullYear() !== sonntag.getFullYear();
+
+    const bis = { day: "numeric", month: "short" };
+    if (jahreswechsel || sonntag.getFullYear() !== new Date().getFullYear()) {
+      bis.year = "numeric";
+    }
+    const ort = spracheDaten().gebiet;
+    const ende = sonntag.toLocaleDateString(ort, bis);
+
+    // Liegt die ganze Woche in einem Monat, steht er nur einmal da
+    if (montag.getMonth() === sonntag.getMonth()) {
+      return txt("home.zeitraum.kurz", { von: montag.getDate(), bis: ende });
+    }
+    let von = { day: "numeric", month: "short" };
+    if (jahreswechsel) {
+      von = bis;
+    }
+    return txt("home.zeitraum", { von: montag.toLocaleDateString(ort, von), bis: ende });
+  }
+
+  // Die sieben Tage einer Woche als Leiste. In der aktuellen Woche steht bei jedem Tag die geplante Routine.
+  // Der Wochenplan von früher ist nicht gespeichert, vergangene Wochen zeigen deshalb, aus welcher Routine
+  // wirklich trainiert wurde. Ein grüner Punkt heißt: An dem Tag gibt es Einträge.
+  // sichtbar: false bei den Nachbarwochen, die nur beim Wischen ins Bild kommen.
+  function homeWocheBauen(montag, sichtbar) {
+    const heute = new Date();
+    const aktuell = montag.getTime() === montagDerWoche(heute).getTime();
+    const seite = element("div", "home-woche-seite");
+    if (!sichtbar) {
+      seite.setAttribute("aria-hidden", "true");
+    }
 
     for (let i = 0; i < 7; i++) {
       const tag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + i);
+      const trainiert = homeTage[tagSchluessel(tag)];
       const btn = element("button", "home-tag");
       btn.appendChild(element("span", "tag-name", wochentag(i)));
       btn.appendChild(element("span", "tag-zahl", tag.getDate()));
 
       let plan = "–";
       let ansage = txt("home.tag.nichts");
-      const routine = routineFinden(wochenplan[i]);
-      if (routine) {
-        plan = routine.name;
-        ansage = routine.name;
-      } else if (wochenplan[i] === "ruhe") {
-        plan = txt("home.tag.ruhe");
-        ansage = txt("ruhetag");
+      if (aktuell) {
+        const routine = routineFinden(wochenplan[i]);
+        if (routine) {
+          plan = routine.name;
+          ansage = routine.name;
+        } else if (wochenplan[i] === "ruhe") {
+          plan = txt("home.tag.ruhe");
+          ansage = txt("ruhetag");
+        }
+        if (trainiert) {
+          ansage += ", " + txt("home.tag.trainiert");
+        }
+      } else {
+        const namen = trainiert ? tagRoutinen(trainiert) : [];
+        if (namen.length > 0) {
+          plan = namen.join(" + ");
+          ansage = plan + ", " + txt("home.tag.trainiert");
+        } else if (trainiert) {
+          ansage = txt("home.tag.trainiert");
+        } else {
+          ansage = txt("home.tag.frei");
+        }
       }
       btn.appendChild(element("span", "tag-plan", plan));
 
       const punkt = element("span", "tag-punkt");
-      if (trainiert[tagSchluessel(tag)]) {
+      if (trainiert) {
         punkt.classList.add("trainiert");
-        ansage += ", " + txt("home.tag.trainiert");
       }
       btn.appendChild(punkt);
       btn.setAttribute("aria-label", tagText(tag) + " " + ansage);
@@ -4975,12 +5051,188 @@
       }
       // Tage in der Zukunft lassen sich nicht antippen
       btn.disabled = tagSchluessel(tag) > tagSchluessel(heute);
+      if (!sichtbar) {
+        btn.tabIndex = -1;
+      }
       btn.onclick = function () {
         logFuerTagZeigen(tag);
       };
-      leiste.appendChild(btn);
+      seite.appendChild(btn);
+    }
+    return seite;
+  }
+
+  // Die gewählte Woche: Titel und Zeitraum, die sieben Tage und darunter die Zahlen der Woche.
+  // Links und rechts der Tage liegen unsichtbar die Nachbarwochen, damit sie beim Wischen mitgleiten.
+  function homeWocheAnzeigen() {
+    homeTage = trainingstage();
+    const diese = montagDerWoche(new Date());
+    const erster = homeErsterMontag();
+
+    // Die gewählte Woche bleibt zwischen der ersten Woche mit Einträgen und der aktuellen,
+    // auch wenn inzwischen eine neue Woche begonnen hat oder Einträge gelöscht wurden
+    if (homeMontag > diese) {
+      homeMontag = diese;
+    }
+    if (homeMontag < erster) {
+      homeMontag = erster;
+    }
+
+    // Titel: "Diese Woche" und "Letzte Woche" mit dem Zeitraum darunter, ältere Wochen nur mit dem Zeitraum
+    const zeitraum = homeZeitraum(homeMontag);
+    let titel = "";
+    if (homeMontag.getTime() === diese.getTime()) {
+      titel = txt("home.dieseWoche");
+    } else if (homeMontag.getTime() === montagVerschieben(diese, -1).getTime()) {
+      titel = txt("home.letzteWoche");
+    }
+    document.getElementById("home-woche-titel").textContent = titel || zeitraum;
+    const unterzeile = document.getElementById("home-woche-zeitraum");
+    unterzeile.textContent = zeitraum;
+    unterzeile.classList.toggle("versteckt", titel === "");
+
+    document.getElementById("home-woche-zurueck").disabled = !homeWocheErlaubt(-1);
+    document.getElementById("home-woche-vor").disabled = !homeWocheErlaubt(1);
+
+    // Die drei Wochen nebeneinander. Wo es keine Nachbarwoche gibt, bleibt ihr Platz leer.
+    const leiste = document.getElementById("home-woche");
+    leiste.innerHTML = "";
+    for (let richtung = -1; richtung <= 1; richtung++) {
+      if (richtung === 0 || homeWocheErlaubt(richtung)) {
+        leiste.appendChild(homeWocheBauen(montagVerschieben(homeMontag, richtung), richtung === 0));
+      } else {
+        leiste.appendChild(element("div", "home-woche-seite"));
+      }
+    }
+    // Ohne Übergang zurück in die Mitte, sonst würde die neue Woche ein zweites Mal hereingleiten
+    leiste.style.transition = "none";
+    leiste.style.transform = "";
+
+    // Die Zahlen der Woche, in einer Woche ohne Training ein kurzer Satz
+    const karte = document.getElementById("home-woche-zahlen");
+    karte.innerHTML = "";
+    const zahlen = wochenZahlen(homeTage, homeMontag);
+    if (zahlen.workouts > 0) {
+      karte.appendChild(wochenZahlenFeld(zahlen));
+    } else if (homeMontag.getTime() === diese.getTime()) {
+      karte.appendChild(element("div", "routine-info home-woche-leer", txt("home.wocheLeerNoch")));
+    } else {
+      karte.appendChild(element("div", "routine-info home-woche-leer", txt("home.wocheLeer")));
     }
   }
+
+  // Blättert eine Woche zurück (-1) oder vor (1): Die Nachbarwoche gleitet ins Bild, danach wird neu aufgebaut.
+  // Gibt es in der Richtung keine Woche mehr, gleitet die Leiste zurück in die Mitte.
+  function homeWocheBlaettern(richtung) {
+    if (homeWocheWechselt) {
+      return;
+    }
+    const leiste = document.getElementById("home-woche");
+    leiste.style.transition = "";
+    if (!homeWocheErlaubt(richtung)) {
+      leiste.style.transform = "";
+      return;
+    }
+
+    if (richtung < 0) {
+      leiste.style.transform = "translateX(0)";
+    } else {
+      leiste.style.transform = "translateX(calc(-200% - 12px))";
+    }
+    // Wer am Gerät "Bewegung reduzieren" eingestellt hat, bekommt die neue Woche sofort
+    let dauer = HOME_WOCHE_DAUER;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      dauer = 0;
+    }
+    homeWocheWechselt = true;
+    setTimeout(function () {
+      homeWocheWechselt = false;
+      homeMontag = montagVerschieben(homeMontag, richtung);
+      homeWocheAnzeigen();
+    }, dauer);
+  }
+
+  // Wischen über die Tage: Die Leiste folgt dem Finger und rastet beim Loslassen in der Nachbarwoche ein.
+  // Hoch und runter scrollt der Browser die Seite selbst (touch-action: pan-y in der style.css),
+  // hier kommt nur die seitliche Bewegung an.
+  (function () {
+    const rahmen = document.getElementById("home-woche-rahmen");
+    const leiste = document.getElementById("home-woche");
+    // Ab so vielen Pixeln steht fest, ob seitlich gewischt oder gescrollt wird
+    const SPIEL = 8;
+    // Ab so vielen Pixeln seitlich wird beim Loslassen geblättert
+    const WEIT_GENUG = 50;
+
+    // Der Finger auf der Leiste: wo er aufgesetzt hat, ob er seitlich wischt (null = noch offen) und wie weit
+    let finger = null;
+    // Nach dem Wischen kommt vom Browser manchmal noch ein Klick: Der darf keinen Tag öffnen
+    let gewischt = false;
+
+    rahmen.addEventListener("touchstart", function (ereignis) {
+      gewischt = false;
+      if (ereignis.touches.length !== 1 || homeWocheWechselt) {
+        finger = null;
+        return;
+      }
+      finger = { x: ereignis.touches[0].clientX, y: ereignis.touches[0].clientY, seitlich: null, weg: 0 };
+    }, { passive: true });
+
+    rahmen.addEventListener("touchmove", function (ereignis) {
+      if (!finger) {
+        return;
+      }
+      let weg = ereignis.touches[0].clientX - finger.x;
+      const hoch = ereignis.touches[0].clientY - finger.y;
+      if (finger.seitlich === null) {
+        if (Math.abs(weg) < SPIEL && Math.abs(hoch) < SPIEL) {
+          return;
+        }
+        finger.seitlich = Math.abs(weg) > Math.abs(hoch);
+      }
+      if (!finger.seitlich) {
+        return;
+      }
+      gewischt = true;
+      // Gibt es in der Richtung keine Woche, gibt die Leiste nur ein Stück nach
+      if (!homeWocheErlaubt(weg > 0 ? -1 : 1)) {
+        weg = weg / 3;
+      }
+      finger.weg = weg;
+      leiste.style.transition = "none";
+      leiste.style.transform = "translateX(calc(-100% - 6px + " + weg + "px))";
+    }, { passive: true });
+
+    function loslassen(blaettern) {
+      if (!finger || !finger.seitlich) {
+        finger = null;
+        return;
+      }
+      const weg = finger.weg;
+      finger = null;
+      if (blaettern && Math.abs(weg) >= WEIT_GENUG) {
+        homeWocheBlaettern(weg > 0 ? -1 : 1);
+      } else {
+        // Zurück in die Mitte
+        leiste.style.transition = "";
+        leiste.style.transform = "";
+      }
+    }
+
+    rahmen.addEventListener("touchend", function () {
+      loslassen(true);
+    });
+    rahmen.addEventListener("touchcancel", function () {
+      loslassen(false);
+    });
+
+    rahmen.addEventListener("click", function (ereignis) {
+      if (gewischt) {
+        gewischt = false;
+        ereignis.stopPropagation();
+        ereignis.preventDefault();
+      }
+    }, true);
+  })();
 
   // Sucht das letzte Training. Gibt null zurück, wenn es noch keins gibt, sonst
   // { name, datum, eintraege, minuten }. minuten ist null, wenn keine Dauer bekannt ist.
@@ -5120,10 +5372,14 @@
     return feld;
   }
 
-  // Die App bleibt oft tagelang offen: beim Zurückkehren stimmt "heute" sonst nicht mehr
+  // Die App bleibt oft tagelang offen: beim Zurückkehren stimmt "heute" sonst nicht mehr.
+  // Home zeigt dann auch wieder die aktuelle Woche, so wie nach dem Öffnen.
   document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "visible" && aktiveSeite === "home") {
-      homeAnzeigen();
+    if (document.visibilityState === "visible") {
+      homeMontag = montagDerWoche(new Date());
+      if (aktiveSeite === "home") {
+        homeAnzeigen();
+      }
     }
   });
 
@@ -7325,6 +7581,33 @@
     return tage;
   }
 
+  // Die Zahlen einer Woche (Montag bis Sonntag) aus den Trainingstagen: Workouts, Wiederholungen und
+  // bewegtes Gewicht in kg. Home und Profil > Statistik rechnen beide hier, damit überall dasselbe steht.
+  function wochenZahlen(tage, montag) {
+    const von = tagSchluessel(montag);
+    const bis = tagSchluessel(new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 6));
+    const zahlen = { workouts: 0, wdh: 0, volumen: 0 };
+    Object.keys(tage).forEach(function (schluessel) {
+      if (Number(schluessel) >= von && Number(schluessel) <= bis) {
+        zahlen.workouts++;
+        zahlen.wdh += tage[schluessel].wdh;
+        zahlen.volumen += tage[schluessel].volumen;
+      }
+    });
+    return zahlen;
+  }
+
+  // Die Zahlen einer Woche zum Anzeigen: Workouts und Wiederholungen nebeneinander, das Volumen darunter
+  function wochenZahlenFeld(zahlen) {
+    const feld = element("div", "home-zahlen profil-zahlen ohne-abstand");
+    feld.appendChild(homeZahl(zahlen.workouts, txt("profil.workouts")));
+    feld.appendChild(homeZahl(zahlen.wdh.toLocaleString(gebiet()), txt("wiederholungen")));
+    const volumen = homeZahl(volumenText(zahlen.volumen), txt("verlauf.volumen"));
+    volumen.classList.add("breit");
+    feld.appendChild(volumen);
+    return feld;
+  }
+
   // Die Namen der Übungen eines Trainingstags, jede einmal
   function tagUebungen(tag) {
     const namen = [];
@@ -7758,28 +8041,10 @@
     serie.appendChild(element("div", "routine-info", txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE })));
     inhalt.appendChild(serie);
 
-    // Diese Woche: alle Trainingstage ab Montag
-    const montag = tagSchluessel(montagDerWoche(new Date()));
-    let workouts = 0;
-    let volumen = 0;
-    let wdh = 0;
-    Object.keys(profilTage).forEach(function (schluessel) {
-      if (Number(schluessel) >= montag) {
-        workouts++;
-        volumen += profilTage[schluessel].volumen;
-        wdh += profilTage[schluessel].wdh;
-      }
-    });
-
+    // Diese Woche: dieselben Zahlen wie auf Home
     inhalt.appendChild(element("h2", "abschnitt", txt("home.dieseWoche")));
     const woche = element("div", "karte");
-    const zahlen = element("div", "home-zahlen profil-zahlen ohne-abstand");
-    zahlen.appendChild(homeZahl(workouts, txt("profil.workouts")));
-    zahlen.appendChild(homeZahl(wdh.toLocaleString(gebiet()), txt("wiederholungen")));
-    const feld = homeZahl(volumenText(volumen), txt("verlauf.volumen"));
-    feld.classList.add("breit");
-    zahlen.appendChild(feld);
-    woche.appendChild(zahlen);
+    woche.appendChild(wochenZahlenFeld(wochenZahlen(profilTage, montagDerWoche(new Date()))));
     inhalt.appendChild(woche);
   }
 

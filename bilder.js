@@ -120,7 +120,31 @@ const BILDER = {
   "farmers-walk": '<path class="g" d="M10 57h44"/><circle cx="32" cy="11" r="4"/><path d="M32 16v20M32 36l-8 20M32 36l9 20M32 19l1 18"/><circle class="a" cx="33" cy="42" r="5"/><path class="a" d="M33 42h.01"/>',
 
   // Aufrechtes Rudern von vorn: die Stange vor der Brust, die Ellbogen zeigen nach oben außen
-  "aufrechtes-rudern": '<circle cx="32" cy="11" r="4"/><path d="M32 16v22M32 38l-5 19M32 38l5 19M32 20l-14-2 9 10M32 20l14-2-9 10"/><path class="a" d="M14 29h36"/><rect class="a" x="9" y="23" width="5" height="12" rx="2"/><rect class="a" x="50" y="23" width="5" height="12" rx="2"/>'
+  "aufrechtes-rudern": '<circle cx="32" cy="11" r="4"/><path d="M32 16v22M32 38l-5 19M32 38l5 19M32 20l-14-2 9 10M32 20l14-2-9 10"/><path class="a" d="M14 29h36"/><rect class="a" x="9" y="23" width="5" height="12" rx="2"/><rect class="a" x="50" y="23" width="5" height="12" rx="2"/>',
+
+  // Face Pulls von der Seite: stehend vor dem Turm, das Seil wird auf Kopfhöhe zum Gesicht gezogen
+  "face-pulls": '<path class="g" d="M56 6v51M56 19H41"/><circle cx="25" cy="13" r="4"/><path d="M26 18l1 20M27 38l-5 19M27 38l6 19M26 22l8 3 6-6"/><path class="a" d="M40 15v8"/><rect class="a" x="52" y="30" width="8" height="14" rx="2"/>',
+
+  // Reverse Butterfly von vorn: die Brust am Polster, die Arme gehen gestreckt nach außen
+  "reverse-butterfly": '<path class="g" d="M27 29h10v9H27zM24 45h16"/><circle cx="32" cy="16" r="4"/><path d="M32 21v21M32 42l-7 4-1 11M32 42l7 4 1 11M32 25l-20-2M32 25l20-2"/><path class="a" d="M11 17v12M53 17v12"/>',
+
+  // Reverse Flys von vorn: weit vorgebeugt, die Arme heben seitlich an
+  "reverse-flys": '<circle cx="32" cy="27" r="4"/><path d="M32 32v9M32 41l-6 16M32 41l6 16M32 34l-19-7M32 34l19-7"/><rect class="a" x="7" y="22" width="5" height="9" rx="2.5"/><rect class="a" x="52" y="22" width="5" height="9" rx="2.5"/>',
+
+  // Frontheben von der Seite: stehend, ein Arm hebt das Gewicht gestreckt nach vorn
+  "frontheben": '<circle cx="28" cy="11" r="4"/><path d="M28 16v21M28 37l-4 20M28 37l5 20M28 20h17M28 20l-2 16"/><circle class="a" cx="49" cy="20" r="4.5"/><path class="a" d="M49 20h.01"/>',
+
+  // Landmine von der Seite: Die Stange ist am Boden verankert, das freie Ende wird schräg nach oben gedrückt
+  "landmine": '<path class="g" d="M10 57h48"/><circle cx="24" cy="13" r="4"/><path d="M25 18l1 20M26 38l-4 19M26 38l5 19M25 22l5 6 7-7"/><path class="a" d="M56 56L37 21M38 33l9-5"/>',
+
+  // Pike-Liegestütz von der Seite: die Hüfte hoch, der Körper bildet ein umgedrehtes V
+  "pike-liegestuetze": '<path class="g" d="M6 57h52"/><circle cx="46" cy="45" r="4"/><path d="M12 55l18-33 12 18-2 15"/>',
+
+  // Handstand von vorn: auf den Händen, die Beine gestreckt nach oben
+  "handstand": '<path class="g" d="M8 57h48"/><circle cx="32" cy="48" r="4"/><path d="M25 56l4-15h6l4 15M32 41V23M32 23L29 6M32 23l3-17"/>',
+
+  // Seitheben am Kabelzug von vorn: Das Seil kommt von unten quer vor dem Körper, ein Arm hebt seitlich an
+  "seitheben-kabel": '<path class="g" d="M8 8v49M8 54l42-29"/><circle cx="34" cy="12" r="4"/><path d="M34 17v21M34 38l-5 19M34 38l5 19M34 20l16 5M34 20l-6 15"/><path class="a" d="M51 20v9"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -372,7 +396,56 @@ const BILD_ZU_UEBUNG = {
   "trap-bar-carry": "farmers-walk",
   "high-pull": "aufrechtes-rudern",
   "barbell-upright-row": "aufrechtes-rudern",
-  "dumbbell-upright-row": "aufrechtes-rudern"
+  "dumbbell-upright-row": "aufrechtes-rudern",
+
+  // Schultern
+  "face-pulls": "face-pulls",
+  "innenrotation-kabel": "face-pulls",
+  "single-arm-cable-face-pull": "face-pulls",
+  "high-pulley-cable-face-pull": "face-pulls",
+  "lying-pause-cable-face-pull": "face-pulls",
+  "ring-face-pull": "face-pulls",
+  "neutral-grip-machine-rear-delt-fly": "reverse-butterfly",
+  "overhand-grip-machine-rear-delt-fly": "reverse-butterfly",
+  "sideways-single-arm-machine-rear-delt-fly": "reverse-butterfly",
+  "overhand-grip-cable-rear-delt-fly": "reverse-flys",
+  "single-arm-45-cable-rear-delt-fly": "reverse-flys",
+  "45-cable-rear-delt-fly": "reverse-flys",
+  "reverse-flys": "reverse-flys",
+  "dumbbell-rear-delt-fly": "reverse-flys",
+  "incline-dumbbell-rear-delt-fly": "reverse-flys",
+  "chest-supported-dumbbell-rear-delt-fly": "reverse-flys",
+  "barbell-rear-delt-row": "langhantelrudern",
+  "prone-y-t-w-raises": "bauchlage-heben",
+  "plate-loaded-machine-shoulder-press": "schulterdruecken",
+  "neutral-grip-machine-shoulder-press": "schulterdruecken",
+  "neutral-grip-plate-loaded-machine-shoulder-press": "schulterdruecken",
+  "cable-shoulder-press": "schulterdruecken",
+  "z-press": "schulterdruecken",
+  "single-arm-dumbbell-press": "schulterdruecken",
+  "cable-front-raise": "frontheben",
+  "single-arm-cable-front-raise": "frontheben",
+  "frontheben": "frontheben",
+  "dumbbell-front-raise": "frontheben",
+  "plate-front-raise": "frontheben",
+  "landmine-press": "landmine",
+  "pike-push-up": "pike-liegestuetze",
+  "elevated-pike-push-up": "pike-liegestuetze",
+  "handstand-push-up": "handstand",
+  "wall-handstand-push-up": "handstand",
+  "freestanding-handstand-push-up": "handstand",
+  "handstand-shoulder-tap": "handstand",
+  "single-arm-high-cable-lateral-raise": "seitheben-kabel",
+  "single-arm-cable-lateral-raise": "seitheben-kabel",
+  "dual-cable-lateral-raise": "seitheben-kabel",
+  "behind-the-back-cable-lateral-raise": "seitheben-kabel",
+  "leaning-cable-lateral-raise": "seitheben-kabel",
+  "single-arm-cable-cuffed-lateral-raise": "seitheben-kabel",
+  "seated-machine-lateral-raise": "seitheben",
+  "leaning-dumbbell-lateral-raise": "seitheben",
+  "incline-dumbbell-lateral-raise": "seitheben",
+  "cable-upright-row": "aufrechtes-rudern",
+  "smith-machine-upright-row": "aufrechtes-rudern"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

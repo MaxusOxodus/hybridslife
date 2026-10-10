@@ -249,7 +249,31 @@ const BILDER = {
   "russian-twist": '<path class="g" d="M5 55h54"/><circle cx="15" cy="26" r="4"/><path d="M18 31l10 20 12-11 12 6M19 35l12 1"/><circle class="a" cx="35" cy="36" r="4.5"/><path class="a" d="M35 36h.01"/>',
 
   // Handgelenkcurls von der Seite: sitzend, der Unterarm liegt auf dem Oberschenkel, nur die Hand bewegt das Gewicht
-  "handgelenkcurls": '<path class="g" d="M10 43h20M14 43v13M26 43v13"/><circle cx="26" cy="16" r="4"/><path d="M25 21l-3 19h18v16M25 24l3 12h16l3-4"/><circle class="a" cx="49" cy="29" r="4.5"/><path class="a" d="M49 29h.01"/>'
+  "handgelenkcurls": '<path class="g" d="M10 43h20M14 43v13M26 43v13"/><circle cx="26" cy="16" r="4"/><path d="M25 21l-3 19h18v16M25 24l3 12h16l3-4"/><circle class="a" cx="49" cy="29" r="4.5"/><path class="a" d="M49 29h.01"/>',
+
+  // Kreuzheben am Kabelzug sitzend von der Seite: die Füße an der Platte, der Oberkörper beugt sich mit gestreckten Armen vor
+  "kreuzheben-kabel-sitzend": '<path class="g" d="M14 49h26M19 49v8M35 49v8M49 38v14M57 8v49M57 42l-13-1"/><circle cx="38" cy="22" r="4"/><path d="M34 27L24 45l13-3 11 4M34 29l10 11"/><path class="a" d="M44 36v9"/><rect class="a" x="53" y="14" width="8" height="14" rx="2"/>',
+
+  // Sprung von vorn: die Füße in der Luft, die Arme nach oben gestreckt
+  "sprung": '<path class="g" d="M14 57h36"/><circle cx="32" cy="13" r="4"/><path d="M32 18v18M29 21L22 7M35 21l7-14M32 36l-5 9 2 7M32 36l5 9-2 7"/>',
+
+  // Hack Squat mit der Langhantel von der Seite: in der Hocke, die Stange hängt an gestreckten Armen hinter den Beinen
+  "hack-squat-langhantel": '<path class="g" d="M10 57h44"/><circle cx="38" cy="18" r="4"/><path d="M35 24l-9 17 16 2-8 13h7M34 26L22 47"/><circle class="a" cx="21" cy="49" r="6"/><path class="a" d="M21 49h.01"/>',
+
+  // Goblet Squat von vorn: in der Hocke, die Knie außen, das Gewicht mit beiden Händen vor der Brust
+  "goblet-squat": '<path class="g" d="M12 57h40"/><circle cx="32" cy="11" r="4"/><path d="M32 16v20M32 36l-12 6 2 14M32 36l12 6-2 14M32 19l-9 9 6-1M32 19l9 9-6-1"/><circle class="a" cx="32" cy="27" r="4.5"/>',
+
+  // Sumo-Kniebeuge von vorn: sehr breiter Stand, die Knie zeigen nach außen, die Stange auf den Schultern
+  "sumo-kniebeuge": '<path class="g" d="M6 57h52"/><circle cx="32" cy="13" r="4"/><path d="M32 18v20M32 38l-16 4-6 14M32 38l16 4 6 14M32 25l-9-4M32 25l9-4"/><path class="a" d="M12 21h40"/><rect class="a" x="7" y="15" width="5" height="12" rx="2"/><rect class="a" x="52" y="15" width="5" height="12" rx="2"/>',
+
+  // Schulterpresse an der Maschine von der Seite: sitzend, die Griffe werden nach oben gedrückt, rechts der Turm mit dem Gewicht
+  "schulterpresse-maschine": '<path class="g" d="M17 20v24h14M23 44v12M12 56h42M50 6v50M50 9H35"/><circle cx="23" cy="15" r="4"/><path d="M22 21l1 21h13l1 13M23 26l8-4V10"/><path class="a" d="M27 9h8"/><rect class="a" x="46" y="30" width="8" height="16" rx="2"/>',
+
+  // Crunch-Maschine von der Seite: sitzend, der Oberkörper rollt sich gegen das Polster nach vorn
+  "crunch-maschine": '<path class="g" d="M17 20v24h14M23 44v12M12 56h42M50 6v50M50 8L37 27"/><circle cx="34" cy="20" r="4"/><path d="M30 25l-7 17h13l1 13M30 27l5 4"/><rect class="a" x="34" y="27" width="5" height="10" rx="2.5"/><rect class="a" x="46" y="32" width="8" height="14" rx="2"/>',
+
+  // Muscle-Up von vorn: oben angekommen, der Körper ist über der Stange, die Arme stützen gestreckt
+  "muscle-up": '<path class="g" d="M10 34v23M54 34v23"/><path class="a" d="M8 34h48"/><circle cx="32" cy="10" r="4"/><path d="M23 34l2-16h14l2 16M32 18v24M32 42l-3 14M32 42l3 14"/>'
 };
 
 // Welche Übung (ID aus der uebungen.js) welches Motiv zeigt. Ähnliche Übungen teilen sich ein Motiv.
@@ -421,7 +445,7 @@ const BILD_ZU_UEBUNG = {
   "machine-assisted-chin-up": "klimmzug",
   "archer-pull-up": "klimmzug",
   "typewriter-pull-up": "klimmzug",
-  "muscle-up": "klimmzug",
+  "muscle-up": "muscle-up",
   "kurzhantelrudern": "kurzhantelrudern",
   "dumbbell-pullover": "ueberzuege",
   "barbell-pullover": "ueberzuege",
@@ -473,9 +497,9 @@ const BILD_ZU_UEBUNG = {
   "dumbbell-romanian-deadlift": "rumaenisches-kreuzheben",
   "stiff-leg-deadlift": "rumaenisches-kreuzheben",
   "single-leg-romanian-deadlift-eigen": "rumaenisches-kreuzheben",
-  "seated-cable-romanian-deadlift": "rudern",
-  "seated-single-leg-cable-romanian-deadlift": "rudern",
-  "seated-cable-deadlift": "rudern",
+  "seated-cable-romanian-deadlift": "kreuzheben-kabel-sitzend",
+  "seated-single-leg-cable-romanian-deadlift": "kreuzheben-kabel-sitzend",
+  "seated-cable-deadlift": "kreuzheben-kabel-sitzend",
   "shrug-machine-deadlift": "kreuzheben",
   "rack-pull": "kreuzheben",
   "jefferson-deadlift": "kreuzheben",
@@ -522,9 +546,9 @@ const BILD_ZU_UEBUNG = {
   "chest-supported-dumbbell-rear-delt-fly": "reverse-flys",
   "barbell-rear-delt-row": "langhantelrudern",
   "prone-y-t-w-raises": "bauchlage-heben",
-  "plate-loaded-machine-shoulder-press": "schulterdruecken",
-  "neutral-grip-machine-shoulder-press": "schulterdruecken",
-  "neutral-grip-plate-loaded-machine-shoulder-press": "schulterdruecken",
+  "plate-loaded-machine-shoulder-press": "schulterpresse-maschine",
+  "neutral-grip-machine-shoulder-press": "schulterpresse-maschine",
+  "neutral-grip-plate-loaded-machine-shoulder-press": "schulterpresse-maschine",
   "cable-shoulder-press": "schulterdruecken",
   "z-press": "schulterdruecken",
   "single-arm-dumbbell-press": "schulterdruecken",
@@ -617,7 +641,7 @@ const BILD_ZU_UEBUNG = {
   "single-leg-leg-extension": "beinstrecker",
   "hack-squat": "hack-squat",
   "pause-hack-squat": "hack-squat",
-  "hack-squat-mit-langhantel": "kniebeuge",
+  "hack-squat-mit-langhantel": "hack-squat-langhantel",
   "cable-belt-squat": "kniebeuge",
   "smith-machine-lunge": "ausfallschritt",
   "smith-machine-split-squat": "ausfallschritt",
@@ -637,13 +661,13 @@ const BILD_ZU_UEBUNG = {
   "bulgarian-split-squat-eigen": "bulgarian-split-squat",
   "front-squat": "frontkniebeuge",
   "zercher-squat": "frontkniebeuge",
-  "goblet-squat": "frontkniebeuge",
-  "heel-elevated-goblet-squat": "frontkniebeuge",
+  "goblet-squat": "goblet-squat",
+  "heel-elevated-goblet-squat": "goblet-squat",
   "dumbbell-step-up": "step-up",
   "lateral-step-up-eigen": "step-up",
   "sissy-squat-eigen": "kniebeuge-eigen",
   "bodyweight-squat": "kniebeuge-eigen",
-  "jump-squat": "kniebeuge-eigen",
+  "jump-squat": "sprung",
   "cyclist-squat": "kniebeuge-eigen",
   "wide-stance-squat-eigen": "kniebeuge-eigen",
   "banded-lateral-walk": "kniebeuge-eigen",
@@ -697,7 +721,7 @@ const BILD_ZU_UEBUNG = {
   "glute-bridge": "glute-bridge",
   "single-leg-glute-bridge": "glute-bridge",
   "cable-pull-through": "rumaenisches-kreuzheben",
-  "sumo-kniebeuge": "kniebeuge",
+  "sumo-kniebeuge": "sumo-kniebeuge",
   "high-step-up": "step-up",
   "step-ups": "step-up",
   "deficit-reverse-lunge": "ausfallschritt",
@@ -715,7 +739,7 @@ const BILD_ZU_UEBUNG = {
   "deficit-calf-raise": "wadenheben",
   "bent-knee-calf-raise": "wadenheben",
   "jumping-calf-raise": "wadenheben",
-  "pogo-jumps": "wadenheben",
+  "pogo-jumps": "sprung",
   "45-leg-press-calf-raise": "beinpresse",
   "pin-loaded-leg-press-calf-jump": "beinpresse",
   "single-leg-45-leg-press-calf-raise": "beinpresse",
@@ -728,7 +752,7 @@ const BILD_ZU_UEBUNG = {
   "cable-crunches": "cable-crunch",
   "kneeling-cable-crunch": "cable-crunch",
   "standing-cable-crunch": "cable-crunch",
-  "machine-crunch": "crunches",
+  "machine-crunch": "crunch-maschine",
   "weighted-crunch": "crunches",
   "dumbbell-crunch": "crunches",
   "weighted-sit-up": "crunches",
@@ -787,7 +811,7 @@ const BILD_ZU_UEBUNG = {
   "push-up-auf-fingerspitzen": "liegestuetze",
 
   // Ganzkörper
-  "burpee": "liegestuetze"
+  "burpee": "sprung"
 };
 
 // Das Bild einer Übung als fertiges SVG. Ohne Zuordnung (auch bei eigenen Übungen) kommt der Platzhalter.

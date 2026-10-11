@@ -608,6 +608,13 @@ const TEXTE = {
   "design.dunkel": { de: "Dunkel", en: "Dark" },
   "design.hell": { de: "Hell", en: "Light" },
   "design.hinweis": { de: "„System“ folgt der Einstellung deines Geräts.", en: "“System” follows your device setting." },
+  "stil": { de: "Stil", en: "Style" },
+  "stil.klassisch": { de: "Klassisch", en: "Classic" },
+  "stil.glass": { de: "Glass", en: "Glass" },
+  "stil.hinweis": {
+    de: "„Glass“ zeigt Karten und Leisten als halbtransparentes Glas. Anordnung und Funktionen bleiben gleich.",
+    en: "“Glass” shows cards and bars as translucent glass. Layout and features stay the same."
+  },
   "ueber.app": { de: "App", en: "App" },
   "ueber.version": { de: "Version", en: "Version" },
   "ueber.text": {

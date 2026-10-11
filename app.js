@@ -191,9 +191,9 @@
 
   // Einstellungen der App: die Standard-Pause in Sekunden (pauseSekunden),
   // die Einheit für Gewichte (gewichtEinheit: "kg" oder "lbs") und für Längen (laengeEinheit: "cm" oder "ftin"),
-  // die Sprache (sprache: "de" oder "en"), das Design (design: "dunkel" oder "hell")
+  // die Sprache (sprache: "de" oder "en"), das Design (design: "dunkel" oder "hell"), der Stil (stil: "glass")
   // und die für die Kraft-Karte gewählte Übung (kraftUebung: { name, uebungId }).
-  // Fehlt die Sprache, gilt die des Geräts. Fehlt das Design, folgt die App dem Gerät.
+  // Fehlt die Sprache, gilt die des Geräts. Fehlt das Design, folgt die App dem Gerät. Fehlt der Stil, gilt "Klassisch".
   // Fehlt die Übung, zeigt die Karte die zuletzt am häufigsten trainierte.
   let einstellungen = gespeichertLesen("einstellungen", {});
   if (!einstellungen || typeof einstellungen !== "object" || Array.isArray(einstellungen)) {
@@ -730,6 +730,7 @@
     });
     spracheAnzeigen();
     designAnzeigen();
+    stilAnzeigen();
     einstTitelAnzeigen();
     einstWerteAnzeigen();
     einheitenAnwenden();
@@ -8313,6 +8314,46 @@
     designAnzeigen();
   }
 
+  // ---------- Stil: Klassisch oder Glass ----------
+
+  const STIL_AUSWAHL = [
+    { id: "klassisch", schluessel: "stil.klassisch" },
+    { id: "glass", schluessel: "stil.glass" }
+  ];
+
+  // Der gewählte Stil: "klassisch" oder "glass". Gespeichert wird nur "glass", ohne Eintrag gilt "klassisch".
+  function stil() {
+    if (einstellungen.stil === "glass") {
+      return "glass";
+    }
+    return "klassisch";
+  }
+
+  // Schaltet den Glass-Look ein oder aus. Das Attribut data-stil am <html> wertet die glass.css aus.
+  function stilAnwenden() {
+    if (stil() === "glass") {
+      document.documentElement.setAttribute("data-stil", "glass");
+    } else {
+      document.documentElement.removeAttribute("data-stil");
+    }
+  }
+
+  // Einstellungen: der Umschalter für den Stil
+  function stilAnzeigen() {
+    umschalterBauen(document.getElementById("stil-auswahl"), STIL_AUSWAHL, stil(), stilSetzen);
+  }
+
+  function stilSetzen(neu) {
+    if (neu === "glass") {
+      einstellungen.stil = neu;
+    } else {
+      delete einstellungen.stil;
+    }
+    einstellungenSpeichern();
+    stilAnwenden();
+    stilAnzeigen();
+  }
+
   // ---------- Profil: Name und Benutzername ----------
 
   // Macht aus einer Eingabe einen Benutzernamen: ohne Leerzeichen am Rand, ohne @ davor, kleingeschrieben
@@ -10129,6 +10170,10 @@ spracheAnzeigen();
 // Das gewählte Design (Dunkel, Hell oder System) und sein Umschalter
 designAnwenden();
 designAnzeigen();
+
+// Der gewählte Stil (Klassisch oder Glass) und sein Umschalter
+stilAnwenden();
+stilAnzeigen();
 
 // Beschriftungen und Schnellbuttons in der gewählten Einheit, dazu das Rad für das Körpergewicht
 // (30 bis 200 kg oder 66 bis 440 lbs)

@@ -1,0 +1,168 @@
+/* ---------- Glass: das zweite Design der App ----------
+
+   Diese Datei wirkt nur, wenn in den Einstellungen unter Design der Stil "Glass" gewählt ist.
+   Dann steht am <html> das Attribut data-stil="glass". Bei "Klassisch" fehlt es und keine Regel hier greift.
+
+   Geändert wird nur die Optik: Flächen, Ränder, Schatten, Farben. Größen, Abstände und Reihenfolge
+   bleiben, wie die style.css sie festlegt. Wo ein Element keinen Rand hat, zeichnet ein innerer Schatten
+   die feine Kante, denn der braucht keinen Platz.
+
+   Die Farben kommen aus den Glas-Variablen der style.css (--glas, --glas-rand, --glas-glanz,
+   --glas-schatten, --glas-schimmer, --glas-filter), dieselben wie im Trainingsmodus.
+
+   ":where(...)" macht die Regeln nicht stärker als die der style.css. So gewinnen dort weiterhin die
+   genaueren Regeln, z. B. der grün gefüllte gewählte Tag oder der grüne Rahmen um ein Feld mit Cursor. */
+
+/* Zwei Werte, die es nur hier gibt:
+   --glas-fest: dieselbe Farbe wie --glas, aber fast deckend. Der Ersatz, wenn nicht weichgezeichnet wird.
+   --glas-kante: die feine Kante um Glasflächen. */
+:root[data-stil="glass"] {
+  --glas-fest: rgba(22, 22, 24, 0.94);
+  --glas-kante: var(--glas-rand);
+}
+
+/* Helles Design: Die Kante ist ein Hauch Akzentgrün, eine weiße sähe man auf hellem Grund nicht.
+   Der leise Text ist etwas dunkler, damit er auch auf den Licht-Flecken gut lesbar bleibt.
+   Wie in der style.css steht das zweimal da, weil es zwei Wege zum hellen Design gibt. */
+@media (prefers-color-scheme: light) {
+  :root[data-stil="glass"]:not([data-design="dunkel"]) {
+    --glas-fest: rgba(249, 249, 249, 0.94);
+    --glas-kante: var(--akzent-leicht);
+    --text-leise: #5C5C61;
+  }
+}
+
+:root[data-stil="glass"][data-design="hell"] {
+  --glas-fest: rgba(249, 249, 249, 0.94);
+  --glas-kante: var(--akzent-leicht);
+  --text-leise: #5C5C61;
+}
+
+/* ---------- Hintergrund ---------- */
+
+/* Eine feste Ebene hinter allen Ansichten: zwei weiche Licht-Flecken im Akzentton auf der Grundfarbe.
+   Erst dadurch sieht man, dass die Flächen davor aus Glas sind. Sie bewegt sich nicht und fängt keine Tipps ab. */
+:where([data-stil="glass"]) body::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background:
+    radial-gradient(60% 38% at 12% 14%, var(--glas-schimmer), transparent 70%),
+    radial-gradient(55% 34% at 96% 58%, var(--glas-schimmer), transparent 70%);
+  pointer-events: none;
+}
+
+/* Der Trainingsmodus hat eigene Licht-Flecken. Mit der Ebene dahinter lägen sie doppelt. */
+:where([data-stil="glass"]) #ansicht-modus::before {
+  background: none;
+}
+
+/* ---------- Feste Flächen: Kopfzeile, Navigation, Hinweise ---------- */
+
+/* Sie sind schon in der style.css weichgezeichnet. Dazu kommen die Glas-Kante und der Glanz von oben links. */
+:where([data-stil="glass"]) #kopfzeile,
+:where([data-stil="glass"]) #navigation,
+:where([data-stil="glass"]) #update-hinweis,
+:where([data-stil="glass"]) #verworfen-hinweis,
+:where([data-stil="glass"]) #routine-hinweis,
+:where([data-stil="glass"]) #rang-hinweis,
+:where([data-stil="glass"]) #pause-leiste {
+  border-color: var(--glas-kante);
+  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas);
+}
+
+/* Die schwebenden Hinweise heben sich mit einem weichen Schatten ab */
+:where([data-stil="glass"]) #update-hinweis,
+:where([data-stil="glass"]) #verworfen-hinweis,
+:where([data-stil="glass"]) #routine-hinweis,
+:where([data-stil="glass"]) #rang-hinweis,
+:where([data-stil="glass"]) #pause-leiste {
+  box-shadow: var(--glas-schatten);
+}
+
+/* ---------- Karten ---------- */
+
+/* Halbtransparente Fläche, Glanz, feine Kante, weicher Schatten. Ohne Weichzeichner:
+   Dahinter liegt nur der ruhige Hintergrund, und viele weichgezeichnete Karten bremsen das iPhone. */
+:where([data-stil="glass"]) .karte {
+  border-color: var(--glas-kante);
+  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas);
+  box-shadow: var(--glas-schatten);
+}
+
+/* Zeilen in Listen: wie Karten, aber ohne Schatten, weil sie dicht untereinander stehen */
+:where([data-stil="glass"]) #liste li,
+:where([data-stil="glass"]) .listen-zeile {
+  border-color: var(--glas-kante);
+  background: var(--glas);
+}
+
+/* ---------- Kleine Flächen: Tage, Felder, ruhige Buttons, Umschalter ---------- */
+
+/* Sie haben keinen Rand, deshalb zeichnet ein innerer Schatten die Kante.
+   Der Trainingsmodus ist ausgenommen, er hat seinen eigenen Glass-Look. */
+:where([data-stil="glass"]) .tag-btn:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) .home-tag:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) .uebung-feld:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) .letztes-mal:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) #letztesMal,
+:where([data-stil="glass"]) .zahl-feld:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) .text-feld:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) .rad-rahmen:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) .zweit-btn:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) .klein-btn:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) .speichern-btn:disabled:where(:not(#ansicht-modus *)) {
+  background: var(--glas);
+  box-shadow: inset 0 0 0 1px var(--glas-kante);
+}
+
+/* Der runde Button (z. B. das Zahnrad im Profil) hat schon einen Rand */
+:where([data-stil="glass"]) .rund-btn:where(:not(#ansicht-modus *)) {
+  border-color: var(--glas-kante);
+  background: var(--glas);
+}
+
+/* Umschalter: Die Fläche ist schon durchscheinend, dazu kommt nur die Kante */
+:where([data-stil="glass"]) .umschalter:where(:not(#ansicht-modus *)) {
+  box-shadow: inset 0 0 0 1px var(--glas-kante);
+}
+
+/* ---------- Ersatz ohne Weichzeichner ---------- */
+
+/* Kann der Browser nicht weichzeichnen, werden die festen Flächen fast deckend, damit der Text lesbar bleibt */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  :where([data-stil="glass"]) #kopfzeile,
+  :where([data-stil="glass"]) #navigation,
+  :where([data-stil="glass"]) #update-hinweis,
+  :where([data-stil="glass"]) #verworfen-hinweis,
+  :where([data-stil="glass"]) #routine-hinweis,
+  :where([data-stil="glass"]) #rang-hinweis,
+  :where([data-stil="glass"]) #pause-leiste {
+    background: var(--glas-fest);
+  }
+}
+
+/* Dasselbe, wenn am Gerät "Transparenz reduzieren" eingeschaltet ist. Dann wird auch nicht weichgezeichnet. */
+@media (prefers-reduced-transparency: reduce) {
+  :where([data-stil="glass"]) #kopfzeile,
+  :where([data-stil="glass"]) #navigation,
+  :where([data-stil="glass"]) #update-hinweis,
+  :where([data-stil="glass"]) #verworfen-hinweis,
+  :where([data-stil="glass"]) #routine-hinweis,
+  :where([data-stil="glass"]) #rang-hinweis,
+  :where([data-stil="glass"]) #pause-leiste {
+    background: var(--glas-fest);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :where([data-stil="glass"]) .karte,
+  :where([data-stil="glass"]) #liste li,
+  :where([data-stil="glass"]) .listen-zeile {
+    background: var(--glas-fest);
+  }
+}

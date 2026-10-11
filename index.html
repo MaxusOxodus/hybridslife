@@ -22,17 +22,24 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
   <!-- Ist in den Einstellungen "Dunkel" oder "Hell" gewählt, gilt das sofort, noch bevor die Seite gezeichnet wird.
-       Sonst würde beim Start kurz das andere Design aufblitzen. Ohne Auswahl folgt die App dem Gerät. -->
+       Sonst würde beim Start kurz das andere Design aufblitzen. Ohne Auswahl folgt die App dem Gerät.
+       Dasselbe gilt für den Stil "Glass": Das Attribut data-stil schaltet die glass.css ein. -->
   <script>
     try {
-      var design = JSON.parse(localStorage.getItem("einstellungen")).design;
+      var gespeichert = JSON.parse(localStorage.getItem("einstellungen"));
+      var design = gespeichert.design;
       if (design === "dunkel" || design === "hell") {
         document.documentElement.setAttribute("data-design", design);
+      }
+      if (gespeichert.stil === "glass") {
+        document.documentElement.setAttribute("data-stil", "glass");
       }
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=64">
+  <link rel="stylesheet" href="style.css?v=65">
+  <!-- Das zweite Design "Glass": wirkt nur, wenn es in den Einstellungen gewählt ist -->
+  <link rel="stylesheet" href="glass.css?v=65">
 </head>
 <body>
 
@@ -872,6 +879,10 @@
       <div id="einst-ansicht-design" class="einst-ansicht versteckt">
         <div id="design-auswahl" class="umschalter gross"></div>
         <p class="einst-fuss" data-t="design.hinweis">„System“ folgt der Einstellung deines Geräts.</p>
+        <!-- Der Stil: Klassisch oder Glass. Den Umschalter baut die app.js. -->
+        <h2 class="abschnitt" data-t="stil">Stil</h2>
+        <div id="stil-auswahl" class="umschalter gross"></div>
+        <p class="einst-fuss" data-t="stil.hinweis">„Glass“ zeigt Karten und Leisten als halbtransparentes Glas. Anordnung und Funktionen bleiben gleich.</p>
       </div>
 
       <!-- Unterseite: Sprache -->
@@ -923,13 +934,13 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=64"></script>
-<script src="uebungen.js?v=64"></script>
-<script src="erklaerungen.js?v=64"></script>
-<script src="raenge.js?v=64"></script>
-<script src="bilder.js?v=64"></script>
-<script src="vorlagen.js?v=64"></script>
-<script src="app.js?v=64"></script>
+<script src="texte.js?v=65"></script>
+<script src="uebungen.js?v=65"></script>
+<script src="erklaerungen.js?v=65"></script>
+<script src="raenge.js?v=65"></script>
+<script src="bilder.js?v=65"></script>
+<script src="vorlagen.js?v=65"></script>
+<script src="app.js?v=65"></script>
 
 </body>
 </html>

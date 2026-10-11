@@ -1674,9 +1674,105 @@
     return knopf;
   }
 
-  // Wird bei jeder Eingabe im Suchfeld aufgerufen. Gesucht wird in allen Übungen, auf Deutsch und Englisch
-  // und in den Aliasen, die eigenen Übungen stehen vorn. Jedes eingetippte Wort muss im Namen vorkommen,
-  // die Reihenfolge ist egal.
+  // Macht aus einem Text die Form, in der die Suche vergleicht: klein geschrieben, "ß" wie "ss",
+  // Umlaute wie der einfache Buchstabe, und "ae", "oe", "ue" genauso. "Drücken", "drucken" und "druecken"
+  // ergeben alle "drucken". Das gilt für die Eingabe und für die Namen, angezeigt wird weiter der echte Name.
+  function suchForm(text) {
+    return String(text).toLowerCase().replace(/ß/g, "ss")
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/ae/g, "a").replace(/oe/g, "o").replace(/ue/g, "u");
+  }
+
+  // Wie genau ein Name zur Eingabe passt: 0 = genau gleich, 1 = der Name beginnt mit der Eingabe,
+  // 2 = zu jedem eingetippten Wort gibt es im Namen ein Wort, das damit beginnt, 3 = jedes eingetippte Wort
+  // steckt irgendwo im Namen. Passt der Name nicht, ist das Ergebnis -1. name und eingabe sind schon in der Such-Form.
+  function suchStufe(name, eingabe, woerter) {
+    if (name === eingabe) {
+      return 0;
+    }
+    if (name.indexOf(eingabe) === 0) {
+      return 1;
+    }
+    // Wörter im Namen: getrennt an allem, was kein Buchstabe und keine Ziffer ist (Leerzeichen, Bindestrich, Klammer)
+    const teile = name.split(/[^a-z0-9]+/);
+    const wortAnfang = woerter.every(function (wort) {
+      return teile.some(function (teil) {
+        return teil.indexOf(wort) === 0;
+      });
+    });
+    if (wortAnfang) {
+      return 2;
+    }
+    const irgendwo = woerter.every(function (wort) {
+      return name.indexOf(wort) !== -1;
+    });
+    if (irgendwo) {
+      return 3;
+    }
+    return -1;
+  }
+
+  // Die Treffer der Suche, die besten zuerst. Gesucht wird in allen Übungen, auf Deutsch und Englisch und in den
+  // Aliasen. Jedes eingetippte Wort muss vorkommen, die Reihenfolge der Wörter ist egal.
+  // Die Reihenfolge: zuerst die Treffer im Namen der eingestellten Sprache (Stufe 0 bis 3, siehe suchStufe),
+  // dann die im Namen der anderen Sprache (4 bis 7), zuletzt die, die nur über einen Alias passen (8).
+  // Bei gleicher Stufe: eigene Übungen, dann Übungen mit Erklärung, dann der kürzere Name, dann das Alphabet.
+  function sucheTreffer(text) {
+    const eingabe = suchForm(text).trim().replace(/\s+/g, " ");
+    const woerter = eingabe.split(" ");
+    let andere = "en";
+    if (sprache === "en") {
+      andere = "de";
+    }
+
+    const treffer = [];
+    const alle = selbstListe.concat(UEBUNGEN);
+    for (let i = 0; i < alle.length; i++) {
+      const u = alle[i];
+      let stufe = suchStufe(suchForm(u[sprache]), eingabe, woerter);
+      if (stufe === -1) {
+        stufe = suchStufe(suchForm(u[andere]), eingabe, woerter);
+        if (stufe !== -1) {
+          stufe += 4;
+        }
+      }
+      if (stufe === -1) {
+        const namen = suchForm(u.de + " " + u.en + " " + (u.alias || []).join(" "));
+        const passt = woerter.every(function (wort) {
+          return namen.indexOf(wort) !== -1;
+        });
+        if (!passt) {
+          continue;
+        }
+        stufe = 8;
+      }
+      treffer.push({ uebung: u, stufe: stufe, eigene: Boolean(u.selbst), erklaert: erklaerungId(u.id, u.de) !== "" });
+    }
+
+    treffer.sort(function (a, b) {
+      if (a.stufe !== b.stufe) {
+        return a.stufe - b.stufe;
+      }
+      if (a.eigene !== b.eigene) {
+        return Number(b.eigene) - Number(a.eigene);
+      }
+      if (a.erklaert !== b.erklaert) {
+        return Number(b.erklaert) - Number(a.erklaert);
+      }
+      const nameA = a.uebung[sprache];
+      const nameB = b.uebung[sprache];
+      if (nameA.length !== nameB.length) {
+        return nameA.length - nameB.length;
+      }
+      return nameA.localeCompare(nameB, sprache);
+    });
+
+    return treffer.map(function (t) {
+      return t.uebung;
+    });
+  }
+
+  // Wird bei jeder Eingabe im Suchfeld aufgerufen. Was gefunden wird und in welcher Reihenfolge, steht in sucheTreffer.
   function sheetSucheGeaendert() {
     const eingabe = sheetTeil("suche").value.trim();
 
@@ -1686,13 +1782,7 @@
       return;
     }
 
-    const woerter = eingabe.toLowerCase().split(/\s+/);
-    const treffer = selbstListe.concat(UEBUNGEN).filter(function (u) {
-      const namen = (u.de + " " + u.en + " " + (u.alias || []).join(" ")).toLowerCase();
-      return woerter.every(function (wort) {
-        return namen.indexOf(wort) !== -1;
-      });
-    });
+    const treffer = sucheTreffer(eingabe);
 
     const inhalt = sheetLeeren(txt("sheet.suche"), true);
     for (let i = 0; i < treffer.length; i++) {
@@ -2648,6 +2738,12 @@
       trainingReiter = neu;
       trainingReiterAnzeigen();
     });
+    // Die Unterzeile unter dem Titel passt zum Reiter
+    let unterzeile = "training.unterzeile";
+    if (trainingReiter === "uebungen") {
+      unterzeile = "training.unterzeileUebungen";
+    }
+    document.getElementById("training-unterzeile").textContent = txt(unterzeile);
     document.getElementById("reiter-plaene").classList.toggle("versteckt", trainingReiter !== "plaene");
     document.getElementById("reiter-uebungen").classList.toggle("versteckt", trainingReiter !== "uebungen");
     bibliothekAnzeigen();

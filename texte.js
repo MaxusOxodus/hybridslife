@@ -192,6 +192,7 @@ const TEXTE = {
 
   // ---------- Training: Übersicht ----------
   "training.unterzeile": { de: "Deine Trainingspläne", en: "Your training plans" },
+  "training.unterzeileUebungen": { de: "Alle Übungen zum Nachschlagen", en: "Look up any exercise" },
   "training.reiter.plaene": { de: "Pläne", en: "Plans" },
   "training.meineRoutinen": { de: "Meine Routinen", en: "My Routines" },
   "training.vorlagen": { de: "Vorlagen", en: "Templates" },

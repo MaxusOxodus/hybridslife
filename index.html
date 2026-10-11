@@ -23,23 +23,28 @@
 
   <!-- Ist in den Einstellungen "Dunkel" oder "Hell" gewählt, gilt das sofort, noch bevor die Seite gezeichnet wird.
        Sonst würde beim Start kurz das andere Design aufblitzen. Ohne Auswahl folgt die App dem Gerät.
-       Dasselbe gilt für den Stil "Glass": Das Attribut data-stil schaltet die glass.css ein. -->
+       Dasselbe gilt für den Stil: Das Attribut data-stil schaltet die glass.css ein. "Glass" ist der Standard,
+       auch wenn noch nichts gespeichert ist. Nur wer ausdrücklich "Klassisch" gewählt hat, bekommt es nicht. -->
   <script>
+    var stilBeimStart = "glass";
     try {
       var gespeichert = JSON.parse(localStorage.getItem("einstellungen"));
+      if (gespeichert.stil === "klassisch") {
+        stilBeimStart = "klassisch";
+      }
       var design = gespeichert.design;
       if (design === "dunkel" || design === "hell") {
         document.documentElement.setAttribute("data-design", design);
       }
-      if (gespeichert.stil === "glass") {
-        document.documentElement.setAttribute("data-stil", "glass");
-      }
     } catch (fehler) {}
+    if (stilBeimStart === "glass") {
+      document.documentElement.setAttribute("data-stil", "glass");
+    }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=67">
-  <!-- Das zweite Design "Glass": wirkt nur, wenn es in den Einstellungen gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=67">
+  <link rel="stylesheet" href="style.css?v=68">
+  <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
+  <link rel="stylesheet" href="glass.css?v=68">
 </head>
 <body>
 
@@ -934,13 +939,13 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=67"></script>
-<script src="uebungen.js?v=67"></script>
-<script src="erklaerungen.js?v=67"></script>
-<script src="raenge.js?v=67"></script>
-<script src="bilder.js?v=67"></script>
-<script src="vorlagen.js?v=67"></script>
-<script src="app.js?v=67"></script>
+<script src="texte.js?v=68"></script>
+<script src="uebungen.js?v=68"></script>
+<script src="erklaerungen.js?v=68"></script>
+<script src="raenge.js?v=68"></script>
+<script src="bilder.js?v=68"></script>
+<script src="vorlagen.js?v=68"></script>
+<script src="app.js?v=68"></script>
 
 </body>
 </html>

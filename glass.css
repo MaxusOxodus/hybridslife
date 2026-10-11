@@ -1,6 +1,6 @@
-/* ---------- Glass: das zweite Design der App ----------
+/* ---------- Glass: das Standard-Design der App ----------
 
-   Diese Datei wirkt nur, wenn in den Einstellungen unter Design der Stil "Glass" gewählt ist.
+   Diese Datei wirkt, solange in den Einstellungen unter Design nicht der Stil "Klassisch" gewählt ist.
    Dann steht am <html> das Attribut data-stil="glass". Bei "Klassisch" fehlt es und keine Regel hier greift.
 
    Geändert wird nur die Optik: Flächen, Ränder, Schatten, Farben. Größen, Abstände und Reihenfolge

@@ -191,9 +191,9 @@
 
   // Einstellungen der App: die Standard-Pause in Sekunden (pauseSekunden),
   // die Einheit für Gewichte (gewichtEinheit: "kg" oder "lbs") und für Längen (laengeEinheit: "cm" oder "ftin"),
-  // die Sprache (sprache: "de" oder "en"), das Design (design: "dunkel" oder "hell"), der Stil (stil: "glass")
+  // die Sprache (sprache: "de" oder "en"), das Design (design: "dunkel" oder "hell"), der Stil (stil: "glass" oder "klassisch")
   // und die für die Kraft-Karte gewählte Übung (kraftUebung: { name, uebungId }).
-  // Fehlt die Sprache, gilt die des Geräts. Fehlt das Design, folgt die App dem Gerät. Fehlt der Stil, gilt "Klassisch".
+  // Fehlt die Sprache, gilt die des Geräts. Fehlt das Design, folgt die App dem Gerät. Fehlt der Stil, gilt "Glass".
   // Fehlt die Übung, zeigt die Karte die zuletzt am häufigsten trainierte.
   let einstellungen = gespeichertLesen("einstellungen", {});
   if (!einstellungen || typeof einstellungen !== "object" || Array.isArray(einstellungen)) {
@@ -8321,12 +8321,12 @@
     { id: "glass", schluessel: "stil.glass" }
   ];
 
-  // Der gewählte Stil: "klassisch" oder "glass". Gespeichert wird nur "glass", ohne Eintrag gilt "klassisch".
+  // Der gewählte Stil: "klassisch" oder "glass". Gespeichert werden beide Werte, ohne Eintrag gilt "glass".
   function stil() {
-    if (einstellungen.stil === "glass") {
-      return "glass";
+    if (einstellungen.stil === "klassisch") {
+      return "klassisch";
     }
-    return "klassisch";
+    return "glass";
   }
 
   // Schaltet den Glass-Look ein oder aus. Das Attribut data-stil am <html> wertet die glass.css aus.
@@ -8344,10 +8344,10 @@
   }
 
   function stilSetzen(neu) {
-    if (neu === "glass") {
-      einstellungen.stil = neu;
+    if (neu === "klassisch") {
+      einstellungen.stil = "klassisch";
     } else {
-      delete einstellungen.stil;
+      einstellungen.stil = "glass";
     }
     einstellungenSpeichern();
     stilAnwenden();

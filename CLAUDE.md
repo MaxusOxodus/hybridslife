@@ -11,6 +11,11 @@ Trainings-App für Hybrid-Athleten (Krafttraining + Laufen).
 ## Technik
 - HTML, CSS, JavaScript, später als PWA aufs Handy
 
+## Design
+- Es gibt zwei Stile: Glass (`glass.css`) ist der Standard, Klassisch ist unter Einstellungen → Design → Stil wählbar
+- Ohne Eintrag im Speicher gilt Glass. Klassisch gilt nur, wenn in den Einstellungen ausdrücklich `stil: "klassisch"` steht
+- Klassisch bleibt pixelgleich zum Tag `design-klassisch-v64`. Änderungen am Glass-Look gehören in die `glass.css`
+
 ## Wie du mit mir arbeitest
 - Ich lerne gerade programmieren. Erklär jede Änderung kurz auf Deutsch
 - Mach bei größeren Aufgaben erst einen Plan und warte auf mein OK

@@ -1,5 +1,6 @@
   // Die Übungsdaten stehen in der uebungen.js: MUSKELGRUPPEN, BEREICHE, MUSKELN, UEBUNGEN, UEBUNGSLISTEN, ALTE_NAMEN und ALTE_IDS.
   // Die Texte der Oberfläche stehen in der texte.js: SPRACHEN und TEXTE.
+  // Die Vorlagen für Trainingspläne stehen in der vorlagen.js: VORLAGEN_MUSTER und VORLAGEN_PLAENE.
 
   // "Folge uns" in den Einstellungen: Hier trägst du die Adressen ein, z. B. "https://www.instagram.com/deinname".
   // Solange eine Adresse leer ist, bleibt ihre Zeile ausgeblendet.
@@ -81,175 +82,6 @@
     }
   });
 
-  // Vorlagen für Trainingssplits: Zum Anpassen einfach hier Übungen, Sätze oder Wiederholungen ändern.
-  // Name, Beschreibung und die Namen der Routinen sind Schlüssel der Tabelle TEXTE in der texte.js.
-  // Die Übungsnamen müssen in der uebungen.js stehen (als Name oder unter ALTE_NAMEN), damit die Übung gefunden wird.
-  // "wochenplan" hat sieben Plätze für Montag bis Sonntag: Die Zahl zeigt auf eine Routine
-  // der Vorlage (0 = die erste), null ist ein Ruhetag.
-  const VORLAGEN = [
-    {
-      name: "vorlage.ganzkoerper.name",
-      fuerWen: "vorlage.ganzkoerper.fuerWen",
-      wieOft: "vorlage.ganzkoerper.wieOft",
-      wochenplan: [0, null, 1, null, 0, null, null],
-      routinen: [
-        {
-          name: "vorlage.routine.ganzkoerperA",
-          uebungen: [
-            { name: "Kniebeuge", saetze: 3, wdh: 8 },
-            { name: "Bankdrücken", saetze: 3, wdh: 8 },
-            { name: "Langhantelrudern", saetze: 3, wdh: 10 },
-            { name: "Schulterdrücken", saetze: 3, wdh: 10 },
-            { name: "Langhantelcurls", saetze: 2, wdh: 12 },
-            { name: "Crunches", saetze: 3, wdh: 15 }
-          ]
-        },
-        {
-          name: "vorlage.routine.ganzkoerperB",
-          uebungen: [
-            { name: "Kreuzheben", saetze: 3, wdh: 6 },
-            { name: "Schrägbankdrücken", saetze: 3, wdh: 10 },
-            { name: "Latzug", saetze: 3, wdh: 10 },
-            { name: "Ausfallschritte", saetze: 3, wdh: 10 },
-            { name: "Trizepsdrücken am Kabel", saetze: 2, wdh: 12 },
-            { name: "Beinheben", saetze: 3, wdh: 12 }
-          ]
-        }
-      ]
-    },
-    {
-      name: "vorlage.obenUnten.name",
-      fuerWen: "vorlage.obenUnten.fuerWen",
-      wieOft: "vorlage.obenUnten.wieOft",
-      wochenplan: [0, 1, null, 0, 1, null, null],
-      routinen: [
-        {
-          name: "vorlage.routine.oberkoerper",
-          uebungen: [
-            { name: "Bankdrücken", saetze: 4, wdh: 8 },
-            { name: "Langhantelrudern", saetze: 4, wdh: 8 },
-            { name: "Schulterdrücken", saetze: 3, wdh: 10 },
-            { name: "Latzug", saetze: 3, wdh: 10 },
-            { name: "Kurzhantelcurls", saetze: 3, wdh: 12 },
-            { name: "Trizepsdrücken am Kabel", saetze: 3, wdh: 12 }
-          ]
-        },
-        {
-          name: "vorlage.routine.unterkoerper",
-          uebungen: [
-            { name: "Kniebeuge", saetze: 4, wdh: 8 },
-            { name: "Rumänisches Kreuzheben", saetze: 3, wdh: 10 },
-            { name: "Beinpresse", saetze: 3, wdh: 12 },
-            { name: "Beinbeuger", saetze: 3, wdh: 12 },
-            { name: "Wadenheben", saetze: 4, wdh: 15 },
-            { name: "Cable Crunches", saetze: 3, wdh: 15 }
-          ]
-        }
-      ]
-    },
-    {
-      name: "vorlage.ppl.name",
-      fuerWen: "vorlage.ppl.fuerWen",
-      wieOft: "vorlage.ppl.wieOft",
-      wochenplan: [0, 1, 2, 0, 1, 2, null],
-      routinen: [
-        {
-          name: "vorlage.routine.push",
-          uebungen: [
-            { name: "Bankdrücken", saetze: 4, wdh: 8 },
-            { name: "Schrägbankdrücken", saetze: 3, wdh: 10 },
-            { name: "Schulterdrücken", saetze: 3, wdh: 10 },
-            { name: "Seitheben", saetze: 3, wdh: 15 },
-            { name: "Trizepsdrücken am Kabel", saetze: 3, wdh: 12 },
-            { name: "Überkopf-Trizepsstrecken", saetze: 3, wdh: 12 }
-          ]
-        },
-        {
-          name: "vorlage.routine.pull",
-          uebungen: [
-            { name: "Kreuzheben", saetze: 3, wdh: 5 },
-            { name: "Klimmzüge", saetze: 3, wdh: 8 },
-            { name: "Langhantelrudern", saetze: 3, wdh: 10 },
-            { name: "Face Pulls", saetze: 3, wdh: 15 },
-            { name: "Langhantelcurls", saetze: 3, wdh: 10 },
-            { name: "Hammercurls", saetze: 3, wdh: 12 }
-          ]
-        },
-        {
-          name: "vorlage.routine.legs",
-          uebungen: [
-            { name: "Kniebeuge", saetze: 4, wdh: 8 },
-            { name: "Rumänisches Kreuzheben", saetze: 3, wdh: 10 },
-            { name: "Beinpresse", saetze: 3, wdh: 12 },
-            { name: "Beinstrecker", saetze: 3, wdh: 15 },
-            { name: "Beinbeuger", saetze: 3, wdh: 12 },
-            { name: "Wadenheben", saetze: 4, wdh: 15 }
-          ]
-        }
-      ]
-    },
-    {
-      name: "vorlage.bro.name",
-      fuerWen: "vorlage.bro.fuerWen",
-      wieOft: "vorlage.bro.wieOft",
-      wochenplan: [0, 1, 2, 3, 4, null, null],
-      routinen: [
-        {
-          name: "vorlage.routine.brust",
-          uebungen: [
-            { name: "Bankdrücken", saetze: 4, wdh: 8 },
-            { name: "Schrägbankdrücken", saetze: 4, wdh: 10 },
-            { name: "Kurzhantel-Flys", saetze: 3, wdh: 12 },
-            { name: "Butterfly/Pec Deck", saetze: 3, wdh: 12 },
-            { name: "Dips", saetze: 3, wdh: 10 }
-          ]
-        },
-        {
-          name: "vorlage.routine.ruecken",
-          uebungen: [
-            { name: "Kreuzheben", saetze: 3, wdh: 5 },
-            { name: "Klimmzüge", saetze: 4, wdh: 8 },
-            { name: "Langhantelrudern", saetze: 4, wdh: 8 },
-            { name: "Latzug", saetze: 3, wdh: 10 },
-            { name: "Rudern am Kabelzug", saetze: 3, wdh: 12 }
-          ]
-        },
-        {
-          name: "vorlage.routine.schultern",
-          uebungen: [
-            { name: "Military Press", saetze: 4, wdh: 8 },
-            { name: "Seitheben", saetze: 4, wdh: 15 },
-            { name: "Reverse Flys", saetze: 3, wdh: 15 },
-            { name: "Face Pulls", saetze: 3, wdh: 15 },
-            { name: "Frontheben", saetze: 3, wdh: 12 }
-          ]
-        },
-        {
-          name: "vorlage.routine.arme",
-          uebungen: [
-            { name: "Langhantelcurls", saetze: 4, wdh: 10 },
-            { name: "Hammercurls", saetze: 3, wdh: 12 },
-            { name: "Scottcurls", saetze: 3, wdh: 12 },
-            { name: "Enges Bankdrücken", saetze: 4, wdh: 8 },
-            { name: "French Press", saetze: 3, wdh: 10 },
-            { name: "Trizepsdrücken am Kabel", saetze: 3, wdh: 12 }
-          ]
-        },
-        {
-          name: "vorlage.routine.beine",
-          uebungen: [
-            { name: "Kniebeuge", saetze: 4, wdh: 8 },
-            { name: "Beinpresse", saetze: 4, wdh: 10 },
-            { name: "Rumänisches Kreuzheben", saetze: 3, wdh: 10 },
-            { name: "Beinstrecker", saetze: 3, wdh: 15 },
-            { name: "Beinbeuger", saetze: 3, wdh: 12 },
-            { name: "Wadenheben", saetze: 4, wdh: 15 }
-          ]
-        }
-      ]
-    }
-  ];
-
   // Startwerte der Zahlenfelder bei einer neuen Übung. Der für das Gewicht steht bei den Einheiten.
   const START_WDH = 10;
   const START_SAETZE = 3;
@@ -327,8 +159,8 @@
 
   let eintraege =JSON.parse(localStorage.getItem("eintraege")) || [];
 
-  // Wofür das Sheet gerade geöffnet ist: "log" (neuer Eintrag), "routine" (Übung zur Routine hinzufügen)
-  // oder "tausch" (im Trainingsmodus die Übung tauschen)
+  // Wofür das Sheet gerade geöffnet ist: "log" (neuer Eintrag), "routine" (Übung zur Routine hinzufügen),
+  // "tausch" (im Trainingsmodus die Übung tauschen) oder "vorlage" (in der Vorschau einer Vorlage die Übung tauschen)
   let sheetZiel = "log";
 
   // Routinen: jede hat eine id, einen Namen und eine Liste von Übungen mit optionalen Zielen
@@ -407,7 +239,8 @@
   // Gespeicherte Daten aus älteren Versionen kennen nur Übungsnamen: einmal die feste ID ergänzen
   gespeicherteDatenZuordnen();
 
-  // Die sichtbare Ansicht im Training-Tab: "uebersicht", "bearbeiten", "modus" oder "fertig"
+  // Die sichtbare Ansicht im Training-Tab: "uebersicht", "varianten" und "vorschau" (Vorlagen),
+  // "bearbeiten", "modus" oder "fertig"
   let trainingAnsicht = "uebersicht";
 
   // Arbeitskopie der Routine, die gerade bearbeitet wird. Erst "Routine speichern" übernimmt sie.
@@ -1522,13 +1355,13 @@
 
   // ---------- Bottom Sheet für die Übungsauswahl ----------
 
-  // ziel ist "log", "routine" oder "tausch". Ohne Angabe gilt "log".
+  // ziel ist "log", "routine", "tausch" oder "vorlage". Ohne Angabe gilt "log".
   function sheetOeffnen(ziel) {
     sheetZiel = ziel || "log";
     // Der Schalter "Auch in der Routine ändern" gehört nur zum Tauschen und ist bei jedem Öffnen aus
     tauschSchalterSetzen(false);
     document.getElementById("tausch-schalter").classList.toggle("versteckt", sheetZiel !== "tausch" || !tauschRoutineStelle());
-    if (sheetZiel === "tausch") {
+    if (sheetTauscht()) {
       sheetTauschZeigen();
     } else {
       sheetGruppenZeigen();
@@ -1536,6 +1369,12 @@
     document.getElementById("sheet").classList.add("offen");
     document.getElementById("sheet-hintergrund").classList.add("offen");
     document.body.classList.add("sheet-offen");
+  }
+
+  // Wird im Sheet gerade eine Übung getauscht, im Trainingsmodus oder in der Vorschau einer Vorlage?
+  // Dann beginnt das Sheet mit Vorschlägen statt mit den Muskelgruppen.
+  function sheetTauscht() {
+    return sheetZiel === "tausch" || sheetZiel === "vorlage";
   }
 
   function sheetSchliessen() {
@@ -1573,7 +1412,7 @@
   // Der Zurück-Pfeil im Sheet. Beim Tauschen geht es aus der Suche zur Ansicht davor und von den
   // Muskelgruppen zurück zu den Vorschlägen, sonst immer zu den Muskelgruppen.
   function sheetZurueck() {
-    if (sheetZiel !== "tausch") {
+    if (!sheetTauscht()) {
       sheetGruppenZeigen();
       return;
     }
@@ -1612,7 +1451,7 @@
     sheetGruppe = "";
     document.getElementById("sheet-suche").value = "";
     // Beim Tauschen führt der Pfeil von hier zurück zu den Vorschlägen
-    const inhalt = sheetLeeren(txt("sheet.muskelgruppe"), sheetZiel === "tausch");
+    const inhalt = sheetLeeren(txt("sheet.muskelgruppe"), sheetTauscht());
     inhalt.appendChild(selbstNeuKnopf());
     const raster = element("div", "muskel-raster");
     raster.appendChild(kachelSelbst());
@@ -1766,6 +1605,12 @@
     if (sheetZiel === "tausch" && tauschVergeben(u.de, u.id)) {
       btn.disabled = true;
       btn.appendChild(element("span", "sheet-zeile-zweit", txt("tausch.vergeben")));
+    }
+
+    // In der Vorschau einer Vorlage: Eine Übung, die am selben Trainingstag schon vorkommt, lässt sich nicht wählen
+    if (sheetZiel === "vorlage" && vorlageVergeben(u.id)) {
+      btn.disabled = true;
+      btn.appendChild(element("span", "sheet-zeile-zweit", txt("vorlage.vergeben")));
     }
 
     // Gespeichert wird neben der ID immer der deutsche Name, als Reserve
@@ -2122,6 +1967,11 @@
     // Aus dem Trainingsmodus geöffnet: Die Übung ersetzt die aktuelle Übung des Trainings
     if (sheetZiel === "tausch") {
       uebungTauschen(name, gruppe, id);
+      return;
+    }
+    // Aus der Vorschau einer Vorlage geöffnet: Die Übung ersetzt die Übung des Slots
+    if (sheetZiel === "vorlage") {
+      vorlageUebungTauschen(id);
       return;
     }
 
@@ -2664,7 +2514,7 @@
 
   // Wechselt die Ansicht im Training-Tab
   function trainingAnsichtZeigen(name) {
-    const ansichten = ["uebersicht", "bearbeiten", "modus", "fertig"];
+    const ansichten = ["uebersicht", "varianten", "vorschau", "bearbeiten", "modus", "fertig"];
     for (let i = 0; i < ansichten.length; i++) {
       document.getElementById("ansicht-" + ansichten[i]).classList.toggle("versteckt", ansichten[i] !== name);
     }
@@ -2709,6 +2559,13 @@
     wochenplanAnzeigen();
     routinenAnzeigen();
     vorlagenAnzeigen();
+    // Ist gerade eine Vorlage geöffnet, wird auch sie neu aufgebaut, z. B. nach dem Wechsel der Sprache
+    if (trainingAnsicht === "varianten") {
+      variantenAnzeigen();
+    }
+    if (trainingAnsicht === "vorschau") {
+      vorschauAnzeigen();
+    }
   }
 
   // Hinweis ganz oben, solange ein Training noch nicht abgeschlossen ist
@@ -2812,75 +2669,316 @@
     }
   }
 
-  // Die fertigen Trainingssplits aus VORLAGEN als Karten
+  // ---------- Training: Vorlagen ----------
+  // Drei Ebenen: Tageszahl (in der Übersicht) → Varianten → Vorschau einer Variante.
+  // Die Pläne stehen in der vorlagen.js. Erst "Als Routinen übernehmen" legt etwas an.
+
+  // Die geöffnete Tageszahl (ein Eintrag aus VORLAGEN_PLAENE) und die geöffnete Variante (null = keine)
+  let vorlagePlan = null;
+  let vorlageVariante = null;
+
+  // Welche Trainingstage in der Vorschau aufgeklappt sind: Nummer des Tags → true
+  let vorschauOffen = {};
+
+  // In der Vorschau getauschte Übungen: "Variante/Tag/Slot" → ID der Übung. Sie werden nicht gespeichert
+  // und gelten, bis die App geschlossen wird.
+  const vorlageGetauscht = {};
+
+  // Der Slot, dessen Übung gerade im Sheet getauscht wird, als { tag, slot } (null = keiner)
+  let vorlageTauschStelle = null;
+
+  // Eine Karte zum Antippen: links der Inhalt, rechts ein Pfeil
+  function vorlageKarte(aktion) {
+    const karte = element("button", "karte vorlage-karte");
+    karte.appendChild(element("span", "vorlage-karte-text"));
+    const pfeil = element("span", "vorlage-pfeil", "›");
+    pfeil.setAttribute("aria-hidden", "true");
+    karte.appendChild(pfeil);
+    karte.onclick = aktion;
+    return karte;
+  }
+
+  // Ebene 1 in der Übersicht: je Tageszahl eine Karte mit der Zahl ihrer Varianten
   function vorlagenAnzeigen() {
     const liste = document.getElementById("vorlagen-liste");
     liste.innerHTML = "";
 
-    for (let i = 0; i < VORLAGEN.length; i++) {
-      const vorlage = VORLAGEN[i];
-      const namen = [];
-      for (let j = 0; j < vorlage.routinen.length; j++) {
-        namen.push(txt(vorlage.routinen[j].name));
-      }
-
-      const karte = element("div", "karte routine-karte");
-      karte.appendChild(element("div", "routine-name", txt(vorlage.name)));
-      karte.appendChild(element("div", "vorlage-oft", txt(vorlage.wieOft)));
-      karte.appendChild(element("div", "routine-info", txt(vorlage.fuerWen)));
-      karte.appendChild(element("div", "routine-info", txt("vorlage.routinen", { namen: namen.join(" · ") })));
-
-      const knoepfe = element("div", "karten-knoepfe");
-      const nehmen = element("button", "knopf", txt("vorlage.uebernehmen"));
-      nehmen.onclick = function () {
-        vorlageUebernehmen(vorlage);
-      };
-      knoepfe.appendChild(nehmen);
-      karte.appendChild(knoepfe);
+    for (let i = 0; i < VORLAGEN_PLAENE.length; i++) {
+      const plan = VORLAGEN_PLAENE[i];
+      const karte = vorlageKarte(function () {
+        variantenOeffnen(plan);
+      });
+      karte.firstChild.appendChild(element("span", "routine-name", txt("vorlage.tage", { n: plan.tage })));
+      karte.firstChild.appendChild(element("span", "routine-info", txtAnzahl("vorlage.varianten", plan.varianten.length)));
       liste.appendChild(karte);
     }
   }
 
-  // Legt von jeder Routine der Vorlage eine eigene, bearbeitbare Kopie an
-  // und schlägt danach den passenden Wochenplan vor. Die Vorlage selbst bleibt, wie sie ist.
-  function vorlageUebernehmen(vorlage) {
-    const ids = [];
-    for (let i = 0; i < vorlage.routinen.length; i++) {
-      const kopie = { id: neueId(), name: txt(vorlage.routinen[i].name), uebungen: [] };
-      for (let j = 0; j < vorlage.routinen[i].uebungen.length; j++) {
-        const u = vorlage.routinen[i].uebungen[j];
-        const neu = {
-          name: u.name,
-          uebungId: "",
-          muskelgruppe: "",
-          zielSaetze: zielLesen(u.saetze, 10),
-          zielWdh: zielLesen(u.wdh, 30),
-          pause: null
-        };
-        // Die Übung über ihren Namen in der Übungsliste finden, daraus ergibt sich die Muskelgruppe
-        idErgaenzen(neu, u.name);
-        const bekannt = UEBUNG_NACH_ID[neu.uebungId];
-        if (bekannt) {
-          neu.muskelgruppe = GRUPPE_NACH_ID[uebungGruppe(bekannt)].de;
-        }
-        kopie.uebungen.push(neu);
+  // Ebene 2: die Varianten einer Tageszahl
+  function variantenOeffnen(plan) {
+    vorlagePlan = plan;
+    variantenAnzeigen();
+    trainingAnsichtZeigen("varianten");
+  }
+
+  function variantenZurueck() {
+    trainingAnsichtZeigen("uebersicht");
+  }
+
+  function variantenAnzeigen() {
+    document.getElementById("varianten-titel").textContent = txt("vorlage.tageProWoche", { n: vorlagePlan.tage });
+    const liste = document.getElementById("varianten-liste");
+    liste.innerHTML = "";
+
+    for (let i = 0; i < vorlagePlan.varianten.length; i++) {
+      const variante = vorlagePlan.varianten[i];
+      const karte = vorlageKarte(function () {
+        vorschauOeffnen(variante);
+      });
+      karte.firstChild.appendChild(element("span", "routine-name", txt("vorlage.variante." + variante.id)));
+      karte.firstChild.appendChild(wochenleisteBauen(variante.wochentage));
+      liste.appendChild(karte);
+    }
+  }
+
+  // Die Trainingstage einer Variante als Text, z. B. "Mo Di Do Fr"
+  function vorlageTageText(wochentage) {
+    const namen = [];
+    for (let i = 0; i < wochentage.length; i++) {
+      namen.push(wochentag(wochentage[i]));
+    }
+    return namen.join(" ");
+  }
+
+  // Die Mini-Wochenleiste Montag bis Sonntag: Die Trainingstage sind markiert
+  function wochenleisteBauen(wochentage) {
+    const leiste = element("span", "vorlage-woche");
+    leiste.setAttribute("role", "img");
+    leiste.setAttribute("aria-label", vorlageTageText(wochentage));
+    for (let i = 0; i < 7; i++) {
+      const tag = element("span", "vorlage-wochentag", wochentag(i));
+      if (wochentage.indexOf(i) !== -1) {
+        tag.classList.add("aktiv");
       }
-      routinen.push(kopie);
-      ids.push(kopie.id);
+      leiste.appendChild(tag);
+    }
+    return leiste;
+  }
+
+  // Ebene 3: die Vorschau einer Variante. Der erste Trainingstag ist aufgeklappt.
+  function vorschauOeffnen(variante) {
+    vorlageVariante = variante;
+    vorschauOffen = { 0: true };
+    vorschauAnzeigen();
+    trainingAnsichtZeigen("vorschau");
+  }
+
+  function vorschauZurueck() {
+    trainingAnsichtZeigen("varianten");
+  }
+
+  // Die Übung, die gerade an einem Slot steht: die getauschte, sonst die Standard-Übung des Plans.
+  // Gibt es eine getauschte Übung nicht mehr (eine gelöschte eigene Übung), gilt wieder der Standard.
+  function vorlageSlotUebung(variante, tag, slot) {
+    const getauscht = UEBUNG_NACH_ID[vorlageGetauscht[variante.id + "/" + tag + "/" + slot]];
+    return getauscht || UEBUNG_NACH_ID[variante.tage[tag].slots[slot].uebungId];
+  }
+
+  function vorschauAnzeigen() {
+    const variante = vorlageVariante;
+    document.getElementById("vorschau-titel").textContent = txt("vorlage.variante." + variante.id);
+    document.getElementById("vorschau-info").textContent = txt("vorlage.tage", { n: variante.tage.length })
+      + " · " + vorlageTageText(variante.wochentage);
+    const liste = document.getElementById("vorschau-tage");
+    liste.innerHTML = "";
+
+    for (let t = 0; t < variante.tage.length; t++) {
+      const tag = variante.tage[t];
+      const offen = Boolean(vorschauOffen[t]);
+      const box = element("div", "karte vorschau-tag");
+
+      // Der Kopf klappt die Übungsliste auf und zu
+      const kopf = element("button", "vorschau-kopf");
+      kopf.setAttribute("aria-expanded", String(offen));
+      const text = element("span", "vorschau-kopf-text");
+      text.appendChild(element("span", "vorschau-tag-name", wochentag(variante.wochentage[t]) + " · " + txt("vorlage.tag." + tag.name)));
+      text.appendChild(element("span", "routine-info", uebungenText(tag.slots.length)));
+      kopf.appendChild(text);
+      const pfeil = element("span", "vorschau-klapp", "›");
+      pfeil.setAttribute("aria-hidden", "true");
+      kopf.appendChild(pfeil);
+      kopf.onclick = function () {
+        vorschauOffen[t] = !offen;
+        vorschauAnzeigen();
+      };
+      box.appendChild(kopf);
+
+      if (offen) {
+        box.classList.add("offen");
+        for (let s = 0; s < tag.slots.length; s++) {
+          box.appendChild(vorschauSlotZeile(variante, t, s));
+        }
+      }
+      liste.appendChild(box);
+    }
+  }
+
+  // Ein Slot in der Vorschau: die Übung, darunter Bewegungsmuster und Sätze × Wdh., rechts der Knopf zum Tauschen
+  function vorschauSlotZeile(variante, t, s) {
+    const slot = variante.tage[t].slots[s];
+    const uebung = vorlageSlotUebung(variante, t, s);
+    const zeile = element("div", "vorschau-slot");
+
+    const text = element("div", "vorschau-slot-text");
+    text.appendChild(element("div", "vorschau-uebung", uebung[sprache]));
+    text.appendChild(element("div", "routine-info", txt("vorlage.muster." + slot.muster) + " · "
+      + txt("vorlage.satzWdh", { saetze: slot.saetze, von: slot.wdhVon, bis: slot.wdhBis })));
+    zeile.appendChild(text);
+
+    const tausch = element("button", "vorschau-tausch", "⇄");
+    tausch.setAttribute("aria-label", txt("vorlage.tauschAnsage", { name: uebung[sprache] }));
+    tausch.onclick = function () {
+      vorlageTauschStelle = { tag: t, slot: s };
+      sheetOeffnen("vorlage");
+    };
+    zeile.appendChild(tausch);
+    return zeile;
+  }
+
+  // Steht die Übung am selben Trainingstag schon an einem anderen Slot?
+  function vorlageVergeben(id) {
+    const stelle = vorlageTauschStelle;
+    if (!stelle || !vorlageVariante) {
+      return false;
+    }
+    const slots = vorlageVariante.tage[stelle.tag].slots;
+    for (let s = 0; s < slots.length; s++) {
+      if (s !== stelle.slot && vorlageSlotUebung(vorlageVariante, stelle.tag, s).id === id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Die Vorschläge beim Tauschen in der Vorschau: die Übungen des Bewegungsmusters aus der vorlagen.js.
+  // Bei "Übung deiner Wahl" und "Isolation deiner Wahl" gibt es keine Liste, dort sind es die Übungen
+  // derselben Muskelgruppe wie die Übung, die gerade am Slot steht.
+  function vorlageVorschlaege() {
+    const stelle = vorlageTauschStelle;
+    const slot = vorlageVariante.tage[stelle.tag].slots[stelle.slot];
+    const aktuelle = vorlageSlotUebung(vorlageVariante, stelle.tag, stelle.slot);
+    const alternativen = VORLAGEN_MUSTER[slot.muster].alternativen;
+
+    let kandidaten = [];
+    for (let i = 0; i < alternativen.length; i++) {
+      if (UEBUNG_NACH_ID[alternativen[i]]) {
+        kandidaten.push(UEBUNG_NACH_ID[alternativen[i]]);
+      }
+    }
+    if (alternativen.length === 0) {
+      const gruppe = uebungGruppe(aktuelle);
+      kandidaten = selbstListe.concat(UEBUNGEN).filter(function (u) {
+        return uebungGruppe(u) === gruppe;
+      });
     }
 
-    // Der Vorschlag für die Woche, einmal als Daten und einmal als Text für die Frage
-    const vorschlag = [];
+    const liste = kandidaten.filter(function (u) {
+      return u.id !== aktuelle.id && !vorlageVergeben(u.id);
+    });
+    return { titel: txt("tausch.vorschlaege") + " · " + txt("vorlage.muster." + slot.muster), liste: liste };
+  }
+
+  // Setzt die gewählte Übung an den Slot. Sätze, Wiederholungen und das Bewegungsmuster bleiben.
+  function vorlageUebungTauschen(id) {
+    const stelle = vorlageTauschStelle;
+    if (!stelle || !vorlageVariante || !UEBUNG_NACH_ID[id] || vorlageVergeben(id)) {
+      return;
+    }
+    const schluessel = vorlageVariante.id + "/" + stelle.tag + "/" + stelle.slot;
+    if (id === vorlageVariante.tage[stelle.tag].slots[stelle.slot].uebungId) {
+      // Zurück zur Standard-Übung: Der Tausch wird vergessen
+      delete vorlageGetauscht[schluessel];
+    } else {
+      vorlageGetauscht[schluessel] = id;
+    }
+    sheetSchliessen();
+    vorschauAnzeigen();
+  }
+
+  // Der Name für eine Routine aus einer Vorlage. Gibt es ihn schon, kommt " (2)", " (3)" usw. dahinter.
+  // vergeben enthält alle Namen in Kleinbuchstaben, die es schon gibt.
+  function vorlageRoutineName(name, vergeben) {
+    const laenge = document.getElementById("routine-name").maxLength;
+    let nummer = 1;
+    while (true) {
+      let anhang = "";
+      if (nummer > 1) {
+        anhang = " (" + nummer + ")";
+      }
+      // Ein langer Name wird gekürzt, damit der Anhang in das Namensfeld passt
+      const vorschlag = name.slice(0, laenge - anhang.length).trim() + anhang;
+      if (!vergeben[vorschlag.toLowerCase()]) {
+        return vorschlag;
+      }
+      nummer++;
+    }
+  }
+
+  // "Als Routinen übernehmen": Legt aus jedem Trainingstag der geöffneten Variante eine eigene Routine an,
+  // mit den Übungen, die gerade in der Vorschau stehen. Bestehende Routinen bleiben, wie sie sind.
+  // Danach die Frage, ob auch der Wochenplan gesetzt werden soll. Er ändert sich nur bei "Ja".
+  function vorlageUebernehmen() {
+    const variante = vorlageVariante;
+    if (!variante) {
+      return;
+    }
+
+    const vergeben = {};
+    for (let i = 0; i < routinen.length; i++) {
+      vergeben[String(routinen[i].name).trim().toLowerCase()] = true;
+    }
+
+    const neue = [];
+    for (let t = 0; t < variante.tage.length; t++) {
+      const tag = variante.tage[t];
+      const name = vorlageRoutineName(txt("vorlage.routineName", { n: variante.tage.length, name: txt("vorlage.tag." + tag.name) }), vergeben);
+      vergeben[name.toLowerCase()] = true;
+
+      const routine = { id: neueId(), name: name, uebungen: [] };
+      for (let s = 0; s < tag.slots.length; s++) {
+        const slot = tag.slots[s];
+        const uebung = vorlageSlotUebung(variante, t, s);
+        // Gespeichert wird wie im Editor: die ID, dazu der deutsche Name und die Muskelgruppe als Reserve
+        const neu = {
+          name: uebung.de,
+          uebungId: uebung.id,
+          muskelgruppe: GRUPPE_NACH_ID[uebungGruppe(uebung)].de,
+          zielSaetze: zielLesen(slot.saetze, 10),
+          zielWdh: slot.wdhVon,
+          zielWdhMax: slot.wdhBis,
+          pause: null
+        };
+        wdhZielBereinigen(neu);
+        routine.uebungen.push(neu);
+      }
+      routinen.push(routine);
+      neue.push(routine);
+    }
+
+    // Der Vorschlag für die Woche, einmal als Daten und einmal als Text für die Frage.
+    // Tage ohne Training werden Ruhetage.
+    const vorschlag = ["ruhe", "ruhe", "ruhe", "ruhe", "ruhe", "ruhe", "ruhe"];
+    for (let t = 0; t < neue.length; t++) {
+      vorschlag[variante.wochentage[t]] = neue[t].id;
+    }
     const zeilen = [];
     let hattePlan = false;
     for (let i = 0; i < 7; i++) {
-      const platz = vorlage.wochenplan[i];
-      if (platz === null) {
-        vorschlag.push("ruhe");
-        zeilen.push(wochentag(i) + ": " + txt("ruhetag"));
+      const routine = routineFinden(vorschlag[i]);
+      if (routine) {
+        zeilen.push(wochentag(i) + ": " + routine.name);
       } else {
-        vorschlag.push(ids[platz]);
-        zeilen.push(wochentag(i) + ": " + txt(vorlage.routinen[platz].name));
+        zeilen.push(wochentag(i) + ": " + txt("ruhetag"));
       }
       if (wochenplan[i] !== "") {
         hattePlan = true;
@@ -2889,8 +2987,9 @@
 
     routinenSpeichern();
     trainingAnzeigen();
+    trainingAnsichtZeigen("uebersicht");
 
-    let text = txt("vorlage.angelegt", { n: vorlage.routinen.length, plan: zeilen.join("\n") });
+    let text = txt("vorlage.angelegt", { n: neue.length, plan: zeilen.join("\n") });
     if (hattePlan) {
       text += "\n\n" + txt("vorlage.planErsetzt");
     }
@@ -4528,7 +4627,12 @@
     document.getElementById("sheet-suche").value = "";
     const inhalt = sheetLeeren(txt("tausch.titel"), false);
 
-    const vorschlaege = tauschVorschlaege();
+    let vorschlaege;
+    if (sheetZiel === "vorlage") {
+      vorschlaege = vorlageVorschlaege();
+    } else {
+      vorschlaege = tauschVorschlaege();
+    }
     sheetAbschnitt(inhalt, vorschlaege.titel, vorschlaege.liste, false);
     if (vorschlaege.liste.length === 0) {
       inhalt.appendChild(element("p", "leer-hinweis", txt("tausch.keineVorschlaege")));

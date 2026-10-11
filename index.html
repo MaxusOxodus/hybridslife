@@ -32,7 +32,7 @@
     } catch (fehler) {}
   </script>
 
-  <link rel="stylesheet" href="style.css?v=61">
+  <link rel="stylesheet" href="style.css?v=62">
 </head>
 <body>
 
@@ -148,7 +148,24 @@
       <button class="zweit-btn" onclick="routineNeu()" data-t="editor.neu">Neue Routine</button>
 
       <h2 class="abschnitt" data-t="training.vorlagen">Vorlagen</h2>
+      <p class="vorlagen-frage" data-t="vorlage.frage">Wie oft trainierst du pro Woche?</p>
       <div id="vorlagen-liste"></div>
+    </div>
+
+    <!-- Ansicht: Vorlagen, die Varianten einer Tageszahl -->
+    <div id="ansicht-varianten" class="ansicht versteckt">
+      <button class="text-btn" onclick="variantenZurueck()" data-t="zurueck.pfeil">‹ Zurück</button>
+      <div id="varianten-titel" class="ansicht-titel"></div>
+      <div id="varianten-liste"></div>
+    </div>
+
+    <!-- Ansicht: Vorlagen, die Vorschau einer Variante mit ihren Trainingstagen -->
+    <div id="ansicht-vorschau" class="ansicht versteckt">
+      <button class="text-btn" onclick="vorschauZurueck()" data-t="zurueck.pfeil">‹ Zurück</button>
+      <div id="vorschau-titel" class="ansicht-titel"></div>
+      <p id="vorschau-info" class="vorschau-info"></p>
+      <div id="vorschau-tage"></div>
+      <button class="speichern-btn" onclick="vorlageUebernehmen()" data-t="vorlage.uebernehmen">Als Routinen übernehmen</button>
     </div>
 
     <!-- Ansicht: Routine erstellen oder bearbeiten -->
@@ -906,12 +923,13 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=61"></script>
-<script src="uebungen.js?v=61"></script>
-<script src="erklaerungen.js?v=61"></script>
-<script src="raenge.js?v=61"></script>
-<script src="bilder.js?v=61"></script>
-<script src="app.js?v=61"></script>
+<script src="texte.js?v=62"></script>
+<script src="uebungen.js?v=62"></script>
+<script src="erklaerungen.js?v=62"></script>
+<script src="raenge.js?v=62"></script>
+<script src="bilder.js?v=62"></script>
+<script src="vorlagen.js?v=62"></script>
+<script src="app.js?v=62"></script>
 
 </body>
 </html>

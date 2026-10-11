@@ -3777,11 +3777,157 @@ button.einst-zeile:first-child {
   overflow-wrap: anywhere;
 }
 
-.vorlage-oft {
-  margin-top: 4px;
-  color: var(--akzent-text);
+/* ---------- Training: Vorlagen ---------- */
+
+/* Die Frage über den fünf Karten */
+.vorlagen-frage {
+  margin: 0 4px 12px;
+  color: var(--text-leise);
   font-size: 15px;
+}
+
+/* Eine Karte zum Antippen (Tageszahl oder Variante): links der Inhalt, rechts ein Pfeil */
+.vorlage-karte {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 10px;
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+}
+
+.vorlage-karte-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.vorlage-karte-text > .routine-name,
+.vorlage-karte-text > .routine-info {
+  display: block;
+}
+
+.vorlage-pfeil,
+.vorschau-klapp {
+  flex: none;
+  color: var(--text-leise);
+  font-size: 26px;
+  line-height: 1;
+}
+
+/* Abstand zwischen dem Titel "4 Tage pro Woche" und der ersten Variante */
+#varianten-liste {
+  margin-top: 20px;
+}
+
+/* Mini-Wochenleiste Montag bis Sonntag: Die Trainingstage sind grün gefüllt */
+.vorlage-woche {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.vorlage-wochentag {
+  padding: 6px 0;
+  border-radius: 8px;
+  background: var(--fuellung);
+  color: var(--text-leise);
+  font-size: 12px;
   font-weight: 600;
+  text-align: center;
+}
+
+.vorlage-wochentag.aktiv {
+  background: var(--akzent);
+  color: var(--auf-akzent);
+}
+
+/* Vorschau einer Variante: unter dem Titel Tageszahl und Trainingstage */
+.vorschau-info {
+  margin: 4px 0 20px;
+  color: var(--text-leise);
+}
+
+/* Ein Trainingstag als Box: Der Kopf klappt die Übungsliste auf und zu */
+.vorschau-tag {
+  margin-bottom: 10px;
+  padding: 0 20px;
+}
+
+.vorschau-kopf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 68px;
+  padding: 14px 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+}
+
+.vorschau-kopf-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.vorschau-kopf-text > span {
+  display: block;
+}
+
+.vorschau-tag-name {
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* Der Pfeil zeigt nach unten, bei offener Box nach oben */
+.vorschau-klapp {
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
+}
+
+.vorschau-tag.offen .vorschau-klapp {
+  transform: rotate(-90deg);
+}
+
+/* Ein Slot: links Übung, Bewegungsmuster und Sätze × Wdh., rechts der Knopf zum Tauschen */
+.vorschau-slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--rand);
+}
+
+.vorschau-slot-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.vorschau-uebung {
+  font-size: 17px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Tauschen: grüne Fläche und kräftiges Zeichen, damit der Knopf neben jedem Namen gut zu sehen ist */
+.vorschau-tausch {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .karten-knoepfe {

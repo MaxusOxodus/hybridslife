@@ -3798,19 +3798,16 @@ button.einst-zeile:first-child {
   text-align: left;
 }
 
-/* Die Auswahl der Tageszahl: zwei Kacheln pro Reihe, eine Karte ("6 Tage") läuft über beide Spalten */
+/* Die Auswahl der Tageszahl: zwei Kacheln pro Reihe. Bei einer ungeraden Zahl bleibt der Platz rechts leer. */
 #vorlagen-liste {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-}
-
-#vorlagen-liste > .vorlage-karte {
-  grid-column: 1 / -1;
+  margin-bottom: 10px;
 }
 
 /* Flache Kachel, halb so hoch wie breit: links die Zahl mit "Tage" und darunter die Zahl der Varianten,
-   unten rechts der Pfeil. Er hat denselben Abstand zum Rand wie der Pfeil der Karte "6 Tage". */
+   unten rechts der Pfeil. Er hat denselben Abstand zum Rand wie der Pfeil der Karten für die Varianten. */
 .vorlage-kachel {
   position: relative;
   display: flex;

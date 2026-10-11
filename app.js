@@ -2725,25 +2725,17 @@
     return kachel;
   }
 
-  // Ebene 1 in der Übersicht: 2 bis 5 Tage als flache Kacheln, zwei pro Reihe.
-  // "6 Tage" bleibt eine Karte über die volle Breite.
+  // Ebene 1 in der Übersicht: je Tageszahl eine flache Kachel, zwei pro Reihe. Alle entstehen
+  // aus derselben Funktion, damit sie gleich aussehen.
   function vorlagenAnzeigen() {
     const liste = document.getElementById("vorlagen-liste");
     liste.innerHTML = "";
 
     for (let i = 0; i < VORLAGEN_PLAENE.length; i++) {
       const plan = VORLAGEN_PLAENE[i];
-      const oeffnen = function () {
+      liste.appendChild(vorlageKachel(plan, function () {
         variantenOeffnen(plan);
-      };
-      if (plan.tage <= 5) {
-        liste.appendChild(vorlageKachel(plan, oeffnen));
-        continue;
-      }
-      const karte = vorlageKarte(oeffnen);
-      karte.firstChild.appendChild(element("span", "routine-name", txt("vorlage.tage", { n: plan.tage })));
-      karte.firstChild.appendChild(element("span", "routine-info", txtAnzahl("vorlage.varianten", plan.varianten.length)));
-      liste.appendChild(karte);
+      }));
     }
   }
 

@@ -269,6 +269,21 @@
   box-shadow: none;
 }
 
+/* ---------- Erklärung einer Übung ---------- */
+
+/* Die Boxen stehen dicht untereinander auf dem Glas des Sheets. Der große Schatten der Karten
+   würde sich überlappen, deshalb nur der kleine wie bei den Zeilen in Listen. */
+:where([data-stil="glass"]) .erklaerung-schritt,
+:where([data-stil="glass"]) .erklaerung-box {
+  box-shadow: var(--glas-klein-schatten);
+}
+
+/* Die Bild-Kachel ist aus demselben Glas wie die Boxen darunter, mit demselben Glanz */
+:where([data-stil="glass"]) .erklaerung-bild {
+  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas);
+  box-shadow: var(--glas-klein-schatten);
+}
+
 /* ---------- Ersatz ohne Weichzeichner ---------- */
 
 /* Kann der Browser nicht weichzeichnen, werden die festen Flächen fast deckend, damit der Text lesbar bleibt */

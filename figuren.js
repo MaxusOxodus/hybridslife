@@ -2,13 +2,17 @@
 // und die kleinen Figuren in der Fortschritt-Liste. Die app.js benutzt davon nur koerperSvg(gruppe)
 // und für die Kachel "Eigene" den KOERPER_UMRISS.
 //
-// Es gibt zwei Arten von Figuren:
-//   die ganze Figur (60 × 118 Einheiten) für die meisten Muskelgruppen
-//   den großen Oberkörper von Kopf bis Hüfte für Schultern, Bizeps, Trizeps und Unterarme,
-//   weil diese Muskeln auf der ganzen Figur zu klein und kaum zu unterscheiden waren
+// Es gibt drei Arten von Figuren:
+//   den großen Oberkörper von Kopf bis Hüfte für alle Muskeln, die im Oberkörper liegen
+//   den großen Unterkörper von der Hüfte bis zum Fuß für alle Muskeln, die im Unterkörper liegen
+//   die ganze Figur (60 × 118 Einheiten) für "Ganzkörper" und die Kachel "Eigene"
+// Auf der ganzen Figur waren die einzelnen Muskeln zu klein und kaum zu unterscheiden.
 // Die Farben und Größen stehen in der style.css (".koerper" und ".koerper.nah").
 //
-// Die Figuren von Version 79 liegen unverändert in der figuren-v1.js. Dort steht auch, wie man zurückwechselt.
+// Ältere Stände liegen unverändert als Backup daneben und werden nicht geladen:
+//   figuren-v1.js: Version 79, alle Kacheln mit der ganzen Figur
+//   figuren-v2.js: Version 80, großer Oberkörper nur bei Schultern, Bizeps, Trizeps und Unterarmen
+// Wie man zurückwechselt, steht in der CLAUDE.md.
 
 // ---------- Die ganze Figur ----------
 
@@ -113,7 +117,7 @@ const NAH_MUSKELN = {
   }
 };
 
-// Welche Muskelgruppen den großen Oberkörper zeigen und in welcher Ansicht (aus NAH_MUSKELN)
+// Welche Muskelgruppen an Schultern und Armen den großen Oberkörper zeigen und in welcher Ansicht (aus NAH_MUSKELN)
 const NAH_ANSICHT = {
   "schulter-vorn": "vorn",
   "schulter-seite": "vorn-arm",
@@ -121,6 +125,87 @@ const NAH_ANSICHT = {
   bizeps: "vorn",
   trizeps: "hinten",
   unterarme: "vorn"
+};
+
+// ---------- Der Rumpf: derselbe große Oberkörper, andere Muskeln ----------
+
+// Rumpf von vorn: Brust, Bauch und schräger Bauch
+const RUMPF_VORN = {
+  brust: beideSeiten('<path d="M29.3 24.6h-7.8q-2 .4-2.2 3.4v4.4q.4 3.6 5 4 3.2.2 5-1.6z"/>'),
+  // drei Reihen wie ein Sixpack
+  bauch: beideSeiten('<rect x="24.6" y="38.5" width="4.8" height="5.5" rx="1.5"/><rect x="24.6" y="45" width="4.8" height="5.5" rx="1.5"/><rect x="24.6" y="51.5" width="4.8" height="5.5" rx="1.5"/>'),
+  // die Streifen an den Flanken
+  "bauch-schraeg": beideSeiten('<path d="M16.9 38.5h5.6q.9 10 .6 19.5h-4.4q-1.3-9.5-1.8-19.5z"/>')
+};
+
+// Rumpf von hinten: Trapez, oberer Rücken, Latissimus, unterer Rücken
+const RUMPF_HINTEN = {
+  trapez: '<path d="M30 17l2.8 4.5 7.7 1.8-2.5 3.7L30 41l-8-14-2.5-3.7 7.7-1.8z"/>',
+  "ruecken-oben": beideSeiten('<path d="M16.6 27.5h4.6l6 10.5q-5 1.2-9.8-.2z"/>'),
+  lat: beideSeiten('<path d="M17.2 40q5.5 1.6 11.7 1.2V53q-7.5-1.5-10.4-6.5z"/>'),
+  "ruecken-unten": beideSeiten('<rect x="23.2" y="54.4" width="6" height="8" rx="2"/>')
+};
+
+// Beim Rumpf von vorn zeichnen Brust und Bauch selbst die Linien, deshalb nur Augen und Nabel
+const RUMPF_ZEICHEN_VORN = '<circle class="punkt" cx="27.4" cy="9.6" r="0.9"/><circle class="punkt" cx="32.6" cy="9.6" r="0.9"/>'
+  + '<circle class="punkt" cx="30" cy="52" r="0.8"/>';
+
+// ---------- Der große Unterkörper ----------
+
+// Der Unterkörper von der Hüfte bis zum Fuß. Die Beine sind hier als Flächen gezeichnet und etwas kräftiger
+// als bei der ganzen Figur, damit die Muskeln Platz haben. Oben schaut der Rumpf ins Bild, die Arme fehlen.
+const BEIN_UMRISS = '<path d="M19 22h22q4 0 4 4l-2 24-2 13H19l-2-13-2-24q0-4 4-4z"/>'
+  + '<path d="M28 60h4v7.2q-2 1-4 0z"/>'
+  + beideSeiten('<path d="M18.6 61C17 65 16.6 70 16.9 74c.4 6 1.4 10 1.9 14-1.4 4-1.8 9-1 13 .8 4 1.8 7 2.1 10.5l-.5 2.7q-.1 1.8 1.8 1.8h2.8q1.6 0 1.2-1.8l-1-2.7c.6-4.5 2-10.5 1.8-15.5-.1-3-.4-5.5-.2-8 .8-6 2.6-13 3.6-20.5V61z"/>');
+
+// Woran man beim Unterkörper vorn und hinten erkennt:
+// vorn Nabel, Leistenlinie und Kniescheiben, hinten Wirbelsäule, Gesäßfalten und Kniekehlen
+const BEIN_ZEICHEN = {
+  vorn: '<circle class="punkt" cx="30" cy="52" r="0.8"/><path d="M19.6 58.5q5.6 6.4 10.4 8.2 4.8-1.8 10.4-8.2"/>'
+    + beideSeiten('<ellipse cx="22.3" cy="88.7" rx="2.2" ry="2.5"/>'),
+  hinten: '<path d="M30 49.5v9.5M30 61.5v6"/>' + beideSeiten('<path d="M20.4 70.8q4.4 1.8 8.6.2M20.3 88.4h4"/>')
+};
+
+// Beine von vorn: Quadrizeps und Adduktoren
+const BEIN_VORN = {
+  // die große Fläche vorn und außen bis zum Knie
+  quadrizeps: beideSeiten('<path d="M18 67.2q2.2-1 4.6-.4l3.6 15.4q-.2 2.2-1 3.7h-5.6q-1.6-4.6-1.9-9.7-.2-5 .3-9z"/>'),
+  // der Keil innen oben an der Leiste
+  adduktoren: beideSeiten('<path d="M24 67.3l4.8-.1q-.5 7-1.9 13.4z"/>')
+};
+
+// Für die Kachel "Abduktoren": der Streifen außen an Hüfte und Oberschenkel, als Gegenstück der Keil innen
+const BEIN_AUSSEN = {
+  abduktoren: beideSeiten('<path d="M18.2 54q2.4-.8 4.8.4.4 9-1.2 17-1 5.6-3.3 10.4-1-4-1-8 0-6 1.4-12.6z"/>'),
+  adduktoren: BEIN_VORN.adduktoren
+};
+
+// Beine von hinten: Po, Beinbeuger und Waden
+const BEIN_HINTEN = {
+  // außen oben an der Hüfte, über dem Gesäß (hier immer grau, die Kachel "Abduktoren" zeigt die Ansicht von vorn)
+  abduktoren: beideSeiten('<path d="M17.9 52.2q4-1 8.1 0l-.9 6.3q-3.6.2-6.1 4.3l-.1-2.8z"/>'),
+  po: beideSeiten('<path d="M29.3 60q-4-1-6.6.4-2.6 1.2-3.6 3.4-.9 3-.4 5.4 5 2.4 10.6.4z"/>'),
+  // schmal, direkt unter der Gesäßfalte, läuft zur Kniekehle spitz aus
+  beinbeuger: beideSeiten('<path d="M19.9 71.4q2.9 1 5.8 0 .2 6-1 10.6-.8 3.2-2.1 6-1.5-2.8-2.3-6.2-1.1-4.8-.4-10.4z"/>'),
+  waden: beideSeiten('<path d="M18.9 90.5q3.4 1.2 6.6 0 .5 5-.6 9.5-.9 3-2.3 4.5-1.6-1.4-2.6-4.3-1.6-5-1.1-9.7z"/>')
+};
+
+// Welche Muskelgruppe an Rumpf und Beinen welchen Ausschnitt zeigt:
+// teil ist "oben" (Oberkörper) oder "unten" (Unterkörper), zeichen ist "vorn" oder "hinten".
+const AUSSCHNITT = {
+  brust: { teil: "oben", zeichen: "vorn", muskeln: RUMPF_VORN },
+  bauch: { teil: "oben", zeichen: "vorn", muskeln: RUMPF_VORN },
+  "bauch-schraeg": { teil: "oben", zeichen: "vorn", muskeln: RUMPF_VORN },
+  trapez: { teil: "oben", zeichen: "hinten", muskeln: RUMPF_HINTEN },
+  "ruecken-oben": { teil: "oben", zeichen: "hinten", muskeln: RUMPF_HINTEN },
+  lat: { teil: "oben", zeichen: "hinten", muskeln: RUMPF_HINTEN },
+  "ruecken-unten": { teil: "oben", zeichen: "hinten", muskeln: RUMPF_HINTEN },
+  quadrizeps: { teil: "unten", zeichen: "vorn", muskeln: BEIN_VORN },
+  adduktoren: { teil: "unten", zeichen: "vorn", muskeln: BEIN_VORN },
+  abduktoren: { teil: "unten", zeichen: "vorn", muskeln: BEIN_AUSSEN },
+  po: { teil: "unten", zeichen: "hinten", muskeln: BEIN_HINTEN },
+  beinbeuger: { teil: "unten", zeichen: "hinten", muskeln: BEIN_HINTEN },
+  waden: { teil: "unten", zeichen: "hinten", muskeln: BEIN_HINTEN }
 };
 
 // ---------- Die Figur einer Muskelgruppe ----------
@@ -141,9 +226,29 @@ function koerperFlaechen(muskeln, gruppe) {
   return svg;
 }
 
-// Baut die Figur für eine Muskelgruppe: den großen Oberkörper, wenn die Gruppe in NAH_ANSICHT steht,
+// Der große Unterkörper oder der Rumpf für eine Gruppe aus AUSSCHNITT
+function ausschnittSvg(a, gruppe) {
+  if (a.teil === "unten") {
+    return '<svg class="koerper nah" viewBox="1.5 49.5 57 67" aria-hidden="true"><g class="umriss">' + BEIN_UMRISS + '</g>'
+      + '<g class="zeichen">' + BEIN_ZEICHEN[a.zeichen] + '</g>'
+      + koerperFlaechen(a.muskeln, gruppe) + '</svg>';
+  }
+  let zeichen = NAH_ZEICHEN.hinten;
+  if (a.zeichen === "vorn") {
+    zeichen = RUMPF_ZEICHEN_VORN;
+  }
+  return '<svg class="koerper nah" viewBox="3 1.5 54 63.5" aria-hidden="true"><g class="umriss">' + NAH_UMRISS + NAH_ARME.unten + '</g>'
+    + '<g class="zeichen">' + zeichen + '</g>'
+    + koerperFlaechen(a.muskeln, gruppe) + '</svg>';
+}
+
+// Baut die Figur für eine Muskelgruppe: Rumpf oder Unterkörper, wenn die Gruppe in AUSSCHNITT steht,
+// den Oberkörper mit Schultern und Armen, wenn sie in NAH_ANSICHT steht,
 // sonst die ganze Figur von vorn oder von hinten (gruppe.ansicht).
 function koerperSvg(gruppe) {
+  if (AUSSCHNITT[gruppe.id]) {
+    return ausschnittSvg(AUSSCHNITT[gruppe.id], gruppe);
+  }
   const nah = NAH_ANSICHT[gruppe.id];
   if (nah) {
     let arme = NAH_ARME.unten;

@@ -15,8 +15,9 @@ Trainings-App für Hybrid-Athleten (Krafttraining + Laufen).
 - Es gibt zwei Stile: Glass (`glass.css`) ist der Standard, Klassisch ist unter Einstellungen → Design → Stil wählbar
 - Ohne Eintrag im Speicher gilt Glass. Klassisch gilt nur, wenn in den Einstellungen ausdrücklich `stil: "klassisch"` steht
 - Klassisch bleibt pixelgleich zum Tag `design-klassisch-v64`. Änderungen am Glass-Look gehören in die `glass.css`
-- Ausnahme: Die Körper-Figuren der Muskelgruppen (`figuren.js`) sind in beiden Stilen gleich und weichen seit Version 80 in Klassisch von v64 ab (großer Oberkörper bei Schultern, Bizeps, Trizeps und Unterarmen)
-- Die Figuren von Version 79 liegen unverändert in der `figuren-v1.js` und im Tag `figuren-v1`. Die `figuren-v1.js` ist ein Backup: nicht ändern, nicht löschen, nicht in der `index.html` laden und nicht in `DATEIEN` eintragen. Zurückwechseln: in der `index.html` und in `DATEIEN` der `sw.js` jeweils `figuren.js` durch `figuren-v1.js` ersetzen und die Versionsnummer erhöhen
+- Ausnahme: Die Körper-Figuren der Muskelgruppen (`figuren.js`) sind in beiden Stilen gleich und weichen in Klassisch von v64 ab. Seit Version 81 zeigen alle Muskelgruppen den großen Oberkörper oder den großen Unterkörper, nur „Ganzkörper" und die Kachel „Eigene" zeigen die ganze Figur
+- Ältere Figuren liegen unverändert als Backup im Projekt: `figuren-v1.js` und Tag `figuren-v1` (Version 79, alle Kacheln mit der ganzen Figur), `figuren-v2.js` und Tag `figuren-v2` (Version 80, großer Oberkörper nur bei Schultern, Bizeps, Trizeps und Unterarmen). Die Backup-Dateien nicht ändern, nicht löschen, nicht in der `index.html` laden und nicht in `DATEIEN` eintragen
+- Zurückwechseln auf ein Backup: in der `index.html` (`<script src="figuren.js?v=N">`) und in `DATEIEN` der `sw.js` (`"figuren.js?v=" + VERSION`) jeweils `figuren.js` durch `figuren-v2.js` oder `figuren-v1.js` ersetzen und die Versionsnummer an allen elf Stellen erhöhen. Die `figuren.js` und die CSS-Regeln in der `style.css` bleiben dabei stehen, so geht es auf demselben Weg wieder vorwärts
 
 ## Wie du mit mir arbeitest
 - Ich lerne gerade programmieren. Erklär jede Änderung kurz auf Deutsch

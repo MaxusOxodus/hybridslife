@@ -38,7 +38,7 @@ const VORLAGEN_MUSTER = {
   BS: { uebungId: "beinstrecker", alternativen: ["beinstrecker", "single-leg-leg-extension"] },
   ADD: { uebungId: "reclined-machine-hip-adduction", alternativen: ["reclined-machine-hip-adduction", "cable-hip-adduction"] },
   WAD: { uebungId: "wadenheben", alternativen: ["wadenheben", "seated-calf-raise", "standing-smith-machine-calf-raise", "45-leg-press-calf-raise"] },
-  WADS: { uebungId: "standing-calf-raise", alternativen: ["standing-calf-raise", "standing-smith-machine-calf-raise", "dumbbell-standing-calf-raise", "barbell-standing-calf-raise", "wadenheben"] },
+  WADS: { uebungId: "standing-smith-machine-calf-raise", alternativen: ["standing-smith-machine-calf-raise", "standing-calf-raise", "dumbbell-standing-calf-raise", "barbell-standing-calf-raise", "wadenheben"] },
   HUEFT: { uebungId: "hip-thrust", alternativen: ["hip-thrust", "plate-loaded-machine-hip-thrust", "smith-machine-hip-thrust", "good-morning", "machine-back-extension"] },
   BAUCH: { uebungId: "cable-crunches", alternativen: ["cable-crunches", "machine-crunch", "crunches", "beinheben", "hanging-leg-raise-eigen"] },
   FREI: { uebungId: "", alternativen: [] },

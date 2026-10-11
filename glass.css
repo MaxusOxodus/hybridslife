@@ -40,7 +40,7 @@
 }
 
 /* Helles Design: Auf fast weißem Grund sähe man weißes Glas nicht. Deshalb liegt hier ein ruhiger
-   Farbhintergrund dahinter (Limette und Mint auf hellem Grau-Grün), und die Glas-Variablen der style.css
+   Farbhintergrund dahinter (drei Limetten-Flecken auf hellem Grau-Grün), und die Glas-Variablen der style.css
    bekommen eigene Werte: weiße Flächen mit rund 68 % Deckkraft, weiße Kante, dazu im Schatten ein zarter
    dunkler Außenrand. Weil der Trainingsmodus dieselben Variablen nutzt, sieht er genauso aus.
    Der leise Text und das Rot sind etwas dunkler, damit sie auch auf den Licht-Flecken gut lesbar bleiben
@@ -61,8 +61,8 @@
     --glas-sheet-schatten: 0 -8px 32px rgba(24, 32, 48, 0.14);
     --glas-grund:
       radial-gradient(70% 42% at 8% 10%, rgba(198, 241, 53, 0.42), transparent 70%),
-      radial-gradient(60% 40% at 100% 52%, rgba(52, 211, 153, 0.24), transparent 70%),
-      radial-gradient(70% 40% at 20% 100%, rgba(150, 225, 110, 0.24), transparent 70%),
+      radial-gradient(60% 40% at 100% 52%, rgba(198, 241, 53, 0.26), transparent 70%),
+      radial-gradient(70% 40% at 20% 100%, rgba(198, 241, 53, 0.22), transparent 70%),
       linear-gradient(180deg, #F6F8F5, #EDF1EE);
     --text-leise: #5C5C61;
     --gefahr: #C40012;
@@ -90,8 +90,8 @@
   --glas-sheet-schatten: 0 -8px 32px rgba(24, 32, 48, 0.14);
   --glas-grund:
     radial-gradient(70% 42% at 8% 10%, rgba(198, 241, 53, 0.42), transparent 70%),
-    radial-gradient(60% 40% at 100% 52%, rgba(52, 211, 153, 0.24), transparent 70%),
-    radial-gradient(70% 40% at 20% 100%, rgba(150, 225, 110, 0.24), transparent 70%),
+    radial-gradient(60% 40% at 100% 52%, rgba(198, 241, 53, 0.26), transparent 70%),
+    radial-gradient(70% 40% at 20% 100%, rgba(198, 241, 53, 0.22), transparent 70%),
     linear-gradient(180deg, #F6F8F5, #EDF1EE);
   --text-leise: #5C5C61;
   --gefahr: #C40012;

@@ -3798,6 +3798,53 @@ button.einst-zeile:first-child {
   text-align: left;
 }
 
+/* Die Auswahl der Tageszahl: zwei Kacheln pro Reihe, eine Karte ("6 Tage") läuft über beide Spalten */
+#vorlagen-liste {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#vorlagen-liste > .vorlage-karte {
+  grid-column: 1 / -1;
+}
+
+/* Quadratische Kachel: oben groß die Zahl mit "Tage", unten klein die Zahl der Varianten */
+.vorlage-kachel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  padding: 16px;
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+}
+
+.vorlage-kachel-zahl,
+.vorlage-kachel-wort {
+  display: block;
+  font-weight: 700;
+}
+
+.vorlage-kachel-zahl {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.vorlage-kachel-wort {
+  margin-top: 2px;
+  font-size: 20px;
+}
+
+.vorlage-kachel > .routine-info {
+  margin-top: 0;
+  font-size: 14px;
+}
+
 .vorlage-karte-text {
   flex: 1;
   min-width: 0;

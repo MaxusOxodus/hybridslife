@@ -20,7 +20,10 @@
    --glas-grund: der Hintergrund hinter allen Ansichten, die Licht-Flecken.
    --glas-leiste: die Fläche von Kopfzeile, Navigation und Hinweisen.
    --glas-leiste-schatten, --glas-klein-schatten, --glas-sheet-schatten: Schatten für Leisten, kleine Flächen
-   und Sheets. Im dunklen Design sind sie leer ("0 0 transparent" zeichnet nichts), dort sähe man sie nicht. */
+   und Sheets. Im dunklen Design sind sie leer ("0 0 transparent" zeichnet nichts), dort sähe man sie nicht.
+   --akzent-hauch: ein zarter Akzent für Schein und schwache Stufen. Im dunklen Design derselbe wie --akzent-leicht.
+   --akzent-pille: die Fläche hinter Knöpfen, die sonst nur aus Text bestehen. Im dunklen Design durchsichtig.
+   --akzent-kante: ein feiner dunkler Rand um Limetten-Flächen auf Weiß. Im dunklen Design durchsichtig. */
 :root[data-stil="glass"] {
   --glas-fest: rgba(22, 22, 24, 0.94);
   --glas-kante: var(--glas-rand);
@@ -28,6 +31,9 @@
   --glas-leiste-schatten: 0 0 transparent;
   --glas-klein-schatten: 0 0 transparent;
   --glas-sheet-schatten: 0 0 transparent;
+  --akzent-hauch: var(--akzent-leicht);
+  --akzent-pille: transparent;
+  --akzent-kante: transparent;
   --glas-grund:
     radial-gradient(60% 38% at 12% 14%, var(--glas-schimmer), transparent 70%),
     radial-gradient(55% 34% at 96% 58%, var(--glas-schimmer), transparent 70%);
@@ -60,6 +66,13 @@
       linear-gradient(180deg, #F6F8F5, #EDF1EE);
     --text-leise: #5C5C61;
     --gefahr: #C40012;
+    /* Ein Grün für alles: dieselbe Limette wie im dunklen Design. Als Schrift wäre sie auf Weiß kaum lesbar,
+       deshalb ist Akzent-Schrift hier schwarz und die getönten Flächen dahinter sind voll Limette. */
+    --akzent-text: var(--text);
+    --akzent-leicht: var(--akzent);
+    --akzent-hauch: rgba(198, 241, 53, 0.4);
+    --akzent-pille: var(--akzent);
+    --akzent-kante: rgba(0, 0, 0, 0.35);
   }
 }
 
@@ -82,6 +95,11 @@
     linear-gradient(180deg, #F6F8F5, #EDF1EE);
   --text-leise: #5C5C61;
   --gefahr: #C40012;
+  --akzent-text: var(--text);
+  --akzent-leicht: var(--akzent);
+  --akzent-hauch: rgba(198, 241, 53, 0.4);
+  --akzent-pille: var(--akzent);
+  --akzent-kante: rgba(0, 0, 0, 0.35);
 }
 
 /* ---------- Hintergrund ---------- */
@@ -282,6 +300,131 @@
 :where([data-stil="glass"]) .erklaerung-bild {
   background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas);
   box-shadow: var(--glas-klein-schatten);
+}
+
+/* ---------- Akzent: ein Limetten-Ton für beide Designs ----------
+
+   In der style.css färbt --akzent-text Schrift, Linien und manche Flächen. Im hellen Glass-Design ist
+   dieser Wert schwarz (siehe oben), damit Schrift lesbar bleibt. Alles, was eine Fläche oder eine
+   Schmuck-Linie ist, bekommt deshalb hier ausdrücklich die Limette --akzent.
+   Im dunklen Design sind beide Werte gleich, dort ändert sich nichts. */
+
+/* Flächen: Punkte, Balken, Legende */
+:where([data-stil="glass"]) .tag-punkt.trainiert,
+:where([data-stil="glass"]) .rang-balken div,
+:where([data-stil="glass"]) #modus-fortschritt,
+:where([data-stil="glass"]) .legende-linie {
+  background: var(--akzent);
+}
+
+/* Schmuck-Linien: der Streifen links an "Letztes Mal", am laufenden Training, an der aktuellen Satz-Reihe
+   und an der Box "Sicherheit", dazu der Rahmen um die aktuelle Zeile im Trainingsmodus */
+:where([data-stil="glass"]) #letztesMal,
+:where([data-stil="glass"]) .letztes-mal,
+:where([data-stil="glass"]) .laufend,
+:where([data-stil="glass"]) .satz-reihe.aktuell,
+:where([data-stil="glass"]) .erklaerung-box.sicherheit {
+  border-left-color: var(--akzent);
+}
+
+:where([data-stil="glass"]) #modus-letztes .letztes-zeile.aktuell {
+  border-color: var(--akzent);
+}
+
+/* Diagramme und Bilder: Linien und Punkte in Limette. Die Punkte im großen Diagramm bekommen
+   im hellen Design einen feinen dunklen Rand, damit man sie auf Weiß sieht. */
+:where([data-stil="glass"]) .diagramm .linie-haupt,
+:where([data-stil="glass"]) .mini-diagramm .linie-haupt,
+:where([data-stil="glass"]) .mini-diagramm .punkt-haupt,
+:where([data-stil="glass"]) .verlauf-icon,
+:where([data-stil="glass"]) .uebungsbild .a {
+  stroke: var(--akzent);
+}
+
+:where([data-stil="glass"]) .diagramm .punkt-haupt {
+  fill: var(--akzent);
+  stroke: var(--akzent-kante);
+  stroke-width: 1;
+}
+
+/* Rang-Abzeichen: Stufe 3 und 4 zart gefüllt, Stufe 5 und 6 voll gefüllt. So bleibt der Unterschied sichtbar. */
+:where([data-stil="glass"]) .rang-svg.farbe-2 .form {
+  fill: var(--akzent-hauch);
+}
+
+:where([data-stil="glass"]) .rang-svg.farbe-3 .form {
+  stroke: var(--akzent);
+}
+
+/* Aktivitäts-Raster: vier Limetten-Stufen. Die erste Zeile gilt für Browser, die color-mix nicht kennen.
+   Der feine Rand sitzt genau auf der Kante der Farbfläche. Das angetippte Feld behält seinen eigenen Rahmen. */
+:where([data-stil="glass"]) .raster-feld.stufe-1 {
+  background-color: var(--akzent-hauch);
+  background-color: color-mix(in srgb, var(--akzent) 30%, transparent);
+}
+
+:where([data-stil="glass"]) .raster-feld.stufe-2 {
+  background-color: var(--akzent);
+  background-color: color-mix(in srgb, var(--akzent) 53%, transparent);
+}
+
+:where([data-stil="glass"]) .raster-feld.stufe-3 {
+  background-color: var(--akzent);
+  background-color: color-mix(in srgb, var(--akzent) 76%, transparent);
+}
+
+:where([data-stil="glass"]) .raster-feld.stufe-4 {
+  background-color: var(--akzent);
+}
+
+:where([data-stil="glass"]) .raster-feld:where(.stufe-1, .stufe-2, .stufe-3, .stufe-4):where(:not(.gewaehlt, :focus-visible)) {
+  outline: 1px solid var(--akzent-kante);
+  outline-offset: -2.5px;
+}
+
+/* Die Karte im Trainingsmodus leuchtet zart. Mit der vollen Limette wäre der Schein zu stark. */
+:where([data-stil="glass"]) .modus-karte {
+  box-shadow: var(--glas-schatten), 0 0 0 1px var(--akzent-hauch), 0 0 28px var(--akzent-hauch);
+}
+
+/* Die Knöpfe in den Hinweisen bestehen nur aus Text. Im hellen Design bekommen sie eine Limetten-Pille. */
+:where([data-stil="glass"]) #rang-hinweis button,
+:where([data-stil="glass"]) #verworfen-hinweis button,
+:where([data-stil="glass"]) #routine-hinweis button {
+  border-radius: 18px;
+  background: var(--akzent-pille);
+}
+
+/* Der heutige Tag im Wochenplan: im hellen Design liegt eine Limetten-Pille hinter dem Kürzel.
+   Der Schatten vergrößert die Pille rundherum um 4 px, ohne Platz zu brauchen. */
+:where([data-stil="glass"]) .plan-zeile.heute .plan-tag {
+  border-radius: 4px;
+  background: var(--akzent-pille);
+  box-shadow: 0 0 0 4px var(--akzent-pille);
+}
+
+/* Häkchen im hellen Design: ein Limetten-Kreis mit dunklem Haken. Wie oben steht das zweimal da,
+   weil es zwei Wege zum hellen Design gibt. */
+@media (prefers-color-scheme: light) {
+  :root[data-stil="glass"]:not([data-design="dunkel"]) :where(.wahl-haken, .satz-haken) {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--akzent);
+    font-size: 13px;
+    line-height: 20px;
+    text-align: center;
+  }
+}
+
+:root[data-stil="glass"][data-design="hell"] :where(.wahl-haken, .satz-haken) {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--akzent);
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
 }
 
 /* ---------- Ersatz ohne Weichzeichner ---------- */

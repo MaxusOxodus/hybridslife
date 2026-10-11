@@ -2710,16 +2710,34 @@
     return karte;
   }
 
-  // Ebene 1 in der Übersicht: je Tageszahl eine Karte mit der Zahl ihrer Varianten
+  // Eine quadratische Kachel zum Antippen: groß die Zahl, darunter "Tage", unten die Zahl der Varianten
+  function vorlageKachel(plan, aktion) {
+    const kachel = element("button", "karte vorlage-kachel");
+    const oben = element("span", "vorlage-kachel-oben");
+    oben.appendChild(element("span", "vorlage-kachel-zahl", String(plan.tage)));
+    oben.appendChild(element("span", "vorlage-kachel-wort", txt("vorlage.tageWort")));
+    kachel.appendChild(oben);
+    kachel.appendChild(element("span", "routine-info", txtAnzahl("vorlage.varianten", plan.varianten.length)));
+    kachel.onclick = aktion;
+    return kachel;
+  }
+
+  // Ebene 1 in der Übersicht: 2 bis 5 Tage als quadratische Kacheln, zwei pro Reihe.
+  // "6 Tage" bleibt eine Karte über die volle Breite.
   function vorlagenAnzeigen() {
     const liste = document.getElementById("vorlagen-liste");
     liste.innerHTML = "";
 
     for (let i = 0; i < VORLAGEN_PLAENE.length; i++) {
       const plan = VORLAGEN_PLAENE[i];
-      const karte = vorlageKarte(function () {
+      const oeffnen = function () {
         variantenOeffnen(plan);
-      });
+      };
+      if (plan.tage <= 5) {
+        liste.appendChild(vorlageKachel(plan, oeffnen));
+        continue;
+      }
+      const karte = vorlageKarte(oeffnen);
       karte.firstChild.appendChild(element("span", "routine-name", txt("vorlage.tage", { n: plan.tage })));
       karte.firstChild.appendChild(element("span", "routine-info", txtAnzahl("vorlage.varianten", plan.varianten.length)));
       liste.appendChild(karte);

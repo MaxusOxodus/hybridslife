@@ -216,6 +216,7 @@ const TEXTE = {
   },
   "vorlage.frage": { de: "Wie oft trainierst du pro Woche?", en: "How often do you train per week?" },
   "vorlage.tage": { de: "{n} Tage", en: "{n} days" },
+  "vorlage.tageWort": { de: "Tage", en: "days" },
   "vorlage.tageProWoche": { de: "{n} Tage pro Woche", en: "{n} days per week" },
   "vorlage.varianten.eins": { de: "1 Variante", en: "1 option" },
   "vorlage.varianten.viele": { de: "{n} Varianten", en: "{n} options" },

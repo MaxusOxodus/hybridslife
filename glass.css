@@ -131,6 +131,29 @@
   box-shadow: inset 0 0 0 1px var(--glas-kante);
 }
 
+/* ---------- Bedienelemente in Karten: Home, Wochenplan, Routinen, Vorlagen ---------- */
+
+/* Knöpfe, Auswahlfelder und Chips, die in einer Karte liegen, bekommen dieselbe feine Kante
+   wie die Knöpfe im Trainingsmodus. Ihre Fläche bleibt, sie ist schon durchscheinend.
+   Grüne Hauptknöpfe und gewählte Chips bleiben, wie sie sind. */
+:where([data-stil="glass"]) .knopf:where(:not(.haupt, .leise, #ansicht-modus *)),
+:where([data-stil="glass"]) .schnell button:where(:not(#ansicht-modus *)),
+:where([data-stil="glass"]) .home-kachel .kachel-knopf svg,
+:where([data-stil="glass"]) .plan-zeile select,
+:where([data-stil="glass"]) .ziel select,
+:where([data-stil="glass"]) .ziel input,
+:where([data-stil="glass"]) .pfeile button,
+:where([data-stil="glass"]) .vorlage-wochentag:where(:not(.aktiv)) {
+  box-shadow: inset 0 0 0 1px var(--glas-kante);
+}
+
+/* Der große grüne Hauptknopf leuchtet weich nach unten, wie "Satz fertig" im Trainingsmodus.
+   Die zweite Zeile ist genauer und gilt, wo der Browser Farben mischen kann. */
+:where([data-stil="glass"]) .speichern-btn:where(:not(:disabled, #ansicht-modus *)) {
+  box-shadow: 0 10px 30px var(--akzent-leicht);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--akzent) 35%, transparent);
+}
+
 /* ---------- Ersatz ohne Weichzeichner ---------- */
 
 /* Kann der Browser nicht weichzeichnen, werden die festen Flächen fast deckend, damit der Text lesbar bleibt */

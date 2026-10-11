@@ -1249,6 +1249,26 @@ h1 {
   stroke: currentColor;
 }
 
+/* Der große Oberkörper (Schultern, Bizeps, Trizeps, Unterarme): breiter als die ganze Figur, gleich hoch */
+.koerper.nah {
+  width: 80px;
+  max-width: 100%;
+}
+
+/* Feine Striche, an denen man vorn und hinten erkennt: Augen, Brustlinie, Nabel, Wirbelsäule */
+.koerper .zeichen {
+  color: var(--text-leise);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+.koerper .zeichen .punkt {
+  fill: currentColor;
+  stroke: none;
+}
+
 /* Überschrift eines Bereichs, z. B. "Maschine" oder "Trainiert auch" */
 .sheet-abschnitt {
   margin: 18px 0 2px;
@@ -2298,6 +2318,12 @@ h1 {
 .gruppen-figur .koerper {
   width: 24px;
   height: 47px;
+}
+
+/* Der große Oberkörper ist niedriger. Der Abstand oben und unten hält die Zeile so hoch wie bei der ganzen Figur. */
+.gruppen-figur .koerper.nah {
+  height: 28px;
+  margin: 9.5px 0;
 }
 
 /* Gruppen ohne trainierte Übung: ausgegraut und nicht antippbar */

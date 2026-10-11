@@ -344,6 +344,7 @@ const TEXTE = {
   "modus.naechste": { de: "Nächste Übung", en: "Next exercise" },
   "modus.rir": { de: "Reps in Reserve (optional)", en: "Reps in Reserve (optional)" },
   "erklaerung.button": { de: "Erklärung", en: "How to" },
+  "erklaerung.ansage": { de: "Erklärung zu {name}", en: "How to: {name}" },
   "erklaerung.fehler": { de: "Häufiger Fehler", en: "Common mistake" },
   "erklaerung.sicherheit": { de: "Sicherheit", en: "Safety" },
   "erklaerung.tipp": { de: "Tipp", en: "Tip" },

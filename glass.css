@@ -296,6 +296,11 @@
   box-shadow: var(--glas-klein-schatten);
 }
 
+/* Das runde "i": die feine Glas-Kante wie bei den anderen kleinen Knöpfen */
+:where([data-stil="glass"]) .info-knopf span {
+  box-shadow: inset 0 0 0 1px var(--glas-kante);
+}
+
 /* Die Bild-Kachel ist aus demselben Glas wie die Boxen darunter, mit demselben Glanz */
 :where([data-stil="glass"]) .erklaerung-bild {
   background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas);

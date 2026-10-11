@@ -4826,14 +4826,81 @@ button.einst-zeile:first-child {
   font-weight: 700;
 }
 
-/* Im Trainingsmodus steht er unter der Geräte-Zeile, im Verlauf über dem Diagramm */
-.modus-uebung-text .erklaerung-btn {
-  margin-top: 4px;
-}
-
+/* Im Verlauf steht er über dem Diagramm */
 #verlauf-erklaerung {
   display: block;
   margin: 0 0 12px;
+}
+
+/* Das runde "i" neben einer Übung. Die Tippfläche ist 44 × 44 px, zu sehen ist nur der Kreis darin.
+   Der Rand nach rechts ist negativ, damit der Kreis bündig mit dem Rand der Zeile abschließt. */
+.info-knopf {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 -10px 0 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.info-knopf span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* In der Übungsauswahl: links die Zeile zum Wählen, rechts das "i". Die Trennlinie gehört dem Rahmen. */
+.sheet-reihe {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--rand);
+}
+
+.sheet-reihe .sheet-zeile {
+  flex: 1;
+  min-width: 0;
+  border-bottom: none;
+}
+
+.sheet-reihe + .sheet-neu {
+  margin-top: 16px;
+}
+
+/* Im Trainingsmodus: der Name bekommt den Platz, das "i" steht rechts auf Höhe der ersten Zeile */
+.modus-name-zeile {
+  display: flex;
+  align-items: flex-start;
+}
+
+#ansicht-modus .modus-name-zeile .name-knopf {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
+/* Ist die Erklärung über der Übungsauswahl offen, liegen ihr dunkler Hintergrund und sie selbst über der Auswahl.
+   So schaut die Auswahl bei einer kurzen Erklärung nicht oben heraus. Die Erklärung ist dort deckend
+   wie das Formular für eigene Übungen, sonst schiene die Liste der Auswahl durch den Text. */
+#sheet.offen ~ #zusatz-hintergrund {
+  z-index: 31;
+}
+
+#sheet.offen ~ #erklaerung-sheet {
+  z-index: 32;
+  background: var(--karte);
 }
 
 .erklaerung-bild {

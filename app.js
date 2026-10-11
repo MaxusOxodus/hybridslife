@@ -1618,7 +1618,30 @@
     btn.onclick = function () {
       uebungWaehlen(u.de, gruppe.de, u.id);
     };
-    return btn;
+
+    // Ohne Erklärung bleibt die Zeile, wie sie ist: kein "i", kein leeres Sheet
+    if (erklaerungId(u.id, u.de) === "") {
+      return btn;
+    }
+    // Mit Erklärung: Zeile und "i" stehen nebeneinander. Ein Button darf nicht in einem Button stecken,
+    // deshalb der Rahmen. Das "i" bleibt auch antippbar, wenn die Zeile ausgegraut ist.
+    const reihe = element("div", "sheet-reihe");
+    reihe.appendChild(btn);
+    reihe.appendChild(infoKnopf(u.id, u.de, u[sprache]));
+    return reihe;
+  }
+
+  // Das runde "i" neben einer Übung: Es öffnet ihre Erklärung. Die Tippfläche ist 44 × 44 px, der Kreis darin kleiner.
+  function infoKnopf(id, name, ansageName) {
+    const knopf = element("button", "info-knopf");
+    knopf.setAttribute("aria-label", txt("erklaerung.ansage", { name: ansageName }));
+    const kreis = element("span", "", "i");
+    kreis.setAttribute("aria-hidden", "true");
+    knopf.appendChild(kreis);
+    knopf.onclick = function () {
+      erklaerungOeffnen(id, name);
+    };
+    return knopf;
   }
 
   // Wird bei jeder Eingabe im Suchfeld aufgerufen. Gesucht wird in allen Übungen, auf Deutsch und Englisch
@@ -6064,7 +6087,10 @@
     document.getElementById("muster-sheet").classList.remove("offen");
     document.getElementById("teilen-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
-    document.body.classList.remove("sheet-offen");
+    // Liegt darunter noch die Übungsauswahl (die Erklärung wurde von dort geöffnet), bleibt die Seite gesperrt
+    if (!document.getElementById("sheet").classList.contains("offen")) {
+      document.body.classList.remove("sheet-offen");
+    }
   }
 
   // ---------- Erklärungen ----------
@@ -6129,6 +6155,8 @@
         inhalt.appendChild(erklaerungBox(arten[i], eintrag[sprache] || eintrag.de));
       }
     }
+    // Aus der Suche der Übungsauswahl geöffnet: Die Tastatur geht zu, der Suchtext bleibt stehen
+    document.getElementById("sheet-suche").blur();
     zusatzSheetOeffnen("erklaerung-sheet");
   }
 
@@ -6147,6 +6175,7 @@
   }
 
   // Schließt nur die Erklärung. Der Verlauf darunter bleibt offen, wenn sie von dort geöffnet wurde.
+  // Auch die Übungsauswahl darunter bleibt offen, mit Suche und Stand (siehe zusatzSheetsSchliessen).
   function erklaerungSchliessen() {
     if (document.getElementById("verlauf-sheet").classList.contains("offen")) {
       document.getElementById("erklaerung-sheet").classList.remove("offen");

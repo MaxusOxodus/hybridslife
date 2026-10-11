@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=75">
+  <link rel="stylesheet" href="style.css?v=76">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=75">
+  <link rel="stylesheet" href="glass.css?v=76">
 </head>
 <body>
 
@@ -215,15 +215,17 @@
           <!-- Das Bild der Übung aus der bilder.js. Es ist nur Schmuck, deshalb aria-hidden. -->
           <div id="modus-bild" class="modus-bild" aria-hidden="true"></div>
           <div class="modus-uebung-text">
-            <!-- Der Name der Übung: Antippen zeigt ihren Verlauf als Diagramm -->
-            <button class="ansicht-titel name-knopf" onclick="verlaufImModus()">
-              <span id="modus-uebung"></span>
-              <svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>
-            </button>
+            <div class="modus-name-zeile">
+              <!-- Der Name der Übung: Antippen zeigt ihren Verlauf als Diagramm -->
+              <button class="ansicht-titel name-knopf" onclick="verlaufImModus()">
+                <span id="modus-uebung"></span>
+                <svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>
+              </button>
+              <!-- Das "i" öffnet die Erklärung der Übung. Es erscheint nur, wenn es eine gibt. -->
+              <button id="modus-erklaerung" class="info-knopf versteckt" onclick="erklaerungImModus()" aria-label="Erklärung" data-t-aria="erklaerung.button"><span aria-hidden="true">i</span></button>
+            </div>
             <!-- Geräte-Zeile: Bereich und Muskelgruppe, z. B. "Maschine · Brust" -->
             <div id="modus-geraet" class="modus-geraet"></div>
-            <!-- Öffnet die Erklärung der Übung. Der Button erscheint nur, wenn es eine gibt. -->
-            <button id="modus-erklaerung" class="erklaerung-btn versteckt" onclick="erklaerungImModus()" data-t="erklaerung.button">Erklärung</button>
           </div>
         </div>
       </div>
@@ -939,13 +941,13 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=75"></script>
-<script src="uebungen.js?v=75"></script>
-<script src="erklaerungen.js?v=75"></script>
-<script src="raenge.js?v=75"></script>
-<script src="bilder.js?v=75"></script>
-<script src="vorlagen.js?v=75"></script>
-<script src="app.js?v=75"></script>
+<script src="texte.js?v=76"></script>
+<script src="uebungen.js?v=76"></script>
+<script src="erklaerungen.js?v=76"></script>
+<script src="raenge.js?v=76"></script>
+<script src="bilder.js?v=76"></script>
+<script src="vorlagen.js?v=76"></script>
+<script src="app.js?v=76"></script>
 
 </body>
 </html>

@@ -3960,10 +3960,51 @@ button.einst-zeile:first-child {
   color: var(--text-leise);
 }
 
-/* Zweite Reihe der Routine-Karte: Duplizieren links, Löschen rechts */
-.karten-knoepfe.weitere {
-  justify-content: space-between;
-  margin-top: 4px;
+/* Knopf mit Symbol statt Text: ein Quadrat in der Mindestgröße für Tippflächen */
+.knopf.symbol {
+  display: flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+
+.knopf.symbol svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Routine-Karte, kompakt: weniger Innenabstand, die Kurzinfo in einer Zeile, alle Knöpfe in einer Reihe.
+   Gespart wird am Abstand, die Knöpfe bleiben 44 px hoch. */
+.routine-karte {
+  margin-bottom: 8px;
+  padding: 12px 14px;
+}
+
+.routine-karte .routine-name {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+/* Was nicht in die Zeile passt, endet mit "…" */
+.routine-karte .routine-info {
+  margin-top: 2px;
+  overflow: hidden;
+  font-size: 13px;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.routine-karte .karten-knoepfe {
+  margin-top: 10px;
 }
 
 /* ---------- Training: Routine bearbeiten ---------- */

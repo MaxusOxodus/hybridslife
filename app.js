@@ -2623,7 +2623,21 @@
     }
   }
 
-  // Alle eigenen Routinen als Karten
+  // Die Symbole der Routine-Karte als Pfad für ein SVG mit 24 × 24 Einheiten: Stift, zwei Blätter, Papierkorb
+  const SYMBOL_BEARBEITEN = "M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4";
+  const SYMBOL_DUPLIZIEREN = "M9 9h10v10H9zM5 15V5h10";
+  const SYMBOL_LOESCHEN = "M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10 11v6M14 11v6";
+
+  // Ein quadratischer Knopf mit Symbol statt Text. Die Ansage nennt Screenreadern, was er tut.
+  function symbolKnopf(pfad, ansage) {
+    const knopf = element("button", "knopf symbol");
+    knopf.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + pfad + '"/></svg>';
+    knopf.setAttribute("aria-label", ansage);
+    knopf.title = ansage;
+    return knopf;
+  }
+
+  // Alle eigenen Routinen als Karten: Name, eine Zeile Kurzinfo und eine Reihe mit allen vier Knöpfen
   function routinenAnzeigen() {
     const liste = document.getElementById("routinen-liste");
     liste.innerHTML = "";
@@ -2645,26 +2659,23 @@
         routineStarten(routine);
       };
       knoepfe.appendChild(start);
-      const aendern = element("button", "knopf", txt("routine.bearbeiten"));
+      // Vier Textknöpfe passen auf schmalen Bildschirmen nicht nebeneinander, deshalb drei Symbole
+      const aendern = symbolKnopf(SYMBOL_BEARBEITEN, txt("routine.bearbeiten"));
       aendern.onclick = function () {
         routineBearbeiten(routine);
       };
       knoepfe.appendChild(aendern);
-      karte.appendChild(knoepfe);
-
-      // Zweite Reihe: Vier Knöpfe nebeneinander passen auf schmalen Bildschirmen nicht
-      const weitere = element("div", "karten-knoepfe weitere");
-      const doppelt = element("button", "knopf leise", txt("routine.duplizieren"));
+      const doppelt = symbolKnopf(SYMBOL_DUPLIZIEREN, txt("routine.duplizieren"));
       doppelt.onclick = function () {
         routineDuplizieren(routine, routine.name, routine.uebungen);
       };
-      weitere.appendChild(doppelt);
-      const weg = element("button", "knopf leise", txt("loeschen"));
+      knoepfe.appendChild(doppelt);
+      const weg = symbolKnopf(SYMBOL_LOESCHEN, txt("loeschen"));
       weg.onclick = function () {
         routineLoeschenFragen(routine);
       };
-      weitere.appendChild(weg);
-      karte.appendChild(weitere);
+      knoepfe.appendChild(weg);
+      karte.appendChild(knoepfe);
       liste.appendChild(karte);
     }
   }

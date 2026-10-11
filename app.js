@@ -160,8 +160,16 @@
   let eintraege =JSON.parse(localStorage.getItem("eintraege")) || [];
 
   // Wofür das Sheet gerade geöffnet ist: "log" (neuer Eintrag), "routine" (Übung zur Routine hinzufügen),
-  // "tausch" (im Trainingsmodus die Übung tauschen) oder "vorlage" (in der Vorschau einer Vorlage die Übung tauschen)
+  // "tausch" (im Trainingsmodus die Übung tauschen) oder "vorlage" (in der Vorschau einer Vorlage die Übung tauschen).
+  // "bibliothek" ist kein Sheet: Dann zeichnet die Auswahl in den Reiter "Übungen" im Training (siehe sheetTeil).
   let sheetZiel = "log";
+
+  // Die zwei Reiter in der Übersicht des Trainings und der gewählte
+  const TRAINING_REITER = [
+    { id: "plaene", schluessel: "training.reiter.plaene" },
+    { id: "uebungen", schluessel: "uebungen" }
+  ];
+  let trainingReiter = "plaene";
 
   // Routinen: jede hat eine id, einen Namen und eine Liste von Übungen mit optionalen Zielen
   let routinen = gespeichertLesen("routinen", []);
@@ -1386,14 +1394,27 @@
     document.body.classList.remove("sheet-offen");
   }
 
+  // Ein Teil der Auswahl: "suche", "titel", "zurueck" oder "inhalt". Im Sheet heißen die Elemente "sheet-…",
+  // in der Bibliothek (Reiter "Übungen") "bib-…". So zeichnen dieselben Funktionen an beide Orte.
+  function sheetTeil(name) {
+    if (sheetZiel === "bibliothek") {
+      return document.getElementById("bib-" + name);
+    }
+    return document.getElementById("sheet-" + name);
+  }
+
   // Setzt Titel und Zurück-Pfeil und gibt den geleerten Inhaltsbereich zurück
   function sheetLeeren(titel, mitZurueck) {
-    document.getElementById("sheet-titel").textContent = titel;
-    document.getElementById("sheet-zurueck").classList.toggle("versteckt", !mitZurueck);
+    sheetTeil("titel").textContent = titel;
+    sheetTeil("zurueck").classList.toggle("versteckt", !mitZurueck);
 
-    const inhalt = document.getElementById("sheet-inhalt");
+    const inhalt = sheetTeil("inhalt");
     inhalt.innerHTML = "";
     inhalt.scrollTop = 0;
+    // Die Bibliothek steht in der Seite: Dort scrollt die Seite nach oben, außer beim Tippen in der Suche
+    if (sheetZiel === "bibliothek" && document.activeElement !== sheetTeil("suche")) {
+      window.scrollTo(0, 0);
+    }
     return inhalt;
   }
 
@@ -1417,7 +1438,7 @@
       sheetGruppenZeigen();
       return;
     }
-    const suche = document.getElementById("sheet-suche");
+    const suche = sheetTeil("suche");
     if (suche.value.trim() !== "") {
       suche.value = "";
       sheetAnsichtZeigen();
@@ -1450,7 +1471,7 @@
   // Schritt 1: alle Muskelgruppen als Kacheln mit Körper-Grafik, davor die Kachel für die eigenen Übungen
   function sheetGruppenZeigen() {
     sheetGruppe = "";
-    document.getElementById("sheet-suche").value = "";
+    sheetTeil("suche").value = "";
     // Beim Tauschen führt der Pfeil von hier zurück zu den Vorschlägen
     const inhalt = sheetLeeren(txt("sheet.muskelgruppe"), sheetTauscht());
     inhalt.appendChild(selbstNeuKnopf());
@@ -1473,7 +1494,7 @@
   // Die Kachel "Eigene": alle eigenen Übungen nach Namen sortiert, jede mit einem Stift zum Bearbeiten
   function sheetSelbstZeigen() {
     sheetGruppe = KACHEL_SELBST;
-    document.getElementById("sheet-suche").value = "";
+    sheetTeil("suche").value = "";
     const inhalt = sheetLeeren(txt("selbst.kachel"), true);
     inhalt.appendChild(selbstNeuKnopf());
 
@@ -1614,6 +1635,15 @@
       btn.appendChild(element("span", "sheet-zeile-zweit", txt("vorlage.vergeben")));
     }
 
+    // In der Bibliothek wählt die Zeile nichts aus: Sie öffnet die Erklärung, auch wenn es noch keine gibt.
+    // Ein "i" braucht sie dort nicht.
+    if (sheetZiel === "bibliothek") {
+      btn.onclick = function () {
+        erklaerungOeffnen(u.id, u.de, true);
+      };
+      return btn;
+    }
+
     // Gespeichert wird neben der ID immer der deutsche Name, als Reserve
     btn.onclick = function () {
       uebungWaehlen(u.de, gruppe.de, u.id);
@@ -1648,7 +1678,7 @@
   // und in den Aliasen, die eigenen Übungen stehen vorn. Jedes eingetippte Wort muss im Namen vorkommen,
   // die Reihenfolge ist egal.
   function sheetSucheGeaendert() {
-    const eingabe = document.getElementById("sheet-suche").value.trim();
+    const eingabe = sheetTeil("suche").value.trim();
 
     // Leeres Feld: zurück zur vorherigen Ansicht
     if (eingabe === "") {
@@ -1740,13 +1770,22 @@
     selbstNameGeaendert();
 
     document.getElementById("selbst-sheet").querySelector(".zusatz-inhalt").scrollTop = 0;
-    document.getElementById("sheet-suche").blur();
+    sheetTeil("suche").blur();
     document.getElementById("selbst-sheet").classList.add("offen");
+    // In der Bibliothek liegt kein Sheet darunter: Das Formular bringt den dunklen Hintergrund selbst mit
+    if (sheetZiel === "bibliothek") {
+      document.getElementById("sheet-hintergrund").classList.add("offen");
+      document.body.classList.add("sheet-offen");
+    }
   }
 
   function selbstFormSchliessen() {
     document.getElementById("selbst-name").blur();
     document.getElementById("selbst-sheet").classList.remove("offen");
+    if (sheetZiel === "bibliothek") {
+      document.getElementById("sheet-hintergrund").classList.remove("offen");
+      document.body.classList.remove("sheet-offen");
+    }
   }
 
   // Die Hilfsmuskeln als Knöpfe zum An- und Abwählen. Die Hauptmuskelgruppe fehlt in der Reihe.
@@ -1982,6 +2021,12 @@
 
   // Merkt sich die gewählte Übung, schließt das Sheet und stellt die Zahlenfelder ein
   function uebungWaehlen(name, gruppe, id) {
+    // In der Bibliothek wird nichts gewählt. Hierher kommt nur eine eigene Übung, die dort gerade neu
+    // angelegt wurde: Die Liste zeigt sie gleich mit.
+    if (sheetZiel === "bibliothek") {
+      sheetSucheGeaendert();
+      return;
+    }
     // Aus dem Routinen-Editor geöffnet: Die Übung kommt in die Routine, nicht in den neuen Eintrag
     if (sheetZiel === "routine") {
       sheetSchliessen();
@@ -2543,6 +2588,8 @@
       document.getElementById("ansicht-" + ansichten[i]).classList.toggle("versteckt", ansichten[i] !== name);
     }
     trainingAnsicht = name;
+    // Zurück in der Übersicht: Die Bibliothek zeichnet neu, falls die Auswahl inzwischen woanders in Gebrauch war
+    bibliothekAnzeigen();
     window.scrollTo(0, 0);
     kopfzeileAktualisieren();
     pauseAnzeigen();
@@ -2583,6 +2630,7 @@
     wochenplanAnzeigen();
     routinenAnzeigen();
     vorlagenAnzeigen();
+    trainingReiterAnzeigen();
     // Ist gerade eine Vorlage geöffnet, wird auch sie neu aufgebaut, z. B. nach dem Wechsel der Sprache
     if (trainingAnsicht === "varianten") {
       variantenAnzeigen();
@@ -2590,6 +2638,49 @@
     if (trainingAnsicht === "vorschau") {
       vorschauAnzeigen();
     }
+  }
+
+  // ---------- Training: Reiter "Pläne" und "Übungen" ----------
+
+  // Baut den Umschalter und zeigt den gewählten Reiter
+  function trainingReiterAnzeigen() {
+    umschalterBauen(document.getElementById("training-reiter"), TRAINING_REITER, trainingReiter, function (neu) {
+      trainingReiter = neu;
+      trainingReiterAnzeigen();
+    });
+    document.getElementById("reiter-plaene").classList.toggle("versteckt", trainingReiter !== "plaene");
+    document.getElementById("reiter-uebungen").classList.toggle("versteckt", trainingReiter !== "uebungen");
+    bibliothekAnzeigen();
+  }
+
+  // Die Bibliothek im Reiter "Übungen": die Übungsauswahl aus dem Sheet, direkt in der Seite.
+  // Sie wird nur aufgebaut, wenn sie zu sehen ist und das Sheet zu ist, denn beide teilen sich sheetZiel.
+  function bibliothekAnzeigen() {
+    if (trainingReiter !== "uebungen" || trainingAnsicht !== "uebersicht" || document.getElementById("sheet").classList.contains("offen")) {
+      return;
+    }
+    if (sheetZiel !== "bibliothek") {
+      // Die Auswahl war zuletzt woanders in Gebrauch: von vorn mit den Muskelgruppen
+      sheetZiel = "bibliothek";
+      sheetGruppenZeigen();
+      return;
+    }
+    // Sonst bleibt alles, wo es war (Muskelgruppe, Suche, Stelle auf der Seite), nur neu gezeichnet,
+    // z. B. nach dem Wechsel der Sprache
+    const stelle = window.scrollY;
+    sheetSucheGeaendert();
+    window.scrollTo(0, stelle);
+  }
+
+  // Das Suchfeld und der Zurück-Pfeil der Bibliothek. Sie stellen zuerst sicher, dass die Auswahl in die Bibliothek zeichnet.
+  function bibliothekSuche() {
+    sheetZiel = "bibliothek";
+    sheetSucheGeaendert();
+  }
+
+  function bibliothekZurueck() {
+    sheetZiel = "bibliothek";
+    sheetZurueck();
   }
 
   // Hinweis ganz oben, solange ein Training noch nicht abgeschlossen ist
@@ -6120,10 +6211,36 @@
     return box;
   }
 
-  // Öffnet die Erklärung: Name oben, darunter das Bild, die Schritte und die schmalen Boxen
-  function erklaerungOeffnen(id, name) {
+  // Die Erklärung einer Übung, die (noch) keine hat: Name, Bild und ein Hinweis. So öffnet sie nur die Bibliothek.
+  function erklaerungOhneOeffnen(id, name) {
+    document.getElementById("erklaerung-titel").textContent = anzeigeName(name, id);
+
+    const inhalt = document.getElementById("erklaerung-inhalt");
+    inhalt.innerHTML = "";
+    inhalt.scrollTop = 0;
+    const bild = element("div", "erklaerung-bild");
+    bild.setAttribute("aria-hidden", "true");
+    bild.innerHTML = uebungsBild(id);
+    inhalt.appendChild(bild);
+
+    // Für eine eigene Übung wird es nie eine Erklärung geben, das sagt der Hinweis auch so
+    let hinweis = txt("erklaerung.kommtNoch");
+    if (eigeneUebungFinden(id)) {
+      hinweis = txt("erklaerung.eigene");
+    }
+    inhalt.appendChild(element("p", "erklaerung-hinweis", hinweis));
+    sheetTeil("suche").blur();
+    zusatzSheetOeffnen("erklaerung-sheet");
+  }
+
+  // Öffnet die Erklärung: Name oben, darunter das Bild, die Schritte und die schmalen Boxen.
+  // Gibt es keine, passiert nichts. Nur mit auchOhne (die Bibliothek) öffnet sich das Sheet mit einem Hinweis.
+  function erklaerungOeffnen(id, name, auchOhne) {
     const eid = erklaerungId(id, name);
     if (eid === "") {
+      if (auchOhne) {
+        erklaerungOhneOeffnen(id, name);
+      }
       return;
     }
     const daten = ERKLAERUNGEN[eid];
@@ -6156,7 +6273,7 @@
       }
     }
     // Aus der Suche der Übungsauswahl geöffnet: Die Tastatur geht zu, der Suchtext bleibt stehen
-    document.getElementById("sheet-suche").blur();
+    sheetTeil("suche").blur();
     zusatzSheetOeffnen("erklaerung-sheet");
   }
 

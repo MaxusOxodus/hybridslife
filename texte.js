@@ -192,6 +192,7 @@ const TEXTE = {
 
   // ---------- Training: Übersicht ----------
   "training.unterzeile": { de: "Deine Trainingspläne", en: "Your training plans" },
+  "training.reiter.plaene": { de: "Pläne", en: "Plans" },
   "training.meineRoutinen": { de: "Meine Routinen", en: "My Routines" },
   "training.vorlagen": { de: "Vorlagen", en: "Templates" },
   "training.fortsetzenFrage": { de: "Training fortsetzen?", en: "Resume workout?" },
@@ -348,6 +349,8 @@ const TEXTE = {
   "erklaerung.fehler": { de: "Häufiger Fehler", en: "Common mistake" },
   "erklaerung.sicherheit": { de: "Sicherheit", en: "Safety" },
   "erklaerung.tipp": { de: "Tipp", en: "Tip" },
+  "erklaerung.kommtNoch": { de: "Erklärung kommt noch", en: "How-to coming soon" },
+  "erklaerung.eigene": { de: "Eigene Übung, keine Erklärung", en: "Own exercise, no how-to" },
   "modus.satzFertig": { de: "Satz fertig", en: "Set done" },
   "modus.extraSatz": { de: "+ Satz", en: "+ Set" },
   "modus.uebungUeberspringen": { de: "Übung überspringen", en: "Skip exercise" },

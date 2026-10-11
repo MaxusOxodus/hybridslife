@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=76">
+  <link rel="stylesheet" href="style.css?v=77">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=76">
+  <link rel="stylesheet" href="glass.css?v=77">
 </head>
 <body>
 
@@ -152,6 +152,11 @@
 
       <div id="laufend-karte"></div>
 
+      <!-- Die zwei Reiter "Pläne" und "Übungen". Die Buttons baut die app.js. -->
+      <div id="training-reiter" class="umschalter training-reiter"></div>
+
+      <!-- Reiter: Pläne -->
+      <div id="reiter-plaene">
       <h2 class="abschnitt" data-t="wochenplan">Wochenplan</h2>
       <div id="wochenplan" class="karte wochenplan"></div>
 
@@ -162,6 +167,20 @@
       <h2 class="abschnitt" data-t="training.vorlagen">Vorlagen</h2>
       <p class="vorlagen-frage" data-t="vorlage.frage">Wie oft trainierst du pro Woche?</p>
       <div id="vorlagen-liste"></div>
+      </div>
+
+      <!-- Reiter: Übungen, die Bibliothek zum Stöbern. Sie ist die Übungsauswahl aus dem Sheet, nur direkt in der Seite:
+           Suche, Zurück-Pfeil mit Titel und der Inhalt, den die app.js baut. Tippen auf eine Übung öffnet ihre Erklärung. -->
+      <div id="reiter-uebungen" class="versteckt">
+        <div class="sheet-suche bib-suche">
+          <input id="bib-suche" placeholder="Übung suchen oder eigene anlegen" data-t-platzhalter="sheet.suchfeld" autocomplete="off" enterkeyhint="search" oninput="bibliothekSuche()" onkeydown="if (event.key === 'Enter') this.blur()">
+        </div>
+        <div class="sheet-kopf bib-kopf">
+          <button id="bib-zurueck" class="versteckt" onclick="bibliothekZurueck()" aria-label="Zurück" data-t-aria="zurueck">←</button>
+          <span id="bib-titel" class="sheet-titel"></span>
+        </div>
+        <div id="bib-inhalt"></div>
+      </div>
     </div>
 
     <!-- Ansicht: Vorlagen, die Varianten einer Tageszahl -->
@@ -941,13 +960,13 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=76"></script>
-<script src="uebungen.js?v=76"></script>
-<script src="erklaerungen.js?v=76"></script>
-<script src="raenge.js?v=76"></script>
-<script src="bilder.js?v=76"></script>
-<script src="vorlagen.js?v=76"></script>
-<script src="app.js?v=76"></script>
+<script src="texte.js?v=77"></script>
+<script src="uebungen.js?v=77"></script>
+<script src="erklaerungen.js?v=77"></script>
+<script src="raenge.js?v=77"></script>
+<script src="bilder.js?v=77"></script>
+<script src="vorlagen.js?v=77"></script>
+<script src="app.js?v=77"></script>
 
 </body>
 </html>

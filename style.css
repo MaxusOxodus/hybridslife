@@ -4992,3 +4992,41 @@ button.einst-zeile:first-child {
     font-size: 26px;
   }
 }
+
+/* ---------- Training: Reiter "Pläne" und "Übungen" ---------- */
+
+.training-reiter {
+  margin: 0 0 4px;
+}
+
+/* Der erste Abschnitt steht direkt unter dem Umschalter und braucht weniger Abstand */
+#reiter-plaene > .abschnitt:first-child {
+  margin-top: 24px;
+}
+
+/* Die Bibliothek ist die Übungsauswahl aus dem Sheet, direkt in der Seite. Die Seite hat schon einen Rand,
+   deshalb entfallen die seitlichen Abstände des Sheets. */
+.bib-suche {
+  padding: 16px 0 6px;
+}
+
+.bib-kopf {
+  min-height: 48px;
+  padding: 0 0 6px;
+}
+
+.bib-kopf .sheet-titel {
+  padding-left: 4px;
+}
+
+/* Der Pfeil rückt nach links, damit er bündig mit dem Suchfeld steht */
+#bib-zurueck {
+  margin-left: -12px;
+}
+
+/* Der Hinweis im Erklärungs-Sheet, wenn eine Übung (noch) keine Erklärung hat */
+.erklaerung-hinweis {
+  margin: 4px 0 0;
+  color: var(--text-leise);
+  text-align: center;
+}

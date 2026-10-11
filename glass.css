@@ -154,6 +154,71 @@
   box-shadow: 0 10px 30px color-mix(in srgb, var(--akzent) 35%, transparent);
 }
 
+/* ---------- Profil: Verlauf und Abzeichen ---------- */
+
+/* Wie die Zeilen in Listen: Glasfläche und Kante, ohne Schatten */
+:where([data-stil="glass"]) .verlauf-zeile,
+:where([data-stil="glass"]) .abzeichen {
+  border-color: var(--glas-kante);
+  background: var(--glas);
+}
+
+/* ---------- Einstellungen ---------- */
+
+/* Die Einstellungen decken den ganzen Bildschirm ab. Damit dahinter derselbe Hintergrund liegt
+   wie überall, bekommen sie die Licht-Flecken selbst. */
+:where([data-stil="glass"]) #einst-sheet {
+  background:
+    radial-gradient(60% 38% at 12% 14%, var(--glas-schimmer), transparent 70%),
+    radial-gradient(55% 34% at 96% 58%, var(--glas-schimmer), transparent 70%),
+    var(--hintergrund);
+}
+
+/* ---------- Sheets und Dialoge ---------- */
+
+/* Die Sheets sind schon in der style.css weichgezeichnet. Dazu kommen Glanz und Kante. */
+:where([data-stil="glass"]) #sheet,
+:where([data-stil="glass"]) .zusatz-sheet {
+  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas-sheet);
+  box-shadow: inset 0 0 0 1px var(--glas-kante);
+}
+
+/* Das Formular für eigene Übungen liegt über der Übungsauswahl und muss sie ganz abdecken.
+   Es bleibt deshalb deckend und bekommt nur die Kante. */
+:where([data-stil="glass"]) #selbst-sheet {
+  background: var(--karte);
+}
+
+/* Dialoge und Rückfragen: Glas wie die Sheets, hier mit Weichzeichner. Es ist immer nur einer offen. */
+:where([data-stil="glass"]) #dialog,
+:where([data-stil="glass"]) #frage {
+  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas-sheet);
+  -webkit-backdrop-filter: var(--glas-filter);
+  backdrop-filter: var(--glas-filter);
+  box-shadow: inset 0 0 0 1px var(--glas-kante), var(--glas-schatten);
+}
+
+/* Felder, Kacheln und Knöpfe in Sheets, Dialogen, Profil und Pause-Leiste: die feine Kante.
+   Grüne Hauptknöpfe und gewählte Chips bleiben, wie sie sind. */
+:where([data-stil="glass"]) .sheet-suche input,
+:where([data-stil="glass"]) .muskel-kachel,
+:where([data-stil="glass"]) .form-feld,
+:where([data-stil="glass"]) .datum-feld,
+:where([data-stil="glass"]) .wahl-knopf:where(:not(.aktiv)),
+:where([data-stil="glass"]) .stufen button,
+:where([data-stil="glass"]) .kal-knopf,
+:where([data-stil="glass"]) .dialog-btn:where(:not(.haupt)),
+:where([data-stil="glass"]) .profil-btn,
+:where([data-stil="glass"]) .raster-info,
+:where([data-stil="glass"]) #pause-leiste button {
+  box-shadow: inset 0 0 0 1px var(--glas-kante);
+}
+
+/* Kacheln in einem Sheet liegen schon auf Glas, ein eigener Schatten wäre zu viel */
+:where([data-stil="glass"]) .zusatz-sheet .karte {
+  box-shadow: none;
+}
+
 /* ---------- Ersatz ohne Weichzeichner ---------- */
 
 /* Kann der Browser nicht weichzeichnen, werden die festen Flächen fast deckend, damit der Text lesbar bleibt */
@@ -164,7 +229,11 @@
   :where([data-stil="glass"]) #verworfen-hinweis,
   :where([data-stil="glass"]) #routine-hinweis,
   :where([data-stil="glass"]) #rang-hinweis,
-  :where([data-stil="glass"]) #pause-leiste {
+  :where([data-stil="glass"]) #pause-leiste,
+  :where([data-stil="glass"]) #sheet,
+  :where([data-stil="glass"]) .zusatz-sheet,
+  :where([data-stil="glass"]) #dialog,
+  :where([data-stil="glass"]) #frage {
     background: var(--glas-fest);
   }
 }
@@ -177,7 +246,11 @@
   :where([data-stil="glass"]) #verworfen-hinweis,
   :where([data-stil="glass"]) #routine-hinweis,
   :where([data-stil="glass"]) #rang-hinweis,
-  :where([data-stil="glass"]) #pause-leiste {
+  :where([data-stil="glass"]) #pause-leiste,
+  :where([data-stil="glass"]) #sheet,
+  :where([data-stil="glass"]) .zusatz-sheet,
+  :where([data-stil="glass"]) #dialog,
+  :where([data-stil="glass"]) #frage {
     background: var(--glas-fest);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -185,7 +258,9 @@
 
   :where([data-stil="glass"]) .karte,
   :where([data-stil="glass"]) #liste li,
-  :where([data-stil="glass"]) .listen-zeile {
+  :where([data-stil="glass"]) .listen-zeile,
+  :where([data-stil="glass"]) .verlauf-zeile,
+  :where([data-stil="glass"]) .abzeichen {
     background: var(--glas-fest);
   }
 }

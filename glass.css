@@ -9,33 +9,79 @@
 
    Die Farben kommen aus den Glas-Variablen der style.css (--glas, --glas-rand, --glas-glanz,
    --glas-schatten, --glas-schimmer, --glas-filter), dieselben wie im Trainingsmodus.
+   Im hellen Design bekommen sie weiter unten eigene Werte.
 
    ":where(...)" macht die Regeln nicht stärker als die der style.css. So gewinnen dort weiterhin die
    genaueren Regeln, z. B. der grün gefüllte gewählte Tag oder der grüne Rahmen um ein Feld mit Cursor. */
 
-/* Zwei Werte, die es nur hier gibt:
+/* Werte, die es nur hier gibt:
    --glas-fest: dieselbe Farbe wie --glas, aber fast deckend. Der Ersatz, wenn nicht weichgezeichnet wird.
-   --glas-kante: die feine Kante um Glasflächen. */
+   --glas-kante: die feine Kante um Glasflächen.
+   --glas-grund: der Hintergrund hinter allen Ansichten, die Licht-Flecken.
+   --glas-leiste: die Fläche von Kopfzeile, Navigation und Hinweisen.
+   --glas-leiste-schatten, --glas-klein-schatten, --glas-sheet-schatten: Schatten für Leisten, kleine Flächen
+   und Sheets. Im dunklen Design sind sie leer ("0 0 transparent" zeichnet nichts), dort sähe man sie nicht. */
 :root[data-stil="glass"] {
   --glas-fest: rgba(22, 22, 24, 0.94);
   --glas-kante: var(--glas-rand);
+  --glas-leiste: var(--glas);
+  --glas-leiste-schatten: 0 0 transparent;
+  --glas-klein-schatten: 0 0 transparent;
+  --glas-sheet-schatten: 0 0 transparent;
+  --glas-grund:
+    radial-gradient(60% 38% at 12% 14%, var(--glas-schimmer), transparent 70%),
+    radial-gradient(55% 34% at 96% 58%, var(--glas-schimmer), transparent 70%);
 }
 
-/* Helles Design: Die Kante ist ein Hauch Akzentgrün, eine weiße sähe man auf hellem Grund nicht.
-   Der leise Text ist etwas dunkler, damit er auch auf den Licht-Flecken gut lesbar bleibt.
+/* Helles Design: Auf fast weißem Grund sähe man weißes Glas nicht. Deshalb liegt hier ein ruhiger
+   Farbhintergrund dahinter (Limette und Mint auf hellem Grau-Grün), und die Glas-Variablen der style.css
+   bekommen eigene Werte: weiße Flächen mit rund 68 % Deckkraft, weiße Kante, dazu im Schatten ein zarter
+   dunkler Außenrand. Weil der Trainingsmodus dieselben Variablen nutzt, sieht er genauso aus.
+   Der leise Text und das Rot sind etwas dunkler, damit sie auch auf den Licht-Flecken gut lesbar bleiben
+   (Kontrast mindestens 4,5 : 1).
    Wie in der style.css steht das zweimal da, weil es zwei Wege zum hellen Design gibt. */
 @media (prefers-color-scheme: light) {
   :root[data-stil="glass"]:not([data-design="dunkel"]) {
-    --glas-fest: rgba(249, 249, 249, 0.94);
-    --glas-kante: var(--akzent-leicht);
+    --glas-fest: rgba(250, 251, 250, 0.96);
+    --glas-kante: rgba(255, 255, 255, 0.9);
+    --glas: rgba(255, 255, 255, 0.68);
+    --glas-sheet: rgba(255, 255, 255, 0.82);
+    --glas-rand: rgba(255, 255, 255, 0.9);
+    --glas-glanz: rgba(255, 255, 255, 0.75);
+    --glas-schatten: 0 0 0 1px rgba(24, 32, 48, 0.05), 0 8px 24px rgba(24, 32, 48, 0.10);
+    --glas-klein-schatten: 0 0 0 1px rgba(24, 32, 48, 0.05), 0 2px 6px rgba(24, 32, 48, 0.05);
+    --glas-leiste: rgba(255, 255, 255, 0.74);
+    --glas-leiste-schatten: 0 0 20px rgba(24, 32, 48, 0.08);
+    --glas-sheet-schatten: 0 -8px 32px rgba(24, 32, 48, 0.14);
+    --glas-grund:
+      radial-gradient(70% 42% at 8% 10%, rgba(198, 241, 53, 0.42), transparent 70%),
+      radial-gradient(60% 40% at 100% 52%, rgba(52, 211, 153, 0.24), transparent 70%),
+      radial-gradient(70% 40% at 20% 100%, rgba(150, 225, 110, 0.24), transparent 70%),
+      linear-gradient(180deg, #F6F8F5, #EDF1EE);
     --text-leise: #5C5C61;
+    --gefahr: #C40012;
   }
 }
 
 :root[data-stil="glass"][data-design="hell"] {
-  --glas-fest: rgba(249, 249, 249, 0.94);
-  --glas-kante: var(--akzent-leicht);
+  --glas-fest: rgba(250, 251, 250, 0.96);
+  --glas-kante: rgba(255, 255, 255, 0.9);
+  --glas: rgba(255, 255, 255, 0.68);
+  --glas-sheet: rgba(255, 255, 255, 0.82);
+  --glas-rand: rgba(255, 255, 255, 0.9);
+  --glas-glanz: rgba(255, 255, 255, 0.75);
+  --glas-schatten: 0 0 0 1px rgba(24, 32, 48, 0.05), 0 8px 24px rgba(24, 32, 48, 0.10);
+  --glas-klein-schatten: 0 0 0 1px rgba(24, 32, 48, 0.05), 0 2px 6px rgba(24, 32, 48, 0.05);
+  --glas-leiste: rgba(255, 255, 255, 0.74);
+  --glas-leiste-schatten: 0 0 20px rgba(24, 32, 48, 0.08);
+  --glas-sheet-schatten: 0 -8px 32px rgba(24, 32, 48, 0.14);
+  --glas-grund:
+    radial-gradient(70% 42% at 8% 10%, rgba(198, 241, 53, 0.42), transparent 70%),
+    radial-gradient(60% 40% at 100% 52%, rgba(52, 211, 153, 0.24), transparent 70%),
+    radial-gradient(70% 40% at 20% 100%, rgba(150, 225, 110, 0.24), transparent 70%),
+    linear-gradient(180deg, #F6F8F5, #EDF1EE);
   --text-leise: #5C5C61;
+  --gefahr: #C40012;
 }
 
 /* ---------- Hintergrund ---------- */
@@ -50,9 +96,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  background:
-    radial-gradient(60% 38% at 12% 14%, var(--glas-schimmer), transparent 70%),
-    radial-gradient(55% 34% at 96% 58%, var(--glas-schimmer), transparent 70%);
+  background: var(--glas-grund);
   pointer-events: none;
 }
 
@@ -72,7 +116,13 @@
 :where([data-stil="glass"]) #rang-hinweis,
 :where([data-stil="glass"]) #pause-leiste {
   border-color: var(--glas-kante);
-  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas);
+  background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas-leiste);
+}
+
+/* Kopfzeile und Navigation heben sich im hellen Design mit einem dezenten Schatten vom Inhalt ab */
+:where([data-stil="glass"]) #kopfzeile,
+:where([data-stil="glass"]) #navigation {
+  box-shadow: var(--glas-leiste-schatten);
 }
 
 /* Die schwebenden Hinweise heben sich mit einem weichen Schatten ab */
@@ -99,6 +149,7 @@
 :where([data-stil="glass"]) .listen-zeile {
   border-color: var(--glas-kante);
   background: var(--glas);
+  box-shadow: var(--glas-klein-schatten);
 }
 
 /* ---------- Kleine Flächen: Tage, Felder, ruhige Buttons, Umschalter ---------- */
@@ -117,13 +168,14 @@
 :where([data-stil="glass"]) .klein-btn:where(:not(#ansicht-modus *)),
 :where([data-stil="glass"]) .speichern-btn:disabled:where(:not(#ansicht-modus *)) {
   background: var(--glas);
-  box-shadow: inset 0 0 0 1px var(--glas-kante);
+  box-shadow: inset 0 0 0 1px var(--glas-kante), var(--glas-klein-schatten);
 }
 
 /* Der runde Button (z. B. das Zahnrad im Profil) hat schon einen Rand */
 :where([data-stil="glass"]) .rund-btn:where(:not(#ansicht-modus *)) {
   border-color: var(--glas-kante);
   background: var(--glas);
+  box-shadow: var(--glas-klein-schatten);
 }
 
 /* Umschalter: Die Fläche ist schon durchscheinend, dazu kommt nur die Kante */
@@ -161,6 +213,7 @@
 :where([data-stil="glass"]) .abzeichen {
   border-color: var(--glas-kante);
   background: var(--glas);
+  box-shadow: var(--glas-klein-schatten);
 }
 
 /* ---------- Einstellungen ---------- */
@@ -168,10 +221,7 @@
 /* Die Einstellungen decken den ganzen Bildschirm ab. Damit dahinter derselbe Hintergrund liegt
    wie überall, bekommen sie die Licht-Flecken selbst. */
 :where([data-stil="glass"]) #einst-sheet {
-  background:
-    radial-gradient(60% 38% at 12% 14%, var(--glas-schimmer), transparent 70%),
-    radial-gradient(55% 34% at 96% 58%, var(--glas-schimmer), transparent 70%),
-    var(--hintergrund);
+  background: var(--glas-grund), var(--hintergrund);
 }
 
 /* ---------- Sheets und Dialoge ---------- */
@@ -180,7 +230,7 @@
 :where([data-stil="glass"]) #sheet,
 :where([data-stil="glass"]) .zusatz-sheet {
   background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas-sheet);
-  box-shadow: inset 0 0 0 1px var(--glas-kante);
+  box-shadow: inset 0 0 0 1px var(--glas-kante), var(--glas-sheet-schatten);
 }
 
 /* Das Formular für eigene Übungen liegt über der Übungsauswahl und muss sie ganz abdecken.

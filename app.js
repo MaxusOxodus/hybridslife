@@ -2710,7 +2710,7 @@
     return karte;
   }
 
-  // Eine quadratische Kachel zum Antippen: groß die Zahl, darunter "Tage", unten die Zahl der Varianten
+  // Eine flache Kachel zum Antippen: die Zahl mit "Tage", darunter die Zahl der Varianten, unten rechts ein Pfeil
   function vorlageKachel(plan, aktion) {
     const kachel = element("button", "karte vorlage-kachel");
     const oben = element("span", "vorlage-kachel-oben");
@@ -2718,11 +2718,14 @@
     oben.appendChild(element("span", "vorlage-kachel-wort", txt("vorlage.tageWort")));
     kachel.appendChild(oben);
     kachel.appendChild(element("span", "routine-info", txtAnzahl("vorlage.varianten", plan.varianten.length)));
+    const pfeil = element("span", "vorlage-pfeil", "›");
+    pfeil.setAttribute("aria-hidden", "true");
+    kachel.appendChild(pfeil);
     kachel.onclick = aktion;
     return kachel;
   }
 
-  // Ebene 1 in der Übersicht: 2 bis 5 Tage als quadratische Kacheln, zwei pro Reihe.
+  // Ebene 1 in der Übersicht: 2 bis 5 Tage als flache Kacheln, zwei pro Reihe.
   // "6 Tage" bleibt eine Karte über die volle Breite.
   function vorlagenAnzeigen() {
     const liste = document.getElementById("vorlagen-liste");

@@ -3809,40 +3809,51 @@ button.einst-zeile:first-child {
   grid-column: 1 / -1;
 }
 
-/* Quadratische Kachel: oben groß die Zahl mit "Tage", unten klein die Zahl der Varianten */
+/* Flache Kachel, halb so hoch wie breit: links die Zahl mit "Tage" und darunter die Zahl der Varianten,
+   unten rechts der Pfeil. Er hat denselben Abstand zum Rand wie der Pfeil der Karte "6 Tage". */
 .vorlage-kachel {
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  aspect-ratio: 1 / 1;
+  justify-content: center;
+  aspect-ratio: 2 / 1;
   width: 100%;
-  padding: 16px;
+  min-height: 44px;
+  padding: 0 14px;
   color: var(--text);
   font-family: inherit;
   text-align: left;
 }
 
-.vorlage-kachel-zahl,
-.vorlage-kachel-wort {
-  display: block;
-  font-weight: 700;
+.vorlage-kachel-oben {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .vorlage-kachel-zahl {
-  font-size: 48px;
+  font-size: 30px;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
 }
 
 .vorlage-kachel-wort {
-  margin-top: 2px;
-  font-size: 20px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .vorlage-kachel > .routine-info {
-  margin-top: 0;
-  font-size: 14px;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.vorlage-kachel > .vorlage-pfeil {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
 }
 
 .vorlage-karte-text {

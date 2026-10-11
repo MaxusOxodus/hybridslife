@@ -526,7 +526,37 @@ h1 {
   font-size: 13px;
 }
 
-/* Der Rahmen zeigt immer nur eine Woche, die Nachbarwochen links und rechts schneidet er ab.
+/* Unter dem Titel: der Zeitraum und daneben der Knopf "Heute". Wird es zu eng, rutscht der Knopf in die nächste Zeile. */
+.home-woche-unterzeile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 8px;
+}
+
+/* Der Knopf "Heute" springt zur aktuellen Woche zurück. Er ist klein, damit der Kopf nicht höher wird,
+   die unsichtbare Fläche um ihn herum (::after) macht ihn trotzdem gut antippbar. */
+#home-woche-heute {
+  position: relative;
+  width: auto;
+  height: 24px;
+  margin: -3px 0 -5px;
+  padding: 0 10px;
+  border-radius: 12px;
+  background: var(--akzent-leicht);
+  color: var(--akzent-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+#home-woche-heute::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
+/* Der Rahmen zeigt immer nur eine Woche,die Nachbarwochen links und rechts schneidet er ab.
    "pan-y": Wischen nach oben und unten scrollt weiter die Seite, seitlich blättert es die Woche. */
 #home-woche-rahmen {
   overflow: hidden;

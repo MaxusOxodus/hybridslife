@@ -5343,6 +5343,10 @@
   // So lange dauert das Hinübergleiten zur nächsten Woche (in Millisekunden, wie in der style.css)
   const HOME_WOCHE_DAUER = 220;
 
+  // So viele Wochen nach der aktuellen lassen sich ansehen. Der Wochenplan wiederholt sich jede Woche,
+  // weiter vorn sähe also alles gleich aus.
+  const HOME_WOCHEN_VORAUS = 4;
+
   // Die Trainingstage, aus denen Home die Woche baut (Schlüssel wie bei tagSchluessel)
   let homeTage = {};
 
@@ -5366,11 +5370,16 @@
     return erster;
   }
 
+  // Der Montag der letzten Woche, die sich ansehen lässt
+  function homeLetzterMontag() {
+    return montagVerschieben(montagDerWoche(new Date()), HOME_WOCHEN_VORAUS);
+  }
+
   // Gibt es in dieser Richtung (-1 zurück, 1 vor) noch eine Woche? Zurück geht es bis zur ersten Woche
-  // mit Einträgen, vor bis zur aktuellen.
+  // mit Einträgen, vor ein paar Wochen über die aktuelle hinaus.
   function homeWocheErlaubt(richtung) {
     const ziel = montagVerschieben(homeMontag, richtung);
-    return ziel >= homeErsterMontag() && ziel <= montagDerWoche(new Date());
+    return ziel >= homeErsterMontag() && ziel <= homeLetzterMontag();
   }
 
   // Der Zeitraum einer Woche als Text, z. B. "5. bis 11. Okt.", "28. Sept. bis 4. Okt." oder
@@ -5399,13 +5408,13 @@
     return txt("home.zeitraum", { von: montag.toLocaleDateString(ort, von), bis: ende });
   }
 
-  // Die sieben Tage einer Woche als Leiste. In der aktuellen Woche steht bei jedem Tag die geplante Routine.
-  // Der Wochenplan von früher ist nicht gespeichert, vergangene Wochen zeigen deshalb, aus welcher Routine
-  // wirklich trainiert wurde. Ein grüner Punkt heißt: An dem Tag gibt es Einträge.
+  // Die sieben Tage einer Woche als Leiste. In der aktuellen Woche und in den Wochen danach steht bei jedem Tag
+  // die geplante Routine. Der Wochenplan von früher ist nicht gespeichert, vergangene Wochen zeigen deshalb,
+  // aus welcher Routine wirklich trainiert wurde. Ein grüner Punkt heißt: An dem Tag gibt es Einträge.
   // sichtbar: false bei den Nachbarwochen, die nur beim Wischen ins Bild kommen.
   function homeWocheBauen(montag, sichtbar) {
     const heute = new Date();
-    const aktuell = montag.getTime() === montagDerWoche(heute).getTime();
+    const geplant = montag.getTime() >= montagDerWoche(heute).getTime();
     const seite = element("div", "home-woche-seite");
     if (!sichtbar) {
       seite.setAttribute("aria-hidden", "true");
@@ -5420,7 +5429,7 @@
 
       let plan = "–";
       let ansage = txt("home.tag.nichts");
-      if (aktuell) {
+      if (geplant) {
         const routine = routineFinden(wochenplan[i]);
         if (routine) {
           plan = routine.name;
@@ -5475,27 +5484,33 @@
     const diese = montagDerWoche(new Date());
     const erster = homeErsterMontag();
 
-    // Die gewählte Woche bleibt zwischen der ersten Woche mit Einträgen und der aktuellen,
-    // auch wenn inzwischen eine neue Woche begonnen hat oder Einträge gelöscht wurden
-    if (homeMontag > diese) {
-      homeMontag = diese;
+    // Die gewählte Woche bleibt zwischen der ersten Woche mit Einträgen und der letzten erlaubten,
+    // auch wenn Einträge gelöscht wurden
+    const letzter = homeLetzterMontag();
+    if (homeMontag > letzter) {
+      homeMontag = letzter;
     }
     if (homeMontag < erster) {
       homeMontag = erster;
     }
+    const istDiese = homeMontag.getTime() === diese.getTime();
 
-    // Titel: "Diese Woche" und "Letzte Woche" mit dem Zeitraum darunter, ältere Wochen nur mit dem Zeitraum
+    // Titel: "Diese Woche", "Letzte Woche" und "Nächste Woche" mit dem Zeitraum darunter,
+    // alle anderen Wochen nur mit dem Zeitraum
     const zeitraum = homeZeitraum(homeMontag);
     let titel = "";
-    if (homeMontag.getTime() === diese.getTime()) {
+    if (istDiese) {
       titel = txt("home.dieseWoche");
     } else if (homeMontag.getTime() === montagVerschieben(diese, -1).getTime()) {
       titel = txt("home.letzteWoche");
+    } else if (homeMontag.getTime() === montagVerschieben(diese, 1).getTime()) {
+      titel = txt("home.naechsteWoche");
     }
     document.getElementById("home-woche-titel").textContent = titel || zeitraum;
     const unterzeile = document.getElementById("home-woche-zeitraum");
     unterzeile.textContent = zeitraum;
     unterzeile.classList.toggle("versteckt", titel === "");
+    document.getElementById("home-woche-heute").classList.toggle("versteckt", istDiese);
 
     document.getElementById("home-woche-zurueck").disabled = !homeWocheErlaubt(-1);
     document.getElementById("home-woche-vor").disabled = !homeWocheErlaubt(1);
@@ -5514,17 +5529,42 @@
     leiste.style.transition = "none";
     leiste.style.transform = "";
 
-    // Die Zahlen der Woche, in einer Woche ohne Training ein kurzer Satz
+    // Die Zahlen der Woche, in einer Woche ohne Training ein kurzer Satz.
+    // In künftigen Wochen steht da, wie viele Trainings der Wochenplan vorsieht.
     const karte = document.getElementById("home-woche-zahlen");
     karte.innerHTML = "";
     const zahlen = wochenZahlen(homeTage, homeMontag);
+    let satz;
     if (zahlen.workouts > 0) {
       karte.appendChild(wochenZahlenFeld(zahlen));
-    } else if (homeMontag.getTime() === diese.getTime()) {
-      karte.appendChild(element("div", "routine-info home-woche-leer", txt("home.wocheLeerNoch")));
+      return;
+    } else if (istDiese) {
+      satz = txt("home.wocheLeerNoch");
+    } else if (homeMontag > diese) {
+      let geplant = 0;
+      for (let i = 0; i < 7; i++) {
+        if (routineFinden(wochenplan[i])) {
+          geplant++;
+        }
+      }
+      if (geplant > 0) {
+        satz = txtAnzahl("home.wocheGeplant", geplant);
+      } else {
+        satz = txt("home.nichtsGeplant");
+      }
     } else {
-      karte.appendChild(element("div", "routine-info home-woche-leer", txt("home.wocheLeer")));
+      satz = txt("home.wocheLeer");
     }
+    karte.appendChild(element("div", "routine-info home-woche-leer", satz));
+  }
+
+  // Springt ohne Gleiten zurück zur aktuellen Woche
+  function homeWocheHeute() {
+    if (homeWocheWechselt) {
+      return;
+    }
+    homeMontag = montagDerWoche(new Date());
+    homeWocheAnzeigen();
   }
 
   // Blättert eine Woche zurück (-1) oder vor (1): Die Nachbarwoche gleitet ins Bild, danach wird neu aufgebaut.

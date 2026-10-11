@@ -307,6 +307,12 @@
   box-shadow: var(--glas-klein-schatten);
 }
 
+/* Der Knopf "Heute" über der Woche auf Home: nur zart getönt. Im hellen Design wäre --akzent-leicht
+   die volle Limette, das wäre für den kleinen Knopf zu laut. */
+:where([data-stil="glass"]) #home-woche-heute {
+  background: var(--akzent-hauch);
+}
+
 /* ---------- Akzent: ein Limetten-Ton für beide Designs ----------
 
    In der style.css färbt --akzent-text Schrift, Linien und manche Flächen. Im hellen Glass-Design ist

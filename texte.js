@@ -85,6 +85,10 @@ const TEXTE = {
   // ---------- Home ----------
   "home.dieseWoche": { de: "Diese Woche", en: "This Week" },
   "home.letzteWoche": { de: "Letzte Woche", en: "Last Week" },
+  "home.naechsteWoche": { de: "Nächste Woche", en: "Next Week" },
+  "home.zuHeute": { de: "Zurück zu heute", en: "Back to today" },
+  "home.wocheGeplant.eins": { de: "1 Training geplant", en: "1 workout planned" },
+  "home.wocheGeplant.viele": { de: "{n} Trainings geplant", en: "{n} workouts planned" },
   "home.zeitraum": { de: "{von} bis {bis}", en: "{von} – {bis}" },
   "home.zeitraum.kurz": { de: "{von}. bis {bis}", en: "{von} – {bis}" },
   "home.wocheLeer": { de: "Keine Trainings in dieser Woche.", en: "No workouts this week." },

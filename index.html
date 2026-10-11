@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=78">
+  <link rel="stylesheet" href="style.css?v=79">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=78">
+  <link rel="stylesheet" href="glass.css?v=79">
 </head>
 <body>
 
@@ -67,7 +67,11 @@
         <button id="home-woche-zurueck" onclick="homeWocheBlaettern(-1)" aria-label="Woche zurück" data-t-aria="log.wocheZurueck">‹</button>
         <div class="home-wochen-text" aria-live="polite">
           <h2 id="home-woche-titel" class="abschnitt"></h2>
-          <div id="home-woche-zeitraum"></div>
+          <div class="home-woche-unterzeile">
+            <div id="home-woche-zeitraum"></div>
+            <!-- Nur zu sehen, wenn eine andere Woche als die aktuelle gezeigt wird -->
+            <button id="home-woche-heute" class="versteckt" onclick="homeWocheHeute()" aria-label="Zurück zu heute" data-t="heute" data-t-aria="home.zuHeute">Heute</button>
+          </div>
         </div>
         <button id="home-woche-vor" onclick="homeWocheBlaettern(1)" aria-label="Woche vor" data-t-aria="log.wocheVor">›</button>
       </div>
@@ -961,13 +965,13 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=78"></script>
-<script src="uebungen.js?v=78"></script>
-<script src="erklaerungen.js?v=78"></script>
-<script src="raenge.js?v=78"></script>
-<script src="bilder.js?v=78"></script>
-<script src="vorlagen.js?v=78"></script>
-<script src="app.js?v=78"></script>
+<script src="texte.js?v=79"></script>
+<script src="uebungen.js?v=79"></script>
+<script src="erklaerungen.js?v=79"></script>
+<script src="raenge.js?v=79"></script>
+<script src="bilder.js?v=79"></script>
+<script src="vorlagen.js?v=79"></script>
+<script src="app.js?v=79"></script>
 
 </body>
 </html>

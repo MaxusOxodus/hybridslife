@@ -4669,6 +4669,10 @@
   // und alles neu anzeigen, was den Eintrag zeigt. saetze sind die Sätze, die der Eintrag jetzt hat.
   function satzAenderungSichern(eintrag, saetze) {
     sicherSpeichern("eintraege", eintraege);
+    // Ohne Sätze ist der Eintrag weg. War es der letzte seiner Trainingseinheit, geht sie mit.
+    if (saetze.length === 0) {
+      trainingsAufraeumen();
+    }
 
     // Gehört der Eintrag zum laufenden Training, bekommt dessen Übung dieselben Sätze.
     // Ohne Sätze ist die Übung wieder offen.

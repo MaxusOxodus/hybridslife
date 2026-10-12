@@ -657,6 +657,14 @@ const TEXTE = {
   "tour.xVonY": { de: "{x} von {y}", en: "{x} of {y}" },
   "tour.fertig": { de: "Fertig", en: "Done" },
   "tour.hinweis": { de: "Tippe rechts für weiter, links für zurück", en: "Tap right for next, left for back" },
+  // Das Angebot beim ersten Öffnen des Training-Tabs und beim ersten gestarteten Training
+  "tour.frage": { de: "Kurz zeigen?", en: "Quick tour?" },
+  "tour.frage.training": { de: "Ich zeige dir in wenigen Schritten, wie du dein Training planst.", en: "I'll show you in a few steps how to plan your training." },
+  "tour.frage.modus": { de: "Ich zeige dir in wenigen Schritten, wie ein Training abläuft. Dabei wird nichts gespeichert.", en: "I'll show you in a few steps how a workout works. Nothing is saved while I do." },
+  "tour.ja": { de: "Ja, zeigen", en: "Yes, show me" },
+  // Die Auswahl hinter der Zeile "Anleitung (Test)" in den Einstellungen
+  "tour.wahl": { de: "Welchen Bereich soll ich dir zeigen?", en: "Which part should I show you?" },
+  "tour.modus": { de: "Trainingsmodus", en: "Workout mode" },
 
   "design": { de: "Design", en: "Appearance" },
   "design.system": { de: "System", en: "System" },

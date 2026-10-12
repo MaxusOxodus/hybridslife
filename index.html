@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=98">
+  <link rel="stylesheet" href="style.css?v=99">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=98">
+  <link rel="stylesheet" href="glass.css?v=99">
 </head>
 <body>
 
@@ -158,20 +158,20 @@
       <div id="laufend-karte"></div>
 
       <!-- Die zwei Reiter "Pläne" und "Übungen". Die Buttons baut die app.js. -->
-      <div id="training-reiter" class="umschalter training-reiter"></div>
+      <div id="training-reiter" class="umschalter training-reiter" data-tour="training-reiter"></div>
 
       <!-- Reiter: Pläne -->
       <div id="reiter-plaene">
       <h2 class="abschnitt" data-t="wochenplan">Wochenplan</h2>
-      <div id="wochenplan" class="karte wochenplan"></div>
+      <div id="wochenplan" class="karte wochenplan" data-tour="training-wochenplan"></div>
 
       <h2 class="abschnitt" data-t="training.meineRoutinen">Meine Routinen</h2>
       <div id="routinen-liste"></div>
-      <button class="zweit-btn" onclick="routineNeu()" data-t="editor.neu">Neue Routine</button>
+      <button class="zweit-btn" onclick="routineNeu()" data-t="editor.neu" data-tour="training-neu">Neue Routine</button>
 
       <h2 class="abschnitt" data-t="training.vorlagen">Vorlagen</h2>
       <p class="vorlagen-frage" data-t="vorlage.frage">Wie oft trainierst du pro Woche?</p>
-      <div id="vorlagen-liste"></div>
+      <div id="vorlagen-liste" data-tour="training-vorlagen"></div>
       </div>
 
       <!-- Reiter: Übungen, die Bibliothek zum Stöbern. Sie ist die Übungsauswahl aus dem Sheet, nur direkt in der Seite:
@@ -223,14 +223,14 @@
     <div id="ansicht-modus" class="ansicht versteckt">
       <div class="modus-kopf">
         <span id="modus-routine"></span>
-        <button class="text-btn" onclick="trainingBeendenFragen()" data-t="modus.beenden">Beenden</button>
+        <button class="text-btn" onclick="trainingBeendenFragen()" data-t="modus.beenden" data-tour="modus-beenden">Beenden</button>
       </div>
       <div class="modus-balken"><div id="modus-fortschritt"></div></div>
 
       <!-- Die Übungskarte: oben das Wechseln, darunter Bild, Name und Geräte-Zeile -->
       <div class="modus-karte">
         <!-- Übung wechseln: Pfeile für vorherige und nächste, die Mitte öffnet die Übersicht aller Übungen -->
-        <div class="modus-wechsel">
+        <div class="modus-wechsel" data-tour="modus-wechsel">
           <button id="modus-zurueck" onclick="uebungWechseln(-1)" aria-label="Vorherige Übung" data-t-aria="modus.vorherige">‹</button>
           <button id="modus-schritt" class="modus-schritt" onclick="uebersichtOeffnen()"></button>
           <button id="modus-vor" onclick="uebungWechseln(1)" aria-label="Nächste Übung" data-t-aria="modus.naechste">›</button>
@@ -246,7 +246,7 @@
                 <svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>
               </button>
               <!-- Das "i" öffnet die Erklärung der Übung. Es erscheint nur, wenn es eine gibt. -->
-              <button id="modus-erklaerung" class="info-knopf versteckt" onclick="erklaerungImModus()" aria-label="Erklärung" data-t-aria="erklaerung.button"><span aria-hidden="true">i</span></button>
+              <button id="modus-erklaerung" class="info-knopf versteckt" data-tour="modus-erklaerung" onclick="erklaerungImModus()" aria-label="Erklärung" data-t-aria="erklaerung.button"><span aria-hidden="true">i</span></button>
             </div>
             <!-- Geräte-Zeile: Bereich und Muskelgruppe, z. B. "Maschine · Brust" -->
             <div id="modus-geraet" class="modus-geraet"></div>
@@ -258,7 +258,7 @@
       <!-- Eingabe: die Werte des nächsten Satzes als große Zahlenfelder, darunter Buttons zum Anpassen -->
       <div id="modus-eingabe">
         <div id="modus-vorbei" class="heute-label versteckt" data-t="pause.vorbei">Pause vorbei</div>
-        <div class="eingaben zwei">
+        <div class="eingaben zwei" data-tour="modus-eingabe">
           <div>
             <span class="feld-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 12h8M5 7v10M8 5v14M16 5v14M19 7v10"/></svg></span>
             <div class="rad-titel gewicht-titel">Gewicht (kg)</div>
@@ -279,15 +279,15 @@
           </div>
         </div>
         <!-- Reps in Reserve: wie viele Wiederholungen noch gegangen wären. Die Angabe ist freiwillig. -->
-        <div class="rir">
+        <div class="rir" data-tour="modus-rir">
           <div class="rad-titel" data-t="modus.rir">Reps in Reserve (optional)</div>
           <div id="modus-rir" class="umschalter"></div>
         </div>
-        <button class="speichern-btn gross" onclick="satzFertig()" data-t="modus.satzFertig">Satz fertig</button>
+        <button class="speichern-btn gross" onclick="satzFertig()" data-t="modus.satzFertig" data-tour="modus-satz-fertig">Satz fertig</button>
       </div>
 
       <!-- Pause: großer Countdown. Solange er läuft, ist die Eingabe ausgeblendet. -->
-      <div id="modus-pause" class="versteckt">
+      <div id="modus-pause" class="versteckt" data-tour="modus-pause">
         <div class="heute-label" data-t="pause">Pause</div>
         <div id="modus-countdown" class="modus-countdown"></div>
         <div class="karten-knoepfe">
@@ -852,8 +852,8 @@
           <span class="einst-titel" data-t="einst.ueber">Über</span>
           <span class="einst-pfeil" aria-hidden="true">›</span>
         </button>
-        <!-- Startet den Rundgang über Home aus der einfuehrung.js. Die Zeile heißt "Anleitung (Test)", bis alle Bereiche fertig sind. -->
-        <button class="einst-zeile" onclick="einfuehrungStarten('home')">
+        <!-- Fragt, welcher Rundgang aus der einfuehrung.js starten soll (Home, Training oder Trainingsmodus). Die Zeile heißt "Anleitung (Test)", bis alle Bereiche fertig sind. -->
+        <button class="einst-zeile" onclick="einfuehrungWaehlen()">
           <span class="icon einst-icon" data-icon="anleitung"></span>
           <span class="einst-titel" data-t="tour.test">Anleitung (Test)</span>
           <span class="einst-pfeil" aria-hidden="true">›</span>
@@ -984,9 +984,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=98"></script>
-<script src="uebungen.js?v=98"></script>
-<script src="erklaerungen.js?v=98"></script>
+<script src="texte.js?v=99"></script>
+<script src="uebungen.js?v=99"></script>
+<script src="erklaerungen.js?v=99"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1008,13 +1008,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=98"></script>
-<script src="bilder.js?v=98"></script>
-<script src="vorlagen.js?v=98"></script>
-<script src="figuren.js?v=98"></script>
+<script src="raenge.js?v=99"></script>
+<script src="bilder.js?v=99"></script>
+<script src="vorlagen.js?v=99"></script>
+<script src="figuren.js?v=99"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=98"></script>
+<script src="app.js?v=99"></script>
 
 </body>
 </html>

@@ -1143,6 +1143,8 @@
       if (trainingAnsicht === "modus" && laufendesTraining) {
         modusAnzeigen();
       }
+      // Beim ersten Öffnen bietet die Einführung an, den Bereich kurz zu zeigen (einfuehrung.js)
+      einfuehrungAnbieten("training");
     }
 
     // Die Pausen-Leiste ist überall zu sehen außer im Trainingsmodus, das Display bleibt nur dort an
@@ -2955,6 +2957,10 @@
     for (let i = 0; i < routinen.length; i++) {
       const routine = routinen[i];
       const karte = element("div", "karte routine-karte");
+      // Die erste Karte erklärt die Einführung im Schritt "Training starten" (einfuehrung.js)
+      if (i === 0) {
+        karte.setAttribute("data-tour", "training-start");
+      }
       karte.appendChild(element("div", "routine-name", routine.name));
       karte.appendChild(element("div", "routine-info", routineInfo(routine)));
 
@@ -3789,6 +3795,8 @@
     gemerkteTrainingWerte = null;
     trainingMerken();
     trainingFortsetzen();
+    // Beim ersten gestarteten Training bietet die Einführung an, den Trainingsmodus kurz zu zeigen (einfuehrung.js)
+    einfuehrungAnbieten("modus");
   }
 
   // Bringt ein gespeichertes Training in die heutige Form. Ältere Versionen kannten nur die Sätze

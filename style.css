@@ -5260,6 +5260,21 @@ body.tour-offen {
   overflow: hidden;
 }
 
+/* Der Trainingsmodus zeigt immer nur eins: die Eingabe, die Pause oder die Wahl nach dem letzten Satz.
+   Der Rundgang erklärt Eingabe und Pause nacheinander und stellt deshalb für einen Schritt das eine oder das andere hin.
+   Die einfuehrung.js setzt dazu eine Klasse an den body und nimmt sie am Ende wieder weg. Am Training ändert das nichts. */
+body.tour-zeigt-eingabe #modus-eingabe.versteckt,
+body.tour-zeigt-pause #modus-pause.versteckt {
+  display: block !important;
+}
+
+body.tour-zeigt-eingabe #modus-pause,
+body.tour-zeigt-eingabe #modus-wahl,
+body.tour-zeigt-pause #modus-eingabe,
+body.tour-zeigt-pause #modus-wahl {
+  display: none !important;
+}
+
 /* Die Zeichnung über dem ganzen Bildschirm: dunkle Fläche mit Loch, Rahmen und Linie. Die Maße setzt die einfuehrung.js. */
 .tour-bild {
   position: absolute;

@@ -1,12 +1,12 @@
 # Gymstead
 
-Trainings-App für Hybrid-Athleten (Krafttraining + Laufen).
+Krafttraining-/Gym-App. Sie ist bewusst keine Hybrid-App.
 
 ## Ziel
 - Phase 1: Gym-Workouts tracken (Übung, Sätze, Wdh., Gewicht, Datum)
 - Phase 2: KI-Coach für Krafttraining
 - Phase 3: Spiel: Punkte für Training sammeln und eigenes Gym bauen
-- Später: Laufen ergänzen (Hybrid-Training)
+- Laufen ist nicht geplant (Stand 12.10.2026)
 
 ## Technik
 - HTML, CSS, JavaScript, später als PWA aufs Handy

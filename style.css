@@ -661,6 +661,29 @@ h1 {
   margin-top: 4px;
 }
 
+/* Das Volumen in einer von drei Spalten: Zahl und Einheit bleiben in einer Zeile, die Spalte wird dafür
+   so breit wie nötig. Die Einheit steht kleiner auf derselben Grundlinie. */
+.home-zahl.mit-einheit {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+.zahl-einheit {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Lange Zahlen (ab "104.400") etwas kleiner, sehr lange (ab "1.000.450") noch etwas, damit nichts herausragt.
+   Kleiner werden nur die Ziffern: Die Zeile behält ihre Höhe und Grundlinie, so bleibt sie neben den anderen Zahlen gerade. */
+.home-zahl.lang .zahl-wert {
+  font-size: 19px;
+}
+
+.home-zahl.sehr-lang .zahl-wert {
+  font-size: 16px;
+}
+
 /* Die zwei Kacheln "Kraft" und "Körpergewicht" stehen nebeneinander.
    Den Abstand nach oben bringt die Überschrift "Insights & Analytics" mit. */
 .home-kacheln {

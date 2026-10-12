@@ -5993,7 +5993,7 @@
     const zahlen = element("div", "home-zahlen");
     zahlen.appendChild(homeZahl(anzahlUebungen, txt("uebungen")));
     zahlen.appendChild(homeZahl(anzahlSaetze, txt("saetze")));
-    zahlen.appendChild(homeZahl(volumenText(bewegt), txt("home.bewegt")));
+    zahlen.appendChild(homeVolumenZahl(bewegt, txt("home.bewegt")));
     karte.appendChild(zahlen);
   }
 
@@ -6002,6 +6002,24 @@
     const feld = element("div", "");
     feld.appendChild(element("div", "home-zahl", zahl));
     feld.appendChild(element("div", "kachel-titel", titel));
+    return feld;
+  }
+
+  // Das Volumen als Zahl in einer von drei Spalten: "4.820 kg" bleibt in einer Zeile, die Einheit steht
+  // kleiner dahinter. Lange Zahlen bekommen etwas kleinere Ziffern, damit sie in die Karte passen.
+  function homeVolumenZahl(kg, titel) {
+    const text = volumenText(kg);
+    const trenner = text.lastIndexOf(" ");
+    const feld = homeZahl("", titel);
+    const zahl = feld.firstChild;
+    zahl.classList.add("mit-einheit");
+    if (trenner >= 9) {
+      zahl.classList.add("sehr-lang");
+    } else if (trenner >= 7) {
+      zahl.classList.add("lang");
+    }
+    zahl.appendChild(element("span", "zahl-wert", text.slice(0, trenner)));
+    zahl.appendChild(element("span", "zahl-einheit", text.slice(trenner)));
     return feld;
   }
 
@@ -9629,7 +9647,7 @@
       const zahlen = element("div", "home-zahlen tag-zahlen");
       zahlen.appendChild(homeZahl(tagUebungen(tag).length, txt("uebungen")));
       zahlen.appendChild(homeZahl(tag.saetze, txt("saetze")));
-      zahlen.appendChild(homeZahl(volumenText(tag.volumen), txt("verlauf.volumen")));
+      zahlen.appendChild(homeVolumenZahl(tag.volumen, txt("verlauf.volumen")));
       inhalt.appendChild(zahlen);
 
       for (let b = 0; b < bloecke.length; b++) {

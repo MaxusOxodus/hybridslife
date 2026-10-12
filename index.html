@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=95">
+  <link rel="stylesheet" href="style.css?v=96">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=95">
+  <link rel="stylesheet" href="glass.css?v=96">
 </head>
 <body>
 
@@ -59,7 +59,7 @@
       <h1 data-t="nav.home">Home</h1>
       <p id="home-datum" class="unterzeile"></p>
 
-      <div id="home-heute"></div>
+      <div id="home-heute" data-tour="home-heute"></div>
 
       <!-- Die Woche zum Blättern: mit den Pfeilen oder durch seitliches Wischen über die Tage.
            Titel, Zeitraum, Tage und Zahlen füllt die app.js. -->
@@ -467,7 +467,7 @@
   </section>
 
   <!-- Navigationsleiste: Die Icons sind einfache, selbst gezeichnete Linien-Grafiken (SVG) -->
-  <nav id="navigation">
+  <nav id="navigation" data-tour="navigation">
     <button id="nav-home" class="nav-btn aktiv" onclick="seiteZeigen('home')">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V9l7-5 7 5v11M10 20v-6h4v6"/></svg></span>
       <span data-t="nav.home">Home</span>
@@ -852,6 +852,12 @@
           <span class="einst-titel" data-t="einst.ueber">Über</span>
           <span class="einst-pfeil" aria-hidden="true">›</span>
         </button>
+        <!-- Startet den Rundgang mit den Test-Schritten aus der einfuehrung.js -->
+        <button class="einst-zeile" onclick="einfuehrungStarten('test')">
+          <span class="icon einst-icon" data-icon="anleitung"></span>
+          <span class="einst-titel" data-t="tour.test">Anleitung (Test)</span>
+          <span class="einst-pfeil" aria-hidden="true">›</span>
+        </button>
         </div>
 
         <!-- Folge uns: Die Adressen stehen oben in der app.js. Ohne Adresse bleibt die Zeile ausgeblendet. -->
@@ -978,9 +984,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=95"></script>
-<script src="uebungen.js?v=95"></script>
-<script src="erklaerungen.js?v=95"></script>
+<script src="texte.js?v=96"></script>
+<script src="uebungen.js?v=96"></script>
+<script src="erklaerungen.js?v=96"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1002,11 +1008,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=95"></script>
-<script src="bilder.js?v=95"></script>
-<script src="vorlagen.js?v=95"></script>
-<script src="figuren.js?v=95"></script>
-<script src="app.js?v=95"></script>
+<script src="raenge.js?v=96"></script>
+<script src="bilder.js?v=96"></script>
+<script src="vorlagen.js?v=96"></script>
+<script src="figuren.js?v=96"></script>
+<!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
+<script src="einfuehrung.js"></script>
+<script src="app.js?v=96"></script>
 
 </body>
 </html>

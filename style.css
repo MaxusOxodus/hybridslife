@@ -5231,3 +5231,144 @@ button.einst-zeile:first-child {
   color: var(--text-leise);
   text-align: center;
 }
+
+/* ---------- Einführung: der Rundgang durch die App (einfuehrung.js) ---------- */
+
+/* Liegt über allem, auch über Sheets (30) und Rückfragen (40), und fängt jeden Tipp ab.
+   Der Innenabstand verschiebt nichts: Die einfuehrung.js liest daraus, wie viel Platz Notch und Home-Balken brauchen. */
+#tour {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: none;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#tour.offen {
+  display: block;
+}
+
+/* Solange der Rundgang läuft, scrollt die Seite dahinter nicht */
+body.tour-offen {
+  overflow: hidden;
+}
+
+/* Die Zeichnung über dem ganzen Bildschirm: dunkle Fläche mit Loch, Rahmen und Linie. Die Maße setzt die einfuehrung.js. */
+.tour-bild {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tour-dunkel {
+  fill: var(--abdunklung-stark);
+}
+
+.tour-rahmen {
+  fill: none;
+  stroke: var(--akzent);
+  stroke-width: 2;
+}
+
+.tour-linie {
+  stroke: var(--akzent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Die Box mit der Erklärung. Ort und Breite setzt die einfuehrung.js. */
+.tour-box {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 14px 4px;
+  border-radius: 20px;
+  background: var(--karte);
+  color: var(--text);
+}
+
+.tour-box:focus {
+  outline: none;
+}
+
+/* Figur und Text. Nur wenn die Box einmal nicht ganz in den Bildschirm passt, scrollt dieser Teil. Die Knöpfe darunter bleiben stehen. */
+.tour-inhalt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+
+/* Die Figur: Linien in der Textfarbe, die Brille im Akzent mit getönten Gläsern.
+   Im hellen Glass-Design ist die Akzent-Schrift schwarz, dort machen die Limetten-Gläser die Brille sichtbar. */
+.tour-figur {
+  flex: none;
+  width: 48px;
+  height: 64px;
+}
+
+.tour-figur svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tour-figur .tour-brille {
+  fill: var(--akzent-leicht);
+  stroke: var(--akzent-text);
+  stroke-width: 2;
+}
+
+.tour-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Unten in der Box: "Zurück", der Stand und "Überspringen" */
+.tour-leiste {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.tour-knopf {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--akzent-text);
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.tour-knopf:disabled {
+  color: var(--text-aus);
+  cursor: default;
+}
+
+.tour-stand {
+  color: var(--text-leise);
+  font-size: 14px;
+  white-space: nowrap;
+}

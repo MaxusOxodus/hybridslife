@@ -8757,7 +8757,8 @@
     link: '<path d="M8 6h10v10M18 6L6 18"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     wechsel: '<path d="M8 20V4M8 4L4.5 7.5M8 4l3.5 3.5M16 4v16M16 20l-3.5-3.5M16 20l3.5-3.5"/>',
-    abzeichen: '<circle cx="12" cy="14.5" r="5"/><path d="M9.3 10.2L6 3h4l2 4 2-4h4l-3.3 7.2"/>'
+    abzeichen: '<circle cx="12" cy="14.5" r="5"/><path d="M9.3 10.2L6 3h4l2 4 2-4h4l-3.3 7.2"/>',
+    anleitung: '<path d="M12 7v13M12 7C10 5.5 7 5 4 5.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5z"/>'
   };
 
   // Die Zeichnung eines Icons als SVG-Text

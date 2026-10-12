@@ -649,6 +649,14 @@ const TEXTE = {
   "einst.eintraege": { de: "Einträge ansehen", en: "View entries" },
   "einst.ueber": { de: "Über", en: "About" },
   "einst.folgen": { de: "Folge uns", en: "Follow us" },
+
+  // ---------- Einführung (Rundgang) ----------
+  // Die Texte der einzelnen Schritte stehen in der einfuehrung.js
+  "tour.titel": { de: "Anleitung", en: "Guide" },
+  "tour.test": { de: "Anleitung (Test)", en: "Guide (test)" },
+  "tour.xVonY": { de: "{x} von {y}", en: "{x} of {y}" },
+  "tour.fertig": { de: "Fertig", en: "Done" },
+
   "design": { de: "Design", en: "Appearance" },
   "design.system": { de: "System", en: "System" },
   "design.dunkel": { de: "Dunkel", en: "Dark" },

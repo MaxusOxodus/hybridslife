@@ -262,9 +262,10 @@
   background: var(--karte);
 }
 
-/* Dialoge und Rückfragen: Glas wie die Sheets, hier mit Weichzeichner. Es ist immer nur einer offen. */
+/* Dialoge, Rückfragen und die Box der Einführung: Glas wie die Sheets, hier mit Weichzeichner. Es ist immer nur eins davon offen. */
 :where([data-stil="glass"]) #dialog,
-:where([data-stil="glass"]) #frage {
+:where([data-stil="glass"]) #frage,
+:where([data-stil="glass"]) .tour-box {
   background: linear-gradient(150deg, var(--glas-glanz), transparent 55%), var(--glas-sheet);
   -webkit-backdrop-filter: var(--glas-filter);
   backdrop-filter: var(--glas-filter);
@@ -461,7 +462,8 @@
   :where([data-stil="glass"]) #sheet,
   :where([data-stil="glass"]) .zusatz-sheet,
   :where([data-stil="glass"]) #dialog,
-  :where([data-stil="glass"]) #frage {
+  :where([data-stil="glass"]) #frage,
+  :where([data-stil="glass"]) .tour-box {
     background: var(--glas-fest);
   }
 }
@@ -480,7 +482,8 @@
   :where([data-stil="glass"]) #sheet,
   :where([data-stil="glass"]) .zusatz-sheet,
   :where([data-stil="glass"]) #dialog,
-  :where([data-stil="glass"]) #frage {
+  :where([data-stil="glass"]) #frage,
+  :where([data-stil="glass"]) .tour-box {
     background: var(--glas-fest);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;

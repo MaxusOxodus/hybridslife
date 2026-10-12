@@ -37,12 +37,12 @@ Object.assign(ERKLAERUNGEN, {
   "wide-stance-romanian-deadlift": {
     schritte: {
       de: [
-        { titel: "Ausgangsposition", text: "Stell die Füße deutlich breiter als schulterbreit, die Zehen zeigen leicht nach außen. Die Stange hängt vor den Oberschenkeln, die Hände greifen schulterbreit zwischen den Beinen. Die Knie sind leicht gebeugt." },
+        { titel: "Ausgangsposition", text: "Stell die Füße deutlich breiter als schulterbreit, die Zehen zeigen leicht nach außen. Greif die Stange im Obergriff schulterbreit, die Stange hängt vor dem Körper, die Arme sind gestreckt. Die Knie sind leicht gebeugt." },
         { titel: "Hüfte nach hinten", text: "Schieb die Hüfte nach hinten und lass die Stange eng am Körper nach unten gleiten. Atme dabei ein. Geh so tief, wie der Rücken gerade bleibt. Die Knie zeigen in Richtung der Zehen." },
         { titel: "Aufrichten", text: "Schieb die Hüfte nach vorn, richte dich auf und atme aus." }
       ],
       en: [
-        { titel: "Setup", text: "Place your feet clearly wider than shoulder width, toes pointing slightly out. The bar hangs in front of your thighs and your hands grip it at shoulder width between your legs. Your knees are slightly bent." },
+        { titel: "Setup", text: "Place your feet clearly wider than shoulder width, toes pointing slightly out. Grip the bar overhand at shoulder width. The bar hangs in front of your body and your arms are straight. Your knees are slightly bent." },
         { titel: "Hips back", text: "Push your hips back and let the bar slide down close to your body. Breathe in. Go as low as your back stays straight. Your knees point in the direction of your toes." },
         { titel: "Stand up", text: "Drive your hips forward, stand up tall and breathe out." }
       ]

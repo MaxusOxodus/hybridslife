@@ -36,12 +36,12 @@ Object.assign(ERKLAERUNGEN, {
   "seated-single-leg-hamstring-curl": {
     schritte: {
       de: [
-        { titel: "Einstellen", text: "Stell die Maschine ein wie beim Beinbeuger sitzend und wähl weniger als die Hälfte deines Gewichts für beide Beine. Ein Bein liegt auf der Rolle. Das andere nimmst du von der Rolle und hältst es ruhig." },
+        { titel: "Einstellen", text: "Stell die Maschine ein wie beim Beinbeuger sitzend und nimm deutlich weniger Gewicht als mit beiden Beinen. Ein Bein liegt auf der Rolle. Das andere nimmst du von der Rolle und hältst es ruhig." },
         { titel: "Beugen", text: "Zieh die Ferse nach unten hinten unter den Sitz und atme aus. Das Becken bleibt gerade." },
         { titel: "Zurück", text: "Lass das Bein langsam hoch und atme ein. Mach erst alle Wiederholungen einer Seite, dann wechsle." }
       ],
       en: [
-        { titel: "Set up", text: "Set the machine up as for the seated hamstring curl and select less than half the weight you use with both legs. One leg rests on the roller. Take the other leg off the roller and keep it still." },
+        { titel: "Set up", text: "Set the machine up as for the seated hamstring curl and use clearly less weight than with both legs. One leg rests on the roller. Take the other leg off the roller and keep it still." },
         { titel: "Curl", text: "Pull your heel down and back under the seat and breathe out. Your pelvis stays square." },
         { titel: "Return", text: "Let your leg rise slowly and breathe in. Do all reps on one side first, then switch." }
       ]
@@ -142,7 +142,7 @@ Object.assign(ERKLAERUNGEN, {
       ]
     },
     fehler: { de: "Die Hüfte sackt beim Heranziehen ab.", en: "Your hips drop as you pull your heels in." },
-    tipp: { de: "Leichter wird es, wenn du nur langsam ausstreckst, die Hüfte ablegst und neu startest.", en: "It gets easier if you only slide out slowly, set your hips down and start again." }
+    tipp: { de: "Leichter wird es, wenn du die Beine nur halb ausstreckst.", en: "It gets easier if you only extend your legs halfway." }
   },
   "single-leg-sliding-leg-curl": {
     schritte: {

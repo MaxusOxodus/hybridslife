@@ -8,12 +8,12 @@ Object.assign(ERKLAERUNGEN, {
     schritte: {
       de: [
         { titel: "Aufbauen", text: "Stell die Rolle etwa auf Hüfthöhe und häng einen einzelnen Griff ein. Stell dich seitlich zur Rolle und greif den Griff mit einer Hand. Der Arm hängt nach unten." },
-        { titel: "Heben", text: "Heb den Arm von unten nach außen und atme aus." },
+        { titel: "Heben", text: "Heb den Arm von unten nach außen bis etwa auf Schulterhöhe und atme aus." },
         { titel: "Senken", text: "Lass den Arm langsam ab und atme ein. Mach erst alle Wiederholungen einer Seite, dann wechsle." }
       ],
       en: [
         { titel: "Set up", text: "Set the pulley to about hip height and attach a single handle. Stand sideways to the pulley and grip the handle with one hand. Your arm hangs down." },
-        { titel: "Raise", text: "Lift your arm from below out to the side and breathe out." },
+        { titel: "Raise", text: "Lift your arm from below out to the side to about shoulder height and breathe out." },
         { titel: "Lower", text: "Lower your arm slowly and breathe in. Do all reps on one side first, then switch." }
       ]
     },

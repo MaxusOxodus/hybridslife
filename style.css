@@ -562,6 +562,13 @@ h1 {
   inset: -10px;
 }
 
+/* In der aktuellen Woche ist der Knopf nur unsichtbar und behält seinen Platz:
+   So steht der Zeitraum in jeder Woche an derselben Stelle. */
+#home-woche-heute.versteckt {
+  display: block !important;
+  visibility: hidden;
+}
+
 /* Der Rahmen zeigt immer nur eine Woche,die Nachbarwochen links und rechts schneidet er ab.
    "pan-y": Wischen nach oben und unten scrollt weiter die Seite, seitlich blättert es die Woche. */
 #home-woche-rahmen {

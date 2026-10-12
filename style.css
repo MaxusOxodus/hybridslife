@@ -3195,12 +3195,6 @@ button.einst-zeile:first-child {
   font-weight: 600;
 }
 
-.satz-werte {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
 /* Die Sätze im Trainingsmodus als Tabelle: Satz, Gewicht, Wdh., Häkchen. Jede Reihe hat dieselben vier Spalten. */
 .satz-tabelle {
   padding: 4px 0;

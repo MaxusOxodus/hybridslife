@@ -656,6 +656,7 @@ const TEXTE = {
   "tour.test": { de: "Anleitung (Test)", en: "Guide (test)" },
   "tour.xVonY": { de: "{x} von {y}", en: "{x} of {y}" },
   "tour.fertig": { de: "Fertig", en: "Done" },
+  "tour.hinweis": { de: "Tippe rechts für weiter, links für zurück", en: "Tap right for next, left for back" },
 
   "design": { de: "Design", en: "Appearance" },
   "design.system": { de: "System", en: "System" },

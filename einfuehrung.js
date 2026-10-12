@@ -3,7 +3,7 @@
 // Eine Linie führt vom Rahmen zu einer Box mit der Figur und einem kurzen Text.
 //
 // Bedienung: Ein Tipp auf das linke Drittel des Bildschirms geht einen Schritt zurück, ein Tipp auf den Rest
-// geht weiter. In der Box stehen dazu "Zurück", der Stand ("1 von 2") und "Überspringen".
+// geht weiter. In der Box stehen dazu "Zurück", der Stand (Punkte oder Strich und "1 von 2") und "Überspringen".
 // Solange der Rundgang läuft, liegt er über allem und fängt jeden Tipp ab. Die App darunter lässt sich nicht bedienen.
 //
 // Die Datei steht in der index.html vor der app.js. Sie benutzt von dort txt, sprache, aktiveSeite, homeAnsicht,
@@ -17,7 +17,8 @@
 //   seite:   die Seite, auf der das Element liegt ("home", "training", "fortschritt" oder "profil")
 //   ziel:    der Name des Elements. In der index.html trägt es das Merkmal data-tour="...".
 //   pose:    wie die Figur dasteht: "winken", "zeigen" oder "jubeln"
-//   text:    ein bis zwei kurze Sätze in jeder Sprache
+//   titel:   eine kurze Überschrift in jeder Sprache (ein bis drei Wörter). Sie darf fehlen.
+//   text:    ein bis zwei kurze Sätze in jeder Sprache, nie mehr
 // Fehlt das Element oder ist es nicht zu sehen, wird der Schritt ausgelassen.
 const EINFUEHRUNG_SCHRITTE = [
   {
@@ -25,6 +26,10 @@ const EINFUEHRUNG_SCHRITTE = [
     seite: "home",
     ziel: "home-heute",
     pose: "zeigen",
+    titel: {
+      de: "Heute",
+      en: "Today"
+    },
     text: {
       de: "Hier siehst du dein Training für heute.",
       en: "Here you see your workout for today."
@@ -35,6 +40,10 @@ const EINFUEHRUNG_SCHRITTE = [
     seite: "home",
     ziel: "navigation",
     pose: "jubeln",
+    titel: {
+      de: "Die Leiste",
+      en: "The tab bar"
+    },
     text: {
       de: "Hier unten wechselst du den Bereich.",
       en: "Down here you switch between areas."
@@ -45,25 +54,34 @@ const EINFUEHRUNG_SCHRITTE = [
 // ---------- Die Figur ----------
 
 // Ein selbst gezeichnetes Strichmännchen mit eckiger Brille (SVG, 48 × 64 Einheiten).
-// Kopf, Brille, Mund, Körper und Beine sind immer gleich, nur die Arme wechseln je Pose.
+// Kopf, Brille, Mund, Körper und Beine sind immer gleich. Ein Arm drückt in jeder Pose ein Buch an den Körper,
+// nur der andere Arm wechselt je Pose.
 // Die Linien nehmen die Textfarbe (currentColor), so passen sie zum hellen und zum dunklen Design.
 const EINFUEHRUNG_KOERPER = '<circle cx="24" cy="13" r="10"/>'
   + '<path class="tour-brille" d="M15.5 10h7v5.5h-7zM25.5 10h7v5.5h-7zM22.5 12h3"/>'
   + '<path d="M20.5 18.5q3.5 2 7 0"/>'
   + '<path d="M24 23v19M24 42l-7 18M24 42l7 18"/>';
 
+// Das Buch: ein leicht gekipptes Rechteck mit Buchrücken und einem kurzen Strich als Titel, ohne Zeichen oder Logo.
+// Der Arm liegt oben und außen um das Buch und drückt es an den Körper, die Hand greift unten um die Ecke.
+const EINFUEHRUNG_BUCH = '<g class="tour-buch" transform="rotate(-6 16.5 39)">'
+  + '<rect x="11.5" y="33" width="10" height="12" rx="1.5"/>'
+  + '<path d="M14.3 33v12M16.8 36.5h2.2"/>'
+  + "</g>"
+  + '<path d="M24 29l-15.5 2.5-.5 10 3 1.5"/>';
+
 const EINFUEHRUNG_POSEN = {
-  // Ein Arm hängt, der andere winkt nach oben
-  winken: '<path d="M24 29l-9 10M24 29l10-3 5-13"/>',
-  // Ein Arm hängt, der andere zeigt zur Seite auf den Text
-  zeigen: '<path d="M24 29l-9 10M24 29l17-5"/>',
-  // Beide Arme nach oben, neben dem Kopf
-  jubeln: '<path d="M24 29l-11-3-4-12M24 29l11-3 4-12"/>'
+  // Der freie Arm winkt neben dem Kopf, zwei kleine Bögen zeigen die Bewegung
+  winken: '<path d="M24 29l9-2 6-12"/><path class="tour-schwung" d="M42.5 10.5q2.5 3 1.5 6.5M35 8.5q2-2 5-1.5"/>',
+  // Der freie Arm zeigt zur Seite auf den Text
+  zeigen: '<path d="M24 29l17-5"/>',
+  // Der freie Arm ist hoch in die Luft gestreckt, darüber drei kurze Striche. Das Buch bleibt fest unter dem anderen Arm.
+  jubeln: '<path d="M24 29l11-6 4-15"/><path class="tour-schwung" d="M39 3.5v-2M43 5.5l1.5-1.5M44.5 9.5h2"/>'
 };
 
 // Die Figur in einer Pose als SVG-Text. Sie ist nur Schmuck, deshalb aria-hidden.
 function einfuehrungFigur(pose) {
-  return '<svg viewBox="0 0 48 64" aria-hidden="true">' + EINFUEHRUNG_KOERPER + (EINFUEHRUNG_POSEN[pose] || EINFUEHRUNG_POSEN.zeigen) + "</svg>";
+  return '<svg viewBox="0 0 48 64" aria-hidden="true">' + EINFUEHRUNG_KOERPER + EINFUEHRUNG_BUCH + (EINFUEHRUNG_POSEN[pose] || EINFUEHRUNG_POSEN.zeigen) + "</svg>";
 }
 
 // ---------- Der Motor ----------
@@ -77,6 +95,8 @@ const TOUR_RAND = 4;
 const TOUR_BOX_RAND = 12;
 // So hoch bleibt der Rahmen mindestens, wenn er gekappt werden muss
 const TOUR_MINDESTENS = 56;
+// Bis zu so vielen Schritten zeigt der Stand je Schritt einen Punkt, bei mehr einen durchgehenden Strich
+const TOUR_PUNKTE_HOECHSTENS = 10;
 
 // Die Schritte des laufenden Rundgangs (nur die mit sichtbarem Element) und der Schritt, der gerade zu sehen ist.
 // Ohne laufenden Rundgang ist tourSchritte null.
@@ -134,12 +154,14 @@ function einfuehrungBauen() {
     + '<line class="tour-linie"/>'
     + "</svg>"
     + '<div class="tour-box" tabindex="-1">'
-    + '<div class="tour-inhalt"><div class="tour-figur"></div><p class="tour-text" aria-live="polite"></p></div>'
+    + '<div class="tour-inhalt"><div class="tour-figur"></div>'
+    + '<div class="tour-worte" aria-live="polite"><p class="tour-titel"></p><p class="tour-text"></p></div></div>'
     + '<div class="tour-leiste">'
     + '<button class="tour-knopf tour-zurueck"></button>'
-    + '<span class="tour-stand"></span>'
+    + '<span class="tour-stand"><span class="tour-punkte" aria-hidden="true"></span><span class="tour-zahl"></span></span>'
     + '<button class="tour-knopf tour-ende"></button>'
     + "</div>"
+    + '<p class="tour-hinweis"></p>'
     + "</div>";
   document.body.appendChild(tour);
 
@@ -150,10 +172,13 @@ function einfuehrungBauen() {
     linie: tour.querySelector(".tour-linie"),
     box: tour.querySelector(".tour-box"),
     figur: tour.querySelector(".tour-figur"),
+    titel: tour.querySelector(".tour-titel"),
     text: tour.querySelector(".tour-text"),
     zurueck: tour.querySelector(".tour-zurueck"),
-    stand: tour.querySelector(".tour-stand"),
-    ende: tour.querySelector(".tour-ende")
+    punkte: tour.querySelector(".tour-punkte"),
+    zahl: tour.querySelector(".tour-zahl"),
+    ende: tour.querySelector(".tour-ende"),
+    hinweis: tour.querySelector(".tour-hinweis")
   };
 
   tourTeile.zurueck.onclick = einfuehrungZurueck;
@@ -204,6 +229,7 @@ function einfuehrungStarten(bereich) {
   window.addEventListener("orientationchange", einfuehrungAnzeigen);
   document.addEventListener("visibilitychange", einfuehrungAnzeigen);
   einfuehrungAnzeigen();
+  einfuehrungEinblenden();
   tourTeile.box.focus({ preventScroll: true });
   return true;
 }
@@ -230,6 +256,7 @@ function einfuehrungWeiter() {
   }
   tourIndex = tourIndex + 1;
   einfuehrungAnzeigen();
+  einfuehrungEinblenden();
 }
 
 // Einen Schritt zurück. Beim ersten Schritt passiert nichts.
@@ -239,6 +266,18 @@ function einfuehrungZurueck() {
   }
   tourIndex = tourIndex - 1;
   einfuehrungAnzeigen();
+  einfuehrungEinblenden();
+}
+
+// Blendet die Box beim Start und bei jedem Schrittwechsel kurz ein. Die Bewegung selbst steht in der style.css (".tour-box.frisch").
+// Die Klasse wird weggenommen und neu gesetzt. Dazwischen liest offsetWidth die Box einmal aus, sonst startet das Einblenden nicht neu.
+function einfuehrungEinblenden() {
+  if (!tourSchritte) {
+    return;
+  }
+  tourTeile.box.classList.remove("frisch");
+  void tourTeile.box.offsetWidth;
+  tourTeile.box.classList.add("frisch");
 }
 
 // Ein Tipp irgendwo auf den Bildschirm: linkes Drittel zurück, sonst weiter.
@@ -284,7 +323,7 @@ function einfuehrungTaste(ereignis) {
   ereignis.stopPropagation();
 }
 
-// Zeigt den aktuellen Schritt: Text, Figur und Stand einsetzen, das Element in den Bildschirm holen
+// Zeigt den aktuellen Schritt: Überschrift, Text, Figur und Stand einsetzen, das Element in den Bildschirm holen
 // und Aussparung, Rahmen, Linie und Box neu platzieren. Läuft auch nach dem Drehen des Geräts.
 function einfuehrungAnzeigen() {
   if (!tourSchritte) {
@@ -310,11 +349,32 @@ function einfuehrungAnzeigen() {
   const letzter = tourIndex === tourSchritte.length - 1;
   tourTeile.tour.setAttribute("aria-label", txt("tour.titel"));
   tourTeile.figur.innerHTML = einfuehrungFigur(schritt.pose);
+  // Die Überschrift ist freiwillig. Ohne sie bleibt die Zeile weg.
+  const titel = schritt.titel ? (schritt.titel[sprache] || schritt.titel.de || "") : "";
+  tourTeile.titel.textContent = titel;
+  tourTeile.titel.classList.toggle("versteckt", titel === "");
   tourTeile.text.textContent = schritt.text[sprache] || schritt.text.de;
-  tourTeile.stand.textContent = txt("tour.xVonY", { x: tourIndex + 1, y: tourSchritte.length });
+  // Der Stand: je Schritt ein Punkt, der aktuelle ist hervorgehoben, darunter "1 von 2".
+  // Bei mehr als zehn Schritten steht statt der Punkte ein Strich, dessen gefüllter Teil so breit ist wie der Fortschritt.
+  const alsStrich = tourSchritte.length > TOUR_PUNKTE_HOECHSTENS;
+  let punkte = "";
+  if (alsStrich) {
+    punkte = '<span class="aktiv" style="width: ' + ((tourIndex + 1) / tourSchritte.length * 100) + '%"></span>';
+  } else {
+    for (let i = 0; i < tourSchritte.length; i++) {
+      punkte += i === tourIndex ? '<span class="aktiv"></span>' : "<span></span>";
+    }
+  }
+  tourTeile.punkte.classList.toggle("strich", alsStrich);
+  tourTeile.punkte.innerHTML = punkte;
+  tourTeile.zahl.textContent = txt("tour.xVonY", { x: tourIndex + 1, y: tourSchritte.length });
   tourTeile.zurueck.textContent = txt("zurueck");
   tourTeile.zurueck.disabled = tourIndex === 0;
   tourTeile.ende.textContent = letzter ? txt("tour.fertig") : txt("ueberspringen");
+  tourTeile.ende.classList.toggle("tour-fertig", letzter);
+  // Der Hinweis zur Bedienung steht nur im ersten Schritt
+  tourTeile.hinweis.textContent = txt("tour.hinweis");
+  tourTeile.hinweis.classList.toggle("versteckt", tourIndex !== 0);
 
   ziel.scrollIntoView({ block: "center" });
   einfuehrungPlatzieren(ziel);

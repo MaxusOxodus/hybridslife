@@ -404,6 +404,21 @@
   box-shadow: var(--glas-schatten), 0 0 0 1px var(--akzent-hauch), 0 0 28px var(--akzent-hauch);
 }
 
+/* Die Einführung: Der Punkt des aktuellen Schritts ist eine Fläche und bekommt die Limette, im hellen Design mit feinem Rand.
+   Die Überschrift ist Schrift und im hellen Design schwarz, dort liegt eine Limetten-Pille dahinter.
+   Der Innenabstand der Pille wird links wieder abgezogen, so steht die Überschrift in beiden Designs bündig über dem Text. */
+:where([data-stil="glass"]) .tour-punkte .aktiv {
+  background: var(--akzent);
+  box-shadow: 0 0 0 1px var(--akzent-kante);
+}
+
+:where([data-stil="glass"]) .tour-titel {
+  margin-left: -7px;
+  padding: 1px 7px;
+  border-radius: 9px;
+  background: var(--akzent-pille);
+}
+
 /* Die Knöpfe in den Hinweisen bestehen nur aus Text. Im hellen Design bekommen sie eine Limetten-Pille. */
 :where([data-stil="glass"]) #rang-hinweis button,
 :where([data-stil="glass"]) #verworfen-hinweis button,

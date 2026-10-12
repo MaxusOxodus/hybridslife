@@ -7,6 +7,10 @@
   const INSTAGRAM_URL = "";
   const TIKTOK_URL = "";
 
+  // Platzhalter für das, was es noch nicht gibt: der Gym-Tab und in den Einstellungen Konto, Abo und Blockierte Nutzer.
+  // Mit false sind sie ausgeblendet, mit true wieder da. In der index.html tragen sie das Merkmal data-platzhalter.
+  const SHOW_PLATZHALTER = false;
+
   // Die Sprache der App als Kürzel, z. B. "de" oder "en". Sie gilt für die Texte der Oberfläche
   // und für die Namen der Übungen und Muskelgruppen. Der richtige Wert kommt weiter unten,
   // sobald die Einstellungen gelesen sind.
@@ -10951,6 +10955,14 @@
     }
   }
 
+  // Blendet alle Platzhalter aus, solange SHOW_PLATZHALTER auf false steht
+  function platzhalterAnwenden() {
+    const platzhalter = document.querySelectorAll("[data-platzhalter]");
+    for (let i = 0; i < platzhalter.length; i++) {
+      platzhalter[i].classList.toggle("versteckt", !SHOW_PLATZHALTER);
+    }
+  }
+
   // Konto, Abo und blockierte Nutzer gibt es noch nicht: Tippen zeigt unter der Karte, warum
   function baldHinweis(name) {
     document.getElementById("bald-hinweis").textContent = txt("einst." + name + ".hinweis");
@@ -10996,6 +11008,9 @@ feldBauen("s-feld-wdh", 1, 100, false, START_WDH);
 texteEinsetzen();
 iconsEinsetzen();
 spracheAnzeigen();
+
+// Gym-Tab, Konto, Abo und Blockierte Nutzer: nur zu sehen, wenn SHOW_PLATZHALTER auf true steht
+platzhalterAnwenden();
 
 // Das gewählte Design (Dunkel, Hell oder System) und sein Umschalter
 designAnwenden();

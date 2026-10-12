@@ -11,6 +11,22 @@
   // Mit false sind sie ausgeblendet, mit true wieder da. In der index.html tragen sie das Merkmal data-platzhalter.
   const SHOW_PLATZHALTER = false;
 
+  // Wischgesten (seit Version 100): Alle Gesten nutzen diese Zahlen. Hier lassen sie sich nach dem Test auf dem Handy ändern.
+  // Ab so vielen Pixeln steht fest, in welche Richtung der Finger wischt. Darunter gilt es noch als Tipp.
+  const WISCH_SPIEL_PX = 8;
+  // Ein Sheet schließt, wenn es beim Loslassen so viele Pixel nach unten gezogen ist ...
+  const WISCH_SHEET_WEG_PX = 90;
+  // ... oder so weit, gemessen an seiner Höhe (0.25 ist ein Viertel). Es gilt der kleinere der beiden Wege.
+  const WISCH_SHEET_ANTEIL = 0.25;
+  // Ein kurzer, schneller Wisch schließt auch: mindestens so viele Pixel weit ...
+  const WISCH_SCHNELL_WEG_PX = 30;
+  // ... und mindestens so schnell, in Pixeln pro Millisekunde (0.5 sind 500 Pixel in der Sekunde)
+  const WISCH_SCHNELL_TEMPO = 0.5;
+  // Das Tempo wird über die letzten so vielen Millisekunden vor dem Loslassen gemessen
+  const WISCH_TEMPO_FENSTER_MS = 100;
+  // So lange nach einem Wisch (in Millisekunden) zählt ein Klick des Browsers nicht als Tipp
+  const WISCH_KLICK_SPERRE_MS = 400;
+
   // Die Sprache der App als Kürzel, z. B. "de" oder "en". Sie gilt für die Texte der Oberfläche
   // und für die Namen der Übungen und Muskelgruppen. Der richtige Wert kommt weiter unten,
   // sobald die Einstellungen gelesen sind.
@@ -6537,6 +6553,217 @@
     }
   }
 
+  // ---------- Wischgesten ----------
+
+  // Läuft gerade etwas, bei dem keine Wischgeste gelten soll? Das sind die Einführung und die Rückfragen.
+  function wischenGesperrt() {
+    return Boolean(tourSchritte)
+      || document.getElementById("frage-hintergrund").classList.contains("offen")
+      || document.getElementById("dialog-hintergrund").classList.contains("offen");
+  }
+
+  // Die gemeinsame Erkennung für alle Wischgesten (seit Version 100). element ist die Fläche, auf der der Finger aufsetzt.
+  // Die Funktion erkennt Richtung, Weg und Tempo. Was dabei passieren soll, sagen ihr die optionen:
+  //   achse                                  "y" für hoch und runter, "x" für seitlich
+  //   beginnt(ereignis)                      freiwillig. false: An dieser Stelle startet keine Geste.
+  //   will(weg)                              freiwillig. false: In diese Richtung gilt die Geste nicht, der Browser scrollt weiter.
+  //   bewegt(weg)                            Der Finger ist weg Pixel vom Start entfernt (über 0: nach unten oder rechts).
+  //   losgelassen(weg, tempo, abgebrochen)   tempo in Pixeln pro Millisekunde, abgebrochen: Das Gerät hat die Berührung beendet.
+  function wischen(element, optionen) {
+    // Der Finger auf der Fläche: wo er aufgesetzt hat, ob die Geste gilt (null = noch offen), wie weit er ist
+    // und die letzten Messpunkte für das Tempo
+    let finger = null;
+    // Wann der letzte Wisch zu Ende war. Kurz danach kommt vom Browser manchmal noch ein Klick: Der darf nichts antippen.
+    let gewischtUm = 0;
+
+    // Wie weit der Finger vom Start entfernt ist: in der Richtung der Geste (haupt) und quer dazu
+    function abstand(ereignis) {
+      const x = ereignis.touches[0].clientX - finger.x;
+      const y = ereignis.touches[0].clientY - finger.y;
+      if (optionen.achse === "x") {
+        return { haupt: x, quer: y };
+      }
+      return { haupt: y, quer: x };
+    }
+
+    element.addEventListener("touchstart", function (ereignis) {
+      finger = null;
+      if (ereignis.touches.length !== 1 || wischenGesperrt()) {
+        return;
+      }
+      if (optionen.beginnt && optionen.beginnt(ereignis) === false) {
+        return;
+      }
+      // Der erste Messpunkt ist das Aufsetzen, so zählt bei einem kurzen Wisch der ganze Weg für das Tempo
+      finger = { x: ereignis.touches[0].clientX, y: ereignis.touches[0].clientY, gilt: null, weg: 0, punkte: [{ zeit: ereignis.timeStamp, weg: 0 }] };
+    }, { passive: true });
+
+    // Nicht "passive": Nur so kann die Geste dem Browser das Scrollen abnehmen (preventDefault)
+    element.addEventListener("touchmove", function (ereignis) {
+      if (!finger || finger.gilt === false) {
+        return;
+      }
+      const a = abstand(ereignis);
+      if (finger.gilt === null) {
+        // Noch zu kurz für eine Entscheidung: Es kann auch ein Tipp sein
+        if (Math.abs(a.haupt) < WISCH_SPIEL_PX && Math.abs(a.quer) < WISCH_SPIEL_PX) {
+          return;
+        }
+        finger.gilt = Math.abs(a.haupt) > Math.abs(a.quer) && (!optionen.will || optionen.will(a.haupt) !== false);
+        if (!finger.gilt) {
+          return;
+        }
+      }
+      if (ereignis.cancelable) {
+        ereignis.preventDefault();
+      }
+      finger.weg = a.haupt;
+      // Nur die Messpunkte der letzten Augenblicke bleiben, aus ihnen ergibt sich das Tempo beim Loslassen
+      const jetzt = ereignis.timeStamp;
+      finger.punkte.push({ zeit: jetzt, weg: a.haupt });
+      while (finger.punkte.length > 1 && jetzt - finger.punkte[0].zeit > WISCH_TEMPO_FENSTER_MS) {
+        finger.punkte.shift();
+      }
+      optionen.bewegt(a.haupt);
+    }, { passive: false });
+
+    function loslassen(ereignis, abgebrochen) {
+      if (!finger || !finger.gilt) {
+        finger = null;
+        return;
+      }
+      const weg = finger.weg;
+      // Das Tempo zählt ab dem ältesten Messpunkt der letzten Augenblicke.
+      // Hat der Finger vor dem Loslassen stillgestanden, gibt es keinen so frischen Punkt, und das Tempo ist 0.
+      const jetzt = ereignis.timeStamp;
+      while (finger.punkte.length > 1 && jetzt - finger.punkte[0].zeit > WISCH_TEMPO_FENSTER_MS) {
+        finger.punkte.shift();
+      }
+      let tempo = 0;
+      const erster = finger.punkte[0];
+      if (jetzt - erster.zeit <= WISCH_TEMPO_FENSTER_MS && jetzt > erster.zeit) {
+        tempo = (weg - erster.weg) / (jetzt - erster.zeit);
+      }
+      finger = null;
+      gewischtUm = Date.now();
+      optionen.losgelassen(weg, tempo, abgebrochen);
+    }
+
+    element.addEventListener("touchend", function (ereignis) {
+      loslassen(ereignis, false);
+    });
+    element.addEventListener("touchcancel", function (ereignis) {
+      loslassen(ereignis, true);
+    });
+
+    // Nur ein Klick vom Browser wird geschluckt (isTrusted), kein Klick, den die App selbst auslöst
+    element.addEventListener("click", function (ereignis) {
+      if (ereignis.isTrusted && Date.now() - gewischtUm < WISCH_KLICK_SPERRE_MS) {
+        ereignis.stopPropagation();
+        ereignis.preventDefault();
+      }
+    }, true);
+  }
+
+  // Sheets mit Eingaben: Sie lassen sich nur am Griff und an der Kopfzeile ziehen, damit beim Tippen und Drehen
+  // nichts aus Versehen zugeht. Alle anderen Sheets lassen sich auch im Inhalt ziehen, wenn er ganz oben steht.
+  const SHEETS_NUR_KOPF = ["satz-sheet", "selbst-sheet", "gewicht-sheet"];
+
+  // Der dunkle Hintergrund, der mit diesem Sheet verschwindet. Liegt darunter noch ein Sheet, bleibt er (null).
+  function sheetHintergrund(sheet) {
+    if (sheet.id === "sheet" || sheet.id === "selbst-sheet") {
+      const beide = document.getElementById("sheet").classList.contains("offen")
+        && document.getElementById("selbst-sheet").classList.contains("offen");
+      if (beide) {
+        return null;
+      }
+      return document.getElementById("sheet-hintergrund");
+    }
+    if (document.querySelectorAll(".zusatz-sheet.offen:not(#selbst-sheet)").length > 1) {
+      return null;
+    }
+    return document.getElementById("zusatz-hintergrund");
+  }
+
+  // Macht ein Sheet wischbar: Nach unten ziehen schließt es. Es folgt dabei dem Finger, der Hintergrund wird heller.
+  // Geschlossen wird über das ✕ des Sheets, so läuft derselbe Weg wie beim Antippen.
+  function sheetWischbar(sheet) {
+    const nurKopf = SHEETS_NUR_KOPF.indexOf(sheet.id) !== -1;
+    // Hat der Finger im Inhalt aufgesetzt (und nicht am Griff oder an der Kopfzeile)?
+    let imInhalt = false;
+    let hoehe = 0;
+    let hintergrund = null;
+
+    // Nimmt die Werte des Ziehens wieder weg. Danach gelten die Regeln der style.css,
+    // das Sheet gleitet von dort, wo es gerade steht, zurück oder hinaus.
+    function freigeben() {
+      sheet.style.transition = "";
+      sheet.style.transform = "";
+      if (hintergrund) {
+        hintergrund.style.transition = "";
+        hintergrund.style.opacity = "";
+      }
+    }
+
+    wischen(sheet, {
+      achse: "y",
+      beginnt: function (ereignis) {
+        if (!sheet.classList.contains("offen")) {
+          return false;
+        }
+        const ziel = ereignis.target;
+        imInhalt = !ziel.closest(".sheet-griff, .sheet-kopf");
+        if (imInhalt) {
+          // Eingabefelder, das Rad und das Diagramm brauchen den Finger selbst
+          if (nurKopf || ziel.closest("input, select, textarea, .rad, .diagramm")) {
+            return false;
+          }
+          // Ist die Liste schon ein Stück gescrollt, scrollt der Finger sie weiter
+          for (let e = ziel; e && e !== sheet; e = e.parentElement) {
+            if (e.scrollTop > 0) {
+              return false;
+            }
+          }
+        }
+        hoehe = sheet.getBoundingClientRect().height;
+        hintergrund = sheetHintergrund(sheet);
+      },
+      // Im Inhalt gilt nur der Wisch nach unten, nach oben scrollt die Liste
+      will: function (weg) {
+        return !imInhalt || weg > 0;
+      },
+      bewegt: function (weg) {
+        // Nach oben geht das Sheet nicht mit, sonst wäre unter ihm die Seite zu sehen
+        const tief = Math.max(0, weg);
+        sheet.style.transition = "none";
+        sheet.style.transform = "translateY(" + tief + "px)";
+        if (hintergrund) {
+          hintergrund.style.transition = "none";
+          hintergrund.style.opacity = String(Math.max(0, 1 - tief / hoehe));
+        }
+      },
+      losgelassen: function (weg, tempo, abgebrochen) {
+        const weit = weg >= Math.min(WISCH_SHEET_WEG_PX, hoehe * WISCH_SHEET_ANTEIL);
+        const schnell = weg >= WISCH_SCHNELL_WEG_PX && tempo >= WISCH_SCHNELL_TEMPO;
+        // Wer zum Schluss schnell wieder nach oben wischt, will das Sheet behalten
+        const zurueck = tempo <= -WISCH_SCHNELL_TEMPO;
+        freigeben();
+        if (!abgebrochen && !zurueck && (weit || schnell)) {
+          sheet.querySelector('.sheet-kopf button[data-t-aria="schliessen"]').click();
+        }
+      }
+    });
+  }
+
+  // Alle Sheets mit Griff lassen sich nach unten wischen. Die Einstellungen füllen den ganzen Bildschirm und gehören nicht dazu.
+  function sheetsWischbarMachen() {
+    sheetWischbar(document.getElementById("sheet"));
+    const sheets = document.querySelectorAll(".zusatz-sheet");
+    for (let i = 0; i < sheets.length; i++) {
+      sheetWischbar(sheets[i]);
+    }
+  }
+
   // ---------- Erklärungen ----------
 
   // Die ID, unter der die Erklärung einer Übung in der erklaerungen.js steht. Eine alte ID führt über ALTE_IDS
@@ -11020,6 +11247,9 @@ spracheAnzeigen();
 
 // Gym-Tab, Konto, Abo und Blockierte Nutzer: nur zu sehen, wenn SHOW_PLATZHALTER auf true steht
 platzhalterAnwenden();
+
+// Wischgesten: Die Sheets lassen sich nach unten wischen
+sheetsWischbarMachen();
 
 // Das gewählte Design (Dunkel, Hell oder System) und sein Umschalter
 designAnwenden();

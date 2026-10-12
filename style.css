@@ -1125,6 +1125,13 @@ h1 {
   padding: 4px 8px 8px;
 }
 
+/* Wischgesten (seit Version 100): Am Griff und an der Kopfzeile zieht der Finger das Sheet nach unten.
+   "none": Der Browser scrollt dort nichts, die Bewegung kommt ganz bei der app.js an. */
+.sheet-griff,
+.sheet-kopf {
+  touch-action: none;
+}
+
 #sheet-titel,
 .sheet-titel {
   flex: 1;

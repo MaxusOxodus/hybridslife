@@ -4442,13 +4442,63 @@
     return text;
   }
 
-  // Baut zu einem Eintrag eine Zeile je Satz. Antippen öffnet das Bearbeiten.
+  // Der Platz des besten Satzes eines Eintrags: der mit dem höchsten geschätzten 1RM, wie bei
+  // "Letzte Trainingsergebnisse" im Trainingsmodus. Sind alle Sätze gleich gut, ist es keiner (-1).
+  function besterSatzIndex(eintrag) {
+    const saetze = saetzeVon(eintrag);
+    let zusatz = 0;
+    if (hatDatum(eintrag)) {
+      zusatz = koerperZusatz(eintrag.uebungId, new Date(eintrag.datum));
+    }
+    let bester = -1;
+    let hoechstes = -Infinity;
+    let niedrigstes = Infinity;
+    for (let i = 0; i < saetze.length; i++) {
+      const wert = epley1RM(saetze[i].gewicht + zusatz, saetze[i].wdh);
+      if (wert > hoechstes) {
+        hoechstes = wert;
+        bester = i;
+      }
+      niedrigstes = Math.min(niedrigstes, wert);
+    }
+    if (hoechstes === niedrigstes) {
+      return -1;
+    }
+    return bester;
+  }
+
+  // Baut zu einem Eintrag die Tabelle seiner Sätze: Satz, Gewicht × Wdh. und RIR, eine Reihe je Satz.
+  // Der beste Satz ist markiert. Antippen öffnet das Bearbeiten.
   function satzZeilenBauen(behaelter, eintrag) {
     const saetze = saetzeVon(eintrag);
+    const bester = besterSatzIndex(eintrag);
+
+    const kopf = element("div", "tag-reihe kopf");
+    kopf.appendChild(element("span", "", txt("satz.spalte")));
+    kopf.appendChild(element("span", "", txt("gewicht") + " × " + txt("wdh")));
+    kopf.appendChild(element("span", "", "RIR"));
+    kopf.appendChild(element("span", ""));
+    behaelter.appendChild(kopf);
+
     for (let i = 0; i < saetze.length; i++) {
-      const zeile = element("button", "satz-zeile");
+      const zeile = element("button", "tag-reihe");
       zeile.appendChild(element("span", "satz-nummer", i + 1));
-      zeile.appendChild(element("span", "satz-werte", satzText(saetze[i])));
+
+      const werte = element("span", "tag-werte");
+      werte.appendChild(element("span", "", gewichtText(saetze[i].gewicht) + " × " + saetze[i].wdh));
+      if (i === bester) {
+        zeile.classList.add("bester");
+        werte.appendChild(element("span", "letztes-bestes", txt("letztes.bestes")));
+      }
+      zeile.appendChild(werte);
+
+      // Ohne RIR-Angabe steht ein Strich
+      let rir = "–";
+      if (rirLesen(saetze[i].rir) !== null) {
+        rir = rirText(saetze[i].rir).replace("RIR ", "");
+      }
+      zeile.appendChild(element("span", "tag-rir", rir));
+
       const pfeil = element("span", "einst-pfeil", "›");
       pfeil.setAttribute("aria-hidden", "true");
       zeile.appendChild(pfeil);
@@ -4722,15 +4772,18 @@
       modusLetztesAnzeigen();
     }
 
-    // Das Profil mit dem offenen Trainingstag. Hat der Tag keinen Eintrag mehr, schließt sich sein Sheet.
+    // Home und das Profil mit dem offenen Trainingstag. Hat der Tag keinen Eintrag mehr, schließt sich sein Sheet.
     if (aktiveSeite === "profil") {
       profilAnzeigen();
-      if (document.getElementById("tag-sheet").classList.contains("offen")) {
-        if (profilTage[tagSheetSchluessel]) {
-          tagSheetFuellen(tagSheetSchluessel);
-        } else {
-          zusatzSheetsSchliessen();
-        }
+    }
+    if (aktiveSeite === "home") {
+      homeAnzeigen();
+    }
+    if (document.getElementById("tag-sheet").classList.contains("offen")) {
+      if (trainingstage()[tagSheetSchluessel]) {
+        tagSheetFuellen(tagSheetSchluessel);
+      } else {
+        zusatzSheetsSchliessen();
       }
     }
   }
@@ -5570,13 +5623,12 @@
       if (tagSchluessel(tag) === tagSchluessel(heute)) {
         btn.classList.add("heute");
       }
-      // Tage in der Zukunft lassen sich nicht antippen
-      btn.disabled = tagSchluessel(tag) > tagSchluessel(heute);
       if (!sichtbar) {
         btn.tabIndex = -1;
       }
+      // Jeder Tag öffnet seine Details, auch ein Tag in der Zukunft: Er zeigt, was geplant ist
       btn.onclick = function () {
-        logFuerTagZeigen(tag);
+        tagSheetOeffnen(tagSchluessel(tag));
       };
       seite.appendChild(btn);
     }
@@ -9430,12 +9482,19 @@
     }
   }
 
-  // Der Trainingstag, dessen Details gerade offen sind
+  // Der Tag, dessen Details gerade offen sind (Schlüssel wie bei tagSchluessel)
   let tagSheetSchluessel = "";
 
-  // Die Details eines Trainingstags: jede Übung mit ihren Sätzen
+  // Das Datum zu einem Schlüssel aus tagSchluessel, z. B. 20261005
+  function schluesselDatum(schluessel) {
+    const zahl = Number(schluessel);
+    return new Date(Math.floor(zahl / 10000), Math.floor(zahl / 100) % 100 - 1, zahl % 100);
+  }
+
+  // Die Details eines Tags, von Home und vom Profil aus: das Training mit jeder Übung und ihren Sätzen,
+  // an einem Tag ohne Training "Kein Training", heute und in der Zukunft das, was geplant ist
   function tagSheetOeffnen(schluessel) {
-    if (!profilTage[schluessel]) {
+    if (!schluessel) {
       return;
     }
     tagSheetFuellen(schluessel);
@@ -9443,34 +9502,341 @@
     zusatzSheetOeffnen("tag-sheet");
   }
 
-  // Baut den Inhalt des Sheets. Jeder Satz ist eine Zeile, Antippen öffnet das Bearbeiten.
+  // Teilt die Einträge eines Trainingstags in Blöcke: jede gespeicherte Trainingseinheit, dann alles,
+  // was zu keiner Einheit gehört, und am Ende das laufende Training.
+  // Jeder Block: { name, minuten (null ohne bekannte Dauer), eintraege, einheit (oder null), laeuft }.
+  function tagBloecke(tag) {
+    const offen = tag.eintraege.slice();
+
+    // Holt die Einträge heraus, auf die gehoert zutrifft. Jeder Eintrag landet so in genau einem Block.
+    function nehmen(gehoert) {
+      const liste = [];
+      for (let i = offen.length - 1; i >= 0; i--) {
+        if (gehoert(offen[i])) {
+          liste.unshift(offen[i]);
+          offen.splice(i, 1);
+        }
+      }
+      return liste;
+    }
+
+    let laufend = null;
+    if (laufendesTraining) {
+      const seine = trainingStand().eintraege;
+      const liste = nehmen(function (e) {
+        return seine.indexOf(e) !== -1;
+      });
+      if (liste.length > 0) {
+        laufend = { name: laufendesTraining.routineName || txt("freiesTraining"), minuten: null, eintraege: liste, einheit: null, laeuft: true };
+      }
+    }
+
+    const bloecke = [];
+    for (let i = 0; i < trainings.length; i++) {
+      const t = trainings[i];
+      if (!t || !Array.isArray(t.eintragIds)) {
+        continue;
+      }
+      const liste = nehmen(function (e) {
+        return Boolean(e.id) && t.eintragIds.indexOf(e.id) !== -1;
+      });
+      if (liste.length === 0) {
+        continue;
+      }
+      // Die Dauer wie bei "Letztes Training". Ohne gültige Zeiten bleibt sie weg.
+      let minuten = null;
+      let start = 0;
+      if (!isNaN(new Date(t.start)) && !isNaN(new Date(t.ende))) {
+        start = new Date(t.start).getTime();
+        minuten = Math.max(1, Math.round((new Date(t.ende) - new Date(t.start)) / 60000));
+      }
+      bloecke.push({ name: t.routineName || txt("freiesTraining"), minuten: minuten, eintraege: liste, einheit: t, laeuft: false, start: start });
+    }
+    // Das frühere Training steht oben
+    bloecke.sort(function (a, b) {
+      return a.start - b.start;
+    });
+
+    // Ohne Einheit (frei eingetragen oder aus der Zeit, bevor es Einheiten gab):
+    // Der Name kommt von den Routinen, aus denen die Einträge stammen
+    if (offen.length > 0) {
+      const namen = tagRoutinen({ eintraege: offen });
+      bloecke.push({ name: namen.join(" + ") || txt("freiesTraining"), minuten: null, eintraege: offen, einheit: null, laeuft: false });
+    }
+    if (laufend) {
+      bloecke.push(laufend);
+    }
+    return bloecke;
+  }
+
+  // Die Zeile über einem Block: der Name der Routine, mit bekannter Dauer "Push A · 58 Min."
+  function tagBlockKopf(block) {
+    const kopf = element("div", "tag-block-kopf", block.name);
+    if (block.minuten !== null) {
+      kopf.appendChild(element("span", "tag-block-dauer", " · " + dauerText(block.minuten)));
+    }
+    return kopf;
+  }
+
+  // Baut den Inhalt des Sheets: Kopf, die drei Zahlen des Tags, je Übung eine Karte mit ihren Sätzen
+  // und unter jedem Training "Training löschen". Jeder Satz ist eine Reihe, Antippen öffnet das Bearbeiten.
   function tagSheetFuellen(schluessel) {
-    const tag = profilTage[schluessel];
+    const datum = schluesselDatum(schluessel);
+    const tag = trainingstage()[schluessel];
+    const heute = tagSchluessel(new Date());
     tagSheetSchluessel = schluessel;
-    document.getElementById("tag-sheet-titel").textContent = tagTextMitJahr(tag.datum);
+    document.getElementById("tag-sheet-titel").textContent = tagTextMitJahr(datum);
 
     const inhalt = document.getElementById("tag-sheet-inhalt");
     inhalt.innerHTML = "";
-    const uebungen = tagUebungen(tag);
-    const teile = [txtAnzahl("anzahl.uebungen", uebungen.length), txtAnzahl("anzahl.saetze", tag.saetze), volumenText(tag.volumen)];
-    // Gab es eine Routine, steht ihr Name vorn
-    if (tagRoutinen(tag).length > 0) {
-      teile.unshift(tagName(tag));
-    }
-    inhalt.appendChild(element("p", "tag-zusammenfassung", teile.join(" · ")));
 
-    for (let i = 0; i < tag.eintraege.length; i++) {
-      const e = tag.eintraege[i];
-      const zeile = element("div", "tag-eintrag");
-      zeile.appendChild(element("div", "tag-eintrag-name", anzeigeName(e.uebung, e.uebungId)));
-      // Einträge, bei denen keine Zahlen stehen, haben keine einzelnen Sätze: Sie zeigen nur ihren Text
-      if (saetzeVon(e).length === 0) {
-        zeile.appendChild(element("div", "routine-info", saetzeText(e)));
-      } else {
-        satzZeilenBauen(zeile, e);
+    if (tag) {
+      const bloecke = tagBloecke(tag);
+      // Bei einem einzigen Training steht sein Name im Kopf, bei mehreren über jedem Block
+      if (bloecke.length === 1) {
+        inhalt.appendChild(tagBlockKopf(bloecke[0]));
       }
-      inhalt.appendChild(zeile);
+
+      const zahlen = element("div", "home-zahlen tag-zahlen");
+      zahlen.appendChild(homeZahl(tagUebungen(tag).length, txt("uebungen")));
+      zahlen.appendChild(homeZahl(tag.saetze, txt("saetze")));
+      zahlen.appendChild(homeZahl(volumenText(tag.volumen), txt("verlauf.volumen")));
+      inhalt.appendChild(zahlen);
+
+      for (let b = 0; b < bloecke.length; b++) {
+        const block = bloecke[b];
+        const bereich = element("div", "tag-block");
+        if (bloecke.length > 1) {
+          bereich.appendChild(tagBlockKopf(block));
+        }
+
+        for (let i = 0; i < block.eintraege.length; i++) {
+          const e = block.eintraege[i];
+          const karte = element("div", "karte tag-karte");
+          karte.appendChild(element("div", "tag-eintrag-name", anzeigeName(e.uebung, e.uebungId)));
+          const gruppe = anzeigeGruppe(e.muskelgruppe, e.uebungId);
+          if (gruppe && typeof gruppe === "string") {
+            karte.appendChild(element("div", "routine-info", gruppe));
+          }
+          // Einträge, bei denen keine Zahlen stehen, haben keine einzelnen Sätze: Sie zeigen nur ihren Text
+          if (saetzeVon(e).length === 0) {
+            karte.appendChild(element("div", "routine-info", saetzeText(e)));
+          } else {
+            satzZeilenBauen(karte, e);
+          }
+          bereich.appendChild(karte);
+        }
+
+        // Das laufende Training lässt sich hier nicht löschen, dafür gibt es "Verwerfen"
+        if (block.laeuft) {
+          bereich.appendChild(element("p", "tag-laeuft", txt("home.laeuft")));
+        } else {
+          const loeschen = element("button", "zweit-btn gefahr", txt("tag.loeschen"));
+          loeschen.onclick = function () {
+            tagTrainingLoeschenFragen(block, datum);
+          };
+          bereich.appendChild(loeschen);
+        }
+        inhalt.appendChild(bereich);
+      }
     }
+
+    if (Number(schluessel) >= heute) {
+      tagPlanBauen(inhalt, datum, tag, Number(schluessel) === heute);
+    } else if (!tag) {
+      inhalt.appendChild(element("div", "karte tag-karte kommt-bald", txt("tag.keinTraining")));
+    }
+
+    // Heute und an vergangenen Tagen führt ein Knopf zum Eintragen für diesen Tag
+    if (Number(schluessel) <= heute) {
+      const eintragen = element("button", "knopf heute-knopf", txt("log.titel"));
+      eintragen.onclick = function () {
+        zusatzSheetsSchliessen();
+        if (aktiveSeite !== "home") {
+          seiteZeigen("home");
+        }
+        logFuerTagZeigen(datum);
+      };
+      inhalt.appendChild(eintragen);
+    }
+  }
+
+  // Heute und in der Zukunft: was laut Wochenplan an dem Tag dran ist. Eine Routine zeigt ihre Übungen,
+  // starten lässt sie sich nur heute. Wurde schon trainiert (tag), fallen "Ruhetag" und "Nichts geplant" weg.
+  function tagPlanBauen(inhalt, datum, tag, istHeute) {
+    const karte = element("div", "karte tag-karte");
+
+    // Läuft heute ein Training, steht es hier wie in der Heute-Karte auf Home
+    if (istHeute && laufendesTraining) {
+      karte.appendChild(element("div", "heute-label", txt("home.laeuft")));
+      karte.appendChild(element("div", "routine-name", laufendesTraining.routineName));
+      karte.appendChild(element("div", "routine-info", txt("uebung.xVonY", { x: laufendesTraining.index + 1, y: laufendesTraining.uebungen.length })));
+      const weiter = element("button", "speichern-btn", txt("training.fortsetzen"));
+      weiter.onclick = function () {
+        zusatzSheetsSchliessen();
+        trainingFortsetzen();
+      };
+      karte.appendChild(weiter);
+      inhalt.appendChild(karte);
+      return;
+    }
+
+    const plan = wochenplan[(datum.getDay() + 6) % 7];
+    const routine = routineFinden(plan);
+    if (!routine) {
+      if (tag) {
+        return;
+      }
+      karte.classList.add("kommt-bald");
+      if (plan === "ruhe") {
+        karte.textContent = txt("ruhetag");
+      } else {
+        karte.textContent = txt("home.nichtsGeplant");
+      }
+      inhalt.appendChild(karte);
+      return;
+    }
+
+    // Schon erledigt ist die Routine, wenn es an dem Tag einen Eintrag aus ihr gibt
+    let erledigt = false;
+    if (tag) {
+      for (let i = 0; i < tag.eintraege.length; i++) {
+        if (tag.eintraege[i].routineId === routine.id) {
+          erledigt = true;
+        }
+      }
+    }
+
+    let label = txt("tag.geplant");
+    if (erledigt) {
+      label = txt("home.erledigt");
+    } else if (istHeute) {
+      label = txt("home.geplant");
+    }
+    karte.appendChild(element("div", "heute-label", label));
+    karte.appendChild(element("div", "routine-name", routine.name));
+    karte.appendChild(element("div", "routine-info", routineInfo(routine)));
+
+    const liste = element("ol", "tag-plan-liste");
+    for (let i = 0; i < routine.uebungen.length; i++) {
+      liste.appendChild(element("li", "", anzeigeName(routine.uebungen[i].name, routine.uebungen[i].uebungId)));
+    }
+    karte.appendChild(liste);
+
+    if (istHeute) {
+      let start;
+      if (erledigt) {
+        start = element("button", "knopf heute-knopf", txt("home.nochmal"));
+      } else {
+        start = element("button", "speichern-btn", txt("home.starten"));
+      }
+      start.onclick = function () {
+        zusatzSheetsSchliessen();
+        routineStarten(routine);
+      };
+      karte.appendChild(start);
+    }
+    inhalt.appendChild(karte);
+  }
+
+  // ---------- Trainingstag: Training löschen ----------
+
+  // Das zuletzt gelöschte Training für "Rückgängig" (null = keins): seine Einträge und seine Trainingseinheit,
+  // jeweils mit dem Platz, an dem sie standen. Es gilt nur, solange der Hinweis zu sehen ist.
+  let geloeschtesTraining = null;
+
+  // Die Uhr, die den Hinweis "Training gelöscht" wieder ausblendet
+  let geloeschtUhr = null;
+
+  // Fragt nach, bevor ein Training (ein Block aus tagBloecke) gelöscht wird
+  function tagTrainingLoeschenFragen(block, datum) {
+    let saetze = 0;
+    for (let i = 0; i < block.eintraege.length; i++) {
+      saetze += saetzeVon(block.eintraege[i]).length;
+    }
+    const text = txt("tag.loeschenText", {
+      name: block.name,
+      datum: tagTextMitJahr(datum),
+      stand: txtAnzahl("anzahl.uebungen", block.eintraege.length) + " · " + txtAnzahl("anzahl.saetze", saetze)
+    });
+    frageZeigen(txt("tag.loeschenFrage"), text, [
+      {
+        text: txt("loeschen"),
+        art: "gefahr",
+        aktion: function () {
+          tagTrainingLoeschen(block);
+        }
+      },
+      { text: txt("abbrechen"), art: "leise" }
+    ]);
+  }
+
+  // Löscht ein Training: Seine Einträge verschwinden aus dem Log, alle anderen bleiben unberührt.
+  // Hat seine Trainingseinheit danach keinen Eintrag mehr, geht sie mit. Danach lässt es sich kurz zurückholen.
+  function tagTrainingLoeschen(block) {
+    const geloescht = [];
+    for (let i = 0; i < block.eintraege.length; i++) {
+      const platz = eintraege.indexOf(block.eintraege[i]);
+      if (platz !== -1) {
+        geloescht.push({ platz: platz, eintrag: block.eintraege[i] });
+      }
+    }
+    geloescht.sort(function (a, b) {
+      return a.platz - b.platz;
+    });
+    // Von hinten nach vorn, damit die Plätze davor stimmen
+    for (let i = geloescht.length - 1; i >= 0; i--) {
+      eintraege.splice(geloescht[i].platz, 1);
+    }
+    sicherSpeichern("eintraege", eintraege);
+
+    let einheit = null;
+    const platz = trainings.indexOf(block.einheit);
+    if (platz !== -1 && !einheitHatEintraege(block.einheit, eintragIdsVorhanden())) {
+      trainings.splice(platz, 1);
+      sicherSpeichern("trainings", trainings);
+      einheit = { platz: platz, einheit: block.einheit };
+    }
+
+    // Der Hinweis liegt unter dem Sheet, deshalb schließt es sich
+    zusatzSheetsSchliessen();
+    nachTrainingAnzeigen();
+
+    // Die Hinweise stehen an derselben Stelle: Es ist immer nur einer zu sehen
+    verworfenHinweisSchliessen();
+    routineHinweisSchliessen();
+    geloeschtesTraining = { eintraege: geloescht, einheit: einheit };
+    document.getElementById("geloescht-hinweis").classList.add("sichtbar");
+    clearTimeout(geloeschtUhr);
+    geloeschtUhr = setTimeout(geloeschtHinweisSchliessen, VERWORFEN_ANZEIGE);
+  }
+
+  // Blendet den Hinweis aus. Damit ist auch "Rückgängig" vorbei.
+  function geloeschtHinweisSchliessen() {
+    clearTimeout(geloeschtUhr);
+    geloeschtUhr = null;
+    geloeschtesTraining = null;
+    document.getElementById("geloescht-hinweis").classList.remove("sichtbar");
+  }
+
+  // "Rückgängig": Die gelöschten Einträge und die Trainingseinheit kommen an ihren Platz zurück
+  function tagLoeschenRueckgaengig() {
+    const g = geloeschtesTraining;
+    geloeschtHinweisSchliessen();
+    if (!g) {
+      return;
+    }
+
+    // Von vorn nach hinten, so landet jeder Eintrag wieder an seinem alten Platz
+    for (let i = 0; i < g.eintraege.length; i++) {
+      eintraege.splice(Math.min(g.eintraege[i].platz, eintraege.length), 0, g.eintraege[i].eintrag);
+    }
+    sicherSpeichern("eintraege", eintraege);
+    if (g.einheit) {
+      trainings.splice(Math.min(g.einheit.platz, trainings.length), 0, g.einheit.einheit);
+      sicherSpeichern("trainings", trainings);
+    }
+    nachTrainingAnzeigen();
   }
 
   // Statistik: die Serie und die Zahlen der laufenden Woche, alles in der gewählten Einheit

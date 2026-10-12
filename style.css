@@ -310,6 +310,7 @@ h1 {
 /* ---------- Bestätigung "Training verworfen" und "Routine geändert" mit "Rückgängig": an derselben Stelle ---------- */
 
 #verworfen-hinweis,
+#geloescht-hinweis,
 #routine-hinweis,
 #speicher-hinweis {
   position: fixed;
@@ -336,6 +337,7 @@ h1 {
 }
 
 #verworfen-hinweis.sichtbar,
+#geloescht-hinweis.sichtbar,
 #routine-hinweis.sichtbar,
 #speicher-hinweis.sichtbar {
   display: flex;
@@ -395,6 +397,7 @@ h1 {
 }
 
 #verworfen-hinweis button,
+#geloescht-hinweis button,
 #routine-hinweis button,
 #speicher-hinweis button {
   min-height: 36px;
@@ -3055,30 +3058,71 @@ button.einst-zeile:first-child {
   font-size: 15px;
 }
 
-.tag-eintrag {
-  padding: 12px 0;
-  border-top: 1px solid var(--rand);
-}
-
 .tag-eintrag-name {
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
-/* ---------- Eingetragene Sätze ---------- */
-
-/* Ein Satz als Zeile zum Antippen: Nummer, Werte, Pfeil. Im Trainingsmodus und im Trainingstag. */
-.satz-liste {
-  padding: 0 16px;
+/* Kopf eines Trainings: der Name der Routine, die Dauer dahinter in leiser Farbe */
+.tag-block-kopf {
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
-.satz-zeile {
-  display: flex;
+.tag-block-dauer {
+  color: var(--text-leise);
+  font-weight: 400;
+}
+
+/* Die drei Zahlen des Tags. Bei mehreren Trainings folgt darunter je Training ein Block mit eigenem Kopf. */
+.tag-zahlen {
+  margin: 14px 0 16px;
+}
+
+.tag-zahlen:first-child {
+  margin-top: 0;
+}
+
+.tag-block + .tag-block {
+  margin-top: 28px;
+}
+
+/* Eine Karte je Übung. Sie liegt auf dem Sheet, deshalb bekommt sie wie die Kacheln dort eine leichte Füllung. */
+.zusatz-sheet .tag-karte {
+  margin-top: 10px;
+  padding: 14px 16px 8px;
+  border-color: transparent;
+  background: var(--fuellung);
+}
+
+.zusatz-sheet .tag-karte.kommt-bald {
+  padding-bottom: 14px;
+}
+
+.tag-karte .routine-info {
+  margin-top: 2px;
+}
+
+.tag-karte .tag-reihe.kopf,
+.tag-karte .routine-info + .routine-info {
+  margin-top: 8px;
+}
+
+.tag-karte .speichern-btn,
+.tag-karte .heute-knopf {
+  margin: 14px 0 6px;
+}
+
+/* Die Sätze als kleine Tabelle: Satz, Gewicht × Wdh., RIR und der Pfeil zum Bearbeiten */
+.tag-reihe {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 36px 12px;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
-  min-height: 48px;
-  padding: 8px 0;
+  min-height: 44px;
+  padding: 6px 0;
   border: none;
   background: none;
   color: var(--text);
@@ -3086,8 +3130,61 @@ button.einst-zeile:first-child {
   text-align: left;
 }
 
-.satz-liste .satz-zeile + .satz-zeile {
+.tag-reihe + .tag-reihe {
   border-top: 1px solid var(--rand);
+}
+
+.tag-reihe.kopf {
+  min-height: 28px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Wert und Schild "Bestes" stehen nebeneinander. Ist es zu eng, rutscht das Schild in die nächste Zeile. */
+.tag-werte {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.tag-reihe.bester .tag-werte {
+  font-weight: 700;
+}
+
+.tag-rir {
+  color: var(--text-leise);
+}
+
+/* Die Übungen einer geplanten Routine */
+.tag-plan-liste {
+  margin: 10px 0 6px;
+  padding-left: 22px;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.tag-plan-liste li + li {
+  margin-top: 4px;
+}
+
+/* "Läuft gerade" unter dem laufenden Training: Es lässt sich hier nicht löschen */
+.tag-laeuft {
+  margin: 12px 0 0;
+  color: var(--akzent-text);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---------- Eingetragene Sätze ---------- */
+
+/* Die Karte mit den Sätzen des letzten Trainings im Trainingsmodus */
+.satz-liste {
+  padding: 0 16px;
 }
 
 .satz-nummer {

@@ -128,6 +128,17 @@ const TEXTE = {
   "home.bewegt": { de: "Bewegt", en: "Moved" },
   "freiesTraining": { de: "Freies Training", en: "Free workout" },
 
+  // ---------- Trainingstag (Sheet auf Home und im Profil) ----------
+  "tag.geplant": { de: "Geplant", en: "Planned" },
+  "tag.keinTraining": { de: "Kein Training", en: "No workout" },
+  "tag.loeschen": { de: "Training löschen", en: "Delete workout" },
+  "tag.loeschenFrage": { de: "Training löschen?", en: "Delete workout?" },
+  "tag.loeschenText": {
+    de: "„{name}“ vom {datum} wird entfernt: {stand}.",
+    en: "“{name}” from {datum} will be removed: {stand}."
+  },
+  "tag.geloescht": { de: "Training gelöscht", en: "Workout deleted" },
+
   // ---------- Log ----------
   "log.titel": { de: "Übung eintragen", en: "Log exercise" },
   "log.unterzeile": { de: "Trag dein Training ein", en: "Log your workout" },

@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=90">
+  <link rel="stylesheet" href="style.css?v=91">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=90">
+  <link rel="stylesheet" href="glass.css?v=91">
 </head>
 <body>
 
@@ -93,8 +93,8 @@
       </div>
     </div>
 
-    <!-- Ansicht: Übung eintragen und die Liste der Einträge nach Wochen. Sie öffnet sich über einen Tag
-         in "Diese Woche" oder über "Einträge ansehen" in den Einstellungen. -->
+    <!-- Ansicht: Übung eintragen und die Liste der Einträge nach Wochen. Sie öffnet sich über "Übung eintragen"
+         im Trainingstag (Tipp auf einen Tag in "Diese Woche") oder über "Einträge ansehen" in den Einstellungen. -->
     <div id="ansicht-log" class="ansicht versteckt">
     <button class="text-btn" onclick="homeZeigen()" data-t="zurueck.pfeil">‹ Zurück</button>
     <div class="ansicht-titel" data-t="log.titel">Übung eintragen</div>
@@ -508,6 +508,12 @@
     <button onclick="verwerfenRueckgaengig()" data-t="rueckgaengig">Rückgängig</button>
   </div>
 
+  <!-- Bestätigung nach "Training löschen" im Trainingstag: bleibt kurz stehen und bietet "Rückgängig" an -->
+  <div id="geloescht-hinweis" role="status">
+    <span data-t="tag.geloescht">Training gelöscht</span>
+    <button onclick="tagLoeschenRueckgaengig()" data-t="rueckgaengig">Rückgängig</button>
+  </div>
+
   <!-- Bestätigung nach "Übung tauschen" mit "Auch in der Routine ändern": bleibt kurz stehen und bietet "Rückgängig" an -->
   <div id="routine-hinweis" role="status">
     <span data-t="tausch.routineGeaendert">Routine geändert</span>
@@ -684,7 +690,8 @@
     </div>
   </div>
 
-  <!-- Sheet: ein Trainingstag mit allen Übungen und Sätzen. Den Inhalt füllt die app.js. -->
+  <!-- Sheet: ein Tag mit seinem Training (alle Übungen und Sätze) oder dem, was geplant ist.
+       Es öffnet sich auf Home und im Profil. Den Inhalt füllt die app.js. -->
   <div id="tag-sheet" class="zusatz-sheet">
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">
@@ -971,9 +978,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=90"></script>
-<script src="uebungen.js?v=90"></script>
-<script src="erklaerungen.js?v=90"></script>
+<script src="texte.js?v=91"></script>
+<script src="uebungen.js?v=91"></script>
+<script src="erklaerungen.js?v=91"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -995,11 +1002,11 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=90"></script>
-<script src="bilder.js?v=90"></script>
-<script src="vorlagen.js?v=90"></script>
-<script src="figuren.js?v=90"></script>
-<script src="app.js?v=90"></script>
+<script src="raenge.js?v=91"></script>
+<script src="bilder.js?v=91"></script>
+<script src="vorlagen.js?v=91"></script>
+<script src="figuren.js?v=91"></script>
+<script src="app.js?v=91"></script>
 
 </body>
 </html>

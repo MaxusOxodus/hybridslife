@@ -2365,13 +2365,13 @@
 
       eintraege.push(eintrag);
       sicherSpeichern("eintraege", eintraege);
-      anzeigen();
 
       gewaehlteUebung = "";
       gewaehlteGruppe = "";
       gewaehlteUebungId = "";
       uebungFeldAktualisieren();
-      letztesMalAnzeigen();
+      // Zeigt das Log und alles andere neu an, was aus den Einträgen berechnet wird, auch Home
+      nachTrainingAnzeigen();
       felderVoreinstellen();
       bestwertPruefen(eintrag, 0);
 
@@ -2380,8 +2380,8 @@
       function loeschen(index) {
         eintraege.splice(index, 1);
         sicherSpeichern("eintraege", eintraege);
-        anzeigen();
-        letztesMalAnzeigen();
+        trainingsAufraeumen();
+        nachTrainingAnzeigen();
       }
 
       // Sucht den neuesten Eintrag zu einer Übung. Gibt null zurück, wenn es keinen gibt.
@@ -5202,6 +5202,47 @@
       eintragIds: eintragIds
     });
     sicherSpeichern("trainings", trainings);
+  }
+
+  // Die ids aller vorhandenen Einträge, zum schnellen Nachsehen: vorhanden[id] ist true
+  function eintragIdsVorhanden() {
+    const vorhanden = {};
+    for (let i = 0; i < eintraege.length; i++) {
+      if (eintraege[i] && eintraege[i].id) {
+        vorhanden[eintraege[i].id] = true;
+      }
+    }
+    return vorhanden;
+  }
+
+  // Gibt es von dieser Trainingseinheit noch mindestens einen Eintrag? vorhanden kommt aus eintragIdsVorhanden().
+  function einheitHatEintraege(t, vorhanden) {
+    if (!t || !Array.isArray(t.eintragIds)) {
+      return false;
+    }
+    for (let i = 0; i < t.eintragIds.length; i++) {
+      if (vorhanden[t.eintragIds[i]]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Entfernt die Trainingseinheiten, von denen es keinen Eintrag mehr gibt.
+  // Gespeichert wird nur, wenn wirklich eine wegfällt.
+  function trainingsAufraeumen() {
+    const vorhanden = eintragIdsVorhanden();
+    let entfernt = false;
+    // Von hinten nach vorn, damit die Plätze davor stimmen
+    for (let i = trainings.length - 1; i >= 0; i--) {
+      if (!einheitHatEintraege(trainings[i], vorhanden)) {
+        trainings.splice(i, 1);
+        entfernt = true;
+      }
+    }
+    if (entfernt) {
+      sicherSpeichern("trainings", trainings);
+    }
   }
 
   // Beim Öffnen der App: Wartet noch ein Training, wird gefragt, ob es weitergehen soll
@@ -9651,10 +9692,15 @@
     }
     einmalig("allrounder", allrounder);
 
-    // Frühaufsteher: das früheste Training im Trainingsmodus, das vor 7 Uhr begonnen hat
+    // Frühaufsteher: das früheste Training im Trainingsmodus, das vor 7 Uhr begonnen hat.
+    // Es zählen nur Einheiten, von denen es noch Einträge gibt.
     let frueh = null;
+    const vorhanden = eintragIdsVorhanden();
     for (let i = 0; i < trainings.length; i++) {
-      const start = new Date(trainings[i] && trainings[i].start);
+      if (!einheitHatEintraege(trainings[i], vorhanden)) {
+        continue;
+      }
+      const start = new Date(trainings[i].start);
       if (!isNaN(start) && start.getHours() < FRUEH_STUNDE && (frueh === null || start.getTime() < frueh)) {
         frueh = start.getTime();
       }

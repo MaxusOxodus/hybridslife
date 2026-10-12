@@ -1,7 +1,7 @@
 {
   "name": "Gymstead",
   "short_name": "Gymstead",
-  "description": "Trainings-App für Hybrid-Athleten",
+  "description": "Krafttraining-App für den Gym",
   "lang": "de",
   "start_url": "./",
   "scope": "./",

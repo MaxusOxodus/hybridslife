@@ -644,8 +644,8 @@ const TEXTE = {
   "ueber.app": { de: "App", en: "App" },
   "ueber.version": { de: "Version", en: "Version" },
   "ueber.text": {
-    de: "Gymstead ist eine Trainings-App für Hybrid-Athleten. Zurzeit trackst du damit dein Krafttraining.",
-    en: "Gymstead is a training app for hybrid athletes. For now it tracks your strength training."
+    de: "Gymstead ist eine Krafttraining-App für den Gym. Du trackst damit dein Training, deine Fortschritte und deine Ränge.",
+    en: "Gymstead is a strength training app for the gym. Track your workouts, progress and ranks."
   },
   "ueber.lokal": {
     de: "Alle Daten liegen lokal auf diesem Gerät. Es gibt kein Konto und keine Cloud, nichts wird an einen Server geschickt.",

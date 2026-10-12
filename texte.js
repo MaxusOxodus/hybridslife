@@ -33,6 +33,22 @@ const TEXTE = {
   "zurueck.pfeil": { de: "‹ Zurück", en: "‹ Back" },
   "abbrechen.pfeil": { de: "‹ Abbrechen", en: "‹ Cancel" },
   "schliessen": { de: "Schließen", en: "Close" },
+  "ok": { de: "OK", en: "OK" },
+  "speicher.kaputtTitel": { de: "Einträge nicht lesbar", en: "Entries could not be read" },
+  "speicher.kaputtText": {
+    de: "Deine gespeicherten Einträge sind beschädigt und konnten nicht geladen werden. Die App startet deshalb ohne Einträge. Die beschädigten Daten sind nicht gelöscht, sie liegen als Sicherung auf diesem Gerät. Hast du ein Backup, kannst du es in den Einstellungen importieren.",
+    en: "Your saved entries are damaged and could not be loaded, so the app starts without entries. The damaged data has not been deleted, a copy is kept on this device. If you have a backup, you can import it in the settings."
+  },
+  "speicher.kaputtNichtGesichert": {
+    de: "Deine gespeicherten Einträge sind beschädigt und konnten nicht geladen werden. Die App startet deshalb ohne Einträge. Die beschädigten Daten konnten nicht gesichert werden: Sie gehen verloren, sobald du etwas Neues einträgst. Hast du ein Backup, kannst du es in den Einstellungen importieren.",
+    en: "Your saved entries are damaged and could not be loaded, so the app starts without entries. The damaged data could not be copied to a safe place: it will be lost as soon as you log something new. If you have a backup, you can import it in the settings."
+  },
+  "speicher.fehlerTitel": { de: "Speichern hat nicht geklappt", en: "Saving did not work" },
+  "speicher.fehlerText": {
+    de: "Die letzte Änderung konnte nicht auf dem Gerät gespeichert werden, vermutlich ist der Speicher voll. Du siehst sie nur noch, bis du die App schließt. Exportiere am besten jetzt ein Backup.",
+    en: "The last change could not be saved on this device, the storage is probably full. You will only see it until you close the app. It is best to export a backup now."
+  },
+  "speicher.fehlerKurz": { de: "Nicht gespeichert", en: "Not saved" },
   "kommtBald": { de: "Kommt bald", en: "Coming soon" },
   "uebungen": { de: "Übungen", en: "Exercises" },
   "saetze": { de: "Sätze", en: "Sets" },

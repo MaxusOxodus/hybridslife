@@ -131,6 +131,7 @@
 :where([data-stil="glass"]) #update-hinweis,
 :where([data-stil="glass"]) #verworfen-hinweis,
 :where([data-stil="glass"]) #routine-hinweis,
+:where([data-stil="glass"]) #speicher-hinweis,
 :where([data-stil="glass"]) #rang-hinweis,
 :where([data-stil="glass"]) #pause-leiste {
   border-color: var(--glas-kante);
@@ -147,6 +148,7 @@
 :where([data-stil="glass"]) #update-hinweis,
 :where([data-stil="glass"]) #verworfen-hinweis,
 :where([data-stil="glass"]) #routine-hinweis,
+:where([data-stil="glass"]) #speicher-hinweis,
 :where([data-stil="glass"]) #rang-hinweis,
 :where([data-stil="glass"]) #pause-leiste {
   box-shadow: var(--glas-schatten);
@@ -401,7 +403,8 @@
 /* Die Knöpfe in den Hinweisen bestehen nur aus Text. Im hellen Design bekommen sie eine Limetten-Pille. */
 :where([data-stil="glass"]) #rang-hinweis button,
 :where([data-stil="glass"]) #verworfen-hinweis button,
-:where([data-stil="glass"]) #routine-hinweis button {
+:where([data-stil="glass"]) #routine-hinweis button,
+:where([data-stil="glass"]) #speicher-hinweis button {
   border-radius: 18px;
   background: var(--akzent-pille);
 }
@@ -447,6 +450,7 @@
   :where([data-stil="glass"]) #update-hinweis,
   :where([data-stil="glass"]) #verworfen-hinweis,
   :where([data-stil="glass"]) #routine-hinweis,
+  :where([data-stil="glass"]) #speicher-hinweis,
   :where([data-stil="glass"]) #rang-hinweis,
   :where([data-stil="glass"]) #pause-leiste,
   :where([data-stil="glass"]) #sheet,
@@ -464,6 +468,7 @@
   :where([data-stil="glass"]) #update-hinweis,
   :where([data-stil="glass"]) #verworfen-hinweis,
   :where([data-stil="glass"]) #routine-hinweis,
+  :where([data-stil="glass"]) #speicher-hinweis,
   :where([data-stil="glass"]) #rang-hinweis,
   :where([data-stil="glass"]) #pause-leiste,
   :where([data-stil="glass"]) #sheet,

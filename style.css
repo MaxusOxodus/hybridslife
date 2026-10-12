@@ -310,7 +310,8 @@ h1 {
 /* ---------- Bestätigung "Training verworfen" und "Routine geändert" mit "Rückgängig": an derselben Stelle ---------- */
 
 #verworfen-hinweis,
-#routine-hinweis {
+#routine-hinweis,
+#speicher-hinweis {
   position: fixed;
   left: 16px;
   right: 16px;
@@ -335,7 +336,8 @@ h1 {
 }
 
 #verworfen-hinweis.sichtbar,
-#routine-hinweis.sichtbar {
+#routine-hinweis.sichtbar,
+#speicher-hinweis.sichtbar {
   display: flex;
   animation: seite-einblenden 0.3s ease-out;
 }
@@ -393,7 +395,8 @@ h1 {
 }
 
 #verworfen-hinweis button,
-#routine-hinweis button {
+#routine-hinweis button,
+#speicher-hinweis button {
   min-height: 36px;
   padding: 0 12px;
   border: none;

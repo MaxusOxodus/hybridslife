@@ -157,7 +157,17 @@
   // nach dem Öffnen der App ist es also wieder die aktuelle Woche.
   let homeMontag = montagDerWoche(new Date());
 
-  let eintraege =JSON.parse(localStorage.getItem("eintraege")) || [];
+  // Merker für Probleme mit dem Speicher des Geräts. Sie stehen hier oben, weil schon beim Start gelesen und gespeichert wird.
+  // eintraegeKaputt: Die gespeicherten Einträge waren nicht lesbar. kaputtGesichert: Ihr Rohtext liegt als Sicherung im Speicher.
+  let eintraegeKaputt = false;
+  let kaputtGesichert = false;
+  // Meldungen erscheinen erst, wenn der Start durch ist: Vorher steht die Sprache noch nicht fest.
+  let startFertig = false;
+  // Der Dialog "Speichern hat nicht geklappt" erscheint nur einmal pro Start der App, danach nur noch der kleine Hinweis
+  let speicherFehlerGemeldet = false;
+  let speicherFehlerWartet = false;
+
+  let eintraege = eintraegeLesen();
 
   // Wofür das Sheet gerade geöffnet ist: "log" (neuer Eintrag), "routine" (Übung zur Routine hinzufügen),
   // "tausch" (im Trainingsmodus die Übung tauschen) oder "vorlage" (in der Vorschau einer Vorlage die Übung tauschen).
@@ -273,6 +283,118 @@
     }
   }
 
+  // Speichert einen Wert als JSON-Text und gibt zurück, ob es geklappt hat. Ein Fehler (z. B. Speicher voll)
+  // bricht die laufende Aktion nicht ab, sondern wird gemeldet.
+  function sicherSpeichern(schluessel, wert) {
+    try {
+      localStorage.setItem(schluessel, JSON.stringify(wert));
+      return true;
+    } catch (fehler) {
+      speicherFehlerMelden();
+      return false;
+    }
+  }
+
+  // Meldet, dass das Speichern nicht geklappt hat: beim ersten Mal mit einem Dialog, danach nur mit dem kleinen Hinweis
+  function speicherFehlerMelden() {
+    if (!startFertig) {
+      speicherFehlerWartet = true;
+      return;
+    }
+    if (speicherFehlerGemeldet) {
+      document.getElementById("speicher-hinweis").classList.add("sichtbar");
+      return;
+    }
+    speicherFehlerGemeldet = true;
+    frageZeigen(txt("speicher.fehlerTitel"), txt("speicher.fehlerText"), [{ text: txt("ok"), art: "haupt" }]);
+  }
+
+  function speicherHinweisSchliessen() {
+    document.getElementById("speicher-hinweis").classList.remove("sichtbar");
+  }
+
+  // Liest die gespeicherten Einträge. Ist der Wert kaputt (nicht lesbar oder keine Liste), startet die App
+  // mit einer leeren Liste, und der Rohtext wird vorher gesichert, damit nichts verloren geht.
+  function eintraegeLesen() {
+    const leer = [];
+    const liste = gespeichertLesen("eintraege", leer);
+    if (liste !== leer && Array.isArray(liste)) {
+      return liste;
+    }
+    let roh = null;
+    try {
+      roh = localStorage.getItem("eintraege");
+    } catch (fehler) {
+      return leer;
+    }
+    // Noch nie etwas gespeichert: Das ist kein Fehler
+    if (roh === null || roh === "null") {
+      return leer;
+    }
+    eintraegeKaputt = true;
+    kaputtGesichert = rohtextSichern(roh);
+    return leer;
+  }
+
+  // Legt den Rohtext der kaputten Einträge unter "eintraegeKaputt" ab. Liegt dort schon eine frühere Sicherung,
+  // bleibt sie stehen und die neue kommt unter "eintraegeKaputt2". Gibt zurück, ob der Rohtext gesichert ist.
+  function rohtextSichern(roh) {
+    try {
+      let ziel = "eintraegeKaputt";
+      const frueher = localStorage.getItem(ziel);
+      if (frueher === roh || localStorage.getItem("eintraegeKaputt2") === roh) {
+        return true;
+      }
+      if (frueher !== null) {
+        ziel = "eintraegeKaputt2";
+      }
+      try {
+        localStorage.setItem(ziel, roh);
+        return true;
+      } catch (fehler) {
+        // Kein Platz für eine Kopie: den Rohtext stattdessen verschieben. Klappt auch das nicht, kommt er zurück an seinen Platz.
+        localStorage.removeItem("eintraege");
+        try {
+          localStorage.setItem(ziel, roh);
+          return true;
+        } catch (fehler2) {
+          localStorage.setItem("eintraege", roh);
+          return false;
+        }
+      }
+    } catch (fehler) {
+      return false;
+    }
+  }
+
+  // Zeigt nach dem Start, was beim Lesen und Speichern schiefging, eine Meldung nach der anderen.
+  // Danach kommt die Frage nach einem unfertigen Training noch einmal, weil die Meldungen sie überdeckt haben.
+  function startMeldungenZeigen() {
+    const meldungen = [];
+    if (eintraegeKaputt) {
+      meldungen.push({
+        titel: txt("speicher.kaputtTitel"),
+        text: txt(kaputtGesichert ? "speicher.kaputtText" : "speicher.kaputtNichtGesichert")
+      });
+    }
+    if (speicherFehlerWartet) {
+      speicherFehlerGemeldet = true;
+      meldungen.push({ titel: txt("speicher.fehlerTitel"), text: txt("speicher.fehlerText") });
+    }
+    if (meldungen.length === 0) {
+      return;
+    }
+    function naechste() {
+      if (meldungen.length === 0) {
+        trainingBeimStartPruefen();
+        return;
+      }
+      const m = meldungen.shift();
+      frageZeigen(m.titel, m.text, [{ text: txt("ok"), art: "haupt", aktion: naechste }]);
+    }
+    naechste();
+  }
+
   // ---------- Übungen nachschlagen ----------
 
   // Die ID der Muskelgruppe, bei der eine Übung steht: die Gruppe ihres Hauptmuskels
@@ -357,7 +479,7 @@
 
   // Speichert die eigenen Übungen und führt sie neu mit den festen zusammen
   function eigeneUebungenSpeichern() {
-    localStorage.setItem("eigeneUebungen", JSON.stringify(eigeneUebungen));
+    sicherSpeichern("eigeneUebungen", eigeneUebungen);
     eigeneUebungenEintragen();
   }
 
@@ -445,7 +567,7 @@
 
   // Speichert alles, was jedeGespeicherteUebung durchgeht
   function gespeicherteUebungenSichern() {
-    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+    sicherSpeichern("eintraege", eintraege);
     routinenSpeichern();
     trainingMerken();
   }
@@ -552,7 +674,7 @@
     const uebungenErgaenzt = listeZuordnen(eintraege, "uebung");
     const idsErgaenzt = eintragIdsErgaenzen(eintraege);
     if (uebungenErgaenzt || idsErgaenzt) {
-      localStorage.setItem("eintraege", JSON.stringify(eintraege));
+      sicherSpeichern("eintraege", eintraege);
     }
 
     let routinenGeaendert = false;
@@ -562,7 +684,7 @@
       }
     }
     if (routinenGeaendert) {
-      localStorage.setItem("routinen", JSON.stringify(routinen));
+      sicherSpeichern("routinen", routinen);
     }
 
     if (laufendesTraining) {
@@ -574,7 +696,7 @@
         }
       }
       if (trainingGeaendert) {
-        localStorage.setItem("laufendesTraining", JSON.stringify(laufendesTraining));
+        sicherSpeichern("laufendesTraining", laufendesTraining);
       }
     }
 
@@ -795,7 +917,7 @@
   }
 
   function einstellungenSpeichern() {
-    localStorage.setItem("einstellungen", JSON.stringify(einstellungen));
+    sicherSpeichern("einstellungen", einstellungen);
   }
 
   // Rechnet ein Gewicht aus kg in die gewählte Einheit um, ohne zu runden
@@ -2242,7 +2364,7 @@
   };
 
       eintraege.push(eintrag);
-      localStorage.setItem("eintraege", JSON.stringify(eintraege));
+      sicherSpeichern("eintraege", eintraege);
       anzeigen();
 
       gewaehlteUebung = "";
@@ -2257,7 +2379,7 @@
 
       function loeschen(index) {
         eintraege.splice(index, 1);
-        localStorage.setItem("eintraege", JSON.stringify(eintraege));
+        sicherSpeichern("eintraege", eintraege);
         anzeigen();
         letztesMalAnzeigen();
       }
@@ -2499,14 +2621,14 @@
 
   // Speichert Routinen und Wochenplan
   function routinenSpeichern() {
-    localStorage.setItem("routinen", JSON.stringify(routinen));
-    localStorage.setItem("wochenplan", JSON.stringify(wochenplan));
+    sicherSpeichern("routinen", routinen);
+    sicherSpeichern("wochenplan", wochenplan);
   }
 
   // Speichert das laufende Training oder entfernt es, wenn keins mehr läuft
   function trainingMerken() {
     if (laufendesTraining) {
-      localStorage.setItem("laufendesTraining", JSON.stringify(laufendesTraining));
+      sicherSpeichern("laufendesTraining", laufendesTraining);
     } else {
       localStorage.removeItem("laufendesTraining");
     }
@@ -3701,7 +3823,7 @@
     delete t.eintragId;
     delete t.extraSatz;
     delete t.uebersprungen;
-    localStorage.setItem("laufendesTraining", JSON.stringify(t));
+    sicherSpeichern("laufendesTraining", t);
   }
 
   // Öffnet den Trainingsmodus an der Stelle, an der das Training steht
@@ -3809,7 +3931,7 @@
     for (let i = geloescht.length - 1; i >= 0; i--) {
       eintraege.splice(geloescht[i].platz, 1);
     }
-    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+    sicherSpeichern("eintraege", eintraege);
 
     trainingZuruecksetzen();
     if (trainingAnsicht === "modus") {
@@ -3843,7 +3965,7 @@
     for (let i = 0; i < v.eintraege.length; i++) {
       eintraege.splice(Math.min(v.eintraege[i].platz, eintraege.length), 0, v.eintraege[i].eintrag);
     }
-    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+    sicherSpeichern("eintraege", eintraege);
 
     laufendesTraining = v.training;
     trainingMerken();
@@ -4226,7 +4348,7 @@
 
     eintragSaetzeSchreiben(eintrag, u.saetze);
 
-    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+    sicherSpeichern("eintraege", eintraege);
     anzeigen();
     letztesMalAnzeigen();
 
@@ -4546,7 +4668,7 @@
   // Nach dem Ändern oder Löschen eines Satzes: speichern, das laufende Training nachziehen
   // und alles neu anzeigen, was den Eintrag zeigt. saetze sind die Sätze, die der Eintrag jetzt hat.
   function satzAenderungSichern(eintrag, saetze) {
-    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+    sicherSpeichern("eintraege", eintraege);
 
     // Gehört der Eintrag zum laufenden Training, bekommt dessen Übung dieselben Sätze.
     // Ohne Sätze ist die Übung wieder offen.
@@ -5079,7 +5201,7 @@
       routineName: t.routineName || "",
       eintragIds: eintragIds
     });
-    localStorage.setItem("trainings", JSON.stringify(trainings));
+    sicherSpeichern("trainings", trainings);
   }
 
   // Beim Öffnen der App: Wartet noch ein Training, wird gefragt, ob es weitergehen soll
@@ -5817,7 +5939,7 @@
   // Einstellungen: macht die Standard-Pause um 15 Sekunden kürzer oder länger
   function pauseStandardAendern(sekunden) {
     einstellungen.pauseSekunden = Math.max(PAUSE_SCHRITT, Math.min(PAUSE_MAX, pauseStandard() + sekunden));
-    localStorage.setItem("einstellungen", JSON.stringify(einstellungen));
+    sicherSpeichern("einstellungen", einstellungen);
     pauseStandardAnzeigen();
     // Ist der Routinen-Editor offen, zeigen seine Pause-Felder die neue Standard-Zeit
     if (bearbeiteteRoutine && trainingAnsicht === "bearbeiten") {
@@ -5835,7 +5957,7 @@
 
   function pauseMerken() {
     if (pause) {
-      localStorage.setItem("pause", JSON.stringify(pause));
+      sicherSpeichern("pause", pause);
     } else {
       localStorage.removeItem("pause");
     }
@@ -7294,7 +7416,7 @@
     koerpergewicht.sort(function (a, b) {
       return new Date(a.datum) - new Date(b.datum);
     });
-    localStorage.setItem("koerpergewicht", JSON.stringify(koerpergewicht));
+    sicherSpeichern("koerpergewicht", koerpergewicht);
   }
 
   // Alle Messungen mit gültigem Gewicht als { zeit, wert, fett }, die älteste zuerst.
@@ -8047,7 +8169,7 @@
       text = " " + txt("backup.trainingsErgaenzt", { n: hinzugefuegt });
     }
 
-    localStorage.setItem("trainings", JSON.stringify(trainings));
+    sicherSpeichern("trainings", trainings);
     return text;
   }
 
@@ -8235,7 +8357,7 @@
 
   // Merkt sich, wann zuletzt ein Backup exportiert wurde. Das Datum bleibt auf dem Gerät und steht nicht im Backup.
   function backupDatumMerken() {
-    localStorage.setItem("letztesBackup", JSON.stringify(new Date().toISOString()));
+    sicherSpeichern("letztesBackup", new Date().toISOString());
     einstWerteAnzeigen();
   }
 
@@ -8429,7 +8551,7 @@
     }
     datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art) + eigeneText);
 
-    localStorage.setItem("eintraege", JSON.stringify(eintraege));
+    sicherSpeichern("eintraege", eintraege);
 
     // Der Merker des Rang-Systems: Beim Ersetzen gilt der aus dem Backup. Hat das Backup keinen (ältere Backups),
     // entsteht er aus den importierten Daten neu. In beiden Fällen ohne Meldung "Neuer Rang".
@@ -8698,7 +8820,7 @@
   }
 
   function profilSichern() {
-    localStorage.setItem("profil", JSON.stringify(profil));
+    sicherSpeichern("profil", profil);
   }
 
   // Übernimmt das Profil aus einem Backup. Beim Ersetzen gilt, was im Backup steht.
@@ -9025,7 +9147,7 @@
     const weg = element("button", "erinnerung-zu", "✕");
     weg.setAttribute("aria-label", txt("erinnerung.zu"));
     weg.onclick = function () {
-      localStorage.setItem("backupHinweisWeg", JSON.stringify(new Date().toISOString()));
+      sicherSpeichern("backupHinweisWeg", new Date().toISOString());
       backupHinweisAnzeigen();
     };
     karte.appendChild(weg);
@@ -10440,6 +10562,10 @@ trainingBeimStartPruefen();
 
 // Neue Ränge und Abzeichen seit dem letzten Öffnen melden. Beim allerersten Mal wird nur gemerkt, was schon erreicht ist.
 rangPruefen(true);
+
+// Der Start ist durch: Jetzt erscheinen die Meldungen zu kaputten Einträgen und zu fehlgeschlagenem Speichern
+startFertig = true;
+startMeldungenZeigen();
 
 // ---------- Offline und Updates ----------
 

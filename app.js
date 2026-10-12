@@ -153,6 +153,9 @@
   let angezeigterMontag = montagDerWoche(new Date());
   let gewaehlterTag = null;
 
+  // So viele Trainingstage zeigt die Liste im Log gerade, "Mehr anzeigen" legt jeweils VERLAUF_ANZAHL drauf
+  let logGezeigt = VERLAUF_ANZAHL;
+
   // Home: Montag der Woche, die über den Tagen gerade gezeigt wird. Er wird nicht gespeichert,
   // nach dem Öffnen der App ist es also wieder die aktuelle Woche.
   let homeMontag = montagDerWoche(new Date());
@@ -2233,108 +2236,112 @@
 
   // ---------- Liste ----------
 
-    function anzeigen() {
+  // Die Liste im Log: je Tag eine Datumszeile und je Training eine Karte, der neueste Tag zuerst.
+  // Tippen auf eine Karte öffnet die Details des Tags. Gelöscht wird dort, nicht in der Liste.
+  function anzeigen() {
     const liste = document.getElementById("liste");
     liste.innerHTML = "";
+    const tage = trainingstage();
 
-    // Ist ein Tag angetippt, zeigt die Liste nur dessen Einträge
+    // Ist ein Tag angetippt, zeigt die Liste nur dessen Trainings
     if (gewaehlterTag) {
-      tagesListeAnzeigen();
+      const tag = tage[tagSchluessel(gewaehlterTag)];
+      if (tag) {
+        logTagAnzeigen(liste, tag);
+      } else {
+        liste.appendChild(element("h2", "", tagTextMitJahr(gewaehlterTag)));
+        liste.appendChild(element("p", "leer-hinweis", txt("log.tagLeer")));
+      }
       return;
     }
 
-    // Einträge auf Wochen verteilen. Der Index wird mitgemerkt, damit Löschen den richtigen Eintrag trifft.
-    const wochen = {};
-    const ohneDatum = [];
-
-    for (let i = 0; i < eintraege.length; i++) {
-      const e = eintraege[i];
-      if (!e.datum || isNaN(new Date(e.datum))) {
-        ohneDatum.push({ eintrag: e, index: i });
-      } else {
-        const schluessel = montagDerWoche(new Date(e.datum)).getTime();
-        if (!wochen[schluessel]) {
-          wochen[schluessel] = [];
-        }
-        wochen[schluessel].push({ eintrag: e, index: i });
-      }
-    }
-
-    // Wochen sortieren, neueste zuerst
-    const montage = Object.keys(wochen).map(Number).sort(function (a, b) {
+    const schluessel = Object.keys(tage).sort(function (a, b) {
       return b - a;
     });
-
-    for (let w = 0; w < montage.length; w++) {
-      const titel = wochenTitel(new Date(montage[w]));
-
-      // Einträge der Woche sortieren, neueste zuerst
-      const gruppe = wochen[montage[w]];
-      gruppe.sort(function (a, b) {
-        return new Date(b.eintrag.datum) - new Date(a.eintrag.datum);
-      });
-
-      gruppeAnzeigen(titel, gruppe);
+    for (let i = 0; i < schluessel.length && i < logGezeigt; i++) {
+      logTagAnzeigen(liste, tage[schluessel[i]]);
     }
 
+    if (schluessel.length > logGezeigt) {
+      const mehr = element("button", "zweit-btn", txt("profil.mehr"));
+      mehr.onclick = function () {
+        logGezeigt += VERLAUF_ANZAHL;
+        anzeigen();
+      };
+      liste.appendChild(mehr);
+    }
+
+    // Einträge ohne Datum gehören zu keinem Tag. Sie stehen ganz unten und lassen sich nur hier löschen.
+    const ohneDatum = [];
+    for (let i = 0; i < eintraege.length; i++) {
+      if (!hatDatum(eintraege[i])) {
+        ohneDatum.push(eintraege[i]);
+      }
+    }
     if (ohneDatum.length > 0) {
-      gruppeAnzeigen(txt("log.ohneDatum"), ohneDatum);
-    }
-}
-
-    // Zeigt nur die Einträge des angetippten Tages
-    function tagesListeAnzeigen() {
-      const gruppe = [];
-
-      for (let i = 0; i < eintraege.length; i++) {
-        const e = eintraege[i];
-        if (e.datum && !isNaN(new Date(e.datum)) && tagSchluessel(new Date(e.datum)) === tagSchluessel(gewaehlterTag)) {
-          gruppe.push({ eintrag: e, index: i });
-        }
-      }
-
-      gruppe.sort(function (a, b) {
-        return new Date(b.eintrag.datum) - new Date(a.eintrag.datum);
-      });
-
-      gruppeAnzeigen(tagTextMitJahr(gewaehlterTag), gruppe);
-
-      if (gruppe.length === 0) {
-        const hinweis = document.createElement("p");
-        hinweis.className = "leer-hinweis";
-        hinweis.textContent = txt("log.tagLeer");
-        document.getElementById("liste").appendChild(hinweis);
+      liste.appendChild(element("h2", "", txt("log.ohneDatum")));
+      for (let i = 0; i < ohneDatum.length; i++) {
+        liste.appendChild(logZeileOhneDatum(ohneDatum[i]));
       }
     }
 
-    // Eine Überschrift und darunter die Einträge der Gruppe
-    function gruppeAnzeigen(titel, gruppe) {
-    const liste = document.getElementById("liste");
-    const h2 = document.createElement("h2");
-    h2.textContent = titel;
-    liste.appendChild(h2);
-    const ul = document.createElement("ul");
-    liste.appendChild(ul);
-
-    for (let j = 0; j < gruppe.length; j++) {
-    const e = gruppe[j].eintrag;
-    const index = gruppe[j].index;
-    const li = document.createElement("li");
-    let datumText = "";
-    if (e.datum) {
-      datumText = datumMitJahr(new Date(e.datum)) + " – ";
+    if (schluessel.length === 0 && ohneDatum.length === 0) {
+      liste.appendChild(element("div", "karte kommt-bald log-leer", txt("log.leer")));
     }
-    li.textContent = datumText + anzeigeName(e.uebung, e.uebungId) + ": " + saetzeText(e);
-    const btn = document.createElement("button");
-    btn.textContent = txt("loeschen");
-    btn.onclick = function () {
-      loeschen(index);
-    };
-    li.appendChild(btn);
-
-    ul.appendChild(li);
   }
-}
+
+  // Ein Tag in der Liste: die Datumszeile und je Training eine Karte. Die Trainings teilt tagBloecke auf,
+  // so zeigt die Liste dasselbe wie die Details des Tags.
+  function logTagAnzeigen(liste, tag) {
+    liste.appendChild(element("h2", "", tagTextMitJahr(tag.datum)));
+    const bloecke = tagBloecke(tag);
+    for (let i = 0; i < bloecke.length; i++) {
+      liste.appendChild(logKarte(bloecke[i], tag.schluessel));
+    }
+  }
+
+  // Die Karte eines Trainings: "Push A · 58 Min." und darunter "6 Übungen · 18 Sätze · 4.250 kg"
+  function logKarte(block, schluessel) {
+    let saetze = 0;
+    let volumen = 0;
+    for (let i = 0; i < block.eintraege.length; i++) {
+      saetze += saetzeVon(block.eintraege[i]).length;
+      volumen += eintragVolumen(block.eintraege[i], 0);
+    }
+
+    const karte = element("button", "log-karte");
+    const links = element("span", "verlauf-text");
+    const name = element("span", "verlauf-name", block.name);
+    if (block.minuten !== null) {
+      name.appendChild(element("span", "tag-block-dauer", " · " + dauerText(block.minuten)));
+    }
+    links.appendChild(name);
+    if (block.laeuft) {
+      links.appendChild(element("span", "verlauf-info", txt("home.laeuft")));
+    }
+    links.appendChild(element("span", "verlauf-info", txtAnzahl("anzahl.uebungen", tagUebungen(block).length)
+      + " · " + txtAnzahl("anzahl.saetze", saetze) + " · " + volumenText(volumen)));
+    karte.appendChild(links);
+    karte.onclick = function () {
+      tagSheetOeffnen(schluessel);
+    };
+    return karte;
+  }
+
+  // Eine Zeile unter "Ohne Datum": die Übung, ihre Sätze und "Löschen"
+  function logZeileOhneDatum(e) {
+    const zeile = element("div", "log-zeile");
+    const links = element("span", "verlauf-text");
+    links.appendChild(element("span", "verlauf-name", anzeigeName(e.uebung, e.uebungId)));
+    links.appendChild(element("span", "verlauf-info", saetzeText(e)));
+    zeile.appendChild(links);
+    const btn = element("button", "", txt("loeschen"));
+    btn.onclick = function () {
+      loeschenFragen(e);
+    };
+    zeile.appendChild(btn);
+    return zeile;
+  }
 
     // Datum für einen neuen Eintrag: der angetippte Tag mit der jetzigen Uhrzeit, ohne Auswahl heute
     function eintragDatum() {
@@ -2377,8 +2384,30 @@
 
 }
 
-      function loeschen(index) {
-        eintraege.splice(index, 1);
+      // Fragt nach, bevor ein Eintrag ohne Datum gelöscht wird
+      function loeschenFragen(eintrag) {
+        const text = txt("log.loeschenText", {
+          name: anzeigeName(eintrag.uebung, eintrag.uebungId),
+          saetze: saetzeText(eintrag)
+        });
+        frageZeigen(txt("log.loeschenFrage"), text, [
+          {
+            text: txt("loeschen"),
+            art: "gefahr",
+            aktion: function () {
+              loeschen(eintrag);
+            }
+          },
+          { text: txt("abbrechen"), art: "leise" }
+        ]);
+      }
+
+      function loeschen(eintrag) {
+        const platz = eintraege.indexOf(eintrag);
+        if (platz === -1) {
+          return;
+        }
+        eintraege.splice(platz, 1);
         sicherSpeichern("eintraege", eintraege);
         trainingsAufraeumen();
         nachTrainingAnzeigen();

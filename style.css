@@ -767,9 +767,10 @@ h1 {
   margin-top: 2px;
 }
 
-/* "Alle Einträge" springt zur Liste: etwas Abstand, damit die Kopfzeile nichts verdeckt */
+/* "Alle Einträge" springt zur Liste: Abstand, damit die Kopfzeile (44px) nichts verdeckt. Dazu 8px, weil die Ansicht
+   beim Einblenden noch 8px tiefer steht (seite-einblenden), und 16px Luft über der ersten Datumszeile. */
 #liste {
-  scroll-margin-top: calc(44px + env(safe-area-inset-top));
+  scroll-margin-top: calc(68px + env(safe-area-inset-top));
 }
 
 /* ---------- Eingabe ---------- */
@@ -944,35 +945,62 @@ h1 {
   color: var(--text-aus);
 }
 
-/* ---------- Liste der Einträge als Karten ---------- */
+/* ---------- Liste im Log: je Tag eine Datumszeile, je Training eine Karte ---------- */
 
-#liste ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* Die Tage stehen dichter als Abschnitte, nur zum Knopf darüber bleibt der volle Abstand */
+#liste h2 {
+  margin-top: 24px;
 }
 
-#liste li {
+#liste h2:first-child {
+  margin-top: 36px;
+}
+
+/* Karte eines Trainings (zum Antippen) und Zeile eines Eintrags ohne Datum */
+.log-karte,
+.log-zeile {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  min-height: 64px;
   margin-bottom: 8px;
-  padding: 14px 8px 14px 18px;
+  padding: 12px 18px;
   border: 1px solid var(--rand);
   border-radius: 16px;
   background: var(--karte);
+  color: var(--text);
+  font-size: 17px;
+  text-align: left;
+}
+
+.log-karte::after {
+  content: "›";
+  flex-shrink: 0;
+  color: var(--text-leise);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.log-karte .verlauf-info,
+.log-zeile .verlauf-info {
   overflow-wrap: anywhere;
 }
 
-/* Löschen-Button: klein und dezent */
-#liste li button {
+/* "Löschen" bei einem Eintrag ohne Datum: klein und dezent */
+.log-zeile button {
   flex-shrink: 0;
+  margin-right: -10px;
   padding: 10px 8px;
   border: none;
   background: none;
   color: var(--text-leise);
   font-size: 14px;
+}
+
+.log-leer {
+  margin-top: 36px;
 }
 
 .leer-hinweis {

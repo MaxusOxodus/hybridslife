@@ -150,6 +150,15 @@ const TEXTE = {
   "log.pauseStarten": { de: "Pause starten", en: "Start rest timer" },
   "log.ohneDatum": { de: "Ohne Datum", en: "No date" },
   "log.tagLeer": { de: "Keine Einträge an diesem Tag.", en: "No entries on this day." },
+  "log.leer": {
+    de: "Noch keine Einträge. Trag oben deine erste Übung ein.",
+    en: "No entries yet. Log your first exercise above."
+  },
+  "log.loeschenFrage": { de: "Eintrag löschen?", en: "Delete entry?" },
+  "log.loeschenText": {
+    de: "{name} ({saetze}) wird entfernt. Das lässt sich nicht rückgängig machen.",
+    en: "{name} ({saetze}) will be removed. This cannot be undone."
+  },
   "letztesMal": { de: "Letztes Mal{datum}: {saetze}", en: "Last time{datum}: {saetze}" },
   "letztesMal.leer": { de: "Letztes Mal: noch kein Eintrag", en: "Last time: no entry yet" },
   "letztes.titel": { de: "Letzte Trainingsergebnisse", en: "Last workout results" },

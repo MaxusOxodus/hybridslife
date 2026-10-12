@@ -167,7 +167,8 @@
 }
 
 /* Zeilen in Listen: wie Karten, aber ohne Schatten, weil sie dicht untereinander stehen */
-:where([data-stil="glass"]) #liste li,
+:where([data-stil="glass"]) .log-karte,
+:where([data-stil="glass"]) .log-zeile,
 :where([data-stil="glass"]) .listen-zeile {
   border-color: var(--glas-kante);
   background: var(--glas);
@@ -486,7 +487,8 @@
   }
 
   :where([data-stil="glass"]) .karte,
-  :where([data-stil="glass"]) #liste li,
+  :where([data-stil="glass"]) .log-karte,
+  :where([data-stil="glass"]) .log-zeile,
   :where([data-stil="glass"]) .listen-zeile,
   :where([data-stil="glass"]) .verlauf-zeile,
   :where([data-stil="glass"]) .abzeichen {

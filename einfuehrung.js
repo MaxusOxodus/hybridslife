@@ -7,28 +7,29 @@
 // Solange der Rundgang läuft, liegt er über allem und fängt jeden Tipp ab. Die App darunter lässt sich nicht bedienen.
 //
 // Die Datei steht in der index.html vor der app.js. Sie benutzt von dort txt, sprache, aktiveSeite, homeAnsicht,
-// seiteZeigen, homeZeigen und einstSchliessen, aber erst, wenn ein Rundgang startet.
+// seiteZeigen, homeZeigen, homeWocheHeute und einstSchliessen, aber erst, wenn ein Rundgang startet.
 // Die Farben und Größen stehen in der style.css (".tour-..."), der Glas-Look der Box in der glass.css.
 
 // ---------- Die Schritte ----------
 
 // Jeder Schritt erklärt genau ein Element:
-//   bereich: zu welchem Rundgang der Schritt gehört. einfuehrungStarten("test") zeigt alle Schritte mit bereich "test".
+//   bereich: zu welchem Rundgang der Schritt gehört. einfuehrungStarten("home") zeigt alle Schritte mit bereich "home".
 //   seite:   die Seite, auf der das Element liegt ("home", "training", "fortschritt" oder "profil")
 //   ziel:    der Name des Elements. In der index.html trägt es das Merkmal data-tour="...".
 //   pose:    wie die Figur dasteht: "winken", "zeigen" oder "jubeln"
-//   titel:   eine kurze Überschrift in jeder Sprache (ein bis drei Wörter). Sie darf fehlen.
+//   titel:   eine kurze Überschrift in jeder Sprache (ein bis drei Wörter, sie passt in eine Zeile). Sie darf fehlen.
 //   text:    ein bis zwei kurze Sätze in jeder Sprache, nie mehr
 // Fehlt das Element oder ist es nicht zu sehen, wird der Schritt ausgelassen.
+// Die Texte müssen auch stimmen, wenn Home noch leer ist: Sie nennen den Platz, nicht den Inhalt.
 const EINFUEHRUNG_SCHRITTE = [
   {
-    bereich: "test",
+    bereich: "home",
     seite: "home",
     ziel: "home-heute",
-    pose: "zeigen",
+    pose: "winken",
     titel: {
-      de: "Heute",
-      en: "Today"
+      de: "Willkommen",
+      en: "Welcome"
     },
     text: {
       de: "Hier siehst du dein Training für heute.",
@@ -36,7 +37,63 @@ const EINFUEHRUNG_SCHRITTE = [
     }
   },
   {
-    bereich: "test",
+    bereich: "home",
+    seite: "home",
+    ziel: "home-woche",
+    pose: "zeigen",
+    titel: {
+      de: "Deine Woche",
+      en: "Your week"
+    },
+    text: {
+      de: "Das sind die Tage dieser Woche. Tippe auf einen Tag, um das Training zu sehen.",
+      en: "These are the days of this week. Tap a day to see the workout."
+    }
+  },
+  {
+    bereich: "home",
+    seite: "home",
+    ziel: "home-wochenzahlen",
+    pose: "zeigen",
+    titel: {
+      de: "Deine Woche in Zahlen",
+      en: "Your week in numbers"
+    },
+    text: {
+      de: "Hier zählt die App, wie viel du diese Woche trainiert hast.",
+      en: "Here the app counts how much you trained this week."
+    }
+  },
+  {
+    bereich: "home",
+    seite: "home",
+    ziel: "home-letztes",
+    pose: "zeigen",
+    titel: {
+      de: "Letztes Training",
+      en: "Last workout"
+    },
+    text: {
+      de: "Hier siehst du dein letztes Training auf einen Blick.",
+      en: "Here you see your last workout at a glance."
+    }
+  },
+  {
+    bereich: "home",
+    seite: "home",
+    ziel: "home-kraft",
+    pose: "zeigen",
+    titel: {
+      de: "Deine Zahlen",
+      en: "Your numbers"
+    },
+    text: {
+      de: "Hier stehen deine Kraft und dein Körpergewicht. Tippe auf eine Kachel für mehr.",
+      en: "Here are your strength and body weight. Tap a tile for more."
+    }
+  },
+  {
+    bereich: "home",
     seite: "home",
     ziel: "navigation",
     pose: "jubeln",
@@ -45,8 +102,8 @@ const EINFUEHRUNG_SCHRITTE = [
       en: "The tab bar"
     },
     text: {
-      de: "Hier unten wechselst du den Bereich.",
-      en: "Down here you switch between areas."
+      de: "Mit der Leiste unten wechselst du zwischen den Bereichen der App.",
+      en: "Use the bar at the bottom to switch between the parts of the app."
     }
   }
 ];
@@ -196,6 +253,10 @@ function einfuehrungBauen() {
 function einfuehrungStarten(bereich) {
   if (tourSchritte) {
     return false;
+  }
+  // Der Rundgang über Home erklärt "diese Woche": Zeigt die Leiste gerade eine andere Woche, springt sie zurück zur aktuellen
+  if (bereich === "home") {
+    homeWocheHeute();
   }
   // Nur Schritte mit sichtbarem Element zählen, damit "1 von 2" stimmt
   const schritte = [];
@@ -474,7 +535,7 @@ function einfuehrungPlatzieren(ziel) {
 // ---------- Prüfung ----------
 
 // Prüft alle Schritte und nennt die, bei denen etwas nicht stimmt: kein Element mit dem Namen, Element nicht zu sehen,
-// unbekannte Pose oder fehlender Text. Gedacht für die Konsole des Browsers: einfuehrungPruefen()
+// unbekannte Pose, fehlender Text oder eine Überschrift, die nicht in jeder Sprache da ist. Gedacht für die Konsole des Browsers: einfuehrungPruefen()
 // Die Prüfung wechselt dabei durch die Seiten der App und kehrt am Ende zur Seite von vorher zurück.
 // Zurück kommt die Liste der Fehler. Sie ist leer, wenn alles stimmt.
 function einfuehrungPruefen() {
@@ -499,6 +560,10 @@ function einfuehrungPruefen() {
     for (let s = 0; s < SPRACHEN.length; s++) {
       if (!schritt.text || !schritt.text[SPRACHEN[s].id]) {
         probleme.push("Text fehlt: " + SPRACHEN[s].id);
+      }
+      // Die Überschrift darf fehlen. Gibt es sie, dann in jeder Sprache.
+      if (schritt.titel && !schritt.titel[SPRACHEN[s].id]) {
+        probleme.push("Überschrift fehlt: " + SPRACHEN[s].id);
       }
     }
     if (probleme.length > 0) {

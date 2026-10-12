@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=97">
+  <link rel="stylesheet" href="style.css?v=98">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=97">
+  <link rel="stylesheet" href="glass.css?v=98">
 </head>
 <body>
 
@@ -75,19 +75,19 @@
         </div>
         <button id="home-woche-vor" onclick="homeWocheBlaettern(1)" aria-label="Woche vor" data-t-aria="log.wocheVor">›</button>
       </div>
-      <div id="home-woche-rahmen">
+      <div id="home-woche-rahmen" data-tour="home-woche">
         <div id="home-woche"></div>
       </div>
-      <div id="home-woche-zahlen" class="karte"></div>
+      <div id="home-woche-zahlen" class="karte" data-tour="home-wochenzahlen"></div>
 
       <h2 class="abschnitt" data-t="home.letztesTraining">Letztes Training</h2>
-      <div id="home-letztes"></div>
+      <div id="home-letztes" data-tour="home-letztes"></div>
 
       <h2 class="abschnitt" data-t="home.insights">Insights &amp; Analytics</h2>
 
       <!-- Zwei quadratische Kacheln nebeneinander, jede mit kleinem Diagramm. Den Inhalt füllt die app.js.
            Kraft: Ein Tipp öffnet den großen Verlauf der Übung. Körpergewicht: Ein Tipp öffnet das Diagramm im Fortschritt-Tab. -->
-      <div class="home-kacheln">
+      <div class="home-kacheln" data-tour="home-kraft">
         <div id="home-kraft"></div>
         <div id="home-gewicht"></div>
       </div>
@@ -852,8 +852,8 @@
           <span class="einst-titel" data-t="einst.ueber">Über</span>
           <span class="einst-pfeil" aria-hidden="true">›</span>
         </button>
-        <!-- Startet den Rundgang mit den Test-Schritten aus der einfuehrung.js -->
-        <button class="einst-zeile" onclick="einfuehrungStarten('test')">
+        <!-- Startet den Rundgang über Home aus der einfuehrung.js. Die Zeile heißt "Anleitung (Test)", bis alle Bereiche fertig sind. -->
+        <button class="einst-zeile" onclick="einfuehrungStarten('home')">
           <span class="icon einst-icon" data-icon="anleitung"></span>
           <span class="einst-titel" data-t="tour.test">Anleitung (Test)</span>
           <span class="einst-pfeil" aria-hidden="true">›</span>
@@ -984,9 +984,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=97"></script>
-<script src="uebungen.js?v=97"></script>
-<script src="erklaerungen.js?v=97"></script>
+<script src="texte.js?v=98"></script>
+<script src="uebungen.js?v=98"></script>
+<script src="erklaerungen.js?v=98"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1008,13 +1008,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=97"></script>
-<script src="bilder.js?v=97"></script>
-<script src="vorlagen.js?v=97"></script>
-<script src="figuren.js?v=97"></script>
+<script src="raenge.js?v=98"></script>
+<script src="bilder.js?v=98"></script>
+<script src="vorlagen.js?v=98"></script>
+<script src="figuren.js?v=98"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=97"></script>
+<script src="app.js?v=98"></script>
 
 </body>
 </html>

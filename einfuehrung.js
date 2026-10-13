@@ -9,7 +9,7 @@
 // Die Datei steht in der index.html vor der app.js. Sie benutzt von dort txt, sprache, aktiveSeite, homeAnsicht,
 // seiteZeigen, homeZeigen, homeWocheHeute und einstSchliessen, für das Training trainingAnsicht, trainingReiter,
 // laufendesTraining, trainingAnsichtZeigen, trainingReiterAnzeigen, trainingFortsetzen und modusZustandAnzeigen,
-// für den Fortschritt fortschrittGruppe und fortschrittUebungenAnzeigen, für das Angebot frageZeigen, gespeichertLesen und sicherSpeichern. Alles erst, wenn ein Rundgang startet oder angeboten wird.
+// für den Fortschritt fortschrittGruppe und fortschrittUebungenAnzeigen, für das Profil profilReiter und profilReiterAnzeigen, für das Angebot frageZeigen, gespeichertLesen und sicherSpeichern. Alles erst, wenn ein Rundgang startet oder angeboten wird.
 // Die Farben und Größen stehen in der style.css (".tour-..."), der Glas-Look der Box in der glass.css.
 
 // ---------- Die Schritte ----------
@@ -25,6 +25,10 @@
 //   ansicht: "uebersicht" (die Übersicht mit dem Reiter "Pläne") oder "modus" (der Trainingsmodus, nur mit laufendem Training)
 //   zeigt:   "eingabe" oder "pause". Der Trainingsmodus zeigt immer nur eins von beiden. Für diesen Schritt ist es zu sehen,
 //            egal, was gerade dran ist (siehe einfuehrungZeigtSetzen). Darf fehlen.
+// Nur bei Schritten auf der Seite "profil":
+//   reiter:  "abzeichen". Rang, "Teilen" und Abzeichen liegen im dritten Reiter, für diese Schritte schaltet der Rundgang dorthin.
+//            Am Ende steht wieder der Reiter von vorher. Darf fehlen: Dann bleibt der Reiter, wie er ist.
+// Bei allen Schritten:
 //   braucht: was da sein muss, damit es das Element überhaupt gibt (ein Name aus EINFUEHRUNG_BRAUCHT). Darf fehlen.
 //            Fehlt es, lässt der Rundgang den Schritt aus, und einfuehrungPruefen() meldet das nicht als Fehler.
 // Fehlt das Element oder ist es nicht zu sehen, wird der Schritt ausgelassen.
@@ -376,6 +380,107 @@ const EINFUEHRUNG_SCHRITTE = [
       de: "Hier siehst du, bei welchen Übungen du stärker wirst. Trag dafür einfach dein Training ein.",
       en: "Here you see in which exercises you get stronger. Just log your workouts for that."
     }
+  },
+  {
+    bereich: "profil",
+    seite: "profil",
+    ziel: "profil-person",
+    pose: "winken",
+    titel: {
+      de: "Dein Profil",
+      en: "Your profile"
+    },
+    text: {
+      de: "Das bist du. Über „Profil bearbeiten“ trägst du deinen Namen ein.",
+      en: "This is you. Use “Edit profile” to enter your name."
+    }
+  },
+  {
+    bereich: "profil",
+    seite: "profil",
+    ziel: "profil-zahnrad",
+    pose: "zeigen",
+    titel: {
+      de: "Einstellungen",
+      en: "Settings"
+    },
+    text: {
+      de: "Hinter dem Zahnrad findest du Sprache, Design und dein Backup.",
+      en: "Behind the gear you find language, design and your backup."
+    }
+  },
+  {
+    bereich: "profil",
+    seite: "profil",
+    ziel: "profil-raster",
+    pose: "zeigen",
+    titel: {
+      de: "Aktivität",
+      en: "Activity"
+    },
+    text: {
+      de: "Jedes Feld ist ein Tag. Je kräftiger die Farbe, desto mehr hast du trainiert.",
+      en: "Each square is a day. The stronger the colour, the more you trained."
+    }
+  },
+  {
+    bereich: "profil",
+    seite: "profil",
+    ziel: "profil-reiter",
+    pose: "zeigen",
+    titel: {
+      de: "Drei Ansichten",
+      en: "Three views"
+    },
+    text: {
+      de: "Hier wechselst du zwischen Verlauf, Statistik und Abzeichen.",
+      en: "Switch here between history, stats and badges."
+    }
+  },
+  {
+    bereich: "profil",
+    seite: "profil",
+    reiter: "abzeichen",
+    ziel: "profil-rang",
+    pose: "zeigen",
+    titel: {
+      de: "Dein Rang",
+      en: "Your rank"
+    },
+    text: {
+      de: "Der Rang vergleicht deine Kraft mit deinem Körpergewicht. Er steigt, wenn du stärker wirst.",
+      en: "Your rank compares your strength to your body weight. It rises as you get stronger."
+    }
+  },
+  {
+    bereich: "profil",
+    seite: "profil",
+    reiter: "abzeichen",
+    ziel: "profil-teilen",
+    pose: "zeigen",
+    titel: {
+      de: "Teilen",
+      en: "Share"
+    },
+    text: {
+      de: "Mit „Teilen“ wird aus deinem Rang ein Bild zum Verschicken. Das geht, sobald du einen Rang hast.",
+      en: "“Share” turns your rank into a picture to send. It works once you have a rank."
+    }
+  },
+  {
+    bereich: "profil",
+    seite: "profil",
+    reiter: "abzeichen",
+    ziel: "profil-abzeichen",
+    pose: "jubeln",
+    titel: {
+      de: "Abzeichen",
+      en: "Badges"
+    },
+    text: {
+      de: "Abzeichen bekommst du für besondere Erfolge. Graue Abzeichen fehlen dir noch.",
+      en: "You earn badges for special achievements. Grey badges are still missing."
+    }
   }
 ];
 
@@ -530,6 +635,11 @@ function einfuehrungVorbereiten(schritt) {
       }
     }
   }
+  // Rang, "Teilen" und Abzeichen liegen im Profil im dritten Reiter. Das ändert nur die Ansicht, der Reiter wird nie gespeichert.
+  if (schritt.seite === "profil" && schritt.reiter && profilReiter !== schritt.reiter) {
+    profilReiter = schritt.reiter;
+    profilReiterAnzeigen();
+  }
   einfuehrungZeigtSetzen(schritt.zeigt || "");
   // Eine frisch gewechselte Seite und ihre Ansicht blenden 0,3 Sekunden lang ein und stehen dabei noch je 8 px zu tief.
   // Das Einblenden wird hier sofort beendet, sonst säße der Rahmen daneben.
@@ -625,7 +735,7 @@ function einfuehrungStarten(bereich) {
     homeWocheHeute();
   }
   tourBereich = bereich;
-  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter };
+  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter };
   // Nur Schritte mit sichtbarem Element zählen, damit "1 von 2" stimmt
   const schritte = [];
   tourLeise = true;
@@ -704,14 +814,27 @@ function einfuehrungAufraeumen() {
       trainingAnsichtZeigen(tourVorher.ansicht);
     }
   }
+  // Im Profil steht wieder der Reiter von vorher
+  if (tourVorher && profilReiter !== tourVorher.profilReiter) {
+    profilReiter = tourVorher.profilReiter;
+    if (aktiveSeite === "profil") {
+      profilReiterAnzeigen();
+    }
+  }
   tourBereich = "";
   tourVorher = null;
 }
 
+// Läuft gerade ein Rundgang, oder blättert die Einführung selbst durch die Seiten (beim Start und in der Prüfung)?
+// Die app.js fragt das, bevor sie beim Anzeigen etwas speichern würde (der Merker der Ränge im Reiter "Abzeichen").
+function einfuehrungLaeuft() {
+  return Boolean(tourSchritte) || tourLeise;
+}
+
 // ---------- Angebot und Auswahl ----------
 
-// Die Rundgänge "training", "fortschritt" und "modus" bietet die App von selbst an: beim ersten Öffnen des Training-Tabs,
-// beim ersten Öffnen des Fortschritt-Tabs und beim ersten gestarteten Training. Was schon war, steht im Speicher unter "einfuehrungGesehen", je Bereich
+// Die Rundgänge "training", "fortschritt", "profil" und "modus" bietet die App von selbst an: beim ersten Öffnen des Training-Tabs,
+// des Fortschritt-Tabs und des Profil-Tabs und beim ersten gestarteten Training. Was schon war, steht im Speicher unter "einfuehrungGesehen", je Bereich
 // { gesehen: true } oder { angeboten: 1 }. Der Merker steht absichtlich nicht in den Einstellungen:
 // Die gehen ganz ins Backup, der Merker gehört nicht hinein.
 function einfuehrungMerker() {
@@ -740,8 +863,8 @@ const TOUR_ANGEBOTE = 2;
 // Über Einstellungen → Support → "Anleitung (Test)" lässt sich der Rundgang immer starten.
 const TOUR_MODUS_ANBIETEN = true;
 
-// Die app.js ruft das auf, wenn der Training-Tab aufgeht ("training"), wenn der Fortschritt-Tab aufgeht ("fortschritt")
-// und wenn ein Training neu startet ("modus").
+// Die app.js ruft das auf, wenn der Training-Tab aufgeht ("training"), wenn der Fortschritt-Tab aufgeht ("fortschritt"),
+// wenn der Profil-Tab aufgeht ("profil") und wenn ein Training neu startet ("modus").
 // Gefragt wird erst, wenn die App damit fertig ist: Beim Start eines Trainings von Home aus geht erst der Tab auf
 // und dann der Trainingsmodus, die Frage soll zu dem passen, was am Ende zu sehen ist.
 function einfuehrungAnbieten(bereich) {
@@ -808,6 +931,7 @@ function einfuehrungWaehlen() {
   wahl(txt("nav.home"), "home");
   wahl(txt("nav.training"), "training");
   wahl(txt("nav.fortschritt"), "fortschritt");
+  wahl(txt("nav.profil"), "profil");
   wahl(txt("tour.modus"), "modus", !laufendesTraining);
   knoepfe.push({ text: txt("abbrechen"), art: "leise" });
   frageZeigen(txt("tour.titel"), txt("tour.wahl") + (laufendesTraining ? "" : "\n" + txt("tour.modusHinweis")), knoepfe);
@@ -1313,7 +1437,7 @@ function einfuehrungPruefen() {
   // Schritte, die gerade zu Recht fehlen (keine Routine, kein Training, keine Erklärung): nur ein Hinweis, kein Fehler
   const hinweise = [];
   tourBereich = "training";
-  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter };
+  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter };
   tourLeise = true;
   for (let i = 0; i < EINFUEHRUNG_SCHRITTE.length; i++) {
     const schritt = EINFUEHRUNG_SCHRITTE[i];

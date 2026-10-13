@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=109">
+  <link rel="stylesheet" href="style.css?v=110">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=109">
+  <link rel="stylesheet" href="glass.css?v=110">
 </head>
 <body>
 
@@ -425,14 +425,14 @@
         <h1 data-t="nav.profil">Profil</h1>
         <p class="unterzeile" data-t="profil.unterzeile">Dein Training auf einen Blick</p>
       </div>
-      <button class="rund-btn" onclick="einstOeffnen()" aria-label="Einstellungen" data-t-aria="einst.titel"><span class="icon" data-icon="zahnrad"></span></button>
+      <button class="rund-btn" onclick="einstOeffnen()" aria-label="Einstellungen" data-t-aria="einst.titel" data-tour="profil-zahnrad"><span class="icon" data-icon="zahnrad"></span></button>
     </div>
 
     <!-- Erinnerung ans Backup: erscheint nur, wenn das letzte zu lange her ist -->
     <div id="backup-hinweis"></div>
 
     <div class="karte">
-      <div class="profil-person">
+      <div class="profil-person" data-tour="profil-person">
         <div id="profil-avatar" class="avatar"></div>
         <div class="profil-namen">
           <div id="profil-name" class="routine-name"></div>
@@ -447,7 +447,7 @@
         <span class="raster-titel" data-t="raster.titel">Aktivität</span>
         <span id="raster-anzahl"></span>
       </div>
-      <div class="raster">
+      <div class="raster" data-tour="profil-raster">
         <div id="raster-tage" class="raster-tage" aria-hidden="true"></div>
         <div id="raster-rollen" class="raster-rollen">
           <div id="raster-monate" class="raster-monate" aria-hidden="true"></div>
@@ -462,7 +462,7 @@
       </div>
     </div>
 
-    <div id="profil-reiter" class="umschalter profil-reiter"></div>
+    <div id="profil-reiter" class="umschalter profil-reiter" data-tour="profil-reiter"></div>
     <div id="profil-reiter-inhalt"></div>
   </section>
 
@@ -984,9 +984,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=109"></script>
-<script src="uebungen.js?v=109"></script>
-<script src="erklaerungen.js?v=109"></script>
+<script src="texte.js?v=110"></script>
+<script src="uebungen.js?v=110"></script>
+<script src="erklaerungen.js?v=110"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1008,13 +1008,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=109"></script>
-<script src="bilder.js?v=109"></script>
-<script src="vorlagen.js?v=109"></script>
-<script src="figuren.js?v=109"></script>
+<script src="raenge.js?v=110"></script>
+<script src="bilder.js?v=110"></script>
+<script src="vorlagen.js?v=110"></script>
+<script src="figuren.js?v=110"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=109"></script>
+<script src="app.js?v=110"></script>
 
 </body>
 </html>

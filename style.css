@@ -3822,6 +3822,22 @@ button.einst-zeile:first-child {
   gap: 10px;
 }
 
+/* Eine Rückfrage mit sechs oder mehr Knöpfen (frageZeigen setzt die Klasse "lang", heute nur die Auswahl der Anleitung)
+   wird nie höher als der Bildschirm: Reicht der Platz nicht (320 × 568), scrollen die Knöpfe, Titel und Text bleiben stehen.
+   Die Knöpfe behalten dabei ihre Höhe. Alle anderen Rückfragen bleiben, wie sie sind. */
+#frage.lang {
+  max-height: 100%;
+}
+
+#frage.lang #frage-knoepfe {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#frage.lang .dialog-btn {
+  flex: none;
+}
+
 #dialog,
 #frage {
   display: flex;

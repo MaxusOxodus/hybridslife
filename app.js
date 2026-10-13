@@ -1173,6 +1173,8 @@
 
     if (name === "profil") {
       profilAnzeigen();
+      // Beim ersten Öffnen bietet die Einführung an, den Bereich kurz zu zeigen (einfuehrung.js)
+      einfuehrungAnbieten("profil");
     }
 
     if (name === "training") {
@@ -2835,6 +2837,8 @@
   function frageZeigen(titel, text, knoepfe) {
     document.getElementById("frage-titel").textContent = titel;
     document.getElementById("frage-text").textContent = text;
+    // Ab sechs Knöpfen dürfen die Knöpfe scrollen, damit die Frage auf kleinen Bildschirmen im Bild bleibt (style.css, "#frage.lang")
+    document.getElementById("frage").classList.toggle("lang", knoepfe.length >= 6);
 
     const bereich = document.getElementById("frage-knoepfe");
     bereich.innerHTML = "";
@@ -10214,7 +10218,11 @@
     const daten = rangPruefen(false);
     const stand = daten.stand;
 
-    inhalt.appendChild(gesamtRangKarte(stand));
+    // Die Einführung erklärt Rang, "Teilen" und Abzeichen an der Karte des Gesamt-Rangs, ihrem Knopf und dem ersten Abzeichen (einfuehrung.js)
+    const gesamt = gesamtRangKarte(stand);
+    gesamt.setAttribute("data-tour", "profil-rang");
+    gesamt.querySelector(".teilen-knopf").setAttribute("data-tour", "profil-teilen");
+    inhalt.appendChild(gesamt);
     inhalt.appendChild(konstanzKarte(stand));
 
     inhalt.appendChild(element("h2", "abschnitt", txt("rang.muster")));
@@ -10232,6 +10240,9 @@
         continue;
       }
       raster.appendChild(abzeichenKachel(daten.abzeichen[i], stand));
+    }
+    if (raster.firstElementChild) {
+      raster.firstElementChild.setAttribute("data-tour", "profil-abzeichen");
     }
     inhalt.appendChild(raster);
 
@@ -10490,7 +10501,9 @@
       }
     }
 
-    if (erstesMal || JSON.stringify(merker) !== vorher) {
+    // Zeigt die Einführung den Reiter "Abzeichen", bleibt der Merker, wie er ist: Der Rundgang speichert nichts.
+    // Was neu erreicht ist, wird beim nächsten Mal ohne Rundgang gemerkt und gemeldet.
+    if ((erstesMal || JSON.stringify(merker) !== vorher) && !einfuehrungLaeuft()) {
       einstellungen.rangMerker = merker;
       einstellungenSpeichern();
     }

@@ -658,12 +658,16 @@ function einfuehrungGesehenMerken(bereich) {
 const tourGefragt = {};
 // So oft bietet die App einen Rundgang höchstens an
 const TOUR_ANGEBOTE = 2;
+// Schalter: Bietet die App den Rundgang durch den Trainingsmodus nach dem Start eines Trainings von selbst an?
+// Seit Version 107 vorübergehend aus (false), bis der Rahmen auf dem iPhone sicher stimmt. Mit true ist das Angebot wieder da.
+// Über Einstellungen → Support → "Anleitung (Test)" lässt sich der Rundgang weiter starten.
+const TOUR_MODUS_ANBIETEN = false;
 
 // Die app.js ruft das auf, wenn der Training-Tab aufgeht ("training") und wenn ein Training neu startet ("modus").
 // Gefragt wird erst, wenn die App damit fertig ist: Beim Start eines Trainings von Home aus geht erst der Tab auf
 // und dann der Trainingsmodus, die Frage soll zu dem passen, was am Ende zu sehen ist.
 function einfuehrungAnbieten(bereich) {
-  if (tourSchritte || tourLeise || tourGefragt[bereich]) {
+  if (tourSchritte || tourLeise || tourGefragt[bereich] || (bereich === "modus" && !TOUR_MODUS_ANBIETEN)) {
     return;
   }
   setTimeout(function () {
@@ -887,6 +891,19 @@ function einfuehrungFolgen() {
   tourFolgt = requestAnimationFrame(einfuehrungFolgen);
 }
 
+// Hängt das Overlay in der Seite an die Stelle, die gerade zu sehen ist: top und left sind der Scrollstand.
+// #tour ist nicht am Bildschirm fest (position: fixed), sondern steht in der Seite wie der Kontroll-Rahmen der Diagnose.
+// Erst geht es ganz nach oben: Dort macht es die Seite nie höher, und ein Scrollstand hinter dem Seitenende
+// (die Seite ist seit der letzten Platzierung kürzer geworden) rutscht zurück. Tiefer als das Seitenende kommt es nie.
+function einfuehrungAnkern() {
+  const tour = tourTeile.tour;
+  tour.style.top = "0px";
+  tour.style.left = "0px";
+  const seite = document.documentElement;
+  tour.style.top = Math.max(Math.min(window.scrollY, seite.scrollHeight - seite.clientHeight), 0) + "px";
+  tour.style.left = window.scrollX + "px";
+}
+
 // Der Maßstab des Overlays: so viele Pixel des Bildschirms ist ein Pixel in #tour breit (x) und hoch (y). Normal ist das 1.
 // Auf zwei Stellen gerundet, weil offsetWidth nur ganze Pixel kennt.
 function einfuehrungMassstab() {
@@ -954,6 +971,7 @@ function einfuehrungAbweichung(ziel) {
 // nicht des Fensters: einfuehrungRechteck rechnet die Messwerte um. schub kommt nur von der Absicherung am Ende:
 // Um so viele Pixel wird das gemessene Rechteck nach unten gerückt.
 function einfuehrungPlatzieren(ziel, schub) {
+  einfuehrungAnkern();
   const flaeche = tourTeile.tour.getBoundingClientRect();
   const massstab = einfuehrungMassstab();
   const breite = flaeche.width / massstab.x;
@@ -990,6 +1008,7 @@ function einfuehrungPlatzieren(ziel, schub) {
     && platz.bottom + TOUR_LUFT + TOUR_ABSTAND + boxHoehe > untereGrenze
     && platz.top - TOUR_LUFT - TOUR_ABSTAND - boxHoehe < obereGrenze) {
     window.scrollBy(0, (platz.top - TOUR_LUFT - (obereGrenze + TOUR_KOPFZEILE + (raum - gesamt) / 2)) * massstab.y);
+    einfuehrungAnkern();
     platz = einfuehrungRechteck(ziel);
   }
   if (schub) {
@@ -1100,8 +1119,8 @@ function einfuehrungDiagnoseTipp() {
 }
 
 // Schreibt die Diagnose-Anzeige: ein kleiner Text im Overlay mit allen Maßen, die den Sitz des Rahmens bestimmen,
-// und ein gestrichelter Kontroll-Rahmen. Der Kontroll-Rahmen hängt nicht am Bildschirm wie #tour, sondern in der Seite,
-// an der gemessenen Stelle des Elements. Liegt er auf einem Screenshot auf dem Element und der grüne Rahmen daneben,
+// und ein gestrichelter Kontroll-Rahmen. Der Kontroll-Rahmen hängt für sich in der Seite,
+// an der gemessenen Stelle des Elements (seit Version 107 hängt auch #tour in der Seite, die Zeile "anker" zeigt wo). Liegt er auf einem Screenshot auf dem Element und der grüne Rahmen daneben,
 // stimmt die Messung und der Browser zeichnet #tour verschoben. Liegen beide zusammen daneben, stimmt die Messung nicht.
 // frei: Notch und Home-Balken in Pixeln. oben: true stellt den Text an den oberen Rand (die Box steht dann unten).
 function einfuehrungDiagnoseZeigen(ziel, frei, oben) {
@@ -1174,6 +1193,12 @@ function einfuehrungDiagnoseZeigen(ziel, frei, oben) {
     "scroller " + (scroller.join(" ") || "keine"),
     "safe oben " + rund(frei.oben) + " unten " + rund(frei.unten),
     "tour " + rechteck(tourTeile.tour.getBoundingClientRect()),
+    // Der Anker von #tour in der Seite: Art der Position, gesetzte Stelle (left/top), Scrollstand (x/y),
+    // Stelle und Größe in der Seite und das Bezugs-Element ("-" heißt: die Seite selbst)
+    "anker " + getComputedStyle(tourTeile.tour).position + " " + rund(parseFloat(tourTeile.tour.style.left)) + "/" + rund(parseFloat(tourTeile.tour.style.top))
+      + " scr " + rund(window.scrollX) + "/" + rund(window.scrollY)
+      + " off " + tourTeile.tour.offsetLeft + "/" + tourTeile.tour.offsetTop + " " + tourTeile.tour.offsetWidth + "x" + tourTeile.tour.offsetHeight
+      + " " + (tourTeile.tour.offsetParent ? kurz(tourTeile.tour.offsetParent) : "-"),
     "ziel " + rechteck(platz),
     "rahmen " + rechteck(tourTeile.rahmen.getBoundingClientRect()),
     "punkt " + punkt + (trifft ? " = ziel" : " NICHT ZIEL") + " schub " + tourSchub

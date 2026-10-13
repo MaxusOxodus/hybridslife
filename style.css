@@ -5267,13 +5267,18 @@ button.einst-zeile:first-child {
 /* ---------- Einführung: der Rundgang durch die App (einfuehrung.js) ---------- */
 
 /* Liegt über allem, auch über Sheets (30) und Rückfragen (40), und fängt jeden Tipp ab.
-   Der Innenabstand verschiebt nichts: Die einfuehrung.js liest daraus, wie viel Platz Notch und Home-Balken brauchen. */
+   Der Innenabstand verschiebt nichts: Die einfuehrung.js liest daraus, wie viel Platz Notch und Home-Balken brauchen.
+   Seit Version 107 hängt #tour in der Seite und nicht mehr am Bildschirm: so groß wie das Fenster, die einfuehrung.js
+   setzt top und left auf den Scrollstand (einfuehrungAnkern). Auf dem iPhone zeichnete Safari die feste Ebene im Trainingsmodus zu tief.
+   Der Schatten verlängert die dunkle Fläche 100 px nach unten, falls mehr zu sehen ist, als das Fenster hoch ist.
+   Ein Schatten macht die Seite nicht höher. */
 #tour {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 100px 0 rgba(0, 0, 0, 0.8);
   z-index: 50;
   display: none;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);

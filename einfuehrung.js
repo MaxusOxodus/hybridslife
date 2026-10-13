@@ -736,9 +736,9 @@ const tourGefragt = {};
 // So oft bietet die App einen Rundgang höchstens an
 const TOUR_ANGEBOTE = 2;
 // Schalter: Bietet die App den Rundgang durch den Trainingsmodus nach dem Start eines Trainings von selbst an?
-// Seit Version 107 vorübergehend aus (false), bis der Rahmen auf dem iPhone sicher stimmt. Mit true ist das Angebot wieder da.
-// Über Einstellungen → Support → "Anleitung (Test)" lässt sich der Rundgang weiter starten.
-const TOUR_MODUS_ANBIETEN = false;
+// In Version 107 und 108 war es aus (false), bis der Rahmen auf dem iPhone sicher stimmte. Seit Version 109 ist es wieder an (true).
+// Über Einstellungen → Support → "Anleitung (Test)" lässt sich der Rundgang immer starten.
+const TOUR_MODUS_ANBIETEN = true;
 
 // Die app.js ruft das auf, wenn der Training-Tab aufgeht ("training"), wenn der Fortschritt-Tab aufgeht ("fortschritt")
 // und wenn ein Training neu startet ("modus").

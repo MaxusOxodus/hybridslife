@@ -11198,7 +11198,7 @@
       faqAnzeigen();
     }
     if (name === "ueber") {
-      document.getElementById("ueber-version").textContent = appVersion();
+      document.getElementById("ueber-version").textContent = appVersion() + einfuehrungDiagnoseText();
     }
   }
 

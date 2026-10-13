@@ -5333,6 +5333,36 @@ body.tour-zeigt-pause #modus-wahl {
   stroke-linecap: round;
 }
 
+/* Diagnose-Anzeige der Einführung, nur für die Fehlersuche (einfuehrungDiagnoseZeigen). Beide Teile gibt es nur,
+   wenn sie in Einstellungen → Über mit fünf Tipps auf die Version eingeschaltet wurde.
+   Der Text steht im Overlay. Der Kontroll-Rahmen hängt in der Seite an der gemessenen Stelle des Elements und liegt über #tour. */
+.tour-diagnose {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  margin: 0;
+  padding: 3px 5px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font: 9px/1.25 ui-monospace, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.tour-kontrolle {
+  position: absolute;
+  z-index: 51;
+  border: 1px dashed #ff3bd4;
+  pointer-events: none;
+}
+
+/* Die Zeile "Version" in Einstellungen → Über lässt sich antippen (fünfmal schaltet die Diagnose-Anzeige), ohne aufzublitzen */
+#ueber-version-zeile {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Die Box mit der Erklärung. Ort und Breite setzt die einfuehrung.js. */
 .tour-box {
   position: absolute;

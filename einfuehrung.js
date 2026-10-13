@@ -380,6 +380,15 @@ let tourPauseGestellt = false;
 let tourStand = "";
 let tourFolgt = 0;
 
+// Um so viele Pixel hat die Absicherung die letzte Platzierung nach unten gerückt (einfuehrungAbweichung). Sonst 0.
+let tourSchub = 0;
+
+// Für die Diagnose-Anzeige: der Schritt, zu dem "vorher" gehört, und wie die Seite vor dem Wechsel zu ihm stand
+let tourDiagnoseIndex = -1;
+let tourDiagnoseVorher = null;
+// Die Zeitpunkte der letzten Tipps auf die Version (einfuehrungDiagnoseTipp)
+let tourDiagnoseTipps = [];
+
 // Was da sein muss, damit es das Element eines Schritts gibt (Feld "braucht")
 const EINFUEHRUNG_BRAUCHT = {
   // mindestens eine Routine: Nur dann gibt es eine Karte mit "Starten"
@@ -570,6 +579,7 @@ function einfuehrungStarten(bereich) {
   }
   tourSchritte = schritte;
   tourIndex = 0;
+  tourDiagnoseIndex = -1;
   tourTeile.tour.classList.add("offen");
   document.body.classList.add("tour-offen");
   document.addEventListener("keydown", einfuehrungTaste, true);
@@ -594,6 +604,9 @@ function einfuehrungBeenden() {
   tourTeile.tour.classList.remove("offen");
   document.body.classList.remove("tour-offen");
   document.removeEventListener("keydown", einfuehrungTaste, true);
+  if (tourTeile.kontrolle) {
+    tourTeile.kontrolle.style.display = "none";
+  }
   window.removeEventListener("resize", einfuehrungAnzeigen);
   window.removeEventListener("orientationchange", einfuehrungAnzeigen);
   document.removeEventListener("visibilitychange", einfuehrungAnzeigen);
@@ -797,6 +810,11 @@ function einfuehrungAnzeigen() {
     return;
   }
   const schritt = tourSchritte[tourIndex];
+  // Für die Diagnose-Anzeige: wie die Seite stand, bevor der Rundgang zu diesem Schritt gewechselt hat
+  if (tourDiagnoseIndex !== tourIndex) {
+    tourDiagnoseIndex = tourIndex;
+    tourDiagnoseVorher = { scrollY: window.scrollY, hoehe: document.documentElement.scrollHeight, klassen: document.body.className };
+  }
   einfuehrungVorbereiten(schritt);
   const ziel = einfuehrungZiel(schritt);
 
@@ -851,7 +869,7 @@ function einfuehrungAnzeigen() {
 function einfuehrungStand(ziel) {
   const platz = ziel.getBoundingClientRect();
   const flaeche = tourTeile.tour.getBoundingClientRect();
-  return [platz.left, platz.top, platz.width, platz.height, flaeche.width, flaeche.height, tourTeile.box.offsetHeight].join(" ");
+  return [platz.left, platz.top, platz.width, platz.height, flaeche.left, flaeche.top, flaeche.width, flaeche.height, tourTeile.box.offsetHeight].join(" ");
 }
 
 // Der Rahmen folgt dem Element. Solange der Rundgang läuft, vergleicht jedes neu gezeichnete Bild die Stelle des Elements
@@ -869,11 +887,77 @@ function einfuehrungFolgen() {
   tourFolgt = requestAnimationFrame(einfuehrungFolgen);
 }
 
-// Rechnet aus, wo Aussparung, Rahmen, Linie und Box stehen. Alle Werte sind Pixel ab der linken oberen Ecke des Bildschirms.
-function einfuehrungPlatzieren(ziel) {
+// Der Maßstab des Overlays: so viele Pixel des Bildschirms ist ein Pixel in #tour breit (x) und hoch (y). Normal ist das 1.
+// Auf zwei Stellen gerundet, weil offsetWidth nur ganze Pixel kennt.
+function einfuehrungMassstab() {
+  const tour = tourTeile.tour;
+  const flaeche = tour.getBoundingClientRect();
+  return {
+    x: Math.round(flaeche.width / tour.offsetWidth * 100) / 100 || 1,
+    y: Math.round(flaeche.height / tour.offsetHeight * 100) / 100 || 1
+  };
+}
+
+// Das Rechteck eines Elements in den Koordinaten des Overlays: Pixel ab der linken oberen Ecke von #tour, in seinem Maßstab.
+// Der Browser misst jedes Element ab der Ecke des Fensters. Liegt #tour einmal nicht genau dort, stimmt die Zeichnung trotzdem,
+// weil hier die Stelle von #tour abgezogen wird.
+function einfuehrungRechteck(element) {
   const flaeche = tourTeile.tour.getBoundingClientRect();
-  const breite = flaeche.width;
-  const hoehe = flaeche.height;
+  const platz = element.getBoundingClientRect();
+  const m = einfuehrungMassstab();
+  const links = (platz.left - flaeche.left) / m.x;
+  const oben = (platz.top - flaeche.top) / m.y;
+  return { left: links, top: oben, right: links + platz.width / m.x, bottom: oben + platz.height / m.y, width: platz.width / m.x, height: platz.height / m.y };
+}
+
+// Absicherung: Liegt an der gemessenen Stelle wirklich das Element (oder ein Teil von ihm)? Geprüft werden zwei Punkte
+// auf der senkrechten Mittellinie, je 2 px innerhalb der oberen und der unteren Kante: So fällt auch ein kleiner Versatz
+// bei einem hohen Element auf. Liegt an beiden das Element, kommt 0 zurück. Wenn nicht, sucht die Funktion es auf dieser Linie,
+// alle 2 px über die ganze Höhe des Fensters. Findet sie es dort gleich hoch wie gemessen, kommt zurück, um wie viele Pixel
+// es tiefer (plus) oder höher (minus) liegt. Findet sie es nicht oder nur ein Stück davon (z. B. weil etwas darüber liegt),
+// kommt 0 zurück: Dann bleibt die Messung gültig.
+function einfuehrungAbweichung(ziel) {
+  const platz = ziel.getBoundingClientRect();
+  const oben = Math.max(platz.top, 0);
+  const unten = Math.min(platz.bottom, window.innerHeight);
+  const x = (Math.max(platz.left, 0) + Math.min(platz.right, window.innerWidth)) / 2;
+  if (unten <= oben) {
+    return 0;
+  }
+  // Für die Probe lässt #tour die Punkte durch, sonst läge immer #tour selbst an der Stelle
+  tourTeile.tour.style.pointerEvents = "none";
+  const trifft = function (y) {
+    const gefunden = document.elementFromPoint(x, y);
+    return Boolean(gefunden) && (gefunden === ziel || ziel.contains(gefunden));
+  };
+  let abweichung = 0;
+  if (!trifft(Math.min(oben + 2, (oben + unten) / 2)) || !trifft(Math.max(unten - 2, (oben + unten) / 2))) {
+    let erster = -1;
+    let letzter = -1;
+    for (let y = 0; y < window.innerHeight; y += 2) {
+      if (trifft(y)) {
+        if (erster === -1) {
+          erster = y;
+        }
+        letzter = y;
+      }
+    }
+    if (erster !== -1 && Math.abs((letzter - erster) - (unten - oben)) <= 8) {
+      abweichung = Math.round((erster + letzter) / 2 - (oben + unten) / 2);
+    }
+  }
+  tourTeile.tour.style.pointerEvents = "";
+  return abweichung;
+}
+
+// Rechnet aus, wo Aussparung, Rahmen, Linie und Box stehen. Alle Werte sind Pixel ab der linken oberen Ecke des Overlays (#tour),
+// nicht des Fensters: einfuehrungRechteck rechnet die Messwerte um. schub kommt nur von der Absicherung am Ende:
+// Um so viele Pixel wird das gemessene Rechteck nach unten gerückt.
+function einfuehrungPlatzieren(ziel, schub) {
+  const flaeche = tourTeile.tour.getBoundingClientRect();
+  const massstab = einfuehrungMassstab();
+  const breite = flaeche.width / massstab.x;
+  const hoehe = flaeche.height / massstab.y;
 
   // Notch und Home-Balken: Die style.css legt sie als Innenabstand an #tour, hier werden sie in Pixeln gelesen
   const stil = getComputedStyle(tourTeile.tour);
@@ -885,7 +969,7 @@ function einfuehrungPlatzieren(ziel) {
   };
 
   // Die Box: so breit wie der Inhalt der Seite, mit 16 px Rand
-  const seite = document.body.getBoundingClientRect();
+  const seite = einfuehrungRechteck(document.body);
   const box = tourTeile.box;
   const boxLinks = Math.max(seite.left, frei.links) + 16;
   const boxRechts = Math.min(seite.right, breite - frei.rechts) - 16;
@@ -899,14 +983,17 @@ function einfuehrungPlatzieren(ziel) {
   // Ein hohes Element (z. B. der Wochenplan) steht nach dem Hereinholen in der Mitte, die Box passt dann weder darunter
   // noch darüber. Haben Element und Box zusammen Platz, rückt die Seite so weit, dass das Element oben und die Box darunter steht.
   // Oben bleibt dabei der Platz der schmalen Kopfzeile frei, sonst läge sie über dem Element.
-  let platz = ziel.getBoundingClientRect();
+  let platz = einfuehrungRechteck(ziel);
   const gesamt = platz.height + 2 * TOUR_LUFT + TOUR_ABSTAND + boxHoehe;
   const raum = untereGrenze - obereGrenze - TOUR_KOPFZEILE;
-  if (gesamt <= raum
+  if (schub === undefined && gesamt <= raum
     && platz.bottom + TOUR_LUFT + TOUR_ABSTAND + boxHoehe > untereGrenze
     && platz.top - TOUR_LUFT - TOUR_ABSTAND - boxHoehe < obereGrenze) {
-    window.scrollBy(0, platz.top - TOUR_LUFT - (obereGrenze + TOUR_KOPFZEILE + (raum - gesamt) / 2));
-    platz = ziel.getBoundingClientRect();
+    window.scrollBy(0, (platz.top - TOUR_LUFT - (obereGrenze + TOUR_KOPFZEILE + (raum - gesamt) / 2)) * massstab.y);
+    platz = einfuehrungRechteck(ziel);
+  }
+  if (schub) {
+    platz = { left: platz.left, right: platz.right, top: platz.top + schub / massstab.y, bottom: platz.bottom + schub / massstab.y };
   }
 
   // Der Rahmen um das Element, mit etwas Luft. Er bleibt im Bildschirm.
@@ -971,6 +1058,139 @@ function einfuehrungPlatzieren(ziel) {
   linie.setAttribute("y1", boxUnten ? unten : oben);
   linie.setAttribute("y2", boxUnten ? boxOben : boxOben + boxHoehe);
   tourStand = einfuehrungStand(ziel);
+  tourSchub = schub || 0;
+
+  // Absicherung, nur beim ersten Durchgang: Liegt das Element nicht dort, wo es gemessen wurde, noch einmal mit der Abweichung zeichnen
+  if (schub === undefined) {
+    const abweichung = einfuehrungAbweichung(ziel);
+    if (abweichung !== 0) {
+      einfuehrungPlatzieren(ziel, abweichung);
+      return;
+    }
+  }
+  einfuehrungDiagnoseZeigen(ziel, frei, boxOben + boxHoehe / 2 > hoehe / 2);
+}
+
+// ---------- Diagnose-Anzeige (nur für die Fehlersuche) ----------
+
+// Ist die Diagnose-Anzeige eingeschaltet? Der Merker steht im Speicher unter dem eigenen Schlüssel "einfuehrungDiagnose",
+// nicht in den Einstellungen: So kommt er nicht ins Backup. Ohne Eintrag ist sie aus.
+function einfuehrungDiagnoseAn() {
+  return gespeichertLesen("einfuehrungDiagnose", false) === true;
+}
+
+// Der Zusatz hinter der Versionsnummer in Einstellungen → Über, solange die Diagnose-Anzeige an ist
+function einfuehrungDiagnoseText() {
+  return einfuehrungDiagnoseAn() ? " · Diagnose" : "";
+}
+
+// Ein Tipp auf die Zeile "Version" in Einstellungen → Über. Fünf Tipps innerhalb von drei Sekunden schalten die Diagnose-Anzeige ein oder aus.
+function einfuehrungDiagnoseTipp() {
+  const jetzt = Date.now();
+  tourDiagnoseTipps.push(jetzt);
+  tourDiagnoseTipps = tourDiagnoseTipps.filter(function (zeit) {
+    return jetzt - zeit < 3000;
+  });
+  if (tourDiagnoseTipps.length < 5) {
+    return;
+  }
+  tourDiagnoseTipps = [];
+  sicherSpeichern("einfuehrungDiagnose", !einfuehrungDiagnoseAn());
+  document.getElementById("ueber-version").textContent = appVersion() + einfuehrungDiagnoseText();
+}
+
+// Schreibt die Diagnose-Anzeige: ein kleiner Text im Overlay mit allen Maßen, die den Sitz des Rahmens bestimmen,
+// und ein gestrichelter Kontroll-Rahmen. Der Kontroll-Rahmen hängt nicht am Bildschirm wie #tour, sondern in der Seite,
+// an der gemessenen Stelle des Elements. Liegt er auf einem Screenshot auf dem Element und der grüne Rahmen daneben,
+// stimmt die Messung und der Browser zeichnet #tour verschoben. Liegen beide zusammen daneben, stimmt die Messung nicht.
+// frei: Notch und Home-Balken in Pixeln. oben: true stellt den Text an den oberen Rand (die Box steht dann unten).
+function einfuehrungDiagnoseZeigen(ziel, frei, oben) {
+  if (!einfuehrungDiagnoseAn()) {
+    if (tourTeile.diagnose) {
+      tourTeile.diagnose.style.display = "none";
+      tourTeile.kontrolle.style.display = "none";
+    }
+    return;
+  }
+  if (!tourTeile.diagnose) {
+    tourTeile.diagnose = document.createElement("pre");
+    tourTeile.diagnose.className = "tour-diagnose";
+    tourTeile.tour.appendChild(tourTeile.diagnose);
+    tourTeile.kontrolle = document.createElement("div");
+    tourTeile.kontrolle.className = "tour-kontrolle";
+    document.body.appendChild(tourTeile.kontrolle);
+  }
+  const rund = function (wert) {
+    return Math.round(wert * 10) / 10;
+  };
+  const rechteck = function (r) {
+    return rund(r.left) + "," + rund(r.top) + " " + rund(r.width) + "x" + rund(r.height);
+  };
+  // Ein Element kurz benannt: Tag mit id oder erster Klasse
+  const kurz = function (element) {
+    let text = element.tagName.toLowerCase();
+    if (element.id) {
+      text += "#" + element.id;
+    } else if (element.classList.length > 0) {
+      text += "." + element.classList[0];
+    }
+    return text;
+  };
+
+  // Alle Vorfahren des Elements, die scrollen können oder gescrollt sind
+  const scroller = [];
+  for (let e = ziel.parentElement; e; e = e.parentElement) {
+    const kann = e.scrollHeight > e.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(e).overflowY);
+    if (kann || e.scrollTop !== 0) {
+      scroller.push(kurz(e) + ":" + rund(e.scrollTop));
+    }
+  }
+
+  // Was liegt in der Mitte des gemessenen Rechtecks, wenn man durch #tour hindurchschaut?
+  // Genannt wird der Name aus data-tour, sonst Tag mit id oder Klasse.
+  const platz = ziel.getBoundingClientRect();
+  tourTeile.tour.style.pointerEvents = "none";
+  const gefunden = document.elementFromPoint(platz.left + platz.width / 2, platz.top + platz.height / 2);
+  tourTeile.tour.style.pointerEvents = "";
+  const trifft = Boolean(gefunden) && (gefunden === ziel || ziel.contains(gefunden));
+  let punkt = "nichts";
+  if (gefunden) {
+    const mitNamen = gefunden.closest("[data-tour]");
+    punkt = mitNamen ? mitNamen.getAttribute("data-tour") : kurz(gefunden);
+  }
+
+  const schritt = tourSchritte[tourIndex];
+  const vorher = tourDiagnoseVorher || { scrollY: 0, hoehe: 0, klassen: "" };
+  const sicht = window.visualViewport;
+  const zeilen = [
+    "v" + appVersion() + " " + tourBereich + " " + (tourIndex + 1) + "/" + tourSchritte.length + " " + schritt.ziel,
+    "fenster " + window.innerWidth + "x" + window.innerHeight + " doc " + document.documentElement.clientWidth + "x" + document.documentElement.clientHeight,
+    sicht ? "vv " + rund(sicht.width) + "x" + rund(sicht.height) + " oT " + rund(sicht.offsetTop) + " oL " + rund(sicht.offsetLeft)
+      + " pT " + rund(sicht.pageTop) + " z " + rund(sicht.scale) : "vv fehlt",
+    "scrollY " + rund(window.scrollY) + " vorher " + rund(vorher.scrollY),
+    "seitenhoehe " + document.documentElement.scrollHeight + " vorher " + vorher.hoehe,
+    "body [" + document.body.className + "]",
+    "vorher [" + vorher.klassen + "]",
+    "scroller " + (scroller.join(" ") || "keine"),
+    "safe oben " + rund(frei.oben) + " unten " + rund(frei.unten),
+    "tour " + rechteck(tourTeile.tour.getBoundingClientRect()),
+    "ziel " + rechteck(platz),
+    "rahmen " + rechteck(tourTeile.rahmen.getBoundingClientRect()),
+    "punkt " + punkt + (trifft ? " = ziel" : " NICHT ZIEL") + " schub " + tourSchub
+  ];
+  const feld = tourTeile.diagnose;
+  feld.textContent = zeilen.join("\n");
+  feld.style.display = "";
+  feld.style.top = oben ? (frei.oben + 2) + "px" : "";
+  feld.style.bottom = oben ? "" : (frei.unten + 2) + "px";
+
+  // Der Kontroll-Rahmen in der Seite: gemessene Stelle plus Scrollstand
+  const kontrolle = tourTeile.kontrolle;
+  kontrolle.style.display = "";
+  kontrolle.style.left = (platz.left + window.scrollX) + "px";
+  kontrolle.style.top = (platz.top + window.scrollY) + "px";
+  kontrolle.style.width = platz.width + "px";
+  kontrolle.style.height = platz.height + "px";
 }
 
 // ---------- Prüfung ----------

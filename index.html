@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=107">
+  <link rel="stylesheet" href="style.css?v=108">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=107">
+  <link rel="stylesheet" href="glass.css?v=108">
 </head>
 <body>
 
@@ -349,7 +349,7 @@
     <p class="unterzeile" data-t="fortschritt.unterzeile">Deine Zahlen auf einen Blick</p>
 
     <h2 class="abschnitt" data-t="fortschritt.statistik">Statistik</h2>
-    <div class="kacheln">
+    <div class="kacheln" data-tour="fortschritt-statistik">
       <div class="karte">
         <div id="stat-workouts" class="kachel-zahl">0</div>
         <div class="kachel-titel" data-t="fortschritt.workouts">Workouts gesamt</div>
@@ -369,7 +369,7 @@
     </div>
 
     <h2 id="kg-abschnitt" class="abschnitt" data-t="koerpergewicht">Körpergewicht</h2>
-    <div class="karte">
+    <div class="karte" data-tour="fortschritt-gewicht">
       <!-- Kopf mit dem letzten Eintrag und Zeitraum des Diagramms: Beides baut die app.js -->
       <div id="kg-kopf" class="mess-kopf"></div>
       <div id="kg-zeitraum" class="umschalter"></div>
@@ -379,7 +379,7 @@
         <span><i class="legende-punkt"></i><span data-t="fortschritt.messung">Messung</span></span>
       </div>
     </div>
-    <button class="zweit-btn" onclick="gewichtSheetOeffnen()" data-t="fortschritt.gewichtEintragen">Gewicht eintragen</button>
+    <button class="zweit-btn" onclick="gewichtSheetOeffnen()" data-t="fortschritt.gewichtEintragen" data-tour="fortschritt-eintragen">Gewicht eintragen</button>
     <!-- "Alle Einträge": Der Button klappt den Kalender mit allen Messungen auf und zu. Am Anfang ist er zu.
          Den Inhalt des Kalenders baut die app.js. -->
     <button id="kg-klapp-btn" class="zweit-btn" aria-expanded="false" aria-controls="kg-klapp" onclick="messKalenderKlappen('kg')"><span data-t="messung.alleEintraege">Alle Einträge</span><span class="klapp-pfeil" aria-hidden="true">▾</span></button>
@@ -388,7 +388,7 @@
     </div></div>
 
     <h2 class="abschnitt" data-t="fortschritt.veraenderung">Veränderung im 7-Tage-Schnitt</h2>
-    <div id="kg-kacheln" class="kacheln"></div>
+    <div id="kg-kacheln" class="kacheln" data-tour="fortschritt-veraenderung"></div>
 
     <!-- Körperfett: derselbe Aufbau wie beim Körpergewicht. Es lässt sich allein oder beim Gewicht mit eintragen. -->
     <h2 class="abschnitt" data-t="koerperfett">Körperfett</h2>
@@ -984,9 +984,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=107"></script>
-<script src="uebungen.js?v=107"></script>
-<script src="erklaerungen.js?v=107"></script>
+<script src="texte.js?v=108"></script>
+<script src="uebungen.js?v=108"></script>
+<script src="erklaerungen.js?v=108"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1008,13 +1008,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=107"></script>
-<script src="bilder.js?v=107"></script>
-<script src="vorlagen.js?v=107"></script>
-<script src="figuren.js?v=107"></script>
+<script src="raenge.js?v=108"></script>
+<script src="bilder.js?v=108"></script>
+<script src="vorlagen.js?v=108"></script>
+<script src="figuren.js?v=108"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=107"></script>
+<script src="app.js?v=108"></script>
 
 </body>
 </html>

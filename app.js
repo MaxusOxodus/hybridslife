@@ -1167,6 +1167,8 @@
 
     if (name === "fortschritt") {
       fortschrittAnzeigen();
+      // Beim ersten Öffnen bietet die Einführung an, den Bereich kurz zu zeigen (einfuehrung.js)
+      einfuehrungAnbieten("fortschritt");
     }
 
     if (name === "profil") {
@@ -7306,7 +7308,10 @@
 
     if (gruppen[0].uebungen.length === 0) {
       fortschrittGruppe = "";
-      bereich.appendChild(element("p", "leer-hinweis", txt("fortschritt.kraftLeer")));
+      const leer = element("p", "leer-hinweis", txt("fortschritt.kraftLeer"));
+      // Die Einführung erklärt die Kraftentwicklung an diesem Hinweis, mit Einträgen an der ersten Muskelgruppe (einfuehrung.js)
+      leer.setAttribute("data-tour", "fortschritt-kraft");
+      bereich.appendChild(leer);
       return;
     }
 
@@ -7340,6 +7345,10 @@
       }
 
       const zeile = element(trainiert ? "button" : "div", "listen-zeile gruppen-zeile");
+      // Die Einführung erklärt die Kraftentwicklung an der ersten Muskelgruppe (einfuehrung.js)
+      if (i === 0) {
+        zeile.setAttribute("data-tour", "fortschritt-kraft");
+      }
       const figur = element("span", "gruppen-figur");
       figur.innerHTML = koerperSvg(g.gruppe || { id: "", ansicht: "vorn" });
       zeile.appendChild(figur);

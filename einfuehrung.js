@@ -9,7 +9,7 @@
 // Die Datei steht in der index.html vor der app.js. Sie benutzt von dort txt, sprache, aktiveSeite, homeAnsicht,
 // seiteZeigen, homeZeigen, homeWocheHeute und einstSchliessen, für das Training trainingAnsicht, trainingReiter,
 // laufendesTraining, trainingAnsichtZeigen, trainingReiterAnzeigen, trainingFortsetzen und modusZustandAnzeigen,
-// für das Angebot frageZeigen, gespeichertLesen und sicherSpeichern. Alles erst, wenn ein Rundgang startet oder angeboten wird.
+// für den Fortschritt fortschrittGruppe und fortschrittUebungenAnzeigen, für das Angebot frageZeigen, gespeichertLesen und sicherSpeichern. Alles erst, wenn ein Rundgang startet oder angeboten wird.
 // Die Farben und Größen stehen in der style.css (".tour-..."), der Glas-Look der Box in der glass.css.
 
 // ---------- Die Schritte ----------
@@ -305,6 +305,77 @@ const EINFUEHRUNG_SCHRITTE = [
       de: "Bist du fertig, tippe auf „Beenden“. Die App fragt nach und speichert dein Training.",
       en: "When you are done, tap “Finish”. The app asks first and saves your workout."
     }
+  },
+  {
+    bereich: "fortschritt",
+    seite: "fortschritt",
+    ziel: "fortschritt-statistik",
+    pose: "winken",
+    titel: {
+      de: "Dein Fortschritt",
+      en: "Your progress"
+    },
+    text: {
+      de: "Hier zählt die App alles zusammen, was du bisher trainiert hast.",
+      en: "Here the app adds up everything you have trained so far."
+    }
+  },
+  {
+    bereich: "fortschritt",
+    seite: "fortschritt",
+    ziel: "fortschritt-gewicht",
+    pose: "zeigen",
+    titel: {
+      de: "Körpergewicht",
+      en: "Body weight"
+    },
+    text: {
+      de: "Diese Karte zeigt, wie sich dein Gewicht mit der Zeit verändert.",
+      en: "This card shows how your weight changes over time."
+    }
+  },
+  {
+    bereich: "fortschritt",
+    seite: "fortschritt",
+    ziel: "fortschritt-eintragen",
+    pose: "zeigen",
+    titel: {
+      de: "Gewicht eintragen",
+      en: "Log weight"
+    },
+    text: {
+      de: "Tippe hier, um dein Gewicht einzutragen. Weiter unten geht dasselbe für dein Körperfett.",
+      en: "Tap here to log your weight. Further down you can do the same for your body fat."
+    }
+  },
+  {
+    bereich: "fortschritt",
+    seite: "fortschritt",
+    ziel: "fortschritt-veraenderung",
+    pose: "zeigen",
+    titel: {
+      de: "Veränderung",
+      en: "Change"
+    },
+    text: {
+      de: "Diese Kacheln zeigen, ob dein Gewicht in den letzten Tagen gestiegen oder gefallen ist.",
+      en: "These tiles show whether your weight went up or down over the last days."
+    }
+  },
+  {
+    // Das Ziel setzt die app.js: ohne Einträge der Hinweis, mit Einträgen die erste Muskelgruppe (fortschrittUebungenAnzeigen)
+    bereich: "fortschritt",
+    seite: "fortschritt",
+    ziel: "fortschritt-kraft",
+    pose: "jubeln",
+    titel: {
+      de: "Deine Kraft",
+      en: "Your strength"
+    },
+    text: {
+      de: "Hier siehst du, bei welchen Übungen du stärker wirst. Trag dafür einfach dein Training ein.",
+      en: "Here you see in which exercises you get stronger. Just log your workouts for that."
+    }
   }
 ];
 
@@ -437,6 +508,12 @@ function einfuehrungVorbereiten(schritt) {
   }
   if (schritt.seite === "home" && homeAnsicht !== "home") {
     homeZeigen();
+  }
+  // Der Rundgang über den Fortschritt erklärt die Liste der Muskelgruppen: Ist gerade eine Gruppe geöffnet, geht es zurück zur Liste.
+  // Das ändert nur die Ansicht, gespeichert wird die geöffnete Gruppe nie.
+  if (schritt.seite === "fortschritt" && fortschrittGruppe !== "") {
+    fortschrittGruppe = "";
+    fortschrittUebungenAnzeigen();
   }
   if (schritt.seite === "training") {
     if (schritt.ansicht === "modus") {
@@ -633,8 +710,8 @@ function einfuehrungAufraeumen() {
 
 // ---------- Angebot und Auswahl ----------
 
-// Die Rundgänge "training" und "modus" bietet die App von selbst an: beim ersten Öffnen des Training-Tabs und
-// beim ersten gestarteten Training. Was schon war, steht im Speicher unter "einfuehrungGesehen", je Bereich
+// Die Rundgänge "training", "fortschritt" und "modus" bietet die App von selbst an: beim ersten Öffnen des Training-Tabs,
+// beim ersten Öffnen des Fortschritt-Tabs und beim ersten gestarteten Training. Was schon war, steht im Speicher unter "einfuehrungGesehen", je Bereich
 // { gesehen: true } oder { angeboten: 1 }. Der Merker steht absichtlich nicht in den Einstellungen:
 // Die gehen ganz ins Backup, der Merker gehört nicht hinein.
 function einfuehrungMerker() {
@@ -663,7 +740,8 @@ const TOUR_ANGEBOTE = 2;
 // Über Einstellungen → Support → "Anleitung (Test)" lässt sich der Rundgang weiter starten.
 const TOUR_MODUS_ANBIETEN = false;
 
-// Die app.js ruft das auf, wenn der Training-Tab aufgeht ("training") und wenn ein Training neu startet ("modus").
+// Die app.js ruft das auf, wenn der Training-Tab aufgeht ("training"), wenn der Fortschritt-Tab aufgeht ("fortschritt")
+// und wenn ein Training neu startet ("modus").
 // Gefragt wird erst, wenn die App damit fertig ist: Beim Start eines Trainings von Home aus geht erst der Tab auf
 // und dann der Trainingsmodus, die Frage soll zu dem passen, was am Ende zu sehen ist.
 function einfuehrungAnbieten(bereich) {
@@ -678,7 +756,9 @@ function einfuehrungAnbieten(bereich) {
 // Fragt "Kurz zeigen?", wenn der Bereich wirklich zu sehen ist und der Rundgang noch nicht gesehen und
 // noch keine zweimal angeboten wurde. "Ja, zeigen" startet ihn, "Später" schließt nur den Dialog.
 function einfuehrungFragen(bereich) {
-  if (tourSchritte || tourGefragt[bereich] || !startFertig || aktiveSeite !== "training") {
+  // Die Seite des Bereichs: "modus" liegt auf der Seite "training", sonst heißt die Seite wie der Bereich
+  const seite = bereich === "modus" ? "training" : bereich;
+  if (tourSchritte || tourGefragt[bereich] || !startFertig || aktiveSeite !== seite) {
     return;
   }
   if (bereich === "training" && trainingAnsicht !== "uebersicht") {
@@ -727,6 +807,7 @@ function einfuehrungWaehlen() {
   };
   wahl(txt("nav.home"), "home");
   wahl(txt("nav.training"), "training");
+  wahl(txt("nav.fortschritt"), "fortschritt");
   wahl(txt("tour.modus"), "modus", !laufendesTraining);
   knoepfe.push({ text: txt("abbrechen"), art: "leise" });
   frageZeigen(txt("tour.titel"), txt("tour.wahl") + (laufendesTraining ? "" : "\n" + txt("tour.modusHinweis")), knoepfe);
@@ -1246,13 +1327,14 @@ function einfuehrungPruefen() {
     }
     if (fehlt || probleme.length > 0) {
       // Das Element gibt es in diesem Zustand nicht, geprüft werden nur Pose und Texte
-    } else if (!document.querySelector('[data-tour="' + schritt.ziel + '"]')) {
-      probleme.push("kein Element mit data-tour=\"" + schritt.ziel + "\"");
     } else if (!document.getElementById("seite-" + schritt.seite)) {
       probleme.push("Seite \"" + schritt.seite + "\" gibt es nicht");
     } else {
+      // Erst die Seite zeigen: Manche Elemente baut die app.js erst, wenn ihre Seite aufgeht (z. B. die Kraftentwicklung im Fortschritt)
       einfuehrungVorbereiten(schritt);
-      if (!einfuehrungZiel(schritt)) {
+      if (!document.querySelector('[data-tour="' + schritt.ziel + '"]')) {
+        probleme.push("kein Element mit data-tour=\"" + schritt.ziel + "\"");
+      } else if (!einfuehrungZiel(schritt)) {
         probleme.push("Element ist gerade nicht zu sehen");
       }
     }

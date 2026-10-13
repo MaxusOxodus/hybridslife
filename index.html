@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=103">
+  <link rel="stylesheet" href="style.css?v=104">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=103">
+  <link rel="stylesheet" href="glass.css?v=104">
 </head>
 <body>
 
@@ -245,8 +245,8 @@
                 <span id="modus-uebung"></span>
                 <svg class="verlauf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 8-9"/></svg>
               </button>
-              <!-- Das "i" öffnet die Erklärung der Übung. Es erscheint nur, wenn es eine gibt. -->
-              <button id="modus-erklaerung" class="info-knopf versteckt" data-tour="modus-erklaerung" onclick="erklaerungImModus()" aria-label="Erklärung" data-t-aria="erklaerung.button"><span aria-hidden="true">i</span></button>
+              <!-- Das "i" öffnet die Erklärung der Übung. Es erscheint nur, wenn es eine gibt. Der Rundgang rahmt den sichtbaren Kreis, nicht die größere Tippfläche. -->
+              <button id="modus-erklaerung" class="info-knopf versteckt" onclick="erklaerungImModus()" aria-label="Erklärung" data-t-aria="erklaerung.button"><span aria-hidden="true" data-tour="modus-erklaerung">i</span></button>
             </div>
             <!-- Geräte-Zeile: Bereich und Muskelgruppe, z. B. "Maschine · Brust" -->
             <div id="modus-geraet" class="modus-geraet"></div>
@@ -984,9 +984,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=103"></script>
-<script src="uebungen.js?v=103"></script>
-<script src="erklaerungen.js?v=103"></script>
+<script src="texte.js?v=104"></script>
+<script src="uebungen.js?v=104"></script>
+<script src="erklaerungen.js?v=104"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1008,13 +1008,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=103"></script>
-<script src="bilder.js?v=103"></script>
-<script src="vorlagen.js?v=103"></script>
-<script src="figuren.js?v=103"></script>
+<script src="raenge.js?v=104"></script>
+<script src="bilder.js?v=104"></script>
+<script src="vorlagen.js?v=104"></script>
+<script src="figuren.js?v=104"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=103"></script>
+<script src="app.js?v=104"></script>
 
 </body>
 </html>

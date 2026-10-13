@@ -376,6 +376,10 @@ let tourLeise = false;
 // Steht im Trainingsmodus gerade eine Pausenzeit, die nur der Rundgang hingeschrieben hat?
 let tourPauseGestellt = false;
 
+// Wo Element, Bildschirm und Box bei der letzten Platzierung standen, und die Nummer des bestellten nächsten Vergleichs (einfuehrungFolgen)
+let tourStand = "";
+let tourFolgt = 0;
+
 // Was da sein muss, damit es das Element eines Schritts gibt (Feld "braucht")
 const EINFUEHRUNG_BRAUCHT = {
   // mindestens eine Routine: Nur dann gibt es eine Karte mit "Starten"
@@ -575,6 +579,8 @@ function einfuehrungStarten(bereich) {
   einfuehrungAnzeigen();
   einfuehrungEinblenden();
   tourTeile.box.focus({ preventScroll: true });
+  cancelAnimationFrame(tourFolgt);
+  tourFolgt = requestAnimationFrame(einfuehrungFolgen);
   return true;
 }
 
@@ -584,6 +590,7 @@ function einfuehrungBeenden() {
     return;
   }
   tourSchritte = null;
+  cancelAnimationFrame(tourFolgt);
   tourTeile.tour.classList.remove("offen");
   document.body.classList.remove("tour-offen");
   document.removeEventListener("keydown", einfuehrungTaste, true);
@@ -840,6 +847,28 @@ function einfuehrungAnzeigen() {
   einfuehrungPlatzieren(ziel);
 }
 
+// Die Stelle, an der das Element gerade steht, dazu die Größe des Bildschirms und die Höhe der Box, als ein Text zum Vergleichen
+function einfuehrungStand(ziel) {
+  const platz = ziel.getBoundingClientRect();
+  const flaeche = tourTeile.tour.getBoundingClientRect();
+  return [platz.left, platz.top, platz.width, platz.height, flaeche.width, flaeche.height, tourTeile.box.offsetHeight].join(" ");
+}
+
+// Der Rahmen folgt dem Element. Solange der Rundgang läuft, vergleicht jedes neu gezeichnete Bild die Stelle des Elements
+// mit der zuletzt gemessenen. Hat sich etwas bewegt (die Seite ist gerückt, ein Text bricht anders um, die Schrift ist jetzt geladen,
+// eine Einblendung läuft noch, die Tastatur geht zu), kommt das Element wieder in den Bildschirm und alles wird neu platziert.
+function einfuehrungFolgen() {
+  if (!tourSchritte) {
+    return;
+  }
+  const ziel = einfuehrungZiel(tourSchritte[tourIndex]);
+  if (ziel && einfuehrungStand(ziel) !== tourStand) {
+    ziel.scrollIntoView({ block: "center" });
+    einfuehrungPlatzieren(ziel);
+  }
+  tourFolgt = requestAnimationFrame(einfuehrungFolgen);
+}
+
 // Rechnet aus, wo Aussparung, Rahmen, Linie und Box stehen. Alle Werte sind Pixel ab der linken oberen Ecke des Bildschirms.
 function einfuehrungPlatzieren(ziel) {
   const flaeche = tourTeile.tour.getBoundingClientRect();
@@ -941,6 +970,7 @@ function einfuehrungPlatzieren(ziel) {
   linie.setAttribute("x2", x);
   linie.setAttribute("y1", boxUnten ? unten : oben);
   linie.setAttribute("y2", boxUnten ? boxOben : boxOben + boxHoehe);
+  tourStand = einfuehrungStand(ziel);
 }
 
 // ---------- Prüfung ----------

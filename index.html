@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=111">
+  <link rel="stylesheet" href="style.css?v=112">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=111">
+  <link rel="stylesheet" href="glass.css?v=112">
 </head>
 <body>
 
@@ -780,7 +780,7 @@
         <p id="bald-hinweis" class="einst-fuss" data-platzhalter></p>
 
         <h2 class="abschnitt" data-t="einst.titel">Einstellungen</h2>
-        <div class="karte einst-liste">
+        <div class="karte einst-liste" data-tour="einst-allgemein">
         <button class="einst-zeile" onclick="einstZeigen('einheiten')">
           <span class="icon einst-icon" data-icon="waage"></span>
           <span class="einst-titel" data-t="profil.einheiten">Einheiten</span>
@@ -802,7 +802,7 @@
         </div>
 
         <h2 class="abschnitt" data-t="nav.training">Training</h2>
-        <div class="karte einst-liste">
+        <div class="karte einst-liste" data-tour="einst-pause">
           <div class="einst-zeile umbruch">
             <span class="icon einst-icon" data-icon="stoppuhr"></span>
             <span class="einst-titel" data-t="profil.standardPause">Standard-Pause</span>
@@ -816,7 +816,7 @@
         <p class="einst-fuss" data-t="profil.pauseHinweis">Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist.</p>
 
         <h2 class="abschnitt" data-t="profil.daten">Daten</h2>
-        <div id="einst-daten-karte" class="karte einst-liste">
+        <div id="einst-daten-karte" class="karte einst-liste" data-tour="einst-daten">
           <button class="einst-zeile" onclick="backupExportieren()">
             <span class="icon einst-icon" data-icon="export"></span>
             <span class="einst-text">
@@ -841,7 +841,7 @@
         <p class="einst-fuss" data-t="backup.nurHier">Deine Daten liegen nur auf diesem Gerät. Ein Backup schützt sie.</p>
 
         <h2 class="abschnitt" data-t="einst.support">Support</h2>
-        <div class="karte einst-liste">
+        <div class="karte einst-liste" data-tour="einst-support">
         <button class="einst-zeile" onclick="einstZeigen('faq')">
           <span class="icon einst-icon" data-icon="frage"></span>
           <span class="einst-titel" data-t="einst.faq">FAQ</span>
@@ -984,9 +984,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=111"></script>
-<script src="uebungen.js?v=111"></script>
-<script src="erklaerungen.js?v=111"></script>
+<script src="texte.js?v=112"></script>
+<script src="uebungen.js?v=112"></script>
+<script src="erklaerungen.js?v=112"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1008,13 +1008,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=111"></script>
-<script src="bilder.js?v=111"></script>
-<script src="vorlagen.js?v=111"></script>
-<script src="figuren.js?v=111"></script>
+<script src="raenge.js?v=112"></script>
+<script src="bilder.js?v=112"></script>
+<script src="vorlagen.js?v=112"></script>
+<script src="figuren.js?v=112"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=111"></script>
+<script src="app.js?v=112"></script>
 
 </body>
 </html>

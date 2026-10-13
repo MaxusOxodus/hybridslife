@@ -11163,6 +11163,12 @@
     document.getElementById("einst-sheet").classList.add("offen");
     document.body.classList.add("sheet-offen");
 
+    // Beim ersten Öffnen der Übersicht bietet die Einführung an, die Einstellungen kurz zu zeigen (einfuehrung.js).
+    // Nicht bei "Profil bearbeiten" (öffnet direkt die Unterseite) und nicht bei "Zum Backup" (markiert die Karte "Daten").
+    if (!ziel) {
+      einfuehrungAnbieten("einstellungen");
+    }
+
     if (ziel === "daten") {
       const karte = document.getElementById("einst-daten-karte");
       document.getElementById("einst-inhalt").scrollTop = karte.offsetTop - 120;

@@ -486,7 +486,6 @@ const EINFUEHRUNG_SCHRITTE = [
     }
   },
   {
-    // Probe in Version 111: nur dieser eine Schritt. Die Schritte 2 bis 5 kommen, wenn der Rahmen auf dem iPhone stimmt.
     bereich: "einstellungen",
     seite: "profil",
     ort: "einstellungen",
@@ -499,6 +498,66 @@ const EINFUEHRUNG_SCHRITTE = [
     text: {
       de: "Hier stellst du die App ein. Unter „Profil“ stehen dein Name und deine Angaben.",
       en: "Here you set up the app. “Profile” holds your name and details."
+    }
+  },
+  {
+    bereich: "einstellungen",
+    seite: "profil",
+    ort: "einstellungen",
+    ziel: "einst-allgemein",
+    pose: "zeigen",
+    titel: {
+      de: "App anpassen",
+      en: "Customize"
+    },
+    text: {
+      de: "Hier wählst du Einheiten, Design und Sprache der App.",
+      en: "Choose units, design and language of the app here."
+    }
+  },
+  {
+    bereich: "einstellungen",
+    seite: "profil",
+    ort: "einstellungen",
+    ziel: "einst-pause",
+    pose: "zeigen",
+    titel: {
+      de: "Standard-Pause",
+      en: "Default rest"
+    },
+    text: {
+      de: "So lang ist die Pause nach einem Satz, wenn du bei der Übung nichts anderes einstellst.",
+      en: "This is how long you rest after a set unless the exercise says otherwise."
+    }
+  },
+  {
+    bereich: "einstellungen",
+    seite: "profil",
+    ort: "einstellungen",
+    ziel: "einst-daten",
+    pose: "zeigen",
+    titel: {
+      de: "Deine Daten",
+      en: "Your data"
+    },
+    text: {
+      de: "Deine Daten liegen nur auf diesem Gerät. Ein Backup sichert sie als Datei.",
+      en: "Your data lives only on this device. A backup saves it as a file."
+    }
+  },
+  {
+    bereich: "einstellungen",
+    seite: "profil",
+    ort: "einstellungen",
+    ziel: "einst-support",
+    pose: "jubeln",
+    titel: {
+      de: "Hilfe",
+      en: "Help"
+    },
+    text: {
+      de: "Hier findest du Antworten auf häufige Fragen. Unter „Anleitung“ zeige ich dir jeden Bereich noch einmal.",
+      en: "Here you find answers to common questions. Under “Guide” I show you every part again."
     }
   }
 ];
@@ -788,11 +847,8 @@ function einfuehrungStarten(bereich) {
     einfuehrungAufraeumen();
     return false;
   }
-  // Wer den Rundgang startet, hat ihn gesehen: Er wird danach nicht mehr von selbst angeboten.
-  // Die Probe der Einstellungen (Version 111, ein Schritt, noch ohne Angebot) zählt nicht: Sonst käme das Angebot später nicht mehr.
-  if (bereich !== "einstellungen") {
-    einfuehrungGesehenMerken(bereich);
-  }
+  // Wer den Rundgang startet, hat ihn gesehen: Er wird danach nicht mehr von selbst angeboten
+  einfuehrungGesehenMerken(bereich);
 
   if (!tourTeile) {
     einfuehrungBauen();
@@ -875,8 +931,8 @@ function einfuehrungLaeuft() {
 
 // ---------- Angebot und Auswahl ----------
 
-// Die Rundgänge "training", "fortschritt", "profil" und "modus" bietet die App von selbst an: beim ersten Öffnen des Training-Tabs,
-// des Fortschritt-Tabs und des Profil-Tabs und beim ersten gestarteten Training. Was schon war, steht im Speicher unter "einfuehrungGesehen", je Bereich
+// Die Rundgänge "training", "fortschritt", "profil", "einstellungen" und "modus" bietet die App von selbst an: beim ersten Öffnen
+// des Training-Tabs, des Fortschritt-Tabs, des Profil-Tabs und der Einstellungen (nur ihrer Übersicht) und beim ersten gestarteten Training. Was schon war, steht im Speicher unter "einfuehrungGesehen", je Bereich
 // { gesehen: true } oder { angeboten: 1 }. Der Merker steht absichtlich nicht in den Einstellungen:
 // Die gehen ganz ins Backup, der Merker gehört nicht hinein.
 function einfuehrungMerker() {
@@ -906,7 +962,7 @@ const TOUR_ANGEBOTE = 2;
 const TOUR_MODUS_ANBIETEN = true;
 
 // Die app.js ruft das auf, wenn der Training-Tab aufgeht ("training"), wenn der Fortschritt-Tab aufgeht ("fortschritt"),
-// wenn der Profil-Tab aufgeht ("profil") und wenn ein Training neu startet ("modus").
+// wenn der Profil-Tab aufgeht ("profil"), wenn die Übersicht der Einstellungen aufgeht ("einstellungen") und wenn ein Training neu startet ("modus").
 // Gefragt wird erst, wenn die App damit fertig ist: Beim Start eines Trainings von Home aus geht erst der Tab auf
 // und dann der Trainingsmodus, die Frage soll zu dem passen, was am Ende zu sehen ist.
 function einfuehrungAnbieten(bereich) {
@@ -921,9 +977,16 @@ function einfuehrungAnbieten(bereich) {
 // Fragt "Kurz zeigen?", wenn der Bereich wirklich zu sehen ist und der Rundgang noch nicht gesehen und
 // noch keine zweimal angeboten wurde. "Ja, zeigen" startet ihn, "Später" schließt nur den Dialog.
 function einfuehrungFragen(bereich) {
-  // Die Seite des Bereichs: "modus" liegt auf der Seite "training", sonst heißt die Seite wie der Bereich
-  const seite = bereich === "modus" ? "training" : bereich;
-  if (tourSchritte || tourGefragt[bereich] || !startFertig || aktiveSeite !== seite) {
+  if (tourSchritte || tourGefragt[bereich] || !startFertig) {
+    return;
+  }
+  if (bereich === "einstellungen") {
+    // Die Einstellungen sind keine Seite: Gefragt wird nur, solange sie offen sind und ihre Übersicht zeigen
+    if (!document.getElementById("einst-sheet").classList.contains("offen") || einstAnsicht !== "haupt") {
+      return;
+    }
+  } else if (aktiveSeite !== (bereich === "modus" ? "training" : bereich)) {
+    // Die Seite des Bereichs: "modus" liegt auf der Seite "training", sonst heißt die Seite wie der Bereich
     return;
   }
   if (bereich === "training" && trainingAnsicht !== "uebersicht") {
@@ -974,7 +1037,6 @@ function einfuehrungWaehlen() {
   wahl(txt("nav.training"), "training");
   wahl(txt("nav.fortschritt"), "fortschritt");
   wahl(txt("nav.profil"), "profil");
-  // Probe in Version 111: Die Einstellungen starten nur hier, angeboten werden sie noch nicht
   wahl(txt("einst.titel"), "einstellungen");
   wahl(txt("tour.modus"), "modus", !laufendesTraining);
   knoepfe.push({ text: txt("abbrechen"), art: "leise" });
@@ -1282,12 +1344,14 @@ function einfuehrungPlatzieren(ziel, schub) {
   // Oben bleibt dabei der Platz der schmalen Kopfzeile frei, sonst läge sie über dem Element.
   let platz = einfuehrungRechteck(ziel);
   const gesamt = platz.height + 2 * TOUR_LUFT + TOUR_ABSTAND + boxHoehe;
-  const raum = untereGrenze - obereGrenze - TOUR_KOPFZEILE;
+  // In den Einstellungen rückt ihr eigener Scrollbereich, und frei bleibt der Platz ihrer Kopfzeile: Der Scrollbereich beginnt erst darunter
+  const roller = ziel.closest("#einst-inhalt");
+  const kopfzeile = roller ? Math.max(einfuehrungRechteck(roller).top - obereGrenze, 0) : TOUR_KOPFZEILE;
+  const raum = untereGrenze - obereGrenze - kopfzeile;
   if (schub === undefined && gesamt <= raum
     && platz.bottom + TOUR_LUFT + TOUR_ABSTAND + boxHoehe > untereGrenze
     && platz.top - TOUR_LUFT - TOUR_ABSTAND - boxHoehe < obereGrenze) {
-    // In den Einstellungen rückt ihr eigener Scrollbereich, sonst die Seite
-    (ziel.closest("#einst-inhalt") || window).scrollBy(0, (platz.top - TOUR_LUFT - (obereGrenze + TOUR_KOPFZEILE + (raum - gesamt) / 2)) * massstab.y);
+    (roller || window).scrollBy(0, (platz.top - TOUR_LUFT - (obereGrenze + kopfzeile + (raum - gesamt) / 2)) * massstab.y);
     einfuehrungAnkern();
     platz = einfuehrungRechteck(ziel);
   }
@@ -1490,7 +1554,9 @@ function einfuehrungDiagnoseZeigen(ziel, frei, oben) {
     // Der Anker von #tour in der Seite: Art der Position, gesetzte Stelle (left/top), Scrollstand (x/y),
     // Stelle und Größe in der Seite und das Bezugs-Element ("-" heißt: die Seite selbst)
     "anker " + getComputedStyle(tourTeile.tour).position + " " + rund(parseFloat(tourTeile.tour.style.left)) + "/" + rund(parseFloat(tourTeile.tour.style.top))
+      // scr: Scrollstand der Seite (x/y). Liegt das Ziel in den Einstellungen, steht dahinter der Scrollstand ihres Scrollbereichs und wie weit er höchstens geht
       + " scr " + rund(window.scrollX) + "/" + rund(window.scrollY)
+      + (ziel.closest("#einst-inhalt") ? " e" + rund(ziel.closest("#einst-inhalt").scrollTop) + "/" + (ziel.closest("#einst-inhalt").scrollHeight - ziel.closest("#einst-inhalt").clientHeight) : "")
       + " off " + tourTeile.tour.offsetLeft + "/" + tourTeile.tour.offsetTop + " " + tourTeile.tour.offsetWidth + "x" + tourTeile.tour.offsetHeight
       + " " + (tourTeile.tour.offsetParent ? kurz(tourTeile.tour.offsetParent) : "-"),
     "ziel " + rechteck(platz),

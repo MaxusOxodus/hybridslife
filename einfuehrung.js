@@ -689,12 +689,13 @@ function einfuehrungFragen(bereich) {
 }
 
 // Die Zeile "Anleitung (Test)" in den Einstellungen: fragt, welcher Bereich gezeigt werden soll.
-// "Trainingsmodus" steht nur zur Wahl, solange ein Training läuft.
+// "Trainingsmodus" steht immer da. Läuft kein Training, ist der Knopf gesperrt und ein Hinweis im Text sagt, warum.
 function einfuehrungWaehlen() {
   const knoepfe = [];
-  const wahl = function (text, bereich) {
+  const wahl = function (text, bereich, aus) {
     knoepfe.push({
       text: text,
+      aus: aus,
       aktion: function () {
         einfuehrungStarten(bereich);
       }
@@ -702,11 +703,9 @@ function einfuehrungWaehlen() {
   };
   wahl(txt("nav.home"), "home");
   wahl(txt("nav.training"), "training");
-  if (laufendesTraining) {
-    wahl(txt("tour.modus"), "modus");
-  }
+  wahl(txt("tour.modus"), "modus", !laufendesTraining);
   knoepfe.push({ text: txt("abbrechen"), art: "leise" });
-  frageZeigen(txt("tour.titel"), txt("tour.wahl"), knoepfe);
+  frageZeigen(txt("tour.titel"), txt("tour.wahl") + (laufendesTraining ? "" : "\n" + txt("tour.modusHinweis")), knoepfe);
 }
 
 // Einen Schritt weiter. Nach dem letzten Schritt ist der Rundgang vorbei.

@@ -665,6 +665,7 @@ const TEXTE = {
   // Die Auswahl hinter der Zeile "Anleitung (Test)" in den Einstellungen
   "tour.wahl": { de: "Welchen Bereich soll ich dir zeigen?", en: "Which part should I show you?" },
   "tour.modus": { de: "Trainingsmodus", en: "Workout mode" },
+  "tour.modusHinweis": { de: "Starte ein Training, dann zeige ich dir den Trainingsmodus.", en: "Start a workout, then I'll show you workout mode." },
 
   "design": { de: "Design", en: "Appearance" },
   "design.system": { de: "System", en: "System" },

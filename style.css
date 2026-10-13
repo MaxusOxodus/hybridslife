@@ -532,13 +532,17 @@ h1 {
   font-size: 13px;
 }
 
-/* Unter dem Titel: der Zeitraum und daneben der Knopf "Heute". Wird es zu eng, rutscht der Knopf in die nächste Zeile. */
+/* Unter dem Titel: der Zeitraum und daneben der Knopf "Heute". Wird es zu eng, rutscht der Knopf in die nächste Zeile.
+   Die Zeile ist nur so breit wie ihr Inhalt und steht in der Mitte. */
 .home-woche-unterzeile {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 6px 8px;
+  width: fit-content;
+  margin: 0 auto;
 }
 
 /* Der Knopf "Heute" springt zur aktuellen Woche zurück. Er ist klein, damit der Kopf nicht höher wird,
@@ -562,8 +566,17 @@ h1 {
   inset: -10px;
 }
 
-/* In der aktuellen Woche ist der Knopf nur unsichtbar und behält seinen Platz:
-   So steht der Zeitraum in jeder Woche an derselben Stelle. */
+/* Steht der Zeitraum unter dem Titel, hängt der Knopf frei rechts daneben und braucht keinen Platz in der Zeile:
+   So steht der Zeitraum in jeder Woche genau in der Mitte. Reicht der Platz bis zum Pfeil nicht,
+   setzt die app.js die Klasse "eng" und der Knopf steht wie früher in der Zeile. */
+#home-woche-zeitraum:not(.versteckt) + #home-woche-heute:not(.eng) {
+  position: absolute;
+  top: -1px;
+  left: calc(100% + 6px);
+  margin: 0;
+}
+
+/* In der aktuellen Woche ist der Knopf nur unsichtbar */
 #home-woche-heute.versteckt {
   display: block !important;
   visibility: hidden;
@@ -3850,6 +3863,11 @@ button.einst-zeile:first-child {
   color: var(--text-leise);
 }
 
+/* Ein Knopf, der gerade nicht geht (z. B. "Trainingsmodus" in der Auswahl der Anleitung ohne laufendes Training) */
+.dialog-btn:disabled {
+  color: var(--text-aus);
+}
+
 /* Löschen: rote Schrift */
 .dialog-btn.gefahr,
 .zweit-btn.gefahr {
@@ -5298,8 +5316,9 @@ body.tour-zeigt-pause #modus-wahl {
   height: 100%;
 }
 
+/* Deutlich dunkler als hinter Rückfragen, damit das umrandete Element klar hervortritt. In Hell und Dunkel gleich. */
 .tour-dunkel {
-  fill: var(--abdunklung-stark);
+  fill: rgba(0, 0, 0, 0.8);
 }
 
 .tour-rahmen {
@@ -5410,14 +5429,26 @@ body.tour-zeigt-pause #modus-wahl {
   line-height: 1.45;
 }
 
-/* Unten in der Box: "Zurück", der Stand und "Überspringen" */
+/* Unten in der Box: "Zurück", der Stand und "Überspringen".
+   Die zwei äußeren Spalten sind gleich breit, so steht der Stand in der Mitte der Box, auch wenn ein Knopf breiter ist als der andere.
+   Nur wenn dafür der Platz fehlt (320 px, Deutsch), wird die Spalte von "Überspringen" breiter und der Stand rückt etwas nach links. */
 .tour-leiste {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(min-content, 1fr) auto minmax(min-content, 1fr);
   align-items: center;
-  justify-content: space-between;
   flex: none;
   gap: 8px;
   margin-top: 8px;
+}
+
+.tour-zurueck {
+  justify-self: start;
+  text-align: left;
+}
+
+.tour-ende {
+  justify-self: end;
+  text-align: right;
 }
 
 /* Die zwei Knöpfe sind leise beschriftet, die Tippfläche bleibt 44 px groß. Nur "Fertig" im letzten Schritt trägt den Akzent. */

@@ -2813,6 +2813,8 @@
       if (knoepfe[i].art) {
         btn.classList.add(knoepfe[i].art);
       }
+      // Ein gesperrter Knopf ist zu sehen, lässt sich aber nicht antippen
+      btn.disabled = knoepfe[i].aus === true;
       btn.onclick = function () {
         document.getElementById("frage-hintergrund").classList.remove("offen");
         if (knoepfe[i].aktion) {
@@ -5725,7 +5727,11 @@
     const unterzeile = document.getElementById("home-woche-zeitraum");
     unterzeile.textContent = zeitraum;
     unterzeile.classList.toggle("versteckt", titel === "");
-    document.getElementById("home-woche-heute").classList.toggle("versteckt", istDiese);
+    // Der Knopf "Heute" hängt frei rechts neben dem Zeitraum. Ragt er dort zu weit in den Pfeil, steht er wie früher in der Zeile.
+    const heute = document.getElementById("home-woche-heute");
+    heute.classList.toggle("versteckt", istDiese);
+    heute.classList.remove("eng");
+    heute.classList.toggle("eng", !istDiese && heute.getBoundingClientRect().right > document.getElementById("home-woche-vor").getBoundingClientRect().left + 8);
 
     document.getElementById("home-woche-zurueck").disabled = !homeWocheErlaubt(-1);
     document.getElementById("home-woche-vor").disabled = !homeWocheErlaubt(1);

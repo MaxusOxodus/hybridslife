@@ -9,7 +9,7 @@
 // Die Datei steht in der index.html vor der app.js. Sie benutzt von dort txt, sprache, aktiveSeite, homeAnsicht,
 // seiteZeigen, homeZeigen, homeWocheHeute und einstSchliessen, für das Training trainingAnsicht, trainingReiter,
 // laufendesTraining, trainingAnsichtZeigen, trainingReiterAnzeigen, trainingFortsetzen und modusZustandAnzeigen,
-// für den Fortschritt fortschrittGruppe und fortschrittUebungenAnzeigen, für das Profil profilReiter und profilReiterAnzeigen, für das Angebot frageZeigen, gespeichertLesen und sicherSpeichern. Alles erst, wenn ein Rundgang startet oder angeboten wird.
+// für den Fortschritt fortschrittGruppe und fortschrittUebungenAnzeigen, für das Profil profilReiter und profilReiterAnzeigen, für die Einstellungen einstOeffnen, einstZeigen und einstAnsicht, für das Angebot frageZeigen, gespeichertLesen und sicherSpeichern. Alles erst, wenn ein Rundgang startet oder angeboten wird.
 // Die Farben und Größen stehen in der style.css (".tour-..."), der Glas-Look der Box in der glass.css.
 
 // ---------- Die Schritte ----------
@@ -28,6 +28,9 @@
 // Nur bei Schritten auf der Seite "profil":
 //   reiter:  "abzeichen". Rang, "Teilen" und Abzeichen liegen im dritten Reiter, für diese Schritte schaltet der Rundgang dorthin.
 //            Am Ende steht wieder der Reiter von vorher. Darf fehlen: Dann bleibt der Reiter, wie er ist.
+// Nur bei Schritten in den Einstellungen:
+//   ort:     "einstellungen". Die Einstellungen sind keine Seite, sondern ein fester Bereich über dem Profil (#einst-sheet) mit eigenem
+//            Scrollbereich. Für diese Schritte öffnet der Rundgang sie und zeigt die Übersicht, am Ende bleiben sie offen.
 // Bei allen Schritten:
 //   braucht: was da sein muss, damit es das Element überhaupt gibt (ein Name aus EINFUEHRUNG_BRAUCHT). Darf fehlen.
 //            Fehlt es, lässt der Rundgang den Schritt aus, und einfuehrungPruefen() meldet das nicht als Fehler.
@@ -481,6 +484,22 @@ const EINFUEHRUNG_SCHRITTE = [
       de: "Abzeichen bekommst du für besondere Erfolge. Graue Abzeichen fehlen dir noch.",
       en: "You earn badges for special achievements. Grey badges are still missing."
     }
+  },
+  {
+    // Probe in Version 111: nur dieser eine Schritt. Die Schritte 2 bis 5 kommen, wenn der Rahmen auf dem iPhone stimmt.
+    bereich: "einstellungen",
+    seite: "profil",
+    ort: "einstellungen",
+    ziel: "einst-konto",
+    pose: "winken",
+    titel: {
+      de: "Einstellungen",
+      en: "Settings"
+    },
+    text: {
+      de: "Hier stellst du die App ein. Unter „Profil“ stehen dein Name und deine Angaben.",
+      en: "Here you set up the app. “Profile” holds your name and details."
+    }
   }
 ];
 
@@ -600,7 +619,9 @@ function einfuehrungZiel(schritt) {
 
 // Bringt die App an die Stelle, an der das Element eines Schritts liegt
 function einfuehrungVorbereiten(schritt) {
-  if (document.getElementById("einst-sheet").classList.contains("offen")) {
+  const einst = document.getElementById("einst-sheet");
+  const inEinst = schritt.ort === "einstellungen";
+  if (!inEinst && einst.classList.contains("offen")) {
     einstSchliessen();
   }
   // Ohne laufendes Training gibt es den Trainingsmodus nicht: Die App bleibt, wo sie ist, der Schritt fällt weg
@@ -633,6 +654,19 @@ function einfuehrungVorbereiten(schritt) {
         trainingReiter = "plaene";
         trainingReiterAnzeigen();
       }
+    }
+  }
+  // Ein Schritt in den Einstellungen: Sie gehen auf und zeigen die Übersicht. Das Einfahren (0,45 Sekunden) wird dafür ausgelassen,
+  // sonst wanderte der Rahmen mit. Das ändert nur die Ansicht, gespeichert wird dabei nichts.
+  if (inEinst) {
+    if (!einst.classList.contains("offen")) {
+      einst.style.transition = "none";
+      einstOeffnen();
+      void einst.offsetWidth;
+      einst.style.transition = "";
+    }
+    if (einstAnsicht !== "haupt") {
+      einstZeigen("haupt");
     }
   }
   // Rang, "Teilen" und Abzeichen liegen im Profil im dritten Reiter. Das ändert nur die Ansicht, der Reiter wird nie gespeichert.
@@ -735,7 +769,7 @@ function einfuehrungStarten(bereich) {
     homeWocheHeute();
   }
   tourBereich = bereich;
-  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter };
+  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen") };
   // Nur Schritte mit sichtbarem Element zählen, damit "1 von 2" stimmt
   const schritte = [];
   tourLeise = true;
@@ -754,8 +788,11 @@ function einfuehrungStarten(bereich) {
     einfuehrungAufraeumen();
     return false;
   }
-  // Wer den Rundgang startet, hat ihn gesehen: Er wird danach nicht mehr von selbst angeboten
-  einfuehrungGesehenMerken(bereich);
+  // Wer den Rundgang startet, hat ihn gesehen: Er wird danach nicht mehr von selbst angeboten.
+  // Die Probe der Einstellungen (Version 111, ein Schritt, noch ohne Angebot) zählt nicht: Sonst käme das Angebot später nicht mehr.
+  if (bereich !== "einstellungen") {
+    einfuehrungGesehenMerken(bereich);
+  }
 
   if (!tourTeile) {
     einfuehrungBauen();
@@ -789,6 +826,7 @@ function einfuehrungBeenden() {
   tourSchritte = null;
   cancelAnimationFrame(tourFolgt);
   tourTeile.tour.classList.remove("offen");
+  einfuehrungEbene(null);
   document.body.classList.remove("tour-offen");
   document.removeEventListener("keydown", einfuehrungTaste, true);
   if (tourTeile.kontrolle) {
@@ -813,6 +851,10 @@ function einfuehrungAufraeumen() {
     if (trainingAnsicht !== tourVorher.ansicht && (tourVorher.ansicht !== "modus" || laufendesTraining)) {
       trainingAnsichtZeigen(tourVorher.ansicht);
     }
+  }
+  // Nach dem Rundgang durch die Einstellungen bleiben sie offen. Hat nur die Prüfung sie geöffnet, gehen sie wieder zu.
+  if (tourBereich !== "einstellungen" && tourVorher && !tourVorher.einstOffen && document.getElementById("einst-sheet").classList.contains("offen")) {
+    einstSchliessen();
   }
   // Im Profil steht wieder der Reiter von vorher
   if (tourVorher && profilReiter !== tourVorher.profilReiter) {
@@ -932,6 +974,8 @@ function einfuehrungWaehlen() {
   wahl(txt("nav.training"), "training");
   wahl(txt("nav.fortschritt"), "fortschritt");
   wahl(txt("nav.profil"), "profil");
+  // Probe in Version 111: Die Einstellungen starten nur hier, angeboten werden sie noch nicht
+  wahl(txt("einst.titel"), "einstellungen");
   wahl(txt("tour.modus"), "modus", !laufendesTraining);
   knoepfe.push({ text: txt("abbrechen"), art: "leise" });
   frageZeigen(txt("tour.titel"), txt("tour.wahl") + (laufendesTraining ? "" : "\n" + txt("tour.modusHinweis")), knoepfe);
@@ -1025,6 +1069,7 @@ function einfuehrungAnzeigen() {
     tourDiagnoseVorher = { scrollY: window.scrollY, hoehe: document.documentElement.scrollHeight, klassen: document.body.className };
   }
   einfuehrungVorbereiten(schritt);
+  einfuehrungEbene(schritt);
   const ziel = einfuehrungZiel(schritt);
 
   // Das Element ist inzwischen verschwunden: Der Schritt fällt weg
@@ -1104,9 +1149,38 @@ function einfuehrungAnkern() {
   const tour = tourTeile.tour;
   tour.style.top = "0px";
   tour.style.left = "0px";
+  // Variante B: #tour hängt in den Einstellungen und deckt sie ganz ab. Die scrollen nur in ihrem Inneren, es bleibt bei 0/0.
+  if (tour.parentElement !== document.body) {
+    return;
+  }
   const seite = document.documentElement;
   tour.style.top = Math.max(Math.min(window.scrollY, seite.scrollHeight - seite.clientHeight), 0) + "px";
   tour.style.left = window.scrollX + "px";
+}
+
+// ---------- Probe in Version 111: zwei Varianten für Schritte in den Einstellungen ----------
+
+// Die Einstellungen sind ein fester Bereich (#einst-sheet, position: fixed). In Version 106 hat Safari auf dem iPhone eine feste Ebene
+// verschoben gezeichnet, deshalb hängt #tour seit Version 107 in der Seite. Bei einem Ziel in den Einstellungen liegen Ziel (feste Ebene)
+// und #tour (Seite) damit wieder in zwei verschiedenen Ebenen. Ob das auf dem iPhone stimmt, zeigt nur das iPhone. Darum gibt es zwei Varianten:
+//   A (Standard): #tour hängt in der Seite, wie bei allen anderen Schritten.
+//   B:            #tour hängt für diese Schritte in #einst-sheet selbst. Rahmen und Ziel liegen dann in derselben Ebene.
+// Umgestellt wird mit den fünf Tipps auf "Version" (einfuehrungDiagnoseTipp). Der Merker steht im Speicher unter dem eigenen
+// Schlüssel "einfuehrungVariante" ("b" oder nichts) und nicht im Backup. Nach der Probe bleibt eine Variante, die andere fliegt raus.
+function einfuehrungVarianteB() {
+  return gespeichertLesen("einfuehrungVariante", "") === "b";
+}
+
+// Hängt #tour in die Ebene, in der der Schritt gezeichnet wird: in die Seite (body) oder, in Variante B bei einem Schritt
+// in den Einstellungen, in #einst-sheet. schritt = null hängt es zurück in die Seite (am Ende des Rundgangs).
+function einfuehrungEbene(schritt) {
+  let ebene = document.body;
+  if (schritt && schritt.ort === "einstellungen" && einfuehrungVarianteB()) {
+    ebene = document.getElementById("einst-sheet");
+  }
+  if (tourTeile.tour.parentElement !== ebene) {
+    ebene.appendChild(tourTeile.tour);
+  }
 }
 
 // Der Maßstab des Overlays: so viele Pixel des Bildschirms ist ein Pixel in #tour breit (x) und hoch (y). Normal ist das 1.
@@ -1212,7 +1286,8 @@ function einfuehrungPlatzieren(ziel, schub) {
   if (schub === undefined && gesamt <= raum
     && platz.bottom + TOUR_LUFT + TOUR_ABSTAND + boxHoehe > untereGrenze
     && platz.top - TOUR_LUFT - TOUR_ABSTAND - boxHoehe < obereGrenze) {
-    window.scrollBy(0, (platz.top - TOUR_LUFT - (obereGrenze + TOUR_KOPFZEILE + (raum - gesamt) / 2)) * massstab.y);
+    // In den Einstellungen rückt ihr eigener Scrollbereich, sonst die Seite
+    (ziel.closest("#einst-inhalt") || window).scrollBy(0, (platz.top - TOUR_LUFT - (obereGrenze + TOUR_KOPFZEILE + (raum - gesamt) / 2)) * massstab.y);
     einfuehrungAnkern();
     platz = einfuehrungRechteck(ziel);
   }
@@ -1305,10 +1380,14 @@ function einfuehrungDiagnoseAn() {
 
 // Der Zusatz hinter der Versionsnummer in Einstellungen → Über, solange die Diagnose-Anzeige an ist
 function einfuehrungDiagnoseText() {
-  return einfuehrungDiagnoseAn() ? " · Diagnose" : "";
+  if (!einfuehrungDiagnoseAn()) {
+    return "";
+  }
+  return einfuehrungVarianteB() ? " · Diagnose B" : " · Diagnose";
 }
 
-// Ein Tipp auf die Zeile "Version" in Einstellungen → Über. Fünf Tipps innerhalb von drei Sekunden schalten die Diagnose-Anzeige ein oder aus.
+// Ein Tipp auf die Zeile "Version" in Einstellungen → Über. Fünf Tipps innerhalb von drei Sekunden schalten weiter:
+// aus → Diagnose (Variante A) → Diagnose B (Variante B, siehe einfuehrungVarianteB) → aus. Ohne Diagnose gilt immer Variante A.
 function einfuehrungDiagnoseTipp() {
   const jetzt = Date.now();
   tourDiagnoseTipps.push(jetzt);
@@ -1319,7 +1398,15 @@ function einfuehrungDiagnoseTipp() {
     return;
   }
   tourDiagnoseTipps = [];
-  sicherSpeichern("einfuehrungDiagnose", !einfuehrungDiagnoseAn());
+  if (!einfuehrungDiagnoseAn()) {
+    sicherSpeichern("einfuehrungDiagnose", true);
+    sicherSpeichern("einfuehrungVariante", "");
+  } else if (!einfuehrungVarianteB()) {
+    sicherSpeichern("einfuehrungVariante", "b");
+  } else {
+    sicherSpeichern("einfuehrungDiagnose", false);
+    sicherSpeichern("einfuehrungVariante", "");
+  }
   document.getElementById("ueber-version").textContent = appVersion() + einfuehrungDiagnoseText();
 }
 
@@ -1387,7 +1474,9 @@ function einfuehrungDiagnoseZeigen(ziel, frei, oben) {
   const vorher = tourDiagnoseVorher || { scrollY: 0, hoehe: 0, klassen: "" };
   const sicht = window.visualViewport;
   const zeilen = [
-    "v" + appVersion() + " " + tourBereich + " " + (tourIndex + 1) + "/" + tourSchritte.length + " " + schritt.ziel,
+    // Am Ende der Zeile: die Variante (A = #tour in der Seite, B = #tour in den Einstellungen) und die Ebene, in der #tour gerade hängt
+    "v" + appVersion() + " " + tourBereich + " " + (tourIndex + 1) + "/" + tourSchritte.length + " " + schritt.ziel
+      + " var " + (einfuehrungVarianteB() ? "B" : "A") + " in " + kurz(tourTeile.tour.parentElement),
     "fenster " + window.innerWidth + "x" + window.innerHeight + " doc " + document.documentElement.clientWidth + "x" + document.documentElement.clientHeight,
     sicht ? "vv " + rund(sicht.width) + "x" + rund(sicht.height) + " oT " + rund(sicht.offsetTop) + " oL " + rund(sicht.offsetLeft)
       + " pT " + rund(sicht.pageTop) + " z " + rund(sicht.scale) : "vv fehlt",
@@ -1437,7 +1526,7 @@ function einfuehrungPruefen() {
   // Schritte, die gerade zu Recht fehlen (keine Routine, kein Training, keine Erklärung): nur ein Hinweis, kein Fehler
   const hinweise = [];
   tourBereich = "training";
-  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter };
+  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen") };
   tourLeise = true;
   for (let i = 0; i < EINFUEHRUNG_SCHRITTE.length; i++) {
     const schritt = EINFUEHRUNG_SCHRITTE[i];

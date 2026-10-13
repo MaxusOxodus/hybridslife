@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=110">
+  <link rel="stylesheet" href="style.css?v=111">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=110">
+  <link rel="stylesheet" href="glass.css?v=111">
 </head>
 <body>
 
@@ -749,7 +749,7 @@
       <!-- Übersicht -->
       <div id="einst-ansicht-haupt" class="einst-ansicht">
         <h2 class="abschnitt" data-t="profil.konto">Konto</h2>
-        <div class="karte einst-liste">
+        <div class="karte einst-liste" data-tour="einst-konto">
         <button class="einst-zeile" onclick="einstZeigen('profil')">
           <span class="icon einst-icon" data-icon="person"></span>
           <span class="einst-titel" data-t="nav.profil">Profil</span>
@@ -852,7 +852,7 @@
           <span class="einst-titel" data-t="einst.ueber">Über</span>
           <span class="einst-pfeil" aria-hidden="true">›</span>
         </button>
-        <!-- Fragt, welcher Rundgang aus der einfuehrung.js starten soll (Home, Training oder Trainingsmodus). Die Zeile heißt "Anleitung (Test)", bis alle Bereiche fertig sind. -->
+        <!-- Fragt, welcher Rundgang aus der einfuehrung.js starten soll (Home, Training, Fortschritt, Profil, Einstellungen oder Trainingsmodus). Die Zeile heißt "Anleitung (Test)", bis alle Bereiche fertig sind. -->
         <button class="einst-zeile" onclick="einfuehrungWaehlen()">
           <span class="icon einst-icon" data-icon="anleitung"></span>
           <span class="einst-titel" data-t="tour.test">Anleitung (Test)</span>
@@ -984,9 +984,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=110"></script>
-<script src="uebungen.js?v=110"></script>
-<script src="erklaerungen.js?v=110"></script>
+<script src="texte.js?v=111"></script>
+<script src="uebungen.js?v=111"></script>
+<script src="erklaerungen.js?v=111"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1008,13 +1008,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=110"></script>
-<script src="bilder.js?v=110"></script>
-<script src="vorlagen.js?v=110"></script>
-<script src="figuren.js?v=110"></script>
+<script src="raenge.js?v=111"></script>
+<script src="bilder.js?v=111"></script>
+<script src="vorlagen.js?v=111"></script>
+<script src="figuren.js?v=111"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=110"></script>
+<script src="app.js?v=111"></script>
 
 </body>
 </html>

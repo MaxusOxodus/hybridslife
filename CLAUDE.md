@@ -69,6 +69,7 @@ Trainings-App für Athleten im Krafttraining (früher "Hybridslife", Repo-Name b
 ## Daten und Sicherheit
 - Bestehende Einträge, Routinen, Wochenplan und Backups dürfen nie verloren gehen oder verändert werden
 - Am Datenformat oder an der Backup-Version nichts ändern, ohne es mir vorher zu sagen. Alte Backups müssen weiter importierbar sein
+- Gelöschte eigene Eigengewicht-Übungen (seit Version 105): Beim Löschen merkt sich die App die id der Übung in der Liste `geloeschteEigengewicht` (eigener Schlüssel im Speicher, im Backup ab Backup-Version 11). `istEigengewicht` fragt zuerst die vorhandene Übung und sonst diese Liste, so rechnen die alten Einträge weiter mit dem Körpergewicht. Die Einträge selbst bleiben unverändert. Beim Import kommen die ids aus dem Backup immer dazu, auch beim Ersetzen, Backups bis Version 10 lassen die Liste, wie sie ist. Für Übungen, die vor Version 105 gelöscht wurden, gibt es keine Rekonstruktion: Ihre Einträge rechnen ohne Körpergewicht. Wer eine eigene Übung mit demselben Namen neu anlegt und die alten Einträge verknüpft, bekommt die Werte zurück. Test: `node tests/eigengewicht-test.js`
 - Berechnungen (1RM, Volumen, Verlauf) gibt es nur an einer Stelle und Home und Fortschritt nutzen dieselbe Funktion
 
 ## Prüfen vor dem Abschluss

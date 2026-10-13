@@ -277,6 +277,11 @@
   let selbstListe = [];
   eigeneUebungenAufnehmen(gespeichertLesen("eigeneUebungen", []));
 
+  // Die ids gelöschter eigener Eigengewicht-Übungen (seit Version 105). Ihre alten Einträge rechnen damit
+  // weiter mit dem Körpergewicht, siehe istEigengewicht. Im Backup stehen sie ab Backup-Version 11.
+  let geloeschteEigengewicht = [];
+  geloeschteEigengewichtAufnehmen(gespeichertLesen("geloeschteEigengewicht", []));
+
   // Gespeicherte Daten aus älteren Versionen kennen nur Übungsnamen: einmal die feste ID ergänzen
   gespeicherteDatenZuordnen();
 
@@ -477,6 +482,20 @@
       }
     }
     return anzahl;
+  }
+
+  // Nimmt ids gelöschter Eigengewicht-Übungen aus einer Liste auf (aus dem Speicher oder einem Backup).
+  // Übersprungen wird, was keine id einer eigenen Übung ist oder schon in der Liste steht.
+  function geloeschteEigengewichtAufnehmen(liste) {
+    if (!Array.isArray(liste)) {
+      return;
+    }
+    for (let i = 0; i < liste.length; i++) {
+      const id = liste[i];
+      if (typeof id === "string" && id.indexOf(SELBST_PRAEFIX) === 0 && geloeschteEigengewicht.indexOf(id) === -1) {
+        geloeschteEigengewicht.push(id);
+      }
+    }
   }
 
   // Führt die eigenen Übungen mit den festen zusammen: Sie kommen in UEBUNG_NACH_ID und in selbstListe.
@@ -2184,6 +2203,15 @@
         aktion: function () {
           // Zur Sicherheit den heutigen Namen noch einmal an alle Stellen schreiben
           selbstNameUebertragen(uebung);
+          // Merken, ob es Eigengewicht war: Die alten Einträge rechnen sonst ohne das Körpergewicht weiter
+          const gemerkt = geloeschteEigengewicht.indexOf(uebung.id);
+          if (gemerkt !== -1) {
+            geloeschteEigengewicht.splice(gemerkt, 1);
+          }
+          if (uebung.bereich === "eigen") {
+            geloeschteEigengewicht.push(uebung.id);
+          }
+          sicherSpeichern("geloeschteEigengewicht", geloeschteEigengewicht);
           eigeneUebungen.splice(eigeneUebungen.indexOf(uebung), 1);
           eigeneUebungenSpeichern();
           selbstFormSchliessen();
@@ -6943,9 +6971,13 @@
   }
 
   // Ist das eine Übung aus dem Bereich Eigengewicht? Übungen ohne ID sind es nie.
+  // Eine gelöschte eigene Übung bleibt es für ihre alten Einträge, wenn sie beim Löschen eine war.
   function istEigengewicht(id) {
     const u = UEBUNG_NACH_ID[id];
-    return Boolean(u) && u.bereich === "eigen";
+    if (u) {
+      return u.bereich === "eigen";
+    }
+    return geloeschteEigengewicht.indexOf(id) !== -1;
   }
 
   // Was bei einer Übung an einem Tag zum eingetragenen Gewicht dazukommt: bei Eigengewicht-Übungen
@@ -8435,6 +8467,9 @@
   // Die eigenen Übungen aus der Datei. null heißt: Das Backup enthält keine (z. B. ein älteres Backup).
   let importEigene = null;
 
+  // Die ids gelöschter Eigengewicht-Übungen aus der Datei. null heißt: Das Backup enthält keine (Backup vor Version 11).
+  let importGeloeschte = null;
+
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
     if (!r || typeof r !== "object" || typeof r.name !== "string" || !Array.isArray(r.uebungen)) {
@@ -8681,11 +8716,12 @@
   function backupText() {
     const backup = {
       app: "gymstead",
-      version: 10,
+      version: 11,
       exportiert: new Date().toISOString(),
       profil: profil,
       eintraege: eintraege,
       eigeneUebungen: eigeneUebungen,
+      geloeschteEigengewicht: geloeschteEigengewicht,
       routinen: routinen,
       wochenplan: wochenplan,
       trainings: trainings,
@@ -8811,6 +8847,12 @@
       importEigene = daten.eigeneUebungen;
     }
 
+    // Die ids gelöschter Eigengewicht-Übungen gibt es erst ab Backup-Version 11. Ältere Backups lassen die Liste, wie sie ist.
+    importGeloeschte = null;
+    if (daten && !Array.isArray(daten) && Array.isArray(daten.geloeschteEigengewicht)) {
+      importGeloeschte = daten.geloeschteEigengewicht;
+    }
+
     // Einstellungen gibt es erst in neueren Backups
     importEinstellungen = null;
     if (daten && !Array.isArray(daten) && daten.einstellungen && typeof daten.einstellungen === "object") {
@@ -8880,6 +8922,7 @@
       importTrainings = null;
       importGewichte = null;
       importEigene = null;
+      importGeloeschte = null;
       importProfil = null;
       datenMeldung(txt("backup.leer"));
       return;
@@ -8911,6 +8954,13 @@
 
     // Die eigenen Übungen kommen vor den Einträgen, damit diese ihre Übung gleich finden
     const eigeneText = eigeneImportieren(art);
+
+    // Die ids gelöschter Eigengewicht-Übungen kommen immer dazu, auch beim Ersetzen: Eine id, zu der es
+    // keine Einträge mehr gibt, ändert nichts. Gibt es die Übung noch, gilt ohnehin sie.
+    if (importGeloeschte !== null) {
+      geloeschteEigengewichtAufnehmen(importGeloeschte);
+      sicherSpeichern("geloeschteEigengewicht", geloeschteEigengewicht);
+    }
 
     let meldung;
     if (art === "ersetzen") {
@@ -8958,6 +9008,7 @@
     importTrainings = null;
     importGewichte = null;
     importEigene = null;
+    importGeloeschte = null;
     importProfil = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
     anzeigen();
@@ -8972,6 +9023,7 @@
     importTrainings = null;
     importGewichte = null;
     importEigene = null;
+    importGeloeschte = null;
     importProfil = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
   }

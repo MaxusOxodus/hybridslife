@@ -653,20 +653,23 @@ const TEXTE = {
   // ---------- Einführung (Rundgang) ----------
   // Die Texte der einzelnen Schritte stehen in der einfuehrung.js
   "tour.titel": { de: "Anleitung", en: "Guide" },
-  "tour.test": { de: "Anleitung (Test)", en: "Guide (test)" },
   "tour.xVonY": { de: "{x} von {y}", en: "{x} of {y}" },
   "tour.fertig": { de: "Fertig", en: "Done" },
   "tour.hinweis": { de: "Tippe rechts für weiter, links für zurück", en: "Tap right for next, left for back" },
-  // Das Angebot beim ersten Öffnen des Training-Tabs und beim ersten gestarteten Training
+  // Das Angebot beim ersten Start der App (Home), beim ersten Öffnen der Tabs und der Einstellungen und beim ersten gestarteten Training
   "tour.frage": { de: "Kurz zeigen?", en: "Quick tour?" },
+  "tour.frage.home": { de: "Willkommen bei Korund! Ich zeige dir in wenigen Schritten, wo du was findest.", en: "Welcome to Korund! I'll show you around in a few steps." },
   "tour.frage.training": { de: "Ich zeige dir in wenigen Schritten, wie du dein Training planst.", en: "I'll show you in a few steps how to plan your training." },
   "tour.frage.modus": { de: "Ich zeige dir in wenigen Schritten, wie ein Training abläuft. Dabei wird nichts gespeichert.", en: "I'll show you in a few steps how a workout works. Nothing is saved while I do." },
   "tour.frage.fortschritt": { de: "Ich zeige dir in wenigen Schritten, wo du deinen Fortschritt siehst.", en: "I'll show you in a few steps where to see your progress." },
   "tour.frage.profil": { de: "Ich zeige dir in wenigen Schritten, was dein Profil kann.", en: "I'll show you in a few steps what your profile can do." },
   "tour.frage.einstellungen": { de: "Ich zeige dir in wenigen Schritten, was du hier einstellen kannst.", en: "I'll show you in a few steps what you can set up here." },
   "tour.ja": { de: "Ja, zeigen", en: "Yes, show me" },
-  // Die Auswahl hinter der Zeile "Anleitung (Test)" in den Einstellungen
-  "tour.wahl": { de: "Welchen Bereich soll ich dir zeigen?", en: "Which part should I show you?" },
+  // Die Unterseite "Anleitung" in den Einstellungen
+  "tour.anleitungText": { de: "Tippe auf einen Bereich, dann zeige ich ihn dir noch einmal.", en: "Tap a part and I'll show it to you again." },
+  "tour.gesehen": { de: "gesehen", en: "seen" },
+  "tour.zuruecksetzen": { de: "Alle zurücksetzen", en: "Reset all" },
+  "tour.zuruecksetzenFrage": { de: "Alle Rundgänge zurücksetzen? Korund bietet sie dir dann wieder von selbst an.", en: "Reset all tours? Korund will offer them again." },
   "tour.modus": { de: "Trainingsmodus", en: "Workout mode" },
   "tour.modusHinweis": { de: "Starte ein Training, dann zeige ich dir den Trainingsmodus.", en: "Start a workout, then I'll show you workout mode." },
 

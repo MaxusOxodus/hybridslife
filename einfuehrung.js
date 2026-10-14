@@ -10,6 +10,7 @@
 // seiteZeigen, homeZeigen, homeWocheHeute und einstSchliessen, für das Training trainingAnsicht, trainingReiter,
 // laufendesTraining, trainingAnsichtZeigen, trainingReiterAnzeigen, trainingFortsetzen und modusZustandAnzeigen,
 // für den Fortschritt fortschrittGruppe und fortschrittUebungenAnzeigen, für das Profil profilReiter und profilReiterAnzeigen, für die Einstellungen einstOeffnen, einstZeigen und einstAnsicht, für das Angebot frageZeigen, gespeichertLesen und sicherSpeichern. Alles erst, wenn ein Rundgang startet oder angeboten wird.
+// Nur die Erkennung, ob die App neu ist (tourAppNeu), läuft schon beim Laden und liest dafür direkt den Speicher.
 // Die Farben und Größen stehen in der style.css (".tour-..."), der Glas-Look der Box in der glass.css.
 
 // ---------- Die Schritte ----------
@@ -929,12 +930,36 @@ function einfuehrungLaeuft() {
   return Boolean(tourSchritte) || tourLeise;
 }
 
-// ---------- Angebot und Auswahl ----------
+// ---------- Angebot und Anleitung ----------
+
+// Die Schlüssel, die die App im Speicher anlegt. Liegt keiner davon im Speicher, ist die App neu.
+// Gezählt wird nicht localStorage.length: Auf GitHub Pages teilen sich alle Projekte unter einer Adresse einen Speicher.
+const EINFUEHRUNG_APP_SCHLUESSEL = ["eintraege", "eintraegeKaputt", "eintraegeKaputt2", "routinen", "wochenplan", "laufendesTraining",
+  "einstellungen", "profil", "pause", "trainings", "koerpergewicht", "eigeneUebungen", "geloeschteEigengewicht", "letztesBackup",
+  "backupHinweisWeg", "einfuehrungGesehen", "einfuehrungDiagnose", "einfuehrungVariante"];
+
+// Ist die App neu (allererster Start, noch nichts im Speicher)? Einmal beim Laden festgehalten, denn die einfuehrung.js
+// lädt vor der app.js, und deren Start schreibt sofort etwas in den Speicher (z. B. den Merker der Ränge).
+// Lässt sich der Speicher nicht lesen, gilt die App als nicht neu: Dann kommt kein Angebot.
+const tourAppNeu = (function () {
+  try {
+    for (let i = 0; i < EINFUEHRUNG_APP_SCHLUESSEL.length; i++) {
+      if (localStorage.getItem(EINFUEHRUNG_APP_SCHLUESSEL[i]) !== null) {
+        return false;
+      }
+    }
+    return true;
+  } catch (fehler) {
+    return false;
+  }
+})();
 
 // Die Rundgänge "training", "fortschritt", "profil", "einstellungen" und "modus" bietet die App von selbst an: beim ersten Öffnen
 // des Training-Tabs, des Fortschritt-Tabs, des Profil-Tabs und der Einstellungen (nur ihrer Übersicht) und beim ersten gestarteten Training. Was schon war, steht im Speicher unter "einfuehrungGesehen", je Bereich
 // { gesehen: true } oder { angeboten: 1 }. Der Merker steht absichtlich nicht in den Einstellungen:
 // Die gehen ganz ins Backup, der Merker gehört nicht hinein.
+// "home" bietet die App nur beim Start an und nur neuen Nutzern: wenn die App neu ist (tourAppNeu) oder es schon einen Eintrag "home"
+// gibt (nach "Später" oder nach "Alle zurücksetzen"). Bestandsnutzer bekommen nie von selbst einen Eintrag "home".
 function einfuehrungMerker() {
   const merker = gespeichertLesen("einfuehrungGesehen", {});
   if (!merker || typeof merker !== "object" || Array.isArray(merker)) {
@@ -958,10 +983,10 @@ const tourGefragt = {};
 const TOUR_ANGEBOTE = 2;
 // Schalter: Bietet die App den Rundgang durch den Trainingsmodus nach dem Start eines Trainings von selbst an?
 // In Version 107 und 108 war es aus (false), bis der Rahmen auf dem iPhone sicher stimmte. Seit Version 109 ist es wieder an (true).
-// Über Einstellungen → Support → "Anleitung (Test)" lässt sich der Rundgang immer starten.
+// Über Einstellungen → Support → "Anleitung" lässt sich der Rundgang mit laufendem Training immer starten.
 const TOUR_MODUS_ANBIETEN = true;
 
-// Die app.js ruft das auf, wenn der Training-Tab aufgeht ("training"), wenn der Fortschritt-Tab aufgeht ("fortschritt"),
+// Die app.js ruft das auf, am Ende des Starts ohne laufendes Training ("home"), wenn der Training-Tab aufgeht ("training"), wenn der Fortschritt-Tab aufgeht ("fortschritt"),
 // wenn der Profil-Tab aufgeht ("profil"), wenn die Übersicht der Einstellungen aufgeht ("einstellungen") und wenn ein Training neu startet ("modus").
 // Gefragt wird erst, wenn die App damit fertig ist: Beim Start eines Trainings von Home aus geht erst der Tab auf
 // und dann der Trainingsmodus, die Frage soll zu dem passen, was am Ende zu sehen ist.
@@ -989,6 +1014,9 @@ function einfuehrungFragen(bereich) {
     // Die Seite des Bereichs: "modus" liegt auf der Seite "training", sonst heißt die Seite wie der Bereich
     return;
   }
+  if (bereich === "home" && homeAnsicht !== "home") {
+    return;
+  }
   if (bereich === "training" && trainingAnsicht !== "uebersicht") {
     return;
   }
@@ -1000,6 +1028,10 @@ function einfuehrungFragen(bereich) {
     return;
   }
   const merker = einfuehrungMerker();
+  // Home nur für neue Nutzer: Ohne Eintrag "home" fragt die App nur, wenn sie neu ist
+  if (bereich === "home" && !tourAppNeu && !merker.home) {
+    return;
+  }
   const stand = merker[bereich] || {};
   const angeboten = Number(stand.angeboten) || 0;
   if (stand.gesehen || angeboten >= TOUR_ANGEBOTE) {
@@ -1020,27 +1052,40 @@ function einfuehrungFragen(bereich) {
   ]);
 }
 
-// Die Zeile "Anleitung (Test)" in den Einstellungen: fragt, welcher Bereich gezeigt werden soll.
-// "Trainingsmodus" steht immer da. Läuft kein Training, ist der Knopf gesperrt und ein Hinweis im Text sagt, warum.
-function einfuehrungWaehlen() {
-  const knoepfe = [];
-  const wahl = function (text, bereich, aus) {
-    knoepfe.push({
-      text: text,
-      aus: aus,
+// Die Unterseite "Anleitung" in den Einstellungen (einstZeigen ruft das beim Öffnen auf): Haken für jeden gesehenen Rundgang.
+// "Trainingsmodus" steht immer da. Läuft kein Training, ist die Zeile gesperrt und ausgegraut (wie die Zeilen "Bald verfügbar"),
+// darunter steht der Hinweis, warum.
+function einfuehrungAnleitungAnzeigen() {
+  const merker = einfuehrungMerker();
+  const haken = document.querySelectorAll("[data-tour-haken]");
+  for (let i = 0; i < haken.length; i++) {
+    const stand = merker[haken[i].getAttribute("data-tour-haken")];
+    haken[i].classList.toggle("versteckt", !(stand && stand.gesehen));
+  }
+  const modus = document.getElementById("anleitung-modus");
+  modus.disabled = !laufendesTraining;
+  modus.classList.toggle("bald", !laufendesTraining);
+  document.getElementById("anleitung-modus-hinweis").classList.toggle("versteckt", Boolean(laufendesTraining));
+}
+
+// "Alle zurücksetzen": fragt nach und löscht dann den Merker. Home bekommt dabei { angeboten: 0 }, damit es wie bei einem
+// neuen Nutzer beim nächsten Start wieder angeboten wird. In dieser Sitzung fragt die App nichts mehr von selbst, erst ab dem nächsten Start.
+function einfuehrungZuruecksetzenFragen() {
+  frageZeigen(txt("tour.titel"), txt("tour.zuruecksetzenFrage"), [
+    {
+      text: txt("tour.zuruecksetzen"),
+      art: "haupt",
       aktion: function () {
-        einfuehrungStarten(bereich);
+        sicherSpeichern("einfuehrungGesehen", { home: { angeboten: 0 } });
+        const haken = document.querySelectorAll("[data-tour-haken]");
+        for (let i = 0; i < haken.length; i++) {
+          tourGefragt[haken[i].getAttribute("data-tour-haken")] = true;
+        }
+        einfuehrungAnleitungAnzeigen();
       }
-    });
-  };
-  wahl(txt("nav.home"), "home");
-  wahl(txt("nav.training"), "training");
-  wahl(txt("nav.fortschritt"), "fortschritt");
-  wahl(txt("nav.profil"), "profil");
-  wahl(txt("einst.titel"), "einstellungen");
-  wahl(txt("tour.modus"), "modus", !laufendesTraining);
-  knoepfe.push({ text: txt("abbrechen"), art: "leise" });
-  frageZeigen(txt("tour.titel"), txt("tour.wahl") + (laufendesTraining ? "" : "\n" + txt("tour.modusHinweis")), knoepfe);
+    },
+    { text: txt("abbrechen"), art: "leise" }
+  ]);
 }
 
 // Einen Schritt weiter. Nach dem letzten Schritt ist der Rundgang vorbei.

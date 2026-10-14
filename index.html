@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=115">
+  <link rel="stylesheet" href="style.css?v=116">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=115">
+  <link rel="stylesheet" href="glass.css?v=116">
 </head>
 <body>
 
@@ -874,10 +874,10 @@
           <span class="einst-titel" data-t="einst.ueber">Über</span>
           <span class="einst-pfeil" aria-hidden="true">›</span>
         </button>
-        <!-- Fragt, welcher Rundgang aus der einfuehrung.js starten soll (Home, Training, Fortschritt, Profil, Einstellungen oder Trainingsmodus). Die Zeile heißt "Anleitung (Test)", bis alle Bereiche fertig sind. -->
-        <button class="einst-zeile" onclick="einfuehrungWaehlen()">
+        <!-- Öffnet die Unterseite "Anleitung" mit allen Rundgängen aus der einfuehrung.js -->
+        <button class="einst-zeile" onclick="einstZeigen('anleitung')">
           <span class="icon einst-icon" data-icon="anleitung"></span>
-          <span class="einst-titel" data-t="tour.test">Anleitung (Test)</span>
+          <span class="einst-titel" data-t="tour.titel">Anleitung</span>
           <span class="einst-pfeil" aria-hidden="true">›</span>
         </button>
         </div>
@@ -950,6 +950,44 @@
         <div id="faq-liste"></div>
       </div>
 
+      <!-- Unterseite: Anleitung. Jede Zeile startet einen Rundgang aus der einfuehrung.js, rechts steht ein Haken, wenn er gesehen ist.
+           Haken und gesperrten Trainingsmodus setzt einfuehrungAnleitungAnzeigen beim Öffnen der Seite. -->
+      <div id="einst-ansicht-anleitung" class="einst-ansicht versteckt">
+        <div class="karte einst-liste">
+          <button class="einst-zeile" onclick="einfuehrungStarten('home')">
+            <span class="einst-titel" data-t="nav.home">Home</span>
+            <span class="einst-wert" role="img" data-tour-haken="home" data-t-aria="tour.gesehen">✓</span>
+          </button>
+          <button class="einst-zeile" onclick="einfuehrungStarten('training')">
+            <span class="einst-titel" data-t="nav.training">Training</span>
+            <span class="einst-wert" role="img" data-tour-haken="training" data-t-aria="tour.gesehen">✓</span>
+          </button>
+          <button id="anleitung-modus" class="einst-zeile" onclick="einfuehrungStarten('modus')">
+            <span class="einst-titel" data-t="tour.modus">Trainingsmodus</span>
+            <span class="einst-wert" role="img" data-tour-haken="modus" data-t-aria="tour.gesehen">✓</span>
+          </button>
+          <button class="einst-zeile" onclick="einfuehrungStarten('fortschritt')">
+            <span class="einst-titel" data-t="nav.fortschritt">Fortschritt</span>
+            <span class="einst-wert" role="img" data-tour-haken="fortschritt" data-t-aria="tour.gesehen">✓</span>
+          </button>
+          <button class="einst-zeile" onclick="einfuehrungStarten('profil')">
+            <span class="einst-titel" data-t="nav.profil">Profil</span>
+            <span class="einst-wert" role="img" data-tour-haken="profil" data-t-aria="tour.gesehen">✓</span>
+          </button>
+          <button class="einst-zeile" onclick="einfuehrungStarten('einstellungen')">
+            <span class="einst-titel" data-t="einst.titel">Einstellungen</span>
+            <span class="einst-wert" role="img" data-tour-haken="einstellungen" data-t-aria="tour.gesehen">✓</span>
+          </button>
+        </div>
+        <p class="einst-fuss" data-t="tour.anleitungText">Tippe auf einen Bereich, dann zeige ich ihn dir noch einmal.</p>
+        <p id="anleitung-modus-hinweis" class="einst-fuss" data-t="tour.modusHinweis">Starte ein Training, dann zeige ich dir den Trainingsmodus.</p>
+        <div id="anleitung-zuruecksetzen" class="karte einst-liste">
+          <button class="einst-zeile" onclick="einfuehrungZuruecksetzenFragen()">
+            <span class="einst-titel" data-t="tour.zuruecksetzen">Alle zurücksetzen</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Unterseite: Über -->
       <div id="einst-ansicht-ueber" class="einst-ansicht versteckt">
         <div class="karte einst-liste">
@@ -989,9 +1027,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=115"></script>
-<script src="uebungen.js?v=115"></script>
-<script src="erklaerungen.js?v=115"></script>
+<script src="texte.js?v=116"></script>
+<script src="uebungen.js?v=116"></script>
+<script src="erklaerungen.js?v=116"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1013,13 +1051,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=115"></script>
-<script src="bilder.js?v=115"></script>
-<script src="vorlagen.js?v=115"></script>
-<script src="figuren.js?v=115"></script>
+<script src="raenge.js?v=116"></script>
+<script src="bilder.js?v=116"></script>
+<script src="vorlagen.js?v=116"></script>
+<script src="figuren.js?v=116"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=115"></script>
+<script src="app.js?v=116"></script>
 
 </body>
 </html>

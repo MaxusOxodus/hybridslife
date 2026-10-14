@@ -2838,8 +2838,6 @@
   function frageZeigen(titel, text, knoepfe) {
     document.getElementById("frage-titel").textContent = titel;
     document.getElementById("frage-text").textContent = text;
-    // Ab sechs Knöpfen dürfen die Knöpfe scrollen, damit die Frage auf kleinen Bildschirmen im Bild bleibt (style.css, "#frage.lang")
-    document.getElementById("frage").classList.toggle("lang", knoepfe.length >= 6);
 
     const bereich = document.getElementById("frage-knoepfe");
     bereich.innerHTML = "";
@@ -2848,8 +2846,6 @@
       if (knoepfe[i].art) {
         btn.classList.add(knoepfe[i].art);
       }
-      // Ein gesperrter Knopf ist zu sehen, lässt sich aber nicht antippen
-      btn.disabled = knoepfe[i].aus === true;
       btn.onclick = function () {
         document.getElementById("frage-hintergrund").classList.remove("offen");
         if (knoepfe[i].aktion) {
@@ -11140,6 +11136,7 @@
     design: "design",
     sprache: "profil.sprache",
     faq: "einst.faq",
+    anleitung: "tour.titel",
     ueber: "einst.ueber"
   };
 
@@ -11225,6 +11222,10 @@
     }
     if (name === "faq") {
       faqAnzeigen();
+    }
+    // Haken und gesperrter Trainingsmodus kommen bei jedem Öffnen frisch aus dem Merker der Einführung (einfuehrung.js)
+    if (name === "anleitung") {
+      einfuehrungAnleitungAnzeigen();
     }
     if (name === "ueber") {
       document.getElementById("ueber-version").textContent = appVersion() + einfuehrungDiagnoseText();
@@ -11371,6 +11372,12 @@ rangPruefen(true);
 // Der Start ist durch: Jetzt erscheinen die Meldungen zu kaputten Einträgen und zu fehlgeschlagenem Speichern
 startFertig = true;
 startMeldungenZeigen();
+
+// Neuen Nutzern bietet die Einführung beim Start den Rundgang über Home an (einfuehrung.js). Läuft noch ein Training,
+// fragt die App zuerst danach: Dann entfällt das Angebot für diesen Start und zählt nicht mit.
+if (!laufendesTraining) {
+  einfuehrungAnbieten("home");
+}
 
 // ---------- Offline und Updates ----------
 

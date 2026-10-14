@@ -102,6 +102,30 @@
   --akzent-kante: rgba(0, 0, 0, 0.35);
 }
 
+/* Rang-Abzeichen und Abzeichen bleiben Limette (siehe style.css): dieselben Werte wie oben, nur fest in Limette */
+:root[data-stil="glass"] .rang-svg,
+:root[data-stil="glass"] .abzeichen {
+  --akzent-hauch: var(--akzent-leicht);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-stil="glass"]:not([data-design="dunkel"]) .rang-svg,
+  :root[data-stil="glass"]:not([data-design="dunkel"]) .abzeichen {
+    --akzent-text: var(--text);
+    --akzent-leicht: var(--akzent);
+    --akzent-hauch: rgba(198, 241, 53, 0.4);
+    --akzent-pille: var(--akzent);
+  }
+}
+
+:root[data-stil="glass"][data-design="hell"] .rang-svg,
+:root[data-stil="glass"][data-design="hell"] .abzeichen {
+  --akzent-text: var(--text);
+  --akzent-leicht: var(--akzent);
+  --akzent-hauch: rgba(198, 241, 53, 0.4);
+  --akzent-pille: var(--akzent);
+}
+
 /* ---------- Hintergrund ---------- */
 
 /* Eine feste Ebene hinter allen Ansichten: zwei weiche Licht-Flecken im Akzentton auf der Grundfarbe.

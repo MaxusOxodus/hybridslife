@@ -685,6 +685,10 @@ const TEXTE = {
     de: "„Glass“ zeigt Karten und Leisten als halbtransparentes Glas. Anordnung und Funktionen bleiben gleich.",
     en: "“Glass” shows cards and bars as translucent glass. Layout and features stay the same."
   },
+  "akzent": { de: "Farbe", en: "Color" },
+  "akzent.limette": { de: "Limette", en: "Lime" },
+  "akzent.blau": { de: "Blau", en: "Blue" },
+  "akzent.rot": { de: "Rot", en: "Red" },
   "ueber.app": { de: "App", en: "App" },
   "ueber.version": { de: "Version", en: "Version" },
   "ueber.text": {

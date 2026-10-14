@@ -904,6 +904,7 @@
     spracheAnzeigen();
     designAnzeigen();
     stilAnzeigen();
+    akzentAnzeigen();
     einstTitelAnzeigen();
     einstWerteAnzeigen();
     einheitenAnwenden();
@@ -9173,6 +9174,57 @@
     stilAnzeigen();
   }
 
+  // ---------- Akzentfarbe ----------
+
+  // Die wählbaren Akzentfarben. "farbe" ist der Ton des Punkts in der Auswahl, er ist in jedem Design gleich.
+  const AKZENT_AUSWAHL = [
+    { id: "limette", schluessel: "akzent.limette", farbe: "#C6F135" },
+    { id: "blau", schluessel: "akzent.blau", farbe: "#4DA3FF" },
+    { id: "rot", schluessel: "akzent.rot", farbe: "#FF7070" }
+  ];
+
+  // Die gewählte Akzentfarbe. Ohne Eintrag oder bei einem unbekannten Wert gilt "limette".
+  function akzent() {
+    for (let i = 0; i < AKZENT_AUSWAHL.length; i++) {
+      if (AKZENT_AUSWAHL[i].id === einstellungen.akzent) {
+        return einstellungen.akzent;
+      }
+    }
+    return "limette";
+  }
+
+  // Färbt die App. Das Attribut data-akzent am <html> wertet die style.css aus, bei Limette fehlt es.
+  function akzentAnwenden() {
+    if (akzent() === "limette") {
+      document.documentElement.removeAttribute("data-akzent");
+    } else {
+      document.documentElement.setAttribute("data-akzent", akzent());
+    }
+  }
+
+  // Einstellungen: die Reihe aus Farbpunkten, der gewählte hat einen Ring
+  function akzentAnzeigen() {
+    const behaelter = document.getElementById("akzent-auswahl");
+    behaelter.innerHTML = "";
+    for (let i = 0; i < AKZENT_AUSWAHL.length; i++) {
+      const btn = element("button", "akzent-punkt");
+      btn.style.setProperty("--punkt", AKZENT_AUSWAHL[i].farbe);
+      btn.setAttribute("aria-label", txt(AKZENT_AUSWAHL[i].schluessel));
+      btn.setAttribute("aria-pressed", String(AKZENT_AUSWAHL[i].id === akzent()));
+      btn.onclick = function () {
+        akzentSetzen(AKZENT_AUSWAHL[i].id);
+      };
+      behaelter.appendChild(btn);
+    }
+  }
+
+  function akzentSetzen(neu) {
+    einstellungen.akzent = neu;
+    einstellungenSpeichern();
+    akzentAnwenden();
+    akzentAnzeigen();
+  }
+
   // ---------- Profil: Name und Benutzername ----------
 
   // Macht aus einer Eingabe einen Benutzernamen: ohne Leerzeichen am Rand, ohne @ davor, kleingeschrieben
@@ -11347,6 +11399,10 @@ designAnzeigen();
 // Der gewählte Stil (Klassisch oder Glass) und sein Umschalter
 stilAnwenden();
 stilAnzeigen();
+
+// Die gewählte Akzentfarbe und ihre Auswahl
+akzentAnwenden();
+akzentAnzeigen();
 
 // Beschriftungen und Schnellbuttons in der gewählten Einheit, dazu das Rad für das Körpergewicht
 // (30 bis 200 kg oder 66 bis 440 lbs)

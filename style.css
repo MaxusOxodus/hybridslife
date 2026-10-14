@@ -6,6 +6,8 @@
   --text: #FFFFFF;
   --text-leise: #98989F;
   /* Die Akzentfarbe (Limette). Die Werte als Zahlen (-rgb) braucht es für die durchsichtigen Töne.
+     --akzent-schrift: der Ton für Text und Linien im dunklen Design. Bei Limette derselbe wie --akzent, bei anderen Farben
+     etwas heller, damit er auch auf der getönten Fläche aktiver Umschalter 4,5 : 1 erreicht.
      --akzent-dunkel: der dunkle Ton für Text und Linien im hellen Design.
      --akzent-schimmer-rgb: der Ton des Schimmers im hellen Design.
      --akzent-grund-oben und -unten: der helle Grund hinter den Licht-Flecken im hellen Glass. */
@@ -17,8 +19,9 @@
   --akzent-grund-unten: #EDF1EE;
   /* Akzent für gefüllte Flächen (Buttons), darauf steht dunkle Schrift */
   --akzent: #C6F135;
+  --akzent-schrift: var(--akzent);
   /* Akzent für Text und dünne Linien: muss sich vom Hintergrund abheben */
-  --akzent-text: var(--akzent);
+  --akzent-text: var(--akzent-schrift);
   --akzent-leicht: rgba(var(--akzent-rgb), 0.15);
   --auf-akzent: #000000;
   /* Rot für Aktionen, die etwas löschen */
@@ -93,6 +96,56 @@
   --glas-schatten: 0 8px 24px rgba(60, 60, 67, 0.14);
   --glas-schimmer: rgba(var(--akzent-schimmer-rgb), 0.22);
   color-scheme: light;
+}
+
+/* Wählbare Akzentfarben (Einstellungen → Design → Farbe). Die App setzt dafür data-akzent am <html>,
+   bei Limette fehlt das Attribut und es gelten die Werte von oben. Jeder Block ändert nur die Rohwerte,
+   alle anderen Akzent-Variablen rechnen damit, in jedem Design und Stil.
+   Schrift auf der Akzentfläche bleibt schwarz (--auf-akzent), sie hat in jeder Farbe den besseren Kontrast. */
+:root[data-akzent="blau"] {
+  --akzent: #4DA3FF;
+  --akzent-rgb: 77, 163, 255;
+  --akzent-schrift: #71B5FF;
+  --akzent-dunkel: #0A53B1;
+  --akzent-dunkel-rgb: 10, 83, 177;
+  --akzent-schimmer-rgb: 60, 127, 199;
+  --akzent-grund-oben: #F5F7FA;
+  --akzent-grund-unten: #ECF0F5;
+}
+
+/* Rot ist heller als das Rot zum Löschen (--gefahr), im hellen Design dunkler: So bleiben beide gut zu unterscheiden */
+:root[data-akzent="rot"] {
+  --akzent: #FF7070;
+  --akzent-rgb: 255, 112, 112;
+  --akzent-schrift: #FF8E8E;
+  --akzent-dunkel: #A3262A;
+  --akzent-dunkel-rgb: 163, 38, 42;
+  --akzent-schimmer-rgb: 199, 87, 87;
+  --akzent-grund-oben: #FAF6F5;
+  --akzent-grund-unten: #F4EEEC;
+}
+
+/* Rang-Abzeichen und Abzeichen bleiben Limette, egal welche Akzentfarbe gewählt ist: Ihre Farbe trägt eine Bedeutung.
+   Es sind die Werte von oben, fest eingetragen. Die glass.css ergänzt die Glass-Werte. */
+.rang-svg,
+.abzeichen {
+  --akzent: #C6F135;
+  --akzent-text: #C6F135;
+  --akzent-leicht: rgba(198, 241, 53, 0.15);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-design="dunkel"]) .rang-svg,
+  :root:not([data-design="dunkel"]) .abzeichen {
+    --akzent-text: #3F6B0B;
+    --akzent-leicht: rgba(63, 107, 11, 0.12);
+  }
+}
+
+:root[data-design="hell"] .rang-svg,
+:root[data-design="hell"] .abzeichen {
+  --akzent-text: #3F6B0B;
+  --akzent-leicht: rgba(63, 107, 11, 0.12);
 }
 
 * {
@@ -2734,6 +2787,39 @@ button.einst-zeile:first-child {
 .umschalter.gross button {
   min-height: 48px;
   font-size: 16px;
+}
+
+/* Einstellungen → Design → Farbe: eine Reihe aus Farbpunkten. Jeder Knopf ist 44 × 44 px groß, darin ein
+   Punkt in seiner Farbe. Der gewählte bekommt einen Ring in der Textfarbe. */
+#akzent-auswahl {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.akzent-punkt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+}
+
+.akzent-punkt::before {
+  content: "";
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--punkt);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.akzent-punkt[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 2.5px var(--text);
 }
 
 /* Die Karte mit den Backup-Zeilen leuchtet kurz auf, wenn die Erinnerung im Profil hierher führt */

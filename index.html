@@ -36,15 +36,20 @@
       if (design === "dunkel" || design === "hell") {
         document.documentElement.setAttribute("data-design", design);
       }
+      // Die Akzentfarbe: Ohne Eintrag oder bei einem unbekannten Wert bleibt es bei Limette (ohne Attribut)
+      var akzent = gespeichert.akzent;
+      if (akzent === "blau" || akzent === "rot") {
+        document.documentElement.setAttribute("data-akzent", akzent);
+      }
     } catch (fehler) {}
     if (stilBeimStart === "glass") {
       document.documentElement.setAttribute("data-stil", "glass");
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=117">
+  <link rel="stylesheet" href="style.css?v=118">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=117">
+  <link rel="stylesheet" href="glass.css?v=118">
 </head>
 <body>
 
@@ -938,6 +943,9 @@
         <h2 class="abschnitt" data-t="stil">Stil</h2>
         <div id="stil-auswahl" class="umschalter gross"></div>
         <p class="einst-fuss" data-t="stil.hinweis">„Glass“ zeigt Karten und Leisten als halbtransparentes Glas. Anordnung und Funktionen bleiben gleich.</p>
+        <!-- Die Akzentfarbe: eine Reihe aus Farbpunkten. Die Punkte baut die app.js. -->
+        <h2 class="abschnitt" data-t="akzent">Farbe</h2>
+        <div id="akzent-auswahl" role="group" aria-label="Farbe" data-t-aria="akzent"></div>
       </div>
 
       <!-- Unterseite: Sprache -->
@@ -1027,9 +1035,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=117"></script>
-<script src="uebungen.js?v=117"></script>
-<script src="erklaerungen.js?v=117"></script>
+<script src="texte.js?v=118"></script>
+<script src="uebungen.js?v=118"></script>
+<script src="erklaerungen.js?v=118"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1051,13 +1059,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=117"></script>
-<script src="bilder.js?v=117"></script>
-<script src="vorlagen.js?v=117"></script>
-<script src="figuren.js?v=117"></script>
+<script src="raenge.js?v=118"></script>
+<script src="bilder.js?v=118"></script>
+<script src="vorlagen.js?v=118"></script>
+<script src="figuren.js?v=118"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=117"></script>
+<script src="app.js?v=118"></script>
 
 </body>
 </html>

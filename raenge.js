@@ -5,7 +5,7 @@
 // Die Namen der Ränge und Muster stehen in der texte.js.
 
 // Der Name der App, wie er auf der Teilen-Karte steht
-const APP_NAME = "Gymstead";
+const APP_NAME = "Korund";
 
 // ---------- Rang-Leiter ----------
 

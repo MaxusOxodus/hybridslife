@@ -4,8 +4,9 @@
 
   // "Folge uns" in den Einstellungen: Hier trägst du die Adressen ein, z. B. "https://www.instagram.com/deinname".
   // Solange eine Adresse leer ist, bleibt ihre Zeile ausgeblendet.
-  const INSTAGRAM_URL = "";
-  const TIKTOK_URL = "";
+  const INSTAGRAM_URL = "https://www.instagram.com/korundapp";
+  const TIKTOK_URL = "https://www.tiktok.com/@korundapp";
+  const YOUTUBE_URL = "https://www.youtube.com/@korundapp";
 
   // Platzhalter für das, was es noch nicht gibt: der Gym-Tab und in den Einstellungen Konto, Abo und Blockierte Nutzer.
   // Mit false sind sie ausgeblendet, mit true wieder da. In der index.html tragen sie das Merkmal data-platzhalter.
@@ -8728,7 +8729,7 @@
   // Der Inhalt der Backup-Datei als JSON-Text
   function backupText() {
     const backup = {
-      app: "gymstead",
+      app: "korund",
       version: 11,
       exportiert: new Date().toISOString(),
       profil: profil,
@@ -8744,10 +8745,10 @@
     return JSON.stringify(backup, null, 2);
   }
 
-  // Speichert alle Einträge als Datei, z. B. gymstead-backup-2026-10-07.json
+  // Speichert alle Einträge als Datei, z. B. korund-backup-2026-10-07.json
   function backupExportieren() {
     const heute = new Date();
-    const dateiname = "gymstead-backup-" + heute.getFullYear()
+    const dateiname = "korund-backup-" + heute.getFullYear()
       + "-" + String(heute.getMonth() + 1).padStart(2, "0")
       + "-" + String(heute.getDate()).padStart(2, "0") + ".json";
     const datei = new File([backupText()], dateiname, { type: "application/json" });
@@ -8831,7 +8832,7 @@
 
     // Die Einträge stehen im Backup unter "eintraege". Eine reine Liste wird auch angenommen.
     // Die Kennung "app" wird bewusst nicht geprüft: So lassen sich auch alte Backups
-    // mit der Kennung "hybridslife" weiter importieren.
+    // mit den Kennungen "hybridslife" und "gymstead" weiter importieren.
     let liste = daten;
     if (daten && !Array.isArray(daten)) {
       liste = daten.eintraege;
@@ -11265,7 +11266,8 @@
 
     folgenZeile("folgen-instagram", INSTAGRAM_URL);
     folgenZeile("folgen-tiktok", TIKTOK_URL);
-    document.getElementById("einst-folgen").classList.toggle("versteckt", INSTAGRAM_URL === "" && TIKTOK_URL === "");
+    folgenZeile("folgen-youtube", YOUTUBE_URL);
+    document.getElementById("einst-folgen").classList.toggle("versteckt", INSTAGRAM_URL === "" && TIKTOK_URL === "" && YOUTUBE_URL === "");
   }
 
   // Eine Zeile von "Folge uns": sichtbar nur, wenn ihre Adresse eingetragen ist

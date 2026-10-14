@@ -8,7 +8,7 @@
   <!-- Farbe der Browser- und Statusleiste, passend zum hellen oder dunklen Design -->
   <meta id="farbe-hell" name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
   <meta id="farbe-dunkel" name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-  <title>Gymstead</title>
+  <title>Korund</title>
 
   <!-- PWA: Manifest (Name, Icons, Start ohne Browserleiste) und Icons -->
   <link rel="manifest" href="manifest.json">
@@ -18,7 +18,7 @@
   <!-- iPhone: vom Homescreen ohne Safari-Leiste starten, Statusleiste passend zum Design -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Gymstead">
+  <meta name="apple-mobile-web-app-title" content="Korund">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
   <!-- Ist in den Einstellungen "Dunkel" oder "Hell" gewählt, gilt das sofort, noch bevor die Seite gezeichnet wird.
@@ -42,9 +42,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=114">
+  <link rel="stylesheet" href="style.css?v=115">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=114">
+  <link rel="stylesheet" href="glass.css?v=115">
 </head>
 <body>
 
@@ -840,6 +840,28 @@
         <p id="daten-meldung" class="einst-fuss"></p>
         <p class="einst-fuss" data-t="backup.nurHier">Deine Daten liegen nur auf diesem Gerät. Ein Backup schützt sie.</p>
 
+        <!-- Folge uns: Die Adressen stehen oben in der app.js. Ohne Adresse bleibt die Zeile ausgeblendet. -->
+        <div id="einst-folgen" class="versteckt">
+          <h2 class="abschnitt" data-t="einst.folgen">Folge uns</h2>
+          <div class="karte einst-liste">
+            <a id="folgen-instagram" class="einst-zeile versteckt" target="_blank" rel="noopener">
+              <span class="icon einst-icon" data-icon="link"></span>
+              <span class="einst-titel">Instagram</span>
+              <span class="einst-pfeil" aria-hidden="true">›</span>
+            </a>
+            <a id="folgen-tiktok" class="einst-zeile versteckt" target="_blank" rel="noopener">
+              <span class="icon einst-icon" data-icon="link"></span>
+              <span class="einst-titel">TikTok</span>
+              <span class="einst-pfeil" aria-hidden="true">›</span>
+            </a>
+            <a id="folgen-youtube" class="einst-zeile versteckt" target="_blank" rel="noopener">
+              <span class="icon einst-icon" data-icon="link"></span>
+              <span class="einst-titel">YouTube</span>
+              <span class="einst-pfeil" aria-hidden="true">›</span>
+            </a>
+          </div>
+        </div>
+
         <h2 class="abschnitt" data-t="einst.support">Support</h2>
         <div class="karte einst-liste" data-tour="einst-support">
         <button class="einst-zeile" onclick="einstZeigen('faq')">
@@ -858,23 +880,6 @@
           <span class="einst-titel" data-t="tour.test">Anleitung (Test)</span>
           <span class="einst-pfeil" aria-hidden="true">›</span>
         </button>
-        </div>
-
-        <!-- Folge uns: Die Adressen stehen oben in der app.js. Ohne Adresse bleibt die Zeile ausgeblendet. -->
-        <div id="einst-folgen" class="versteckt">
-          <h2 class="abschnitt" data-t="einst.folgen">Folge uns</h2>
-          <div class="karte einst-liste">
-            <a id="folgen-instagram" class="einst-zeile versteckt" target="_blank" rel="noopener">
-              <span class="icon einst-icon" data-icon="link"></span>
-              <span class="einst-titel">Instagram</span>
-              <span class="einst-pfeil" aria-hidden="true">›</span>
-            </a>
-            <a id="folgen-tiktok" class="einst-zeile versteckt" target="_blank" rel="noopener">
-              <span class="icon einst-icon" data-icon="link"></span>
-              <span class="einst-titel">TikTok</span>
-              <span class="einst-pfeil" aria-hidden="true">›</span>
-            </a>
-          </div>
         </div>
       </div>
 
@@ -950,14 +955,14 @@
         <div class="karte einst-liste">
           <div class="einst-zeile">
             <span class="einst-titel" data-t="ueber.app">App</span>
-            <span class="einst-wert">Gymstead</span>
+            <span class="einst-wert">Korund</span>
           </div>
           <div id="ueber-version-zeile" class="einst-zeile" onclick="einfuehrungDiagnoseTipp()">
             <span class="einst-titel" data-t="ueber.version">Version</span>
             <span id="ueber-version" class="einst-wert"></span>
           </div>
         </div>
-        <p class="einst-fuss" data-t="ueber.text">Gymstead ist eine Trainings-App für Krafttraining.</p>
+        <p class="einst-fuss" data-t="ueber.text">Korund ist eine Trainings-App für Krafttraining.</p>
         <p class="einst-fuss" data-t="ueber.lokal">Alle Daten liegen lokal auf diesem Gerät.</p>
       </div>
     </div>
@@ -984,9 +989,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=114"></script>
-<script src="uebungen.js?v=114"></script>
-<script src="erklaerungen.js?v=114"></script>
+<script src="texte.js?v=115"></script>
+<script src="uebungen.js?v=115"></script>
+<script src="erklaerungen.js?v=115"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1008,13 +1013,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=114"></script>
-<script src="bilder.js?v=114"></script>
-<script src="vorlagen.js?v=114"></script>
-<script src="figuren.js?v=114"></script>
+<script src="raenge.js?v=115"></script>
+<script src="bilder.js?v=115"></script>
+<script src="vorlagen.js?v=115"></script>
+<script src="figuren.js?v=115"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=114"></script>
+<script src="app.js?v=115"></script>
 
 </body>
 </html>

@@ -1,6 +1,6 @@
-# Gymstead
+# Korund
 
-Trainings-App für Athleten im Krafttraining (früher "Hybridslife", Repo-Name bleibt `hybridslife`). Sie ist bewusst keine Hybrid-App.
+Trainings-App für Athleten im Krafttraining (seit Version 115 Korund, früher Gymstead und Hybridslife, Repo-Name bleibt `hybridslife`). Sie ist bewusst keine Hybrid-App.
 
 ## Ziel
 - Phase 1: Gym-Workouts tracken (Übung, Sätze, Wdh., Gewicht, RIR, Datum)
@@ -86,6 +86,7 @@ Trainings-App für Athleten im Krafttraining (früher "Hybridslife", Repo-Name b
 - Bestehende Einträge, Routinen, Wochenplan und Backups dürfen nie verloren gehen oder verändert werden
 - Am Datenformat oder an der Backup-Version nichts ändern, ohne es mir vorher zu sagen. Alte Backups müssen weiter importierbar sein
 - Gelöschte eigene Eigengewicht-Übungen (seit Version 105): Beim Löschen merkt sich die App die id der Übung in der Liste `geloeschteEigengewicht` (eigener Schlüssel im Speicher, im Backup ab Backup-Version 11). `istEigengewicht` fragt zuerst die vorhandene Übung und sonst diese Liste, so rechnen die alten Einträge weiter mit dem Körpergewicht. Die Einträge selbst bleiben unverändert. Beim Import kommen die ids aus dem Backup immer dazu, auch beim Ersetzen, Backups bis Version 10 lassen die Liste, wie sie ist. Für Übungen, die vor Version 105 gelöscht wurden, gibt es keine Rekonstruktion: Ihre Einträge rechnen ohne Körpergewicht. Wer eine eigene Übung mit demselben Namen neu anlegt und die alten Einträge verknüpft, bekommt die Werte zurück. Test: `node tests/eigengewicht-test.js`
+- Name der App (seit Version 115 Korund): Sichtbar heißt die App überall Korund (Titel, Manifest, Homescreen-Name, Über, FAQ, Teilen-Bild über `APP_NAME` in der `raenge.js`, Backup-Datei `korund-backup-JJJJ-MM-TT.json`). Bewusst geblieben ist die Vorsilbe des Cache-Namens `gymstead-v` in der `sw.js`, damit der Service Worker die Caches älterer Versionen weiter löscht. Neue Backups tragen die Kennung `app: "korund"`, die Backup-Version bleibt 11. Der Import prüft die Kennung nicht: Backups mit `"hybridslife"`, `"gymstead"`, `"korund"` und ohne Kennung lassen sich alle importieren. Test: `node tests/backup-kennung-test.js`
 - Berechnungen (1RM, Volumen, Verlauf) gibt es nur an einer Stelle und Home und Fortschritt nutzen dieselbe Funktion
 
 ## Prüfen vor dem Abschluss

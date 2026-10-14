@@ -685,8 +685,8 @@ const TEXTE = {
   "ueber.app": { de: "App", en: "App" },
   "ueber.version": { de: "Version", en: "Version" },
   "ueber.text": {
-    de: "Gymstead ist eine Krafttraining-App für den Gym. Du trackst damit dein Training, deine Fortschritte und deine Ränge.",
-    en: "Gymstead is a strength training app for the gym. Track your workouts, progress and ranks."
+    de: "Korund ist eine Krafttraining-App für den Gym. Du trackst damit dein Training, deine Fortschritte und deine Ränge.",
+    en: "Korund is a strength training app for the gym. Track your workouts, progress and ranks."
   },
   "ueber.lokal": {
     de: "Alle Daten liegen lokal auf diesem Gerät. Es gibt kein Konto und keine Cloud, nichts wird an einen Server geschickt.",
@@ -706,8 +706,8 @@ const TEXTE = {
   },
   "faq.3.frage": { de: "Wie ziehe ich auf ein neues iPhone um?", en: "How do I move to a new iPhone?" },
   "faq.3.antwort": {
-    de: "Exportiere auf dem alten iPhone ein Backup und sichere die Datei so, dass du auf dem neuen daran kommst, zum Beispiel in iCloud Drive. Öffne Gymstead auf dem neuen iPhone, tippe in den Einstellungen auf „Backup importieren“, wähle die Datei und dann „Ersetzen“. Von allein wandern die Daten nicht mit.",
-    en: "Export a backup on the old iPhone and save the file where the new one can reach it, for example in iCloud Drive. Open Gymstead on the new iPhone, tap “Import backup” in the settings, pick the file and choose “Replace”. The data does not move over by itself."
+    de: "Exportiere auf dem alten iPhone ein Backup und sichere die Datei so, dass du auf dem neuen daran kommst, zum Beispiel in iCloud Drive. Öffne Korund auf dem neuen iPhone, tippe in den Einstellungen auf „Backup importieren“, wähle die Datei und dann „Ersetzen“. Von allein wandern die Daten nicht mit.",
+    en: "Export a backup on the old iPhone and save the file where the new one can reach it, for example in iCloud Drive. Open Korund on the new iPhone, tap “Import backup” in the settings, pick the file and choose “Replace”. The data does not move over by itself."
   },
   "faq.4.frage": { de: "Was ist der Unterschied zwischen Ergänzen und Ersetzen?", en: "What is the difference between Merge and Replace?" },
   "faq.4.antwort": {

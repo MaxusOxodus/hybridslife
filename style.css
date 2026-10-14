@@ -125,6 +125,30 @@
   --akzent-grund-unten: #F4EEEC;
 }
 
+/* Pink: im hellen Glass ein rosé Grund */
+:root[data-akzent="pink"] {
+  --akzent: #FF5FA8;
+  --akzent-rgb: 255, 95, 168;
+  --akzent-schrift: #FF88BE;
+  --akzent-dunkel: #A01256;
+  --akzent-dunkel-rgb: 160, 18, 86;
+  --akzent-schimmer-rgb: 199, 74, 131;
+  --akzent-grund-oben: #FAF5F8;
+  --akzent-grund-unten: #F3ECF0;
+}
+
+/* Lila: im hellen Glass ein lavendel Grund */
+:root[data-akzent="lila"] {
+  --akzent: #A98BFF;
+  --akzent-rgb: 169, 139, 255;
+  --akzent-schrift: #BCA4FF;
+  --akzent-dunkel: #5B2CC4;
+  --akzent-dunkel-rgb: 91, 44, 196;
+  --akzent-schimmer-rgb: 132, 108, 199;
+  --akzent-grund-oben: #F7F6FA;
+  --akzent-grund-unten: #EFEDF4;
+}
+
 /* Rang-Abzeichen und Abzeichen bleiben Limette, egal welche Akzentfarbe gewählt ist: Ihre Farbe trägt eine Bedeutung.
    Es sind die Werte von oben, fest eingetragen. Die glass.css ergänzt die Glass-Werte. */
 .rang-svg,

@@ -9180,7 +9180,9 @@
   const AKZENT_AUSWAHL = [
     { id: "limette", schluessel: "akzent.limette", farbe: "#C6F135" },
     { id: "blau", schluessel: "akzent.blau", farbe: "#4DA3FF" },
-    { id: "rot", schluessel: "akzent.rot", farbe: "#FF7070" }
+    { id: "rot", schluessel: "akzent.rot", farbe: "#FF7070" },
+    { id: "pink", schluessel: "akzent.pink", farbe: "#FF5FA8" },
+    { id: "lila", schluessel: "akzent.lila", farbe: "#A98BFF" }
   ];
 
   // Die gewählte Akzentfarbe. Ohne Eintrag oder bei einem unbekannten Wert gilt "limette".

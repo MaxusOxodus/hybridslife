@@ -689,6 +689,8 @@ const TEXTE = {
   "akzent.limette": { de: "Limette", en: "Lime" },
   "akzent.blau": { de: "Blau", en: "Blue" },
   "akzent.rot": { de: "Rot", en: "Red" },
+  "akzent.pink": { de: "Pink", en: "Pink" },
+  "akzent.lila": { de: "Lila", en: "Purple" },
   "ueber.app": { de: "App", en: "App" },
   "ueber.version": { de: "Version", en: "Version" },
   "ueber.text": {

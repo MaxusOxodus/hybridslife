@@ -9180,26 +9180,36 @@
 
   // Die wählbaren Akzentfarben. "farbe" ist der Ton des Punkts in der Auswahl, er ist in jedem Design gleich.
   const AKZENT_AUSWAHL = [
-    { id: "limette", schluessel: "akzent.limette", farbe: "#C6F135" },
     { id: "blau", schluessel: "akzent.blau", farbe: "#4DA3FF" },
+    { id: "limette", schluessel: "akzent.limette", farbe: "#C6F135" },
     { id: "rot", schluessel: "akzent.rot", farbe: "#FF7070" },
     { id: "pink", schluessel: "akzent.pink", farbe: "#FF5FA8" },
     { id: "lila", schluessel: "akzent.lila", farbe: "#A98BFF" }
   ];
 
-  // Die gewählte Akzentfarbe. Ohne Eintrag oder bei einem unbekannten Wert gilt "limette".
+  // Die gewählte Akzentfarbe. Ohne Eintrag oder bei einem unbekannten Wert gilt "blau" (seit Version 121, vorher "limette").
   function akzent() {
     for (let i = 0; i < AKZENT_AUSWAHL.length; i++) {
       if (AKZENT_AUSWAHL[i].id === einstellungen.akzent) {
         return einstellungen.akzent;
       }
     }
-    return "limette";
+    return "blau";
   }
 
-  // Färbt die App. Das Attribut data-akzent am <html> wertet die style.css aus, bei Limette fehlt es.
+  // Seit Version 121 ist Blau der Standard. Wer die App schon vorher hatte und nie eine Farbe gewählt hat, behält Limette:
+  // Beim ersten Start mit Version 121 wird dafür einmal akzent: "limette" gespeichert. Neue Installationen bekommen "blau".
+  // Danach steht immer ein Wert da und nichts ändert sich mehr. Nur die Einstellungen, an den Trainingsdaten nichts.
+  function akzentUebernehmen() {
+    if (einstellungen.akzent === undefined) {
+      einstellungen.akzent = tourAppNeu ? "blau" : "limette";
+      einstellungenSpeichern();
+    }
+  }
+
+  // Färbt die App. Das Attribut data-akzent am <html> wertet die style.css aus, bei Blau fehlt es.
   function akzentAnwenden() {
-    if (akzent() === "limette") {
+    if (akzent() === "blau") {
       document.documentElement.removeAttribute("data-akzent");
     } else {
       document.documentElement.setAttribute("data-akzent", akzent());
@@ -11445,11 +11455,12 @@ designAnzeigen();
 stilAnwenden();
 stilAnzeigen();
 
-// Die gewählte Akzentfarbe und ihre Auswahl
+// Die gewählte Akzentfarbe und ihre Auswahl (vorher einmal: Limette für alle, die die App schon hatten)
+akzentUebernehmen();
 akzentAnwenden();
 akzentAnzeigen();
 
-// Der gewählte Grund (Test) und sein Umschalter
+// Der gewählte Look und sein Umschalter
 paletteAnwenden();
 paletteAnzeigen();
 

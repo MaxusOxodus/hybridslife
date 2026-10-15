@@ -36,9 +36,14 @@
       if (design === "dunkel" || design === "hell") {
         document.documentElement.setAttribute("data-design", design);
       }
-      // Die Akzentfarbe: Ohne Eintrag oder bei einem unbekannten Wert bleibt es bei Limette (ohne Attribut)
+      // Die Akzentfarbe: Ohne Eintrag oder bei einem unbekannten Wert gilt Blau (ohne Attribut).
+      // Fehlt der Eintrag in vorhandenen Einstellungen, hatte jemand die App schon vor Version 121: Er behält Limette
+      // (die app.js speichert das beim Start einmal, siehe akzentUebernehmen)
       var akzent = gespeichert.akzent;
-      if (akzent === "blau" || akzent === "rot" || akzent === "pink" || akzent === "lila") {
+      if (akzent === undefined) {
+        akzent = "limette";
+      }
+      if (akzent === "limette" || akzent === "rot" || akzent === "pink" || akzent === "lila") {
         document.documentElement.setAttribute("data-akzent", akzent);
       }
       // Der Look: Nur "graphit" und "mockup" setzen ein Attribut, sonst bleibt es beim Schwarz

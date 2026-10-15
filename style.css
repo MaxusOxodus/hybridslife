@@ -10,13 +10,16 @@
      etwas heller, damit er auch auf der getönten Fläche aktiver Umschalter 4,5 : 1 erreicht.
      --akzent-dunkel: der dunkle Ton für Text und Linien im hellen Design.
      --akzent-schimmer-rgb: der Ton des Schimmers im hellen Design.
-     --akzent-grund-oben und -unten: der helle Grund hinter den Licht-Flecken im hellen Glass. */
+     --akzent-grund-oben und -unten: der helle Grund hinter den Licht-Flecken im hellen Glass.
+     --akzent-signal: der Ton für "Heute", aktiven Tab und Fortschritt im Grund "Graphit" (glass.css). Bei Limette gedeckter als --akzent. */
   --akzent-rgb: 198, 241, 53;
   --akzent-dunkel: #3F6B0B;
   --akzent-dunkel-rgb: 63, 107, 11;
   --akzent-schimmer-rgb: 150, 200, 40;
   --akzent-grund-oben: #F6F8F5;
   --akzent-grund-unten: #EDF1EE;
+  --akzent-signal: #AEC954;
+  --akzent-signal-rgb: 174, 201, 84;
   /* Akzent für gefüllte Flächen (Buttons), darauf steht dunkle Schrift */
   --akzent: #C6F135;
   --akzent-schrift: var(--akzent);
@@ -111,6 +114,8 @@
   --akzent-schimmer-rgb: 60, 127, 199;
   --akzent-grund-oben: #F5F7FA;
   --akzent-grund-unten: #ECF0F5;
+  --akzent-signal: #71B5FF;
+  --akzent-signal-rgb: 113, 181, 255;
 }
 
 /* Rot ist heller als das Rot zum Löschen (--gefahr), im hellen Design dunkler: So bleiben beide gut zu unterscheiden */
@@ -123,6 +128,8 @@
   --akzent-schimmer-rgb: 199, 87, 87;
   --akzent-grund-oben: #FAF6F5;
   --akzent-grund-unten: #F4EEEC;
+  --akzent-signal: #FF8E8E;
+  --akzent-signal-rgb: 255, 142, 142;
 }
 
 /* Pink: im hellen Glass ein rosé Grund */
@@ -135,6 +142,8 @@
   --akzent-schimmer-rgb: 199, 74, 131;
   --akzent-grund-oben: #FAF5F8;
   --akzent-grund-unten: #F3ECF0;
+  --akzent-signal: #FF88BE;
+  --akzent-signal-rgb: 255, 136, 190;
 }
 
 /* Lila: im hellen Glass ein lavendel Grund */
@@ -147,6 +156,8 @@
   --akzent-schimmer-rgb: 132, 108, 199;
   --akzent-grund-oben: #F7F6FA;
   --akzent-grund-unten: #EFEDF4;
+  --akzent-signal: #BCA4FF;
+  --akzent-signal-rgb: 188, 164, 255;
 }
 
 /* Rang-Abzeichen und Abzeichen bleiben Limette, egal welche Akzentfarbe gewählt ist: Ihre Farbe trägt eine Bedeutung.

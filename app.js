@@ -905,6 +905,7 @@
     designAnzeigen();
     stilAnzeigen();
     akzentAnzeigen();
+    paletteAnzeigen();
     einstTitelAnzeigen();
     einstWerteAnzeigen();
     einheitenAnwenden();
@@ -9227,6 +9228,42 @@
     akzentAnzeigen();
   }
 
+  // ---------- Grund (Test): Schwarz oder Graphit ----------
+
+  const PALETTE_AUSWAHL = [
+    { id: "schwarz", schluessel: "palette.schwarz" },
+    { id: "graphit", schluessel: "palette.graphit" }
+  ];
+
+  // Der gewählte Grund. Ohne Eintrag oder bei einem unbekannten Wert gilt "schwarz".
+  function palette() {
+    if (einstellungen.palette === "graphit") {
+      return "graphit";
+    }
+    return "schwarz";
+  }
+
+  // Das Attribut data-palette am <html> wertet die glass.css aus, bei Schwarz fehlt es
+  function paletteAnwenden() {
+    if (palette() === "graphit") {
+      document.documentElement.setAttribute("data-palette", "graphit");
+    } else {
+      document.documentElement.removeAttribute("data-palette");
+    }
+  }
+
+  // Einstellungen: der Umschalter für den Grund
+  function paletteAnzeigen() {
+    umschalterBauen(document.getElementById("palette-auswahl"), PALETTE_AUSWAHL, palette(), paletteSetzen);
+  }
+
+  function paletteSetzen(neu) {
+    einstellungen.palette = neu;
+    einstellungenSpeichern();
+    paletteAnwenden();
+    paletteAnzeigen();
+  }
+
   // ---------- Profil: Name und Benutzername ----------
 
   // Macht aus einer Eingabe einen Benutzernamen: ohne Leerzeichen am Rand, ohne @ davor, kleingeschrieben
@@ -11405,6 +11442,10 @@ stilAnzeigen();
 // Die gewählte Akzentfarbe und ihre Auswahl
 akzentAnwenden();
 akzentAnzeigen();
+
+// Der gewählte Grund (Test) und sein Umschalter
+paletteAnwenden();
+paletteAnzeigen();
 
 // Beschriftungen und Schnellbuttons in der gewählten Einheit, dazu das Rad für das Körpergewicht
 // (30 bis 200 kg oder 66 bis 440 lbs)

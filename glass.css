@@ -485,6 +485,101 @@
   text-align: center;
 }
 
+/* ---------- Grund "Graphit" (Test, seit Version 120) ----------
+
+   Wählbar unter Einstellungen → Design → Grund, gespeichert als einstellungen.palette, die App setzt dafür
+   data-palette="graphit" am <html>. Gilt nur im dunklen Design (gewählt "Dunkel" oder "System" mit dunklem Gerät),
+   im hellen Design und in Klassisch ändert sich nichts. Wie beim Design steht es deshalb zweimal da.
+   Grund, Flächen und Schrift werden graphitgrau, der Akzent ein ruhiges Grau. Übungsbilder und Körper-Figuren
+   folgen dem Akzent und sind damit auch grau. Die gewählte Farbe bleibt das Signal (--akzent-signal aus der style.css)
+   für "Heute", den aktiven Tab, den Fortschritt und den Rahmen der Einführung. Der Hauptknopf ist hell mit dunkler Schrift.
+   Rang-Abzeichen und Abzeichen bleiben wie überall Limette. */
+:root[data-stil="glass"][data-palette="graphit"][data-design="dunkel"] {
+  --hintergrund: #0F0F10;
+  --karte: #2A2A2B;
+  --text: #F0F0F0;
+  --text-leise: #9B9B9B;
+  --rand: rgba(240, 240, 240, 0.09);
+  --fuellung: rgba(240, 240, 240, 0.09);
+  --griff: rgba(240, 240, 240, 0.3);
+  --text-aus: rgba(240, 240, 240, 0.3);
+  --akzent: #A3A3A3;
+  --akzent-rgb: 163, 163, 163;
+  --akzent-schrift: #A3A3A3;
+  --auf-akzent: #0F0F10;
+  --glas: rgba(42, 42, 43, 0.72);
+  --glas-sheet: rgba(42, 42, 43, 0.86);
+  --glas-fest: rgba(42, 42, 43, 0.94);
+  --glas-rand: rgba(240, 240, 240, 0.13);
+  --glas-glanz: rgba(240, 240, 240, 0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="graphit"]:not([data-design="hell"]) {
+    --hintergrund: #0F0F10;
+    --karte: #2A2A2B;
+    --text: #F0F0F0;
+    --text-leise: #9B9B9B;
+    --rand: rgba(240, 240, 240, 0.09);
+    --fuellung: rgba(240, 240, 240, 0.09);
+    --griff: rgba(240, 240, 240, 0.3);
+    --text-aus: rgba(240, 240, 240, 0.3);
+    --akzent: #A3A3A3;
+    --akzent-rgb: 163, 163, 163;
+    --akzent-schrift: #A3A3A3;
+    --auf-akzent: #0F0F10;
+    --glas: rgba(42, 42, 43, 0.72);
+    --glas-sheet: rgba(42, 42, 43, 0.86);
+    --glas-fest: rgba(42, 42, 43, 0.94);
+    --glas-rand: rgba(240, 240, 240, 0.13);
+    --glas-glanz: rgba(240, 240, 240, 0.07);
+  }
+}
+
+/* An diesen Elementen sind die Akzent-Variablen die Signalfarbe. So rechnen alle vorhandenen Regeln mit ihr,
+   ohne dass eine davon hier stehen muss. */
+:root[data-stil="glass"][data-palette="graphit"][data-design="dunkel"] :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie) {
+  --akzent: var(--akzent-signal);
+  --akzent-rgb: var(--akzent-signal-rgb);
+  --akzent-schrift: var(--akzent-signal);
+  --akzent-text: var(--akzent-signal);
+  --akzent-leicht: rgba(var(--akzent-signal-rgb), 0.15);
+  --akzent-hauch: rgba(var(--akzent-signal-rgb), 0.15);
+}
+
+/* Der Hauptknopf ist hell (die Schriftfarbe als Fläche) mit dunkler Schrift, sein Schein ist nur ein zarter heller Hauch.
+   "Beenden" im Trainingsmodus ist ein reiner Text-Knopf und bekommt die helle Schrift. */
+:root[data-stil="glass"][data-palette="graphit"][data-design="dunkel"] :is(.speichern-btn:not(:disabled), .knopf.haupt) {
+  --akzent: #F0F0F0;
+  --akzent-rgb: 240, 240, 240;
+  --akzent-leicht: rgba(240, 240, 240, 0.14);
+}
+
+:root[data-stil="glass"][data-palette="graphit"][data-design="dunkel"] .modus-kopf .text-btn {
+  --akzent-text: #F0F0F0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="graphit"]:not([data-design="hell"]) :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie) {
+    --akzent: var(--akzent-signal);
+    --akzent-rgb: var(--akzent-signal-rgb);
+    --akzent-schrift: var(--akzent-signal);
+    --akzent-text: var(--akzent-signal);
+    --akzent-leicht: rgba(var(--akzent-signal-rgb), 0.15);
+    --akzent-hauch: rgba(var(--akzent-signal-rgb), 0.15);
+  }
+
+  :root[data-stil="glass"][data-palette="graphit"]:not([data-design="hell"]) :is(.speichern-btn:not(:disabled), .knopf.haupt) {
+    --akzent: #F0F0F0;
+    --akzent-rgb: 240, 240, 240;
+    --akzent-leicht: rgba(240, 240, 240, 0.14);
+  }
+
+  :root[data-stil="glass"][data-palette="graphit"]:not([data-design="hell"]) .modus-kopf .text-btn {
+    --akzent-text: #F0F0F0;
+  }
+}
+
 /* ---------- Ersatz ohne Weichzeichner ---------- */
 
 /* Kann der Browser nicht weichzeichnen, werden die festen Flächen fast deckend, damit der Text lesbar bleibt */

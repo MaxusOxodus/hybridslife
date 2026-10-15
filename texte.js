@@ -691,6 +691,13 @@ const TEXTE = {
   "akzent.rot": { de: "Rot", en: "Red" },
   "akzent.pink": { de: "Pink", en: "Pink" },
   "akzent.lila": { de: "Lila", en: "Purple" },
+  "palette": { de: "Grund (Test)", en: "Background (test)" },
+  "palette.schwarz": { de: "Schwarz", en: "Black" },
+  "palette.graphit": { de: "Graphit", en: "Graphite" },
+  "palette.hinweis": {
+    de: "„Graphit“ gilt nur im dunklen Design mit „Glass“. Die gewählte Farbe zeigt dann „Heute“ und deinen Fortschritt.",
+    en: "“Graphite” only applies in the dark design with “Glass”. Your chosen color then shows “Today” and your progress."
+  },
   "ueber.app": { de: "App", en: "App" },
   "ueber.version": { de: "Version", en: "Version" },
   "ueber.text": {

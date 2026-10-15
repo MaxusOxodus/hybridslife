@@ -1189,9 +1189,10 @@
       einfuehrungAnbieten("training");
     }
 
-    // Die Pausen-Leiste ist überall zu sehen außer im Trainingsmodus, das Display bleibt nur dort an
+    // Die Pausen-Leiste ist überall zu sehen außer im Trainingsmodus, das Display bleibt nur dort an, die Uhr läuft nur dort
     pauseAnzeigen();
     wachSperreAktualisieren();
+    uhrAktualisieren();
   }
 
   // Blendet die Kopfzeile ein, sobald der große Titel nach oben weggescrollt ist
@@ -2540,6 +2541,7 @@
   // haben sie einzeln gespeichert (einzelsaetze). Bei allen anderen sind alle Sätze gleich,
   // sie entstehen aus Sätze, Wdh. und Gewicht. Steht irgendwo keine Zahl, ist die Liste leer.
   // rir ist null, wenn beim Satz keine Reps in Reserve angegeben wurden.
+  // zeit (seit Version 122) ist der Zeitpunkt von "Satz fertig" als ISO-Text. Ältere Sätze haben keine.
   function saetzeVon(e) {
     const liste = [];
     if (Array.isArray(e.einzelsaetze) && e.einzelsaetze.length > 0) {
@@ -2549,7 +2551,11 @@
           const gewicht = Number(String(s.gewicht).replace(",", "."));
           const wdh = Number(s.wdh);
           if (!isNaN(gewicht) && !isNaN(wdh)) {
-            liste.push({ gewicht: gewicht, wdh: wdh, rir: rirLesen(s.rir) });
+            const satz = { gewicht: gewicht, wdh: wdh, rir: rirLesen(s.rir) };
+            if (typeof s.zeit === "string") {
+              satz.zeit = s.zeit;
+            }
+            liste.push(satz);
           }
         }
       }
@@ -2831,6 +2837,7 @@
     kopfzeileAktualisieren();
     pauseAnzeigen();
     wachSperreAktualisieren();
+    uhrAktualisieren();
   }
 
   // ---------- Training: Rückfrage-Dialog ----------
@@ -4414,11 +4421,12 @@
     const t = laufendesTraining;
     const u = t.uebungen[t.index];
 
-    // rir steht nur im Satz, wenn es angegeben wurde
+    // rir steht nur im Satz, wenn es angegeben wurde. zeit hält fest, wann der Satz fertig war.
     const satz = { gewicht: gewichtFeldWert("t-feld-gewicht"), wdh: feldWert("t-feld-wdh") };
     if (gewaehlterRir !== null) {
       satz.rir = gewaehlterRir;
     }
+    satz.zeit = new Date().toISOString();
     u.saetze.push(satz);
     u.extraSatz = false;
 
@@ -4466,6 +4474,9 @@
       const einzeln = { gewicht: s.gewicht, wdh: s.wdh };
       if (rirLesen(s.rir) !== null) {
         einzeln.rir = s.rir;
+      }
+      if (typeof s.zeit === "string") {
+        einzeln.zeit = s.zeit;
       }
       eintrag.einzelsaetze.push(einzeln);
       if (s.gewicht > schwerster.gewicht || (s.gewicht === schwerster.gewicht && s.wdh > schwerster.wdh)) {
@@ -4746,6 +4757,10 @@
       gewicht = gewichtFeldWert("s-feld-gewicht");
     }
     saetze[satzIndex] = { gewicht: gewicht, wdh: feldWert("s-feld-wdh"), rir: satzRir };
+    // Bearbeiten ändert nur die Werte, der Zeitpunkt des Satzes bleibt
+    if (alt.zeit) {
+      saetze[satzIndex].zeit = alt.zeit;
+    }
     const geaendert = gewicht !== alt.gewicht || saetze[satzIndex].wdh !== alt.wdh;
     const index = satzIndex;
 
@@ -4834,6 +4849,9 @@
             const satz = { gewicht: saetze[j].gewicht, wdh: saetze[j].wdh };
             if (rirLesen(saetze[j].rir) !== null) {
               satz.rir = saetze[j].rir;
+            }
+            if (saetze[j].zeit) {
+              satz.zeit = saetze[j].zeit;
             }
             u.saetze.push(satz);
           }
@@ -6340,12 +6358,56 @@
     });
   }
 
-  // Beim Zurückkehren zur App: Restzeit der Pause neu berechnen und das Display wieder anlassen
+  // ---------- Trainingsuhr ----------
+
+  // Der Takt, der die Uhr im Trainingsmodus viermal pro Sekunde auffrischt (null = läuft nicht).
+  // Wie beim Countdown der Pause: So springt die Anzeige pünktlich und lässt keine Sekunde aus.
+  let uhrTakt = null;
+
+  // Die Uhr läuft nur, solange der Trainingsmodus zu sehen ist. Sonst steht ihr Takt.
+  function uhrAktualisieren() {
+    const soll = Boolean(laufendesTraining) && aktiveSeite === "training" && trainingAnsicht === "modus"
+      && document.visibilityState === "visible";
+    if (!soll) {
+      clearInterval(uhrTakt);
+      uhrTakt = null;
+      return;
+    }
+    if (uhrTakt === null) {
+      uhrTakt = setInterval(uhrAnzeigen, 250);
+    }
+    uhrAnzeigen();
+  }
+
+  // Zeigt, wie lange das Training schon läuft: "07:42", ab einer Stunde "1:02:05".
+  // Gerechnet wird immer aus der gespeicherten Startzeit. So stimmt die Uhr auch nach dem Neuladen
+  // oder wenn das Handy gesperrt war. Ohne Startzeit bleibt sie leer, vor der Startzeit zeigt sie 00:00.
+  function uhrAnzeigen() {
+    const uhr = document.getElementById("modus-uhr");
+    let start = NaN;
+    if (laufendesTraining) {
+      start = new Date(laufendesTraining.gestartet).getTime();
+    }
+    if (isNaN(start)) {
+      uhr.textContent = "";
+      return;
+    }
+    const sekunden = Math.max(0, Math.floor((Date.now() - start) / 1000));
+    const stunden = Math.floor(sekunden / 3600);
+    let text = String(Math.floor(sekunden / 60) % 60).padStart(2, "0") + ":" + String(sekunden % 60).padStart(2, "0");
+    if (stunden > 0) {
+      text = stunden + ":" + text;
+    }
+    uhr.textContent = text;
+  }
+
+  // Beim Zurückkehren zur App: Restzeit der Pause neu berechnen, das Display wieder anlassen und die Uhr auffrischen
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible") {
       pauseTick();
     }
     wachSperreAktualisieren();
+    uhrAktualisieren();
   });
 
   // ---------- Diagramme ----------
@@ -8728,7 +8790,7 @@
   function backupText() {
     const backup = {
       app: "korund",
-      version: 11,
+      version: 12,
       exportiert: new Date().toISOString(),
       profil: profil,
       eintraege: eintraege,

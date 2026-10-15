@@ -56,9 +56,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=121">
+  <link rel="stylesheet" href="style.css?v=122">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=121">
+  <link rel="stylesheet" href="glass.css?v=122">
 </head>
 <body>
 
@@ -236,6 +236,8 @@
     <!-- Ansicht: Trainingsmodus, eine Übung nach der anderen -->
     <div id="ansicht-modus" class="ansicht versteckt">
       <div class="modus-kopf">
+        <!-- Die Trainingsuhr: wie lange das Training schon läuft (app.js, uhrAnzeigen) -->
+        <span id="modus-uhr" role="timer" aria-label="Trainingsdauer" data-t-aria="modus.uhr"></span>
         <span id="modus-routine"></span>
         <button class="text-btn" onclick="trainingBeendenFragen()" data-t="modus.beenden" data-tour="modus-beenden">Beenden</button>
       </div>
@@ -1048,9 +1050,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=121"></script>
-<script src="uebungen.js?v=121"></script>
-<script src="erklaerungen.js?v=121"></script>
+<script src="texte.js?v=122"></script>
+<script src="uebungen.js?v=122"></script>
+<script src="erklaerungen.js?v=122"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1072,13 +1074,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=121"></script>
-<script src="bilder.js?v=121"></script>
-<script src="vorlagen.js?v=121"></script>
-<script src="figuren.js?v=121"></script>
+<script src="raenge.js?v=122"></script>
+<script src="bilder.js?v=122"></script>
+<script src="vorlagen.js?v=122"></script>
+<script src="figuren.js?v=122"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=121"></script>
+<script src="app.js?v=122"></script>
 
 </body>
 </html>

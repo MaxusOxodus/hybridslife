@@ -382,6 +382,7 @@ const TEXTE = {
 
   // ---------- Training: Trainingsmodus ----------
   "modus.beenden": { de: "Beenden", en: "Finish" },
+  "modus.uhr": { de: "Trainingsdauer", en: "Workout time" },
   "modus.vorherige": { de: "Vorherige Übung", en: "Previous exercise" },
   "modus.naechste": { de: "Nächste Übung", en: "Next exercise" },
   "modus.rir": { de: "Reps in Reserve (optional)", en: "Reps in Reserve (optional)" },

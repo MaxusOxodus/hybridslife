@@ -5004,6 +5004,17 @@ button.einst-zeile:first-child {
   line-clamp: 2;
 }
 
+/* Die Trainingsuhr links im freien Platz neben dem Titel. Alle Ziffern sind gleich breit, damit nichts springt. */
+#modus-uhr {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  color: var(--text-leise);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  transform: translateY(-50%);
+}
+
 #ansicht-modus .modus-balken {
   height: 6px;
 }

@@ -201,12 +201,12 @@ function gefuellt() {
   return app;
 }
 
-// ---------- Neues Backup: Kennung "korund", Backup-Version 11 ----------
+// ---------- Neues Backup: Kennung "korund", Backup-Version 12 (seit Version 122, vorher 11) ----------
 
 const app = gefuellt();
 const neu = JSON.parse(app.backup());
 pruefe("neues Backup: Kennung korund", neu.app, "korund");
-pruefe("neues Backup: Backup-Version 11", neu.version, 11);
+pruefe("neues Backup: Backup-Version 12", neu.version, 12);
 
 // ---------- Alle vier Arten importieren, ersetzen und ergänzen ----------
 
@@ -238,6 +238,50 @@ for (let i = 0; i < ARTEN.length; i++) {
     pruefe("Backup " + art.name + ", " + arten[k] + ": 5 Einträge", ziel.eintraege().length, 5);
     pruefe("Backup " + art.name + ", " + arten[k] + ": Einträge unverändert", JSON.stringify(ziel.eintraege()), JSON.stringify(EINTRAEGE));
     pruefe("Backup " + art.name + ", " + arten[k] + ": Werte der Dips wie in der Ausgangs-App", ziel.werte(DIPS.name, DIPS.id), dipsSoll);
+  }
+}
+
+// ---------- Backup-Version 11 (ohne zeit) und 12 (mit zeit je Satz), ersetzen und ergänzen ----------
+
+// Dieselben Einträge, einmal ohne Zeiten wie in Backup-Version 11, einmal mit zeit je Satz wie ab Version 12
+const MIT_ZEIT = JSON.parse(JSON.stringify(EINTRAEGE));
+for (let i = 0; i < MIT_ZEIT.length; i++) {
+  for (let j = 0; j < MIT_ZEIT[i].einzelsaetze.length; j++) {
+    MIT_ZEIT[i].einzelsaetze[j].zeit = new Date(Date.parse(MIT_ZEIT[i].datum) + j * 150000).toISOString();
+  }
+}
+
+function backupVersion(version, eintraege) {
+  return JSON.stringify({
+    app: "korund", version: version, exportiert: vorTagen(5), profil: {}, eintraege: eintraege, eigeneUebungen: [DIPS, KABEL],
+    geloeschteEigengewicht: [], routinen: [], wochenplan: ["", "", "", "", "", "", ""], trainings: [], koerpergewicht: GEWICHTE,
+    einstellungen: {}
+  });
+}
+
+const VERSIONEN = [
+  { name: "Backup-Version 11", text: backupVersion(11, EINTRAEGE), eintraege: EINTRAEGE },
+  { name: "Backup-Version 12", text: backupVersion(12, MIT_ZEIT), eintraege: MIT_ZEIT }
+];
+for (let i = 0; i < VERSIONEN.length; i++) {
+  const v = VERSIONEN[i];
+  const arten = ["ersetzen", "ergaenzen"];
+  for (let k = 0; k < arten.length; k++) {
+    // Beim Ergänzen liegt schon ein anderer Eintrag auf dem Gerät, er bleibt. Er ist leichter als die Einträge im Backup,
+    // damit er keinen neuen Rekord bildet und die Werte mit der Ausgangs-App vergleichbar bleiben.
+    const ziel = umgebung({});
+    const vorhanden = { id: "e-hier", uebung: KABEL.name, uebungId: KABEL.id, muskelgruppe: "Brust", datum: vorTagen(2), einzelsaetze: [{ gewicht: 30, wdh: 8 }] };
+    ziel.eintragen([JSON.parse(JSON.stringify(vorhanden))]);
+    ziel.importieren(v.text, arten[k]);
+
+    const soll = arten[k] === "ersetzen" ? v.eintraege : [vorhanden].concat(v.eintraege);
+    pruefe(v.name + ", " + arten[k] + ": Einträge wie im Backup, zeit unverändert", JSON.stringify(ziel.eintraege()), JSON.stringify(soll));
+    pruefe(v.name + ", " + arten[k] + ": Werte der Dips wie in der Ausgangs-App", ziel.werte(DIPS.name, DIPS.id), dipsSoll);
+
+    // Ein neues Backup aus diesem Stand ist Version 12 und trägt die Zeiten weiter (oder keine, wo keine waren)
+    const wieder = JSON.parse(ziel.backup());
+    pruefe(v.name + ", " + arten[k] + ": erneutes Backup ist Version 12", wieder.version, 12);
+    pruefe(v.name + ", " + arten[k] + ": erneutes Backup enthält dieselben Einträge", JSON.stringify(wieder.eintraege), JSON.stringify(soll));
   }
 }
 

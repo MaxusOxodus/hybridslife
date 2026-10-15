@@ -43,10 +43,10 @@ const DATEIEN = [
   "einfuehrung.js",
   "app.js?v=" + VERSION,
   "manifest.json",
-  "icons/korund-icon-32.png",
-  "icons/korund-icon-180.png",
-  "icons/korund-icon-192.png",
-  "icons/korund-icon-512.png"
+  "icons/korund-icon-blau-32.png",
+  "icons/korund-icon-blau-180.png",
+  "icons/korund-icon-blau-192.png",
+  "icons/korund-icon-blau-512.png"
 ];
 
 // Installieren: alle Dateien frisch vom Server holen und in den Cache legen.

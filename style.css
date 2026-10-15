@@ -2013,6 +2013,11 @@ h1 {
   font-weight: 600;
 }
 
+/* Ein gesperrter Umschalter ist ausgegraut (Einstellungen → Design → Look, solange "Klassisch" gewählt ist) */
+.umschalter button:disabled {
+  opacity: 0.4;
+}
+
 .umschalter button.aktiv {
   background: var(--akzent-leicht);
   color: var(--akzent-text);

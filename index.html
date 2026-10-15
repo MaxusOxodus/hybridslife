@@ -41,9 +41,9 @@
       if (akzent === "blau" || akzent === "rot" || akzent === "pink" || akzent === "lila") {
         document.documentElement.setAttribute("data-akzent", akzent);
       }
-      // Der Grund (Test): Nur "graphit" setzt ein Attribut, sonst bleibt es beim Schwarz
-      if (gespeichert.palette === "graphit") {
-        document.documentElement.setAttribute("data-palette", "graphit");
+      // Der Look: Nur "graphit" und "mockup" setzen ein Attribut, sonst bleibt es beim Schwarz
+      if (gespeichert.palette === "graphit" || gespeichert.palette === "mockup") {
+        document.documentElement.setAttribute("data-palette", gespeichert.palette);
       }
     } catch (fehler) {}
     if (stilBeimStart === "glass") {
@@ -51,9 +51,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=120">
+  <link rel="stylesheet" href="style.css?v=121">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=120">
+  <link rel="stylesheet" href="glass.css?v=121">
 </head>
 <body>
 
@@ -950,10 +950,10 @@
         <!-- Die Akzentfarbe: eine Reihe aus Farbpunkten. Die Punkte baut die app.js. -->
         <h2 class="abschnitt" data-t="akzent">Farbe</h2>
         <div id="akzent-auswahl" role="group" aria-label="Farbe" data-t-aria="akzent"></div>
-        <!-- Der Grund (Test): Schwarz oder Graphit. Den Umschalter baut die app.js. -->
-        <h2 class="abschnitt" data-t="palette">Grund (Test)</h2>
+        <!-- Der Look: Schwarz, Graphit oder Mockup. Den Umschalter baut die app.js, in Klassisch ist er gesperrt. -->
+        <h2 class="abschnitt" data-t="palette">Look</h2>
         <div id="palette-auswahl" class="umschalter gross"></div>
-        <p class="einst-fuss" data-t="palette.hinweis">„Graphit“ gilt nur im dunklen Design mit „Glass“. Die gewählte Farbe zeigt dann „Heute“ und deinen Fortschritt.</p>
+        <p class="einst-fuss" data-t="palette.hinweis">Der Look gilt nur mit „Glass“ im dunklen Design. Bei „Graphit“ und „Mockup“ zeigt die gewählte Farbe „Heute“ und deinen Fortschritt.</p>
       </div>
 
       <!-- Unterseite: Sprache -->
@@ -1043,9 +1043,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=120"></script>
-<script src="uebungen.js?v=120"></script>
-<script src="erklaerungen.js?v=120"></script>
+<script src="texte.js?v=121"></script>
+<script src="uebungen.js?v=121"></script>
+<script src="erklaerungen.js?v=121"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1067,13 +1067,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=120"></script>
-<script src="bilder.js?v=120"></script>
-<script src="vorlagen.js?v=120"></script>
-<script src="figuren.js?v=120"></script>
+<script src="raenge.js?v=121"></script>
+<script src="bilder.js?v=121"></script>
+<script src="vorlagen.js?v=121"></script>
+<script src="figuren.js?v=121"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=120"></script>
+<script src="app.js?v=121"></script>
 
 </body>
 </html>

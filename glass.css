@@ -485,9 +485,9 @@
   text-align: center;
 }
 
-/* ---------- Grund "Graphit" (Test, seit Version 120) ----------
+/* ---------- Look "Graphit" (seit Version 120) ----------
 
-   Wählbar unter Einstellungen → Design → Grund, gespeichert als einstellungen.palette, die App setzt dafür
+   Wählbar unter Einstellungen → Design → Look, gespeichert als einstellungen.palette, die App setzt dafür
    data-palette="graphit" am <html>. Gilt nur im dunklen Design (gewählt "Dunkel" oder "System" mit dunklem Gerät),
    im hellen Design und in Klassisch ändert sich nichts. Wie beim Design steht es deshalb zweimal da.
    Grund, Flächen und Schrift werden graphitgrau, der Akzent ein ruhiges Grau. Übungsbilder und Körper-Figuren
@@ -536,9 +536,9 @@
   }
 }
 
-/* An diesen Elementen sind die Akzent-Variablen die Signalfarbe. So rechnen alle vorhandenen Regeln mit ihr,
-   ohne dass eine davon hier stehen muss. */
-:root[data-stil="glass"][data-palette="graphit"][data-design="dunkel"] :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie) {
+/* Für Graphit und Mockup: An diesen Elementen sind die Akzent-Variablen die Signalfarbe. So rechnen alle vorhandenen
+   Regeln mit ihr, ohne dass eine davon hier stehen muss. */
+:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"])[data-design="dunkel"] :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie) {
   --akzent: var(--akzent-signal);
   --akzent-rgb: var(--akzent-signal-rgb);
   --akzent-schrift: var(--akzent-signal);
@@ -549,18 +549,18 @@
 
 /* Der Hauptknopf ist hell (die Schriftfarbe als Fläche) mit dunkler Schrift, sein Schein ist nur ein zarter heller Hauch.
    "Beenden" im Trainingsmodus ist ein reiner Text-Knopf und bekommt die helle Schrift. */
-:root[data-stil="glass"][data-palette="graphit"][data-design="dunkel"] :is(.speichern-btn:not(:disabled), .knopf.haupt) {
+:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"])[data-design="dunkel"] :is(.speichern-btn:not(:disabled), .knopf.haupt) {
   --akzent: #F0F0F0;
   --akzent-rgb: 240, 240, 240;
   --akzent-leicht: rgba(240, 240, 240, 0.14);
 }
 
-:root[data-stil="glass"][data-palette="graphit"][data-design="dunkel"] .modus-kopf .text-btn {
+:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"])[data-design="dunkel"] .modus-kopf .text-btn {
   --akzent-text: #F0F0F0;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-stil="glass"][data-palette="graphit"]:not([data-design="hell"]) :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie) {
+  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"]):not([data-design="hell"]) :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie) {
     --akzent: var(--akzent-signal);
     --akzent-rgb: var(--akzent-signal-rgb);
     --akzent-schrift: var(--akzent-signal);
@@ -569,14 +569,105 @@
     --akzent-hauch: rgba(var(--akzent-signal-rgb), 0.15);
   }
 
-  :root[data-stil="glass"][data-palette="graphit"]:not([data-design="hell"]) :is(.speichern-btn:not(:disabled), .knopf.haupt) {
+  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"]):not([data-design="hell"]) :is(.speichern-btn:not(:disabled), .knopf.haupt) {
     --akzent: #F0F0F0;
     --akzent-rgb: 240, 240, 240;
     --akzent-leicht: rgba(240, 240, 240, 0.14);
   }
 
-  :root[data-stil="glass"][data-palette="graphit"]:not([data-design="hell"]) .modus-kopf .text-btn {
+  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"]):not([data-design="hell"]) .modus-kopf .text-btn {
     --akzent-text: #F0F0F0;
+  }
+}
+
+/* ---------- Look "Mockup" (seit Version 121) ----------
+
+   Wie Graphit (data-palette="mockup", nur Glass im dunklen Design, Signal-Elemente, heller Hauptknopf und "Beenden"
+   über die gemeinsamen Regeln oben). Dazu: fast schwarzer Grund mit kühlem Stahlblau-Schimmer oben, Glas-Karten mit
+   1 px heller Kante (12 % Weiß) und Chrom-Verlauf an der Oberkante, Glow in der Signalfarbe an aktivem Tab,
+   Muskelfiguren und Diagramm-Linien. Die Muskelfiguren sind hier in der Signalfarbe, in Graphit grau.
+   --glas-grund endet mit einem Verlauf aus einer Farbe, nie mit einer nackten Farbe: Die Einstellungen zeichnen
+   "background: var(--glas-grund), var(--hintergrund)", und eine Farbe darf nur in der letzten Ebene stehen.
+   Sonst ist die Angabe ungültig und die Einstellungen werden durchsichtig. */
+:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] {
+  --hintergrund: #07090C;
+  --karte: #161B22;
+  --text: #EEF2F7;
+  --text-leise: #A1A4A9;
+  --rand: rgba(238, 242, 247, 0.09);
+  --fuellung: rgba(238, 242, 247, 0.09);
+  --griff: rgba(238, 242, 247, 0.3);
+  --text-aus: rgba(238, 242, 247, 0.3);
+  --akzent: #A4B0C0;
+  --akzent-rgb: 164, 176, 192;
+  --akzent-schrift: #A4B0C0;
+  --auf-akzent: #07090C;
+  --glas: rgba(22, 27, 34, 0.72);
+  --glas-sheet: rgba(22, 27, 34, 0.86);
+  --glas-fest: rgba(22, 27, 34, 0.94);
+  --glas-rand: rgba(255, 255, 255, 0.12);
+  --glas-glanz: rgba(255, 255, 255, 0.04);
+  --glas-schimmer: rgba(96, 128, 168, 0.16);
+  --glas-schatten: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 12px 32px rgba(0, 0, 0, 0.55);
+  --glas-grund: radial-gradient(110% 55% at 50% -8%, rgba(96, 128, 168, 0.38), transparent 62%), linear-gradient(#07090C, #07090C);
+}
+
+:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] :is(.karte, .modus-karte, #ansicht-modus .eingaben.zwei > div, #ansicht-modus .rir, #modus-pause) {
+  background: linear-gradient(180deg, rgba(225, 235, 250, 0.12), rgba(225, 235, 250, 0) 16%), var(--glas);
+}
+
+:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] .nav-btn.aktiv .nav-icon {
+  box-shadow: 0 0 16px rgba(var(--akzent-signal-rgb), 0.55);
+}
+
+:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] .koerper .muskel.aktiv {
+  --akzent: var(--akzent-signal);
+  filter: drop-shadow(0 0 4px rgba(var(--akzent-signal-rgb), 0.75));
+}
+
+:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] :is(.diagramm, .mini-diagramm) .linie-haupt {
+  filter: drop-shadow(0 0 4px rgba(var(--akzent-signal-rgb), 0.8));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) {
+    --hintergrund: #07090C;
+    --karte: #161B22;
+    --text: #EEF2F7;
+    --text-leise: #A1A4A9;
+    --rand: rgba(238, 242, 247, 0.09);
+    --fuellung: rgba(238, 242, 247, 0.09);
+    --griff: rgba(238, 242, 247, 0.3);
+    --text-aus: rgba(238, 242, 247, 0.3);
+    --akzent: #A4B0C0;
+    --akzent-rgb: 164, 176, 192;
+    --akzent-schrift: #A4B0C0;
+    --auf-akzent: #07090C;
+    --glas: rgba(22, 27, 34, 0.72);
+    --glas-sheet: rgba(22, 27, 34, 0.86);
+    --glas-fest: rgba(22, 27, 34, 0.94);
+    --glas-rand: rgba(255, 255, 255, 0.12);
+    --glas-glanz: rgba(255, 255, 255, 0.04);
+    --glas-schimmer: rgba(96, 128, 168, 0.16);
+    --glas-schatten: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 12px 32px rgba(0, 0, 0, 0.55);
+    --glas-grund: radial-gradient(110% 55% at 50% -8%, rgba(96, 128, 168, 0.38), transparent 62%), linear-gradient(#07090C, #07090C);
+  }
+
+  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) :is(.karte, .modus-karte, #ansicht-modus .eingaben.zwei > div, #ansicht-modus .rir, #modus-pause) {
+    background: linear-gradient(180deg, rgba(225, 235, 250, 0.12), rgba(225, 235, 250, 0) 16%), var(--glas);
+  }
+
+  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) .nav-btn.aktiv .nav-icon {
+    box-shadow: 0 0 16px rgba(var(--akzent-signal-rgb), 0.55);
+  }
+
+  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) .koerper .muskel.aktiv {
+    --akzent: var(--akzent-signal);
+    filter: drop-shadow(0 0 4px rgba(var(--akzent-signal-rgb), 0.75));
+  }
+
+  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) :is(.diagramm, .mini-diagramm) .linie-haupt {
+    filter: drop-shadow(0 0 4px rgba(var(--akzent-signal-rgb), 0.8));
   }
 }
 

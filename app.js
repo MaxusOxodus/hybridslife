@@ -9173,6 +9173,7 @@
     einstellungenSpeichern();
     stilAnwenden();
     stilAnzeigen();
+    paletteAnzeigen();
   }
 
   // ---------- Akzentfarbe ----------
@@ -9228,33 +9229,38 @@
     akzentAnzeigen();
   }
 
-  // ---------- Grund (Test): Schwarz oder Graphit ----------
+  // ---------- Look: Schwarz, Graphit oder Mockup ----------
 
   const PALETTE_AUSWAHL = [
     { id: "schwarz", schluessel: "palette.schwarz" },
-    { id: "graphit", schluessel: "palette.graphit" }
+    { id: "graphit", schluessel: "palette.graphit" },
+    { id: "mockup", schluessel: "palette.mockup" }
   ];
 
-  // Der gewählte Grund. Ohne Eintrag oder bei einem unbekannten Wert gilt "schwarz".
+  // Der gewählte Look. Ohne Eintrag oder bei einem unbekannten Wert gilt "schwarz".
   function palette() {
-    if (einstellungen.palette === "graphit") {
-      return "graphit";
+    if (einstellungen.palette === "graphit" || einstellungen.palette === "mockup") {
+      return einstellungen.palette;
     }
     return "schwarz";
   }
 
   // Das Attribut data-palette am <html> wertet die glass.css aus, bei Schwarz fehlt es
   function paletteAnwenden() {
-    if (palette() === "graphit") {
-      document.documentElement.setAttribute("data-palette", "graphit");
-    } else {
+    if (palette() === "schwarz") {
       document.documentElement.removeAttribute("data-palette");
+    } else {
+      document.documentElement.setAttribute("data-palette", palette());
     }
   }
 
-  // Einstellungen: der Umschalter für den Grund
+  // Einstellungen: der Umschalter für den Look. In Klassisch wirkt er nicht und ist deshalb gesperrt.
   function paletteAnzeigen() {
-    umschalterBauen(document.getElementById("palette-auswahl"), PALETTE_AUSWAHL, palette(), paletteSetzen);
+    const behaelter = document.getElementById("palette-auswahl");
+    umschalterBauen(behaelter, PALETTE_AUSWAHL, palette(), paletteSetzen);
+    behaelter.querySelectorAll("button").forEach(function (btn) {
+      btn.disabled = stil() === "klassisch";
+    });
   }
 
   function paletteSetzen(neu) {

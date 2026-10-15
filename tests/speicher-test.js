@@ -4,7 +4,8 @@
 
 import fs from "node:fs";
 
-const quelle = fs.readFileSync(new URL("../app.js", import.meta.url), "utf8");
+// Die app.js kann Windows-Zeilenenden (CRLF) oder LF haben, CRLF wird zu LF. Sonst findet funktionHolen nichts.
+const quelle = fs.readFileSync(new URL("../app.js", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
 // Schneidet eine Funktion aus der app.js aus: von "function name(" bis zur schließenden Klammer auf derselben Einrückung
 function funktionHolen(name) {

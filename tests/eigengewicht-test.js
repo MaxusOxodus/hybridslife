@@ -5,9 +5,10 @@
 
 import fs from "node:fs";
 
-const quelle = fs.readFileSync(new URL("../app.js", import.meta.url), "utf8");
-const uebungenQuelle = fs.readFileSync(new URL("../uebungen.js", import.meta.url), "utf8");
-const raengeQuelle = fs.readFileSync(new URL("../raenge.js", import.meta.url), "utf8");
+// Die Dateien können Windows-Zeilenenden (CRLF) oder LF haben, CRLF wird zu LF. Sonst findet funktionHolen nichts.
+const quelle = fs.readFileSync(new URL("../app.js", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const uebungenQuelle = fs.readFileSync(new URL("../uebungen.js", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const raengeQuelle = fs.readFileSync(new URL("../raenge.js", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
 // Schneidet eine Funktion aus der app.js aus: von "function name(" bis zur schließenden Klammer auf derselben Einrückung.
 // Mit darfFehlen kommt "" zurück, wenn es sie nicht gibt (so läuft der Test auch gegen die app.js vor dem Fix).

@@ -369,11 +369,10 @@ const TEXTE = {
   "editor.hoch": { de: "Nach oben", en: "Move up" },
   "editor.runter": { de: "Nach unten", en: "Move down" },
   "editor.entfernen": { de: "Übung entfernen", en: "Remove exercise" },
-  "editor.wdhArt": { de: "Art des Wiederholungsziels", en: "Type of rep target" },
-  // Kurz gehalten: Längere Texte werden im Auswahlfeld auf schmalen Bildschirmen abgeschnitten
+  // Überschriften und erster Eintrag in der Auswahl des Wdh.-Ziels
+  "editor.keinZiel": { de: "Kein Ziel", en: "No target" },
   "editor.festeZahl": { de: "Feste Zahl", en: "Fixed" },
   "editor.eigenerBereich": { de: "Bereich", en: "Range" },
-  "editor.wdhBis": { de: "Wiederholungen bis", en: "Repetitions up to" },
   "editor.pauseEigene": { de: "Eigene Zeit", en: "Custom time" },
   "editor.ohneName": { de: "Gib der Routine einen Namen.", en: "Give the routine a name." },
   "editor.ohneUebung": { de: "Füge mindestens eine Übung hinzu.", en: "Add at least one exercise." },

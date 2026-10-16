@@ -4592,31 +4592,6 @@ button.einst-zeile:first-child {
   appearance: textfield;
 }
 
-/* Wdh.-Ziel: Die Zahlenfelder stehen rechts neben der Auswahl in derselben Zeile */
-.wdh-spalte {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-/* Sie bekommen den Platz, der neben der Auswahl übrig ist, und werden auf schmalen Bildschirmen schmaler */
-.wdh-felder {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  max-width: 130px;
-}
-
-/* Beide Felder teilen sich den Platz gleich, ein einzelnes Feld füllt die ganze Breite */
-.wdh-felder input {
-  flex: 1;
-  width: 0;
-  min-width: 0;
-}
-
 /* Die kleinen Pfeile im Zahlenfeld ausblenden */
 .ziel input::-webkit-inner-spin-button,
 .ziel input::-webkit-outer-spin-button {

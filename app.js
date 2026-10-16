@@ -3618,88 +3618,75 @@
     return rahmen;
   }
 
-  // Die Vorgaben für den Wiederholungsbereich im Routinen-Editor
-  const WDH_BEREICHE = [[5, 9], [6, 8], [6, 10], [8, 12]];
+  // Die Bereiche in der Auswahl für das Wdh.-Ziel im Routinen-Editor
+  const WDH_BEREICHE = [[4, 6], [5, 8], [5, 9], [6, 8], [6, 10], [8, 10], [8, 12], [10, 12], [10, 15], [12, 15], [15, 20]];
 
-  // Das Wdh.-Ziel einer Übung: eine feste Zahl, einer der vorgegebenen Bereiche oder ein eigener Bereich.
-  // Die Auswahl bestimmt, welche Zahlenfelder rechts neben ihr zu sehen sind.
+  // Das Wdh.-Ziel einer Übung als ein Auswahlfeld: oben "Kein Ziel", dann die Bereiche, dann die festen Zahlen 1 bis 30.
+  // Gespeichert wird wie bisher in zielWdh und zielWdhMax. Der Wert einer Wahl ist "" (kein Ziel),
+  // "8-12" (Bereich) oder "10" (feste Zahl). Ein gespeicherter Bereich, der nicht in der Liste steht,
+  // kommt zusätzlich hinein, damit er erhalten bleibt.
   function wdhZielFeld(uebung) {
-    const rahmen = element("div", "ziel");
+    const rahmen = element("label", "ziel");
     rahmen.appendChild(element("span", "", txt("wdh")));
-    const spalte = element("div", "wdh-spalte");
-    rahmen.appendChild(spalte);
 
     const auswahl = document.createElement("select");
     auswahl.className = "ziel-haupt";
-    auswahl.setAttribute("aria-label", txt("editor.wdhArt"));
-    auswahl.appendChild(new Option(txt("editor.festeZahl"), "fest"));
-    for (let i = 0; i < WDH_BEREICHE.length; i++) {
-      auswahl.appendChild(new Option(WDH_BEREICHE[i][0] + "–" + WDH_BEREICHE[i][1], String(i)));
-    }
-    auswahl.appendChild(new Option(txt("editor.eigenerBereich"), "eigen"));
-    spalte.appendChild(auswahl);
+    // Im Feld steht bei "Kein Ziel" nur ein Strich, in der geöffneten Liste der ganze Text
+    const keinZiel = new Option("–", "");
+    auswahl.appendChild(keinZiel);
 
-    // Die Zahlenfelder stehen in derselben Zeile und teilen sich den Platz rechts von der Auswahl
-    const felderZeile = element("div", "wdh-felder");
-    const von = wdhZahlFeld(uebung, "zielWdh", txt("wiederholungen"));
-    const strich = element("span", "", "–");
-    const bis = wdhZahlFeld(uebung, "zielWdhMax", txt("editor.wdhBis"));
-    felderZeile.appendChild(von);
-    felderZeile.appendChild(strich);
-    felderZeile.appendChild(bis);
-    spalte.appendChild(felderZeile);
-
-    // Was beim Öffnen gewählt ist, ergibt sich aus den gespeicherten Zahlen
-    let art = "fest";
-    if (wdhBis(uebung)) {
-      art = "eigen";
-      for (let i = 0; i < WDH_BEREICHE.length; i++) {
-        if (WDH_BEREICHE[i][0] === uebung.zielWdh && WDH_BEREICHE[i][1] === uebung.zielWdhMax) {
-          art = String(i);
-        }
+    const bereiche = WDH_BEREICHE.slice();
+    const bis = wdhBis(uebung);
+    let wert = "";
+    if (bis) {
+      wert = uebung.zielWdh + "-" + bis;
+      if (!bereiche.some(function (b) { return b[0] + "-" + b[1] === wert; })) {
+        bereiche.push([uebung.zielWdh, bis]);
+        bereiche.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
       }
+    } else if (uebung.zielWdh) {
+      wert = String(uebung.zielWdh);
     }
-    auswahl.value = art;
 
-    // Feste Zahl: ein Feld. Eigener Bereich: zwei Felder. Vorgabe: keins, die Zahlen stehen schon in der Auswahl.
-    function felderZeigen() {
-      von.value = uebung.zielWdh || "";
-      bis.value = uebung.zielWdhMax || "";
-      felderZeile.classList.toggle("versteckt", art !== "fest" && art !== "eigen");
-      strich.classList.toggle("versteckt", art !== "eigen");
-      bis.classList.toggle("versteckt", art !== "eigen");
+    const gruppeBereich = document.createElement("optgroup");
+    gruppeBereich.label = txt("editor.eigenerBereich");
+    for (let i = 0; i < bereiche.length; i++) {
+      gruppeBereich.appendChild(new Option(bereiche[i][0] + "–" + bereiche[i][1], bereiche[i][0] + "-" + bereiche[i][1]));
     }
-    felderZeigen();
+    auswahl.appendChild(gruppeBereich);
 
+    const gruppeFest = document.createElement("optgroup");
+    gruppeFest.label = txt("editor.festeZahl");
+    for (let n = 1; n <= 30; n++) {
+      gruppeFest.appendChild(new Option(String(n), String(n)));
+    }
+    auswahl.appendChild(gruppeFest);
+    auswahl.value = wert;
+
+    // Beim Öffnen (Fokus) heißt der erste Eintrag "Kein Ziel", danach steht im Feld wieder der Strich
+    function keinZielText(text) {
+      keinZiel.textContent = text;
+    }
+    auswahl.addEventListener("focus", function () { keinZielText(txt("editor.keinZiel")); });
+    auswahl.addEventListener("blur", function () { keinZielText("–"); });
+
+    // Nur eine Wahl ändert die Übung. Ohne Wahl bleiben zielWdh und zielWdhMax genau, wie sie waren.
     auswahl.onchange = function () {
-      art = auswahl.value;
-      if (art === "fest") {
+      keinZielText("–");
+      const teile = auswahl.value.split("-");
+      if (auswahl.value === "") {
+        uebung.zielWdh = null;
         uebung.zielWdhMax = null;
-      } else if (art !== "eigen") {
-        uebung.zielWdh = WDH_BEREICHE[Number(art)][0];
-        uebung.zielWdhMax = WDH_BEREICHE[Number(art)][1];
+      } else if (teile.length === 2) {
+        uebung.zielWdh = Number(teile[0]);
+        uebung.zielWdhMax = Number(teile[1]);
+      } else {
+        uebung.zielWdh = Number(teile[0]);
+        uebung.zielWdhMax = null;
       }
-      felderZeigen();
     };
+    rahmen.appendChild(auswahl);
     return rahmen;
-  }
-
-  // Ein Zahlenfeld für das untere oder obere Ende des Wdh.-Ziels. Leer heißt: keine Angabe.
-  function wdhZahlFeld(uebung, feldName, beschriftung) {
-    const feld = document.createElement("input");
-    feld.type = "number";
-    feld.inputMode = "numeric";
-    feld.min = 1;
-    feld.max = 30;
-    feld.placeholder = "–";
-    feld.setAttribute("aria-label", beschriftung);
-    feld.oninput = function () {
-      uebung[feldName] = zielLesen(feld.value, 30);
-    };
-    feld.onchange = function () {
-      feld.value = uebung[feldName] || "";
-    };
-    return feld;
   }
 
   // Auswahlfeld für die Pause nach jedem Satz dieser Übung. Der erste Eintrag (Wert "") heißt: die Zeit

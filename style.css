@@ -4768,6 +4768,13 @@ button.einst-zeile:first-child {
   margin-top: 0;
 }
 
+/* Seitlich wischen auf der Übungskarte (seit Version 134, app.js modusWischbarMachen): Senkrecht scrollt die Seite
+   wie bisher, beim Loslassen gleitet die Karte zurück an ihren Platz. In Ruhe ändert sich nichts. */
+.modus-karte {
+  touch-action: pan-y;
+  transition: transform 0.2s ease;
+}
+
 /* Die Pfeile: runde Glas-Buttons */
 #ansicht-modus .modus-wechsel button {
   border: 1px solid var(--glas-rand);

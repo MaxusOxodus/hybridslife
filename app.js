@@ -27,6 +27,10 @@
   const WISCH_TEMPO_FENSTER_MS = 100;
   // So lange nach einem Wisch (in Millisekunden) zählt ein Klick des Browsers nicht als Tipp
   const WISCH_KLICK_SPERRE_MS = 400;
+  // Seitlich (Übungskarte im Trainingsmodus, seit Version 134): ab so vielen Pixeln wechselt die Übung
+  const WISCH_SEITE_PX = 50;
+  // So nah am linken oder rechten Bildschirmrand (in Pixeln) beginnt keine seitliche Geste: Dort wischt Safari zurück
+  const WISCH_RAND_PX = 24;
 
   // Die Sprache der App als Kürzel, z. B. "de" oder "en". Sie gilt für die Texte der Oberfläche
   // und für die Namen der Übungen und Muskelgruppen. Der richtige Wert kommt weiter unten,
@@ -7261,6 +7265,45 @@
     }
   }
 
+  // Trainingsmodus (seit Version 134): Auf der Übungskarte nach links wischen zeigt die nächste Übung, nach rechts
+  // die vorherige. Es passiert dasselbe wie bei den Pfeilen ‹ › (uebungWechseln), auch erledigte Übungen kommen dran.
+  // Die Eingabefelder liegen nicht auf der Karte, dort beginnt keine Geste. Die Karte folgt dem Finger,
+  // wo es nicht weitergeht (erste oder letzte Übung), nur zu einem Drittel.
+  function modusWischbarMachen() {
+    const karte = document.querySelector("#ansicht-modus .modus-karte");
+
+    // Gibt es in dieser Richtung eine Übung? Nach links (weg < 0) die nächste, nach rechts die vorherige.
+    function moeglich(weg) {
+      const t = laufendesTraining;
+      const neu = t.index + (weg < 0 ? 1 : -1);
+      return neu >= 0 && neu < t.uebungen.length;
+    }
+
+    wischen(karte, {
+      achse: "x",
+      beginnt: function (ereignis) {
+        const x = ereignis.touches[0].clientX;
+        if (!laufendesTraining || x < WISCH_RAND_PX || x > window.innerWidth - WISCH_RAND_PX) {
+          return false;
+        }
+      },
+      bewegt: function (weg) {
+        karte.style.transition = "none";
+        karte.style.transform = "translateX(" + (moeglich(weg) ? weg : weg / 3) + "px)";
+      },
+      losgelassen: function (weg, tempo, abgebrochen) {
+        // Danach gilt wieder die style.css: Die Karte gleitet von dort, wo sie steht, zurück
+        karte.style.transition = "";
+        karte.style.transform = "";
+        const weit = Math.abs(weg) >= WISCH_SEITE_PX;
+        const schnell = Math.abs(weg) >= WISCH_SCHNELL_WEG_PX && Math.abs(tempo) >= WISCH_SCHNELL_TEMPO && tempo * weg > 0;
+        if (!abgebrochen && (weit || schnell) && moeglich(weg)) {
+          uebungWechseln(weg < 0 ? 1 : -1);
+        }
+      }
+    });
+  }
+
   // ---------- Erklärungen ----------
 
   // Die ID, unter der die Erklärung einer Übung in der erklaerungen.js steht. Eine alte ID führt über ALTE_IDS
@@ -11915,6 +11958,7 @@ platzhalterAnwenden();
 
 // Wischgesten: Die Sheets lassen sich nach unten wischen
 sheetsWischbarMachen();
+modusWischbarMachen();
 
 // Das gewählte Design (Dunkel, Hell oder System) und sein Umschalter
 designAnwenden();

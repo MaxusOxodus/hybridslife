@@ -3408,6 +3408,12 @@ button.einst-zeile:first-child {
   color: var(--text-leise);
 }
 
+/* Zeitverlauf (seit Version 133): Satz, Gewicht × Wdh. und rechts die Uhrzeit, ohne Pfeil */
+.tag-reihe.zeit-reihe {
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Die Übungen einer geplanten Routine */
 .tag-plan-liste {
   margin: 10px 0 6px;

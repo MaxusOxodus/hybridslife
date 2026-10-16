@@ -5583,6 +5583,97 @@
     const bereich = document.getElementById("fertig-rang");
     bereich.innerHTML = "";
     bereich.appendChild(karte);
+
+    // Den Zeitverlauf gibt es nur, wenn jeder Satz des Trainings eine Zeit hat (seit Version 133)
+    berichtEintraege = liste;
+    document.getElementById("fertig-zeit").classList.toggle("versteckt", !alleSaetzeMitZeit(liste));
+  }
+
+  // ---------- Zeitverlauf (seit Version 133) ----------
+
+  // Die Einträge des zuletzt beendeten Trainings für den Zeitverlauf. Nur im Speicher der Seite, nach dem Neuladen leer.
+  let berichtEintraege = [];
+
+  // Hat jeder Satz dieser Einträge eine Zeit (zeit, seit Version 122)? Ohne einen einzigen Satz: nein.
+  function alleSaetzeMitZeit(liste) {
+    let anzahl = 0;
+    for (let i = 0; i < liste.length; i++) {
+      const saetze = saetzeVon(liste[i]);
+      for (let j = 0; j < saetze.length; j++) {
+        if (typeof saetze[j].zeit !== "string" || isNaN(new Date(saetze[j].zeit))) {
+          return false;
+        }
+        anzahl++;
+      }
+    }
+    return anzahl > 0;
+  }
+
+  // Die Uhrzeit als Text, z. B. "18:04", in beiden Sprachen mit 24 Stunden wie die Trainingsuhr
+  function uhrzeitText(datum) {
+    return String(datum.getHours()).padStart(2, "0") + ":" + String(datum.getMinutes()).padStart(2, "0");
+  }
+
+  // Die Sätze des Trainings in der Reihenfolge, in der sie fertig waren, in Blöcken: Ein neuer Block beginnt,
+  // wenn die Übung wechselt oder ein neuer Tag anfängt. Jeder Block ist { eintrag, tag, saetze: [{ nummer, satz, zeit }] }.
+  // nummer ist der Platz des Satzes in seinem Eintrag (1, 2, 3 ...).
+  function zeitverlaufBloecke(liste) {
+    const alle = [];
+    for (let i = 0; i < liste.length; i++) {
+      const saetze = saetzeVon(liste[i]);
+      for (let j = 0; j < saetze.length; j++) {
+        alle.push({ eintrag: liste[i], nummer: j + 1, satz: saetze[j], zeit: new Date(saetze[j].zeit) });
+      }
+    }
+    // Bei gleicher Zeit bleibt die Reihenfolge der Einträge und Sätze
+    alle.sort(function (a, b) {
+      return a.zeit - b.zeit;
+    });
+    const bloecke = [];
+    for (let i = 0; i < alle.length; i++) {
+      const s = alle[i];
+      const tag = tagSchluessel(s.zeit);
+      const letzter = bloecke[bloecke.length - 1];
+      if (!letzter || letzter.eintrag !== s.eintrag || letzter.tag !== tag) {
+        bloecke.push({ eintrag: s.eintrag, tag: tag, saetze: [] });
+      }
+      bloecke[bloecke.length - 1].saetze.push(s);
+    }
+    return bloecke;
+  }
+
+  // Öffnet den Zeitverlauf: je Block eine Karte mit Übung und Uhrzeit von bis, darin jeder Satz mit seiner Uhrzeit.
+  // Geht das Training über Mitternacht, steht vor jedem Tag eine Datumszeile.
+  function zeitverlaufOeffnen() {
+    const inhalt = document.getElementById("zeit-sheet-inhalt");
+    inhalt.innerHTML = "";
+    const bloecke = zeitverlaufBloecke(berichtEintraege);
+    const mehrereTage = bloecke.length > 0 && bloecke[0].tag !== bloecke[bloecke.length - 1].tag;
+    let tag = "";
+    for (let i = 0; i < bloecke.length; i++) {
+      const b = bloecke[i];
+      if (mehrereTage && b.tag !== tag) {
+        inhalt.appendChild(element("div", "sheet-abschnitt", tagTextMitJahr(b.saetze[0].zeit)));
+        tag = b.tag;
+      }
+      const karte = element("div", "karte tag-karte");
+      karte.appendChild(element("div", "routine-name", anzeigeName(b.eintrag.uebung, b.eintrag.uebungId)));
+      let von = uhrzeitText(b.saetze[0].zeit);
+      if (b.saetze.length > 1) {
+        von += " – " + uhrzeitText(b.saetze[b.saetze.length - 1].zeit);
+      }
+      karte.appendChild(element("div", "routine-info", von));
+      for (let j = 0; j < b.saetze.length; j++) {
+        const s = b.saetze[j];
+        const zeile = element("div", "tag-reihe zeit-reihe");
+        zeile.appendChild(element("span", "satz-nummer", s.nummer));
+        zeile.appendChild(element("span", "tag-werte", gewichtText(s.satz.gewicht) + " × " + s.satz.wdh));
+        zeile.appendChild(element("span", "tag-rir", uhrzeitText(s.zeit)));
+        karte.appendChild(zeile);
+      }
+      inhalt.appendChild(karte);
+    }
+    zusatzSheetOeffnen("zeit-sheet");
   }
 
   // Die neuen Rekorde eines Trainings als Liste von { name, wert }, in der Reihenfolge der Einträge.
@@ -6951,6 +7042,7 @@
     document.getElementById("erklaerung-sheet").classList.remove("offen");
     document.getElementById("muster-sheet").classList.remove("offen");
     document.getElementById("teilen-sheet").classList.remove("offen");
+    document.getElementById("zeit-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
     // Liegt darunter noch die Übungsauswahl (die Erklärung wurde von dort geöffnet), bleibt die Seite gesperrt
     if (!document.getElementById("sheet").classList.contains("offen")) {

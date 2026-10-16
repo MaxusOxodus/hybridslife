@@ -56,9 +56,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=132">
+  <link rel="stylesheet" href="style.css?v=133">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=132">
+  <link rel="stylesheet" href="glass.css?v=133">
 </head>
 <body>
 
@@ -362,6 +362,8 @@
         </div>
       </div>
 
+      <!-- Seit Version 133: öffnet den Zeitverlauf. Nur zu sehen, wenn jeder Satz des Trainings eine Zeit hat. -->
+      <button id="fertig-zeit" class="zweit-btn versteckt" onclick="zeitverlaufOeffnen()" data-t="zeit.titel">Zeitverlauf</button>
       <button class="speichern-btn" onclick="trainingAnsichtZeigen('uebersicht')" data-t="fertig.knopf">Fertig</button>
     </div>
   </section>
@@ -724,6 +726,17 @@
     <div id="tag-sheet-inhalt" class="zusatz-inhalt"></div>
   </div>
 
+  <!-- Sheet (seit Version 133): der Zeitverlauf des gerade beendeten Trainings, Uhrzeit je Übung und je Satz.
+       Es öffnet sich aus dem Bericht nach dem Training. Den Inhalt füllt die app.js. -->
+  <div id="zeit-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span class="sheet-titel" data-t="zeit.titel">Zeitverlauf</span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+    </div>
+    <div id="zeit-sheet-inhalt" class="zusatz-inhalt"></div>
+  </div>
+
   <!-- Sheet: einen eingetragenen Satz ändern oder löschen. Es liegt über dem Trainingstag, deshalb steht es im HTML danach. -->
   <div id="satz-sheet" class="zusatz-sheet">
     <div class="sheet-griff"></div>
@@ -1066,9 +1079,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=132"></script>
-<script src="uebungen.js?v=132"></script>
-<script src="erklaerungen.js?v=132"></script>
+<script src="texte.js?v=133"></script>
+<script src="uebungen.js?v=133"></script>
+<script src="erklaerungen.js?v=133"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1090,13 +1103,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=132"></script>
-<script src="bilder.js?v=132"></script>
-<script src="vorlagen.js?v=132"></script>
-<script src="figuren.js?v=132"></script>
+<script src="raenge.js?v=133"></script>
+<script src="bilder.js?v=133"></script>
+<script src="vorlagen.js?v=133"></script>
+<script src="figuren.js?v=133"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=132"></script>
+<script src="app.js?v=133"></script>
 
 </body>
 </html>

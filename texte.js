@@ -474,6 +474,7 @@ const TEXTE = {
   "fertig.aufstieg": { de: "Aufgestiegen", en: "Ranked up" },
   "fertig.rekorde": { de: "Neue Rekorde (geschätztes 1RM)", en: "New records (estimated 1RM)" },
   "fertig.hoechster": { de: "Höchster Rang erreicht", en: "Highest rank reached" },
+  "zeit.titel": { de: "Zeitverlauf", en: "Timeline" },
 
   // ---------- Fortschritt ----------
   "fortschritt.unterzeile": { de: "Deine Zahlen auf einen Blick", en: "Your numbers at a glance" },

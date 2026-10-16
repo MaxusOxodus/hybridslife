@@ -30,7 +30,7 @@ function konstanteHolen(name) {
   return treffer[0];
 }
 
-const ECHT = ["steigerungVorschlag", "steigerungText", "modusStartWerte", "letzterEintrag", "gleicheUebung", "saetzeVon",
+const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "steigerungVorschlag", "steigerungText", "modusStartWerte", "letzterEintrag", "gleicheUebung", "saetzeVon",
   "rirLesen", "wdhBis", "hatDatum", "istEigengewicht", "einheit", "ausKg", "zuKg", "gewichtAnzeige", "gewichtText",
   "zahlText", "startGewicht", "steigernAn"];
 const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "LBS_JE_KG", "GEWICHT_EINHEITEN"];

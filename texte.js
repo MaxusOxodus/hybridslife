@@ -374,11 +374,16 @@ const TEXTE = {
   "editor.festeZahl": { de: "Feste Zahl", en: "Fixed" },
   "editor.eigenerBereich": { de: "Bereich", en: "Range" },
   "editor.pauseEigene": { de: "Eigene Zeit", en: "Custom time" },
+  "editor.seiten": { de: "Seiten", en: "Sides" },
+  "editor.seitenZusammen": { de: "Beide", en: "Both" },
+  "editor.seitenEinzeln": { de: "Einzeln", en: "Separate" },
   "editor.ohneName": { de: "Gib der Routine einen Namen.", en: "Give the routine a name." },
   "editor.ohneUebung": { de: "Füge mindestens eine Übung hinzu.", en: "Add at least one exercise." },
   "ziel.beides": { de: "Ziel: {saetze} Sätze × {wdh} Wdh.", en: "Target: {saetze} × {wdh} reps" },
   "ziel.saetze": { de: "Ziel: {saetze} Sätze", en: "Target sets: {saetze}" },
   "ziel.wdh": { de: "Ziel: {wdh} Wdh.", en: "Target: {wdh} reps" },
+  "ziel.beidesSeiten": { de: "Ziel: {saetze} Sätze je Seite × {wdh} Wdh.", en: "Target: {saetze} per side × {wdh} reps" },
+  "ziel.saetzeSeiten": { de: "Ziel: {saetze} Sätze je Seite", en: "Target sets: {saetze} per side" },
 
   // ---------- Training: Trainingsmodus ----------
   "modus.beenden": { de: "Beenden", en: "Finish" },

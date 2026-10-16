@@ -20,7 +20,7 @@ function funktionHolen(name) {
 }
 
 // Diese Funktionen laufen so, wie sie in der app.js stehen
-const ECHT = ["element", "uebersichtOeffnen", "uebungErledigt", "uebungStandText", "gleicheUebung", "stelleIst"];
+const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "element", "uebersichtOeffnen", "uebungErledigt", "uebungStandText", "gleicheUebung", "stelleIst"];
 
 // Ein kleiner Ersatz für die Seite: Elemente mit Klassen, Kindern, Text und Merkmalen
 function knoten(tag) {

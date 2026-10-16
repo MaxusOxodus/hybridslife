@@ -2778,22 +2778,62 @@
   }
 
   // Der Text zum Ziel einer Übung, z. B. "Ziel: 3 Sätze × 10 Wdh." oder mit Bereich "Ziel: 3 Sätze × 8–12 Wdh.".
-  // Ohne Ziel ist er leer.
+  // Zählt jede Seite einzeln, steht "je Seite" dabei. Ohne Ziel ist er leer.
   function zielText(uebung) {
     let wdh = uebung.zielWdh;
     if (wdhBis(uebung)) {
       wdh += "–" + wdhBis(uebung);
     }
+    let seiten = "";
+    if (zaehltSeiten(uebung)) {
+      seiten = "Seiten";
+    }
     if (uebung.zielSaetze && uebung.zielWdh) {
-      return txt("ziel.beides", { saetze: uebung.zielSaetze, wdh: wdh });
+      return txt("ziel.beides" + seiten, { saetze: uebung.zielSaetze, wdh: wdh });
     }
     if (uebung.zielSaetze) {
-      return txt("ziel.saetze", { saetze: uebung.zielSaetze });
+      return txt("ziel.saetze" + seiten, { saetze: uebung.zielSaetze });
     }
     if (uebung.zielWdh) {
       return txt("ziel.wdh", { wdh: wdh });
     }
     return "";
+  }
+
+  // Einseitige Übungen (eine Seite nach der anderen, z. B. einarmig). Ein eigenes Feld dafür gibt es in der uebungen.js nicht:
+  // Es zählen die Zählung "proSeite" für die Ränge und der Name auf Deutsch oder Englisch (bei eigenen Übungen ihr Name).
+  const EINSEITIG_NAME = /einarmig|einbeinig|single[ -]?(arm|leg)|one[ -]?(arm|leg)|split[ -]?squat|ausfallschritt|lunge/i;
+
+  function einseitig(id, name) {
+    const u = UEBUNG_NACH_ID[id];
+    if (u) {
+      return Boolean(u.rang && u.rang.zaehlung === "proSeite") || EINSEITIG_NAME.test(u.de) || EINSEITIG_NAME.test(u.en);
+    }
+    return typeof name === "string" && EINSEITIG_NAME.test(name);
+  }
+
+  // Gibt die Zählweise einer Übung an eine Kopie weiter (Editor, Duplizieren, Trainingsmodus, Import).
+  // Gespeichert wird nur "seiten". Fehlt sie oder steht etwas anderes da, bekommt die Kopie kein Feld:
+  // So bleibt eine Übung ohne Wahl genau, wie sie war.
+  function zaehlweiseKopieren(von, nach) {
+    if (von.zaehlweise === "seiten") {
+      nach.zaehlweise = "seiten";
+    }
+  }
+
+  // Zählt bei dieser Übung jede Seite als eigener Satz? Nur mit der Wahl "Einzeln" (zaehlweise "seiten", seit Version 132)
+  // und nur bei einer einseitigen Übung. Ohne Feld gilt wie bisher: ein Satz sind beide Seiten.
+  function zaehltSeiten(u) {
+    return u.zaehlweise === "seiten" && einseitig(u.uebungId, u.name);
+  }
+
+  // Das Satz-Ziel, wie es im Trainingsmodus zählt: das Ziel der Routine, bei "Einzeln" je Seite, also doppelt. Ohne Ziel 0.
+  function satzZiel(u) {
+    const ziel = u.zielSaetze || 0;
+    if (zaehltSeiten(u)) {
+      return ziel * 2;
+    }
+    return ziel;
   }
 
   // "1 Übung" oder "5 Übungen"
@@ -3443,6 +3483,7 @@
     for (let i = 0; i < uebungen.length; i++) {
       const u = uebungen[i];
       kopie.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, zielWdhMax: wdhBis(u), pause: uebungPauseLesen(u.pause) });
+      zaehlweiseKopieren(u, kopie[i]);
     }
     return kopie;
   }
@@ -3589,6 +3630,9 @@
       ziele.appendChild(zielFeld(txt("saetze"), u, "zielSaetze", 10));
       ziele.appendChild(wdhZielFeld(u));
       ziele.appendChild(pauseFeld(u));
+      if (einseitig(u.uebungId, u.name)) {
+        ziele.appendChild(zaehlFeld(u));
+      }
       zeile.appendChild(ziele);
 
       liste.appendChild(zeile);
@@ -3702,6 +3746,29 @@
     const auswahl = document.createElement("select");
     auswahl.className = "ziel-haupt";
     pauseAuswahlFuellen(auswahl, uebung);
+    rahmen.appendChild(auswahl);
+    return rahmen;
+  }
+
+  // Auswahlfeld "Seiten" für einseitige Übungen (seit Version 132), gebaut wie das Pause-Feld:
+  // "Beide" (Standard, ein Satz sind beide Seiten) oder "Einzeln" (jede Seite ist ein eigener Satz, zaehlweise "seiten").
+  // "Beide" nimmt das Feld wieder weg, so bleibt eine Übung ohne Wahl genau, wie sie war.
+  function zaehlFeld(uebung) {
+    const rahmen = element("label", "ziel");
+    rahmen.appendChild(element("span", "", txt("editor.seiten")));
+
+    const auswahl = document.createElement("select");
+    auswahl.className = "ziel-haupt zaehl-feld";
+    auswahl.appendChild(new Option(txt("editor.seitenZusammen"), ""));
+    auswahl.appendChild(new Option(txt("editor.seitenEinzeln"), "seiten"));
+    auswahl.value = uebung.zaehlweise === "seiten" ? "seiten" : "";
+    auswahl.onchange = function () {
+      if (auswahl.value === "seiten") {
+        uebung.zaehlweise = "seiten";
+      } else {
+        delete uebung.zaehlweise;
+      }
+    };
     rahmen.appendChild(auswahl);
     return rahmen;
   }
@@ -3847,6 +3914,7 @@
         // Nach einem Tausch: die Übungen, die an diesem Platz schon Sätze haben (siehe uebungTauschen)
         getauscht: []
       });
+      zaehlweiseKopieren(u, laufendesTraining.uebungen[i]);
     }
     gemerkteTrainingWerte = null;
     trainingMerken();
@@ -4213,7 +4281,7 @@
     if (eintrag) {
       dran = saetzeVon(eintrag).length;
     }
-    const ziel = u.zielSaetze || 0;
+    const ziel = satzZiel(u);
     if (ziel > 0 && dran >= ziel && !u.extraSatz) {
       dran = -1;
     }
@@ -4298,7 +4366,7 @@
       return vorschlag;
     }
     const erreicht = arbeit.filter(function (s) { return s.wdh >= vorschlag.ziel; }).length;
-    if (erreicht < arbeit.length || erreicht < Math.max(1, u.zielSaetze || 0)) {
+    if (erreicht < arbeit.length || erreicht < Math.max(1, satzZiel(u))) {
       return vorschlag;
     }
     if (istEigengewicht(u.uebungId) && alt <= 0) {
@@ -4343,7 +4411,7 @@
       return;
     }
     const u = t.uebungen[t.index];
-    const ziel = u.zielSaetze || 0;
+    const ziel = satzZiel(u);
     const gemacht = u.saetze.length;
     // Weiter geht es zur nächsten offenen Übung. Ist keine mehr offen, wird das Training abgeschlossen.
     const naechsteIndex = naechsteOffene();
@@ -4532,7 +4600,7 @@
     // Mit dem letzten Ziel-Satz geht es gleich zur nächsten offenen Übung, die Pause läuft dort weiter.
     // Ohne Satz-Ziel ist nicht klar, welcher Satz der letzte ist, und ohne offene Übung bleibt die App hier.
     const naechste = naechsteOffene();
-    if (u.zielSaetze > 0 && u.saetze.length === u.zielSaetze && naechste >= 0) {
+    if (satzZiel(u) > 0 && u.saetze.length === satzZiel(u) && naechste >= 0) {
       uebungZeigen(naechste);
     } else {
       modusFortschrittAnzeigen();
@@ -4713,7 +4781,7 @@
     }
 
     // Nach dem letzten Ziel-Satz gibt es keinen aktuellen Satz, bis "+ Satz" einen weiteren startet
-    const ziel = u.zielSaetze || 0;
+    const ziel = satzZiel(u);
     const zielErreicht = ziel > 0 && saetze.length >= ziel && !u.extraSatz;
     let zeilen = Math.max(saetze.length, ziel);
     if (!zielErreicht) {
@@ -5004,8 +5072,8 @@
   // Erledigt ist eine Übung, wenn sie ihr Satz-Ziel erreicht hat, ohne Satz-Ziel schon mit einem Satz.
   // Eine angefangene Übung (2 von 3 Sätzen) ist noch offen.
   function uebungErledigt(u) {
-    if (u.zielSaetze > 0) {
-      return u.saetze.length >= u.zielSaetze;
+    if (satzZiel(u) > 0) {
+      return u.saetze.length >= satzZiel(u);
     }
     return u.saetze.length > 0;
   }
@@ -5341,13 +5409,13 @@
       return txt("stand.offen");
     }
     const saetze = txtAnzahl("anzahl.saetze", gemacht);
-    if (!u.zielSaetze) {
+    if (!satzZiel(u)) {
       return saetze;
     }
-    if (gemacht >= u.zielSaetze) {
+    if (gemacht >= satzZiel(u)) {
       return txt("stand.fertig", { saetze: saetze });
     }
-    return txt("stand.xVonY", { x: gemacht, y: u.zielSaetze });
+    return txt("stand.xVonY", { x: gemacht, y: satzZiel(u) });
   }
 
   // Öffnet die Übersicht aller Übungen des Trainings. Antippen springt zu der Übung.
@@ -8805,6 +8873,7 @@
         }
         const neu = { name: u.name, uebungId: id, muskelgruppe: gruppe, zielSaetze: zielLesen(u.zielSaetze, 10), zielWdh: u.zielWdh, zielWdhMax: u.zielWdhMax, pause: uebungPauseLesen(u.pause) };
         wdhZielBereinigen(neu);
+        zaehlweiseKopieren(u, neu);
         idErgaenzen(neu, u.name);
         sauber.uebungen.push(neu);
       }

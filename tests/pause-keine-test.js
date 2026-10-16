@@ -21,7 +21,7 @@ function funktionHolen(name) {
 }
 
 // Diese Funktionen laufen so, wie sie in der app.js stehen
-const ECHT = ["pauseLesen", "uebungPauseLesen", "pauseStandard", "pauseDauer", "pauseText", "pauseAuswahlFuellen", "pauseFeld",
+const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "pauseLesen", "uebungPauseLesen", "pauseStandard", "pauseDauer", "pauseText", "pauseAuswahlFuellen", "pauseFeld",
   "uebungenKopieren", "wdhBis", "zielLesen", "wdhZielBereinigen", "routineBereinigen", "neueId", "trainingBeginnen",
   "rirLesen", "eintragSaetzeSchreiben", "eintragFinden", "satzFertig", "uebungZeigen", "uebungErledigt", "naechsteOffene"];
 

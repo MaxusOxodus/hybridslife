@@ -20,7 +20,7 @@ function funktionHolen(name) {
 }
 
 // Diese Funktionen laufen so, wie sie in der app.js stehen
-const ECHT = ["rirLesen", "saetzeVon", "eintragSaetzeSchreiben", "eintragFinden", "neueId", "gleicheUebung", "stelleIst",
+const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "rirLesen", "saetzeVon", "eintragSaetzeSchreiben", "eintragFinden", "neueId", "gleicheUebung", "stelleIst",
   "trainingUebungListen", "satzFertig", "satzSpeichern", "satzLoeschen", "satzAenderungSichern", "uebungTauschen",
   "naechsteOffene", "uebungErledigt"];
 

@@ -21,13 +21,14 @@ function funktionHolen(name) {
 
 // Diese Funktionen laufen so, wie sie in der app.js stehen
 const ECHT = ["rirLesen", "saetzeVon", "eintragSaetzeSchreiben", "eintragFinden", "neueId", "gleicheUebung", "stelleIst",
-  "trainingUebungListen", "satzFertig", "satzSpeichern", "satzLoeschen", "satzAenderungSichern", "uebungTauschen"];
+  "trainingUebungListen", "satzFertig", "satzSpeichern", "satzLoeschen", "satzAenderungSichern", "uebungTauschen",
+  "naechsteOffene", "uebungErledigt"];
 
 // Die zeichnen nur oder gehören zu anderen Teilen der App: Hier tun sie nichts
 const LEER = ["anzeigen", "letztesMalAnzeigen", "trainingMerken", "pauseStarten", "pauseDauer", "modusFortschrittAnzeigen",
   "modusZustandAnzeigen", "modusSaetzeAnzeigen", "modusLetztesAnzeigen", "bestwertPruefen", "satzSheetSchliessen",
   "trainingsAufraeumen", "profilAnzeigen", "homeAnzeigen", "tagSheetFuellen", "zusatzSheetsSchliessen", "trainingstage",
-  "sheetSchliessen", "modusAnzeigen", "routineUebungErsetzen", "tauschRoutineStelle", "sicherSpeichern"];
+  "sheetSchliessen", "modusAnzeigen", "routineUebungErsetzen", "tauschRoutineStelle", "sicherSpeichern", "uebungZeigen"];
 
 // Die Uhr des Tests: new Date() und Date.now() liefern die Zeit, die der Test gerade eingestellt hat
 let jetzt = Date.parse("2026-10-15T18:00:00.000Z");

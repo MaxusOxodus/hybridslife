@@ -402,7 +402,7 @@ const TEXTE = {
   "modus.zielGeschafft": { de: "{n} von {ziel} Sätzen geschafft", en: "{n} of {ziel} sets done" },
   "modus.geschafft": { de: "{n} Sätze geschafft", en: "{n} sets done" },
   "modus.alsNaechstes": { de: "Als Nächstes: {text}", en: "Up next: {text}" },
-  "modus.letzteUebung": { de: "Das war die letzte Übung.", en: "That was the last exercise." },
+  "modus.alleErledigt": { de: "Alle Übungen erledigt.", en: "All exercises done." },
   "modus.danach": { de: "Danach: {name}", en: "Then: {name}" },
   "modus.erhoehen": {
     de: "Gewicht erhöhen: Letztes Mal hast du in allen Sätzen {wdh} Wdh. erreicht.",

@@ -4299,7 +4299,9 @@
     const u = t.uebungen[t.index];
     const ziel = u.zielSaetze || 0;
     const gemacht = u.saetze.length;
-    const letzteUebung = t.index === t.uebungen.length - 1;
+    // Weiter geht es zur nächsten offenen Übung. Ist keine mehr offen, wird das Training abgeschlossen.
+    const naechsteIndex = naechsteOffene();
+    const keineOffene = naechsteIndex < 0;
     const pauseLaeuft = pauseRest() > 0;
     const zielErreicht = ziel > 0 && gemacht >= ziel && !u.extraSatz;
 
@@ -4315,7 +4317,7 @@
     document.getElementById("modus-satz").textContent = satzText;
 
     let weiterText = txt("modus.naechste");
-    if (letzteUebung) {
+    if (keineOffene) {
       weiterText = txt("modus.abschliessen");
     }
     document.getElementById("modus-wahl-weiter").textContent = weiterText;
@@ -4333,10 +4335,10 @@
     document.getElementById("modus-pause").classList.toggle("versteckt", !pauseLaeuft);
     document.getElementById("modus-countdown").textContent = pauseText(Math.ceil(pauseRest() / 1000));
     let danach = txt("modus.alsNaechstes", { text: satzText });
-    if (zielErreicht && letzteUebung) {
-      danach = txt("modus.letzteUebung");
+    if (zielErreicht && keineOffene) {
+      danach = txt("modus.alleErledigt");
     } else if (zielErreicht) {
-      const naechste = t.uebungen[t.index + 1];
+      const naechste = t.uebungen[naechsteIndex];
       danach = txt("modus.danach", { name: anzeigeName(naechste.name, naechste.uebungId) });
     }
     document.getElementById("modus-naechstes").textContent = danach;
@@ -4455,11 +4457,18 @@
     gemerkteTrainingWerte = null;
     trainingMerken();
     pauseStarten(pauseDauer(u));
-    modusFortschrittAnzeigen();
-    modusZustandAnzeigen(false);
-    modusSaetzeAnzeigen();
-    modusLetztesAnzeigen();
-    window.scrollTo(0, 0);
+    // Mit dem letzten Ziel-Satz geht es gleich zur nächsten offenen Übung, die Pause läuft dort weiter.
+    // Ohne Satz-Ziel ist nicht klar, welcher Satz der letzte ist, und ohne offene Übung bleibt die App hier.
+    const naechste = naechsteOffene();
+    if (u.zielSaetze > 0 && u.saetze.length === u.zielSaetze && naechste >= 0) {
+      uebungZeigen(naechste);
+    } else {
+      modusFortschrittAnzeigen();
+      modusZustandAnzeigen(false);
+      modusSaetzeAnzeigen();
+      modusLetztesAnzeigen();
+      window.scrollTo(0, 0);
+    }
     bestwertPruefen(eintrag, u.saetze.length - 1);
   }
 
@@ -4908,15 +4917,37 @@
     modusLetztesAnzeigen();
   }
 
-  // "Nächste Übung" oder "Übung überspringen": weiter zur nächsten Übung der Routine.
-  // Nach der letzten Übung endet das Training, vorher kommt die Auswahl zum Speichern oder Verwerfen.
+  // "Nächste Übung" oder "Übung überspringen": weiter zur nächsten offenen Übung.
+  // Ist keine mehr offen, endet das Training, vorher kommt die Auswahl zum Speichern oder Verwerfen.
   function uebungBeenden() {
-    const t = laufendesTraining;
-    if (t.index < t.uebungen.length - 1) {
-      uebungZeigen(t.index + 1);
+    const naechste = naechsteOffene();
+    if (naechste >= 0) {
+      uebungZeigen(naechste);
       return;
     }
     trainingBeendenFragen(true);
+  }
+
+  // Erledigt ist eine Übung, wenn sie ihr Satz-Ziel erreicht hat, ohne Satz-Ziel schon mit einem Satz.
+  // Eine angefangene Übung (2 von 3 Sätzen) ist noch offen.
+  function uebungErledigt(u) {
+    if (u.zielSaetze > 0) {
+      return u.saetze.length >= u.zielSaetze;
+    }
+    return u.saetze.length > 0;
+  }
+
+  // Der Platz der nächsten offenen Übung: zuerst die hinter der aktuellen, dann wieder von vorn.
+  // Ist keine andere mehr offen: -1. So geht es nach Übung 3 gleich zu 5, wenn 4 schon vorher dran war.
+  function naechsteOffene() {
+    const t = laufendesTraining;
+    for (let schritt = 1; schritt < t.uebungen.length; schritt++) {
+      const i = (t.index + schritt) % t.uebungen.length;
+      if (!uebungErledigt(t.uebungen[i])) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   // Die Pfeile neben "Übung 2 von 6": zur vorherigen (-1) oder nächsten (1) Übung

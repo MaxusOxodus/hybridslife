@@ -107,6 +107,9 @@
   const START_WDH = 10;
   const START_SAETZE = 3;
 
+  // Liegt das letzte Training einer Übung länger zurück, schlägt der Trainingsmodus keine Steigerung vor
+  const STEIGERN_PAUSE_TAGE = 21;
+
   // Höhe eines Wertes im Rad in Pixeln. Muss zur Höhe von .rad-wert im CSS passen.
   const RAD_HOEHE = 44;
 
@@ -4132,7 +4135,7 @@
     document.getElementById("modus-geraet").textContent = geraet;
     gewichtTitelSetzen("t-feld-gewicht", u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
-    document.getElementById("modus-hinweis").textContent = gewichtErhoehenText(u);
+    document.getElementById("modus-hinweis").textContent = steigerungText(u);
 
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
@@ -4260,27 +4263,72 @@
     document.getElementById("modus-fortschritt").style.width = (begonnen / t.uebungen.length * 100) + "%";
   }
 
-  // Der Hinweis "Gewicht erhöhen": Die Übung hat einen Wiederholungsbereich, und beim letzten Mal
-  // wurde in allen Sätzen das obere Ende erreicht. Sonst ist der Text leer.
-  function gewichtErhoehenText(u) {
-    const bis = wdhBis(u);
-    if (!bis) {
-      return "";
-    }
+  // Der Vorschlag für den ersten Satz einer Übung im Trainingsmodus, aus dem letzten Training dieser Übung.
+  // Arbeitsgewicht ist das schwerste Gewicht vom letzten Mal, leichtere Sätze (Aufwärmen) zählen nicht.
+  // Die Regel: Haben mindestens so viele Sätze mit dem Arbeitsgewicht, wie das Satz-Ziel vorgibt (mindestens einer),
+  // das obere Ende des Wdh.-Ziels erreicht (bei einer festen Zahl diese Zahl), geht es einen Schritt der
+  // Gewichtsknöpfe hoch (2,5 kg oder 5 lbs, in der gewählten Einheit gerechnet, nicht gerundet), mit dem unteren
+  // Ende als Wdh. Sonst bleibt das Gewicht, mit den Wdh. des ersten Satzes mit dem Arbeitsgewicht.
+  // Nie gesteigert wird ohne Wdh.-Ziel, bei Eigengewicht ohne Zusatzgewicht und nach mehr als STEIGERN_PAUSE_TAGE Tagen.
+  // Zurück kommt { art, gewicht (kg), wdh, alt (kg), ziel } mit art "steigern", "halten", "pause", "eigengewicht"
+  // oder "ohneZiel". Ohne früheres Training mit Sätzen: null.
+  function steigerungVorschlag(u) {
     const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
     if (!letzter) {
-      return "";
+      return null;
     }
     const saetze = saetzeVon(letzter);
     if (saetze.length === 0) {
+      return null;
+    }
+
+    let alt = saetze[0].gewicht;
+    for (let i = 1; i < saetze.length; i++) {
+      alt = Math.max(alt, saetze[i].gewicht);
+    }
+    const arbeit = saetze.filter(function (s) { return s.gewicht === alt; });
+    const vorschlag = { art: "halten", gewicht: alt, wdh: arbeit[0].wdh, alt: alt, ziel: wdhBis(u) || u.zielWdh };
+
+    if (!u.zielWdh) {
+      vorschlag.art = "ohneZiel";
+      return vorschlag;
+    }
+    if (hatDatum(letzter) && Date.now() - new Date(letzter.datum).getTime() > STEIGERN_PAUSE_TAGE * 24 * 60 * 60 * 1000) {
+      vorschlag.art = "pause";
+      return vorschlag;
+    }
+    const erreicht = arbeit.filter(function (s) { return s.wdh >= vorschlag.ziel; }).length;
+    if (erreicht < arbeit.length || erreicht < Math.max(1, u.zielSaetze || 0)) {
+      return vorschlag;
+    }
+    if (istEigengewicht(u.uebungId) && alt <= 0) {
+      vorschlag.art = "eigengewicht";
+      return vorschlag;
+    }
+    vorschlag.art = "steigern";
+    vorschlag.gewicht = zuKg(ausKg(alt) + GEWICHT_EINHEITEN[einheit()].schritt);
+    vorschlag.wdh = u.zielWdh;
+    return vorschlag;
+  }
+
+  // Der Hinweis unter dem Ziel im Trainingsmodus zum Vorschlag, z. B. "+2,5 kg: …" oder "Gleiches Gewicht: …".
+  // Ohne Vorschlag und ohne Wdh.-Ziel ist er leer.
+  function steigerungText(u) {
+    const v = steigerungVorschlag(u);
+    if (!v || v.art === "ohneZiel") {
       return "";
     }
-    for (let i = 0; i < saetze.length; i++) {
-      if (saetze[i].wdh < bis) {
-        return "";
-      }
+    if (v.art === "steigern") {
+      const schritt = "+" + zahlText(GEWICHT_EINHEITEN[einheit()].schritt) + " " + einheit();
+      return txt("modus.steigern", { schritt: schritt, gewicht: gewichtText(v.alt), wdh: v.ziel });
     }
-    return txt("modus.erhoehen", { wdh: bis });
+    if (v.art === "pause") {
+      return txt("modus.haltenPause", { tage: STEIGERN_PAUSE_TAGE });
+    }
+    if (v.art === "eigengewicht") {
+      return txt("modus.eigengewicht");
+    }
+    return txt("modus.halten", { wdh: v.ziel });
   }
 
   // Zeigt im Trainingsmodus den passenden Teil: die Eingabe für den nächsten Satz, den Countdown
@@ -4352,7 +4400,8 @@
   }
 
   // Die Werte, mit denen die Zahlenfelder für den nächsten Satz starten: die des Satzes davor,
-  // beim ersten Satz die vom letzten Mal, sonst die Startwerte und das Wdh.-Ziel der Routine
+  // beim ersten Satz der Vorschlag aus dem letzten Training (steigerungVorschlag),
+  // ohne früheres Training die Startwerte und das Wdh.-Ziel der Routine
   function modusStartWerte() {
     const t = laufendesTraining;
     const u = t.uebungen[t.index];
@@ -4361,16 +4410,11 @@
       return [davor.gewicht, davor.wdh];
     }
 
-    const werte = [startGewicht(), u.zielWdh || START_WDH];
-    const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
-    if (letzter) {
-      const saetze = saetzeVon(letzter);
-      if (saetze.length > 0) {
-        werte[0] = saetze[0].gewicht;
-        werte[1] = saetze[0].wdh;
-      }
+    const vorschlag = steigerungVorschlag(u);
+    if (vorschlag) {
+      return [vorschlag.gewicht, vorschlag.wdh];
     }
-    return werte;
+    return [startGewicht(), u.zielWdh || START_WDH];
   }
 
   // Stellt die zwei Zahlenfelder ein: auf die gemerkte Eingabe (nach einem Tab-Wechsel), sonst auf die Startwerte.

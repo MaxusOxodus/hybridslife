@@ -404,9 +404,22 @@ const TEXTE = {
   "modus.alsNaechstes": { de: "Als Nächstes: {text}", en: "Up next: {text}" },
   "modus.alleErledigt": { de: "Alle Übungen erledigt.", en: "All exercises done." },
   "modus.danach": { de: "Danach: {name}", en: "Then: {name}" },
-  "modus.erhoehen": {
-    de: "Gewicht erhöhen: Letztes Mal hast du in allen Sätzen {wdh} Wdh. erreicht.",
-    en: "Increase the weight: last time you hit {wdh} reps in every set."
+  // Hinweise zum Vorschlag für den ersten Satz (steigerungText in der app.js)
+  "modus.steigern": {
+    de: "{schritt}: Letztes Mal hast du mit {gewicht} in allen Sätzen {wdh} Wdh. erreicht.",
+    en: "{schritt}: last time you hit {wdh} reps in every set with {gewicht}."
+  },
+  "modus.halten": {
+    de: "Gleiches Gewicht: Ziel {wdh} Wdh. noch nicht in allen Sätzen.",
+    en: "Same weight: target of {wdh} reps not yet hit in every set."
+  },
+  "modus.haltenPause": {
+    de: "Gleiches Gewicht: Dein letztes Training ist über {tage} Tage her.",
+    en: "Same weight: your last session was more than {tage} days ago."
+  },
+  "modus.eigengewicht": {
+    de: "Ziel erreicht: Mach mehr Wdh. oder nimm Zusatzgewicht.",
+    en: "Target hit: do more reps or add extra weight."
   },
   "modus.laeuftNoch": { de: "Es läuft noch ein Training", en: "A workout is still running" },
   "modus.laeuftNochText": { de: "„{name}“ ist noch nicht abgeschlossen.", en: "“{name}” isn't finished yet." },

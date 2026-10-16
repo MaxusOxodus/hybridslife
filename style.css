@@ -1661,6 +1661,27 @@ h1 {
   color: var(--akzent-text);
 }
 
+/* In der Übersicht der Übungen: eine erledigte Übung steht leise da, rechts ein ✓.
+   Die Übung, die gerade dran ist, bleibt hervorgehoben, auch wenn sie erledigt ist. */
+.sheet-zeile.erledigt {
+  position: relative;
+  padding-right: 32px;
+}
+
+.sheet-zeile.erledigt:not(.aktuell) .sheet-zeile-name {
+  color: var(--text-leise);
+  font-weight: 500;
+}
+
+.sheet-zeile-haken {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  color: var(--text-leise);
+  font-size: 20px;
+}
+
 .speichern-btn.gross {
   min-height: 72px;
   font-size: 22px;

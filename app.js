@@ -5312,6 +5312,11 @@
         stand += " · " + txt("tausch.statt", { name: anzeigeName(u.ursprung.name, u.ursprung.uebungId) });
       }
       zeile.appendChild(element("span", "sheet-zeile-zweit", stand));
+      // Erledigte Übungen stehen leise mit ✓ da, die offenen wie bisher. Die Reihenfolge bleibt die der Routine.
+      if (uebungErledigt(u)) {
+        zeile.classList.add("erledigt");
+        zeile.appendChild(element("span", "sheet-zeile-haken", "✓")).setAttribute("aria-hidden", "true");
+      }
       zeile.onclick = function () {
         zusatzSheetsSchliessen();
         uebungZeigen(i);

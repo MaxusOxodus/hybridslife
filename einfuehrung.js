@@ -211,8 +211,8 @@ const EINFUEHRUNG_SCHRITTE = [
       en: "Your set"
     },
     text: {
-      de: "Trag hier dein Gewicht und deine Wiederholungen ein. Mit den Knöpfen darunter geht es schneller.",
-      en: "Enter your weight and your reps here. The buttons below make it faster."
+      de: "Trag hier Gewicht und Wiederholungen ein, die Knöpfe darunter machen es schneller. Kennt die App die Übung schon, steht hier ein Vorschlag.",
+      en: "Enter your weight and reps here, the buttons below make it faster. Once the app knows the exercise, you'll see a suggestion here."
     }
   },
   {

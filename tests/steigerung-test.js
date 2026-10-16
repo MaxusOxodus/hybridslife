@@ -2,6 +2,8 @@
 // (steigerungVorschlag): einen Schritt mehr, wenn beim letzten Mal alle Sätze mit dem Arbeitsgewicht das obere Ende
 // des Wdh.-Ziels erreicht haben, sonst das gleiche Gewicht. Aufwärmsätze zählen nicht, Eigengewicht ohne
 // Zusatzgewicht wird nie schwerer, nach mehr als 21 Tagen Pause bleibt das Gewicht, kg und lbs werden nicht gerundet.
+// Seit Version 129 lässt sich das in den Einstellungen abschalten (einstellungen.steigern = false): Dann gilt
+// die Vorbelegung bis Version 127 (erster Satz vom letzten Mal) und es gibt keinen Hinweis.
 // Starten mit: node tests/steigerung-test.js
 // Die Datei gehört nicht zur App. Die Funktionen holt sie direkt aus der app.js, alles fürs Zeichnen tut hier nichts.
 
@@ -30,7 +32,7 @@ function konstanteHolen(name) {
 
 const ECHT = ["steigerungVorschlag", "steigerungText", "modusStartWerte", "letzterEintrag", "gleicheUebung", "saetzeVon",
   "rirLesen", "wdhBis", "hatDatum", "istEigengewicht", "einheit", "ausKg", "zuKg", "gewichtAnzeige", "gewichtText",
-  "zahlText", "startGewicht"];
+  "zahlText", "startGewicht", "steigernAn"];
 const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
 
 // Baut die Funktionen mit diesen Einträgen und Einstellungen
@@ -188,6 +190,28 @@ app.setzeTraining({ index: 0, uebungen: [u] });
 app.steigerungVorschlag(u); app.steigerungText(u); app.modusStartWerte();
 pruefe("Vorschlag ändert weder Übung noch Einträge", JSON.stringify(u) === uVorher && JSON.stringify(daten) === vorher);
 pruefe("Im Code gibt es gewichtErhoehenText nicht mehr", !quelle.includes("gewichtErhoehenText"));
+
+// ---------- Schalter "Gewicht automatisch steigern" (seit Version 129) ----------
+const MIT_AUFWAERMEN = [eintrag("e1", [[40, 12], [70, 12], [70, 12], [70, 12]])];
+r = rechne(MIT_AUFWAERMEN, platz(BEREICH), { steigern: true });
+pruefe("Schalter an: 72,5 / 8 mit Hinweis", JSON.stringify(r.felder) === "[72.5,8]" && r.text.startsWith("modus.steigern"), JSON.stringify(r.felder));
+r = rechne(MIT_AUFWAERMEN, platz(BEREICH), {});
+pruefe("Ohne Eintrag gilt an", JSON.stringify(r.felder) === "[72.5,8]", JSON.stringify(r.felder));
+r = rechne(MIT_AUFWAERMEN, platz(BEREICH), { steigern: false });
+pruefe("Schalter aus: wie bis 127 der erste Satz vom letzten Mal (40 / 12)", JSON.stringify(r.felder) === "[40,12]", JSON.stringify(r.felder));
+pruefe("Schalter aus: kein Hinweis", r.text === "", r.text);
+r = rechne([eintrag("e1", [[70, 12], [70, 11], [70, 10]])], platz(BEREICH), { steigern: false });
+pruefe("Schalter aus, 12/11/10: 70 / 12 ohne Hinweis", JSON.stringify(r.felder) === "[70,12]" && r.text === "", JSON.stringify(r.felder) + r.text);
+r = rechne([eintrag("e1", [[70, 12], [70, 12], [70, 12]], 30)], platz(BEREICH), { steigern: false });
+pruefe("Schalter aus, lange Pause: kein Hinweis", r.text === "", r.text);
+r = rechne([], platz(BEREICH), { steigern: false });
+pruefe("Schalter aus, erste Ausführung: 20 / 8", JSON.stringify(r.felder) === "[20,8]", JSON.stringify(r.felder));
+r = rechne([kaputt], platz(BEREICH), { steigern: false });
+pruefe("Schalter aus, kaputte Sätze: Startwerte", JSON.stringify(r.felder) === "[20,8]", JSON.stringify(r.felder));
+const zweiterAus = platz(BEREICH);
+zweiterAus.saetze = [{ gewicht: 65, wdh: 9 }];
+r = rechne(MIT_AUFWAERMEN, zweiterAus, { steigern: false });
+pruefe("Schalter aus, Satz 2: Satz davor", JSON.stringify(r.felder) === "[65,9]", JSON.stringify(r.felder));
 
 console.log(pruefungen + " Prüfungen, " + fehler + " Fehler");
 process.exit(fehler ? 1 : 0);

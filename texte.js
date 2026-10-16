@@ -774,6 +774,11 @@ const TEXTE = {
     de: "Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist.",
     en: "Applies when the exercise has no rest time of its own in the routine."
   },
+  "einst.steigern": { de: "Gewicht automatisch steigern", en: "Increase weight automatically" },
+  "einst.steigernHinweis": {
+    de: "Hast du beim letzten Mal in allen Sätzen das obere Ende deiner Wiederholungen geschafft, steht im Training gleich mehr Gewicht im Feld.",
+    en: "If you hit the top of your rep target in every set last time, the workout fills in more weight for you."
+  },
   "profil.einheiten": { de: "Einheiten", en: "Units" },
   "profil.laenge": { de: "Länge", en: "Length" },
   "profil.einheitenHinweis": {

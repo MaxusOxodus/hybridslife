@@ -56,9 +56,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=128">
+  <link rel="stylesheet" href="style.css?v=129">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=128">
+  <link rel="stylesheet" href="glass.css?v=129">
 </head>
 <body>
 
@@ -830,6 +830,15 @@
           </div>
         </div>
         <p class="einst-fuss" data-t="profil.pauseHinweis">Gilt, wenn bei der Übung in der Routine nichts anderes eingestellt ist.</p>
+        <!-- Der Schalter für den Vorschlag im Trainingsmodus. Ob er an ist, steht in aria-checked, die app.js setzt es. -->
+        <div id="steigern-karte" class="karte einst-liste">
+          <button id="steigern-schalter" class="einst-zeile" role="switch" aria-checked="true" onclick="steigernUmlegen()">
+            <span class="icon einst-icon" data-icon="steigern"></span>
+            <span class="einst-titel" data-t="einst.steigern">Gewicht automatisch steigern</span>
+            <span class="schalter-bild" aria-hidden="true"></span>
+          </button>
+        </div>
+        <p class="einst-fuss" data-t="einst.steigernHinweis">Hast du beim letzten Mal in allen Sätzen das obere Ende deiner Wiederholungen geschafft, steht im Training gleich mehr Gewicht im Feld.</p>
 
         <h2 class="abschnitt" data-t="profil.daten">Daten</h2>
         <div id="einst-daten-karte" class="karte einst-liste" data-tour="einst-daten">
@@ -1050,9 +1059,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=128"></script>
-<script src="uebungen.js?v=128"></script>
-<script src="erklaerungen.js?v=128"></script>
+<script src="texte.js?v=129"></script>
+<script src="uebungen.js?v=129"></script>
+<script src="erklaerungen.js?v=129"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1074,13 +1083,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=128"></script>
-<script src="bilder.js?v=128"></script>
-<script src="vorlagen.js?v=128"></script>
-<script src="figuren.js?v=128"></script>
+<script src="raenge.js?v=129"></script>
+<script src="bilder.js?v=129"></script>
+<script src="vorlagen.js?v=129"></script>
+<script src="figuren.js?v=129"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=128"></script>
+<script src="app.js?v=129"></script>
 
 </body>
 </html>

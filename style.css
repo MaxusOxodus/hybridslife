@@ -1357,11 +1357,13 @@ h1 {
   transition: transform 0.2s, background 0.2s;
 }
 
-.sheet-schalter[aria-checked="true"] .schalter-bild {
+.sheet-schalter[aria-checked="true"] .schalter-bild,
+.einst-zeile[aria-checked="true"] .schalter-bild {
   background: var(--akzent);
 }
 
-.sheet-schalter[aria-checked="true"] .schalter-bild::after {
+.sheet-schalter[aria-checked="true"] .schalter-bild::after,
+.einst-zeile[aria-checked="true"] .schalter-bild::after {
   background: var(--auf-akzent);
   transform: translateX(20px);
 }
@@ -2738,6 +2740,11 @@ button.einst-zeile:first-child {
 /* Anleitung: "Alle zurücksetzen" steht mit Abstand unter den Rundgängen und ihren Hinweisen */
 #anleitung-zuruecksetzen {
   margin-top: 28px;
+}
+
+/* Die Karte mit dem Schalter "Gewicht automatisch steigern" steht unter dem Hinweis zur Standard-Pause */
+#steigern-karte {
+  margin-top: 20px;
 }
 
 /* Kleiner Hinweis unter einer Liste */

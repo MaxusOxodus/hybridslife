@@ -4314,6 +4314,9 @@
   // Der Hinweis unter dem Ziel im Trainingsmodus zum Vorschlag, z. B. "+2,5 kg: …" oder "Gleiches Gewicht: …".
   // Ohne Vorschlag und ohne Wdh.-Ziel ist er leer.
   function steigerungText(u) {
+    if (!steigernAn()) {
+      return "";
+    }
     const v = steigerungVorschlag(u);
     if (!v || v.art === "ohneZiel") {
       return "";
@@ -4400,7 +4403,8 @@
   }
 
   // Die Werte, mit denen die Zahlenfelder für den nächsten Satz starten: die des Satzes davor,
-  // beim ersten Satz der Vorschlag aus dem letzten Training (steigerungVorschlag),
+  // beim ersten Satz der Vorschlag aus dem letzten Training (steigerungVorschlag), bei ausgeschaltetem
+  // Schalter "Gewicht automatisch steigern" wie bis Version 127 der erste Satz vom letzten Mal,
   // ohne früheres Training die Startwerte und das Wdh.-Ziel der Routine
   function modusStartWerte() {
     const t = laufendesTraining;
@@ -4410,11 +4414,36 @@
       return [davor.gewicht, davor.wdh];
     }
 
-    const vorschlag = steigerungVorschlag(u);
-    if (vorschlag) {
-      return [vorschlag.gewicht, vorschlag.wdh];
+    if (steigernAn()) {
+      const vorschlag = steigerungVorschlag(u);
+      if (vorschlag) {
+        return [vorschlag.gewicht, vorschlag.wdh];
+      }
+    } else {
+      const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
+      const saetze = letzter ? saetzeVon(letzter) : [];
+      if (saetze.length > 0) {
+        return [saetze[0].gewicht, saetze[0].wdh];
+      }
     }
     return [startGewicht(), u.zielWdh || START_WDH];
+  }
+
+  // Ist der Schalter "Gewicht automatisch steigern" an? Ohne Eintrag in den Einstellungen: an.
+  function steigernAn() {
+    return einstellungen.steigern !== false;
+  }
+
+  // Zeigt den Schalter in den Einstellungen so, wie er gespeichert ist
+  function steigernAnzeigen() {
+    document.getElementById("steigern-schalter").setAttribute("aria-checked", String(steigernAn()));
+  }
+
+  // Ein Tipp auf die Zeile legt den Schalter um. Er gilt ab dem nächsten Anzeigen einer Übung im Trainingsmodus.
+  function steigernUmlegen() {
+    einstellungen.steigern = !steigernAn();
+    einstellungenSpeichern();
+    steigernAnzeigen();
   }
 
   // Stellt die zwei Zahlenfelder ein: auf die gemerkte Eingabe (nach einem Tab-Wechsel), sonst auf die Startwerte.
@@ -9218,7 +9247,8 @@
     plus: '<path d="M12 5v14M5 12h14"/>',
     wechsel: '<path d="M8 20V4M8 4L4.5 7.5M8 4l3.5 3.5M16 4v16M16 20l-3.5-3.5M16 20l3.5-3.5"/>',
     abzeichen: '<circle cx="12" cy="14.5" r="5"/><path d="M9.3 10.2L6 3h4l2 4 2-4h4l-3.3 7.2"/>',
-    anleitung: '<path d="M12 7v13M12 7C10 5.5 7 5 4 5.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5z"/>'
+    anleitung: '<path d="M12 7v13M12 7C10 5.5 7 5 4 5.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5z"/>',
+    steigern: '<path d="M4 17l5-5 4 4 7-8M15 8h5v5"/>'
   };
 
   // Die Zeichnung eines Icons als SVG-Text
@@ -11630,6 +11660,7 @@ anzeigen();
 homeAnzeigen();
 trainingAnzeigen();
 pauseStandardAnzeigen();
+steigernAnzeigen();
 
 // Lief beim Schließen der App noch eine Pause, geht sie mit der richtigen Restzeit weiter
 if (pause) {

@@ -2,7 +2,7 @@
 
 // Dieselbe Nummer wie bei style.css?v=N, texte.js?v=N, uebungen.js?v=N, raenge.js?v=N, bilder.js?v=N und app.js?v=N in der index.html.
 // Erst wenn sich diese Zahl ändert, bemerkt der Browser eine neue Version.
-const VERSION = 129;
+const VERSION = 130;
 
 const CACHE = "gymstead-v" + VERSION;
 
@@ -43,10 +43,10 @@ const DATEIEN = [
   "einfuehrung.js",
   "app.js?v=" + VERSION,
   "manifest.json",
-  "icons/korund-icon-blau-32.png",
-  "icons/korund-icon-blau-180.png",
-  "icons/korund-icon-blau-192.png",
-  "icons/korund-icon-blau-512.png"
+  "icons/korund-favicon-32.png",
+  "icons/korund-icon-platin-180.png",
+  "icons/korund-icon-platin-192.png",
+  "icons/korund-icon-platin-512.png"
 ];
 
 // Installieren: alle Dateien frisch vom Server holen und in den Cache legen.

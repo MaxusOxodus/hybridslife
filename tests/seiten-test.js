@@ -27,7 +27,7 @@ function konstanteHolen(name) {
   return treffer[0];
 }
 
-const ECHT = ["einseitig", "zaehltSeiten", "satzZiel", "zaehlweiseKopieren", "uebungenKopieren", "routineBereinigen",
+const ECHT = ["einseitig", "zaehltSeiten", "satzZiel", "satzNummer", "satzSeite", "zaehlweiseKopieren", "uebungenKopieren", "routineBereinigen",
   "uebungErledigt", "uebungStandText", "zielText", "wdhBis", "zielLesen", "wdhZielBereinigen", "uebungPauseLesen", "pauseLesen", "neueId"];
 
 const a = new Function(uebungenQuelle
@@ -84,7 +84,8 @@ pruefe("Einzeln: 3 von 6 offen", a.uebungErledigt(mitSaetzen(einzeln, 3)) === fa
 pruefe("Einzeln: 5 von 6 offen", a.uebungErledigt(mitSaetzen(einzeln, 5)) === false);
 pruefe("Einzeln: 6 von 6 erledigt", a.uebungErledigt(mitSaetzen(einzeln, 6)) === true);
 pruefe("Einzeln ohne Satz-Ziel: ein Satz erledigt", a.uebungErledigt(mitSaetzen(Object.assign({}, einzeln, { zielSaetze: null }), 1)) === true);
-pruefe("Stand Einzeln 4 von 6", a.uebungStandText(mitSaetzen(einzeln, 4)) === 'stand.xVonY {"x":4,"y":6}', a.uebungStandText(mitSaetzen(einzeln, 4)));
+// Seit Version 135 mit Seite: der 4. Satz ist "2 L", das Ziel gilt je Seite
+  pruefe("Stand Einzeln 2 L von 3", a.uebungStandText(mitSaetzen(einzeln, 4)) === 'stand.xVonY {"x":"2 seite.links","y":3}', a.uebungStandText(mitSaetzen(einzeln, 4)));
 pruefe("Stand Einzeln fertig", a.uebungStandText(mitSaetzen(einzeln, 6)).startsWith("stand.fertig"));
 
 // ---------- Ziel-Text ----------

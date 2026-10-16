@@ -3450,6 +3450,13 @@ button.einst-zeile:first-child {
   font-weight: 600;
 }
 
+/* Die Seite hinter der Nummer bei "Seiten: Einzeln" (seit Version 135): "1 R", "1 L". Kleiner, in derselben Farbe wie die Nummer. */
+.satz-seite {
+  margin-left: 1px;
+  font-size: 0.72em;
+  font-weight: 700;
+}
+
 /* Die Sätze im Trainingsmodus als Tabelle: Satz, Gewicht, Wdh., Häkchen. Jede Reihe hat dieselben vier Spalten. */
 .satz-tabelle {
   padding: 4px 0;

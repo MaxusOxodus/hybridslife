@@ -2840,6 +2840,58 @@
     return ziel;
   }
 
+  // Die Nummer eines Satzes zum Anzeigen (seit Version 135). index zählt ab 0. Zählt jede Seite einzeln (seiten = true),
+  // ergibt sich die Seite nur aus dem Platz: zuerst rechts, dann links, abwechselnd, also "1 R", "1 L", "2 R" ...
+  // Gespeichert wird die Seite nirgends. Sonst wie bisher "1", "2", "3".
+  function satzNummer(index, seiten) {
+    if (!seiten) {
+      return String(index + 1);
+    }
+    return (Math.floor(index / 2) + 1) + " " + satzSeite(index);
+  }
+
+  // "R" für die Sätze auf Platz 0, 2, 4 ..., "L" für 1, 3, 5 ...
+  function satzSeite(index) {
+    return txt(index % 2 === 0 ? "seite.rechts" : "seite.links");
+  }
+
+  // Das Kennzeichen für die Tabellen: die Nummer wie bisher, bei "Einzeln" dahinter klein die Seite (.satz-seite).
+  // Ohne "Einzeln" ist es genau das Element von früher.
+  function satzNummerElement(index, seiten) {
+    if (!seiten) {
+      return element("span", "satz-nummer", index + 1);
+    }
+    const nummer = element("span", "satz-nummer", Math.floor(index / 2) + 1);
+    nummer.appendChild(element("span", "satz-seite", satzSeite(index)));
+    return nummer;
+  }
+
+  // Zählt dieser gespeicherte Eintrag jede Seite einzeln? Am Eintrag steht das nicht: Gehört er zum laufenden Training,
+  // gilt dessen Übung, sonst die Übung in seiner Routine (routineId), so wie sie heute eingestellt ist.
+  function eintragSeiten(eintrag) {
+    if (!eintrag) {
+      return false;
+    }
+    if (laufendesTraining) {
+      for (let i = 0; i < laufendesTraining.uebungen.length; i++) {
+        if (laufendesTraining.uebungen[i].eintragId === eintrag.id) {
+          return zaehltSeiten(laufendesTraining.uebungen[i]);
+        }
+      }
+    }
+    const routine = routineFinden(eintrag.routineId);
+    if (!routine || typeof eintrag.uebung !== "string") {
+      return false;
+    }
+    for (let i = 0; i < routine.uebungen.length; i++) {
+      const u = routine.uebungen[i];
+      if (typeof u.name === "string" && gleicheUebung(eintrag, u.name, u.uebungId)) {
+        return zaehltSeiten(u);
+      }
+    }
+    return false;
+  }
+
   // "1 Übung" oder "5 Übungen"
   function uebungenText(anzahl) {
     return txtAnzahl("anzahl.uebungen", anzahl);
@@ -4297,7 +4349,7 @@
       if (i === dran) {
         zeile.classList.add("aktuell");
       }
-      zeile.appendChild(element("span", "satz-nummer", i + 1));
+      zeile.appendChild(satzNummerElement(i, zaehltSeiten(u)));
 
       // Drei Spalten, jede mit kleinem Titel und dem Wert darunter. Ohne RIR-Angabe steht ein Strich.
       let rir = "–";
@@ -4424,13 +4476,17 @@
     const zielErreicht = ziel > 0 && gemacht >= ziel && !u.extraSatz;
 
     // "Satz 2 von 4". Ohne Ziel und bei einem zusätzlichen Satz nur "Satz 5".
-    let satzText = txt("modus.satz", { n: gemacht + 1 });
-    if (zielErreicht && gemacht === ziel) {
+    // Bei "Einzeln" mit Seite und dem Ziel je Seite: "Satz 2 L von 3", am Ende "3 von 3 Sätzen je Seite geschafft".
+    const seiten = zaehltSeiten(u);
+    let satzText = txt("modus.satz", { n: satzNummer(gemacht, seiten) });
+    if (zielErreicht && gemacht === ziel && seiten) {
+      satzText = txt("modus.zielGeschafftSeiten", { n: u.zielSaetze, ziel: u.zielSaetze });
+    } else if (zielErreicht && gemacht === ziel) {
       satzText = txt("modus.zielGeschafft", { n: gemacht, ziel: ziel });
     } else if (zielErreicht) {
       satzText = txt("modus.geschafft", { n: gemacht });
     } else if (gemacht < ziel) {
-      satzText = txt("modus.satzVon", { n: gemacht + 1, ziel: ziel });
+      satzText = txt("modus.satzVon", { n: satzNummer(gemacht, seiten), ziel: seiten ? u.zielSaetze : ziel });
     }
     document.getElementById("modus-satz").textContent = satzText;
 
@@ -4728,6 +4784,7 @@
   // Der beste Satz ist markiert. Antippen öffnet das Bearbeiten.
   function satzZeilenBauen(behaelter, eintrag) {
     const saetze = saetzeVon(eintrag);
+    const seiten = eintragSeiten(eintrag);
     const bester = besterSatzIndex(eintrag);
 
     const kopf = element("div", "tag-reihe kopf");
@@ -4739,7 +4796,7 @@
 
     for (let i = 0; i < saetze.length; i++) {
       const zeile = element("button", "tag-reihe");
-      zeile.appendChild(element("span", "satz-nummer", i + 1));
+      zeile.appendChild(satzNummerElement(i, seiten));
 
       const werte = element("span", "tag-werte");
       werte.appendChild(element("span", "", gewichtText(saetze[i].gewicht) + " × " + saetze[i].wdh));
@@ -4759,7 +4816,7 @@
       const pfeil = element("span", "einst-pfeil", "›");
       pfeil.setAttribute("aria-hidden", "true");
       zeile.appendChild(pfeil);
-      zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: i + 1 }) + ": " + satzText(saetze[i]));
+      zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzNummer(i, seiten) }) + ": " + satzText(saetze[i]));
       zeile.onclick = function () {
         satzSheetOeffnen(eintrag.id, i);
       };
@@ -4783,6 +4840,8 @@
     if (eintrag) {
       saetze = saetzeVon(eintrag);
     }
+    // Bei "Einzeln" tragen die Nummern die Seite (seit Version 135)
+    const seiten = zaehltSeiten(u);
 
     // Nach dem letzten Ziel-Satz gibt es keinen aktuellen Satz, bis "+ Satz" einen weiteren startet
     const ziel = satzZiel(u);
@@ -4814,7 +4873,7 @@
       if (i < saetze.length) {
         const satz = saetze[i];
         zeile = element("button", "satz-reihe erledigt");
-        zeile.appendChild(element("span", "satz-nummer", i + 1));
+        zeile.appendChild(satzNummerElement(i, seiten));
         zeile.appendChild(element("span", "", gewichtText(satz.gewicht)));
         const wdh = element("span", "", satz.wdh);
         if (rirLesen(satz.rir) !== null) {
@@ -4824,7 +4883,7 @@
         const haken = element("span", "satz-haken", "✓");
         haken.setAttribute("aria-hidden", "true");
         zeile.appendChild(haken);
-        zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: i + 1 }) + ": " + satzText(satz));
+        zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzNummer(i, seiten) }) + ": " + satzText(satz));
         zeile.onclick = function () {
           satzSheetOeffnen(eintrag.id, i);
         };
@@ -4833,7 +4892,7 @@
         if (i === saetze.length && !zielErreicht) {
           zeile.className = "satz-reihe aktuell";
         }
-        zeile.appendChild(element("span", "satz-nummer", i + 1));
+        zeile.appendChild(satzNummerElement(i, seiten));
         zeile.appendChild(element("span", "", "–"));
         zeile.appendChild(element("span", "", zielWdh));
         zeile.appendChild(element("span", ""));
@@ -4857,7 +4916,7 @@
     satzIndex = index;
     satzRir = satz.rir;
 
-    document.getElementById("satz-sheet-titel").textContent = txt("satz.bearbeiten", { n: index + 1 });
+    document.getElementById("satz-sheet-titel").textContent = txt("satz.bearbeiten", { n: satzNummer(index, eintragSeiten(eintrag)) });
     document.getElementById("satz-sheet-uebung").textContent = anzeigeName(eintrag.uebung, eintrag.uebungId);
     gewichtTitelSetzen("s-feld-gewicht", eintrag.uebungId);
     gewichtFeldSetzen("s-feld-gewicht", startGewicht());
@@ -4941,7 +5000,7 @@
 
     let text = txt("satz.loeschenText", {
       name: anzeigeName(eintrag.uebung, eintrag.uebungId),
-      n: satzIndex + 1,
+      n: satzNummer(satzIndex, eintragSeiten(eintrag)),
       satz: satzText(saetze[satzIndex])
     });
     if (saetze.length === 1) {
@@ -5419,6 +5478,10 @@
     if (gemacht >= satzZiel(u)) {
       return txt("stand.fertig", { saetze: saetze });
     }
+    // Bei "Einzeln": der letzte gemachte Satz mit Seite und das Ziel je Seite, z. B. "2 L von 3 Sätzen"
+    if (zaehltSeiten(u)) {
+      return txt("stand.xVonY", { x: satzNummer(gemacht - 1, true), y: u.zielSaetze });
+    }
     return txt("stand.xVonY", { x: gemacht, y: satzZiel(u) });
   }
 
@@ -5661,6 +5724,7 @@
         tag = b.tag;
       }
       const karte = element("div", "karte tag-karte");
+      const seiten = eintragSeiten(b.eintrag);
       karte.appendChild(element("div", "routine-name", anzeigeName(b.eintrag.uebung, b.eintrag.uebungId)));
       let von = uhrzeitText(b.saetze[0].zeit);
       if (b.saetze.length > 1) {
@@ -5670,7 +5734,7 @@
       for (let j = 0; j < b.saetze.length; j++) {
         const s = b.saetze[j];
         const zeile = element("div", "tag-reihe zeit-reihe");
-        zeile.appendChild(element("span", "satz-nummer", s.nummer));
+        zeile.appendChild(satzNummerElement(s.nummer - 1, seiten));
         zeile.appendChild(element("span", "tag-werte", gewichtText(s.satz.gewicht) + " × " + s.satz.wdh));
         zeile.appendChild(element("span", "tag-rir", uhrzeitText(s.zeit)));
         karte.appendChild(zeile);

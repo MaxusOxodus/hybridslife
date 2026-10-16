@@ -21,7 +21,7 @@ function funktionHolen(name) {
 }
 
 // Diese Funktionen laufen so, wie sie in der app.js stehen
-const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "rirLesen", "eintragSaetzeSchreiben", "eintragFinden", "neueId", "satzFertig", "uebungZeigen", "uebungBeenden",
+const ECHT = ["satzNummer", "satzSeite", "satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "rirLesen", "eintragSaetzeSchreiben", "eintragFinden", "neueId", "satzFertig", "uebungZeigen", "uebungBeenden",
   "uebungErledigt", "naechsteOffene", "extraSatzStarten", "modusZustandAnzeigen"];
 
 // Die zeichnen nur oder gehören zu anderen Teilen der App: Hier tun sie nichts

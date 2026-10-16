@@ -3726,6 +3726,25 @@ button.einst-zeile:first-child {
   font-size: 15px;
 }
 
+/* Bericht nach dem Training (seit Version 131): die Kachel Dauer, das Schild "Aufgestiegen" und die Rekorde */
+.fertig-dauer {
+  margin-bottom: 10px;
+}
+
+.fertig-aufstieg {
+  display: inline-block;
+  margin-top: 6px;
+}
+
+.fertig-rekorde .kachel-titel {
+  margin-top: 0;
+}
+
+.fertig-rekord {
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
 .rang-serie {
   margin-top: 12px;
   font-size: 15px;

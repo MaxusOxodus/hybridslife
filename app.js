@@ -5439,6 +5439,7 @@
     document.getElementById("fertig-uebungen").textContent = t.erledigt.length;
     document.getElementById("fertig-saetze").textContent = anzahlSaetze;
     document.getElementById("fertig-gewicht").textContent = volumenText(bewegt);
+    berichtAnzeigen(t, trainingStand().eintraege);
 
     trainingseinheitSpeichern(t);
 
@@ -5453,6 +5454,110 @@
     trainingAnzeigen();
     trainingAnsichtZeigen("fertig");
     rangPruefen(true);
+  }
+
+  // Der Bericht nach dem Training (seit Version 131), unter "Geschafft!" in dieser Reihenfolge: die Dauer,
+  // der Gesamt-Kraftrang (mit Schild, wenn er mit diesem Training eine Stufe gestiegen ist), die neuen Rekorde
+  // und was bis zur nächsten Stufe fehlt. Die Kacheln Übungen, Sätze und Bewegtes Gewicht darunter füllt
+  // trainingAbschliessen. liste sind die Einträge des Trainings. Gespeichert wird nichts, nach dem Neuladen ist der Bericht weg.
+  function berichtAnzeigen(t, liste) {
+    // Die Dauer wie im Tag-Sheet. Ohne gültige Startzeit fehlt die Kachel.
+    let minuten = null;
+    if (typeof t.gestartet === "string") {
+      minuten = einheitMinuten({ start: t.gestartet, ende: new Date().toISOString() });
+    }
+    document.getElementById("fertig-dauer").textContent = minuten === null ? "" : dauerText(minuten);
+    document.getElementById("fertig-dauer-karte").classList.toggle("versteckt", minuten === null);
+
+    const ids = [];
+    for (let i = 0; i < liste.length; i++) {
+      ids.push(liste[i].id);
+    }
+    const stand = rangStand();
+    const vorher = rangStand(ids).kraft.gesamt;
+    const gesamt = stand.kraft.gesamt;
+
+    const karte = element("div", "karte rang-karte");
+    const kopf = rangKopf(gesamt, txt("rang.gesamt"), gesamt === null ? txt("rang.keiner") : rangName(gesamt));
+    // Aufgestiegen heißt wie bei der Meldung "Neuer Rang": eine höhere Stufe als ohne dieses Training (neueStufen in der raenge.js)
+    const alt = {};
+    if (vorher !== null) {
+      alt.gesamt = vorher;
+    }
+    if (neueStufen(alt, { gesamt: gesamt }).length > 0) {
+      kopf.querySelector(".rang-kopf-text").appendChild(element("span", "letztes-bestes fertig-aufstieg", txt("fertig.aufstieg")));
+    }
+    karte.appendChild(kopf);
+
+    // Ohne neuen Rekord fehlt der Abschnitt ganz
+    const rekordListe = berichtRekorde(stand, liste);
+    if (rekordListe.length > 0) {
+      const block = element("div", "rang-schritt fertig-rekorde");
+      block.appendChild(element("div", "kachel-titel", txt("fertig.rekorde")));
+      for (let i = 0; i < rekordListe.length; i++) {
+        block.appendChild(element("div", "fertig-rekord", rekordListe[i].name + " · " + kgText(rekordListe[i].wert)));
+      }
+      karte.appendChild(block);
+    }
+
+    if (gesamt === null) {
+      karte.appendChild(element("div", "routine-info", rangFehltText(stand)));
+    } else {
+      const r = rpZuRang(gesamt);
+      karte.appendChild(rangBalken(r.rpInStufe / RP_JE_STUFE));
+      let rest = txt("fertig.hoechster");
+      if (r.rpBisNaechste > 0) {
+        rest = txt("rang.nochRp", { rp: r.rpBisNaechste, rang: rangName(gesamt + r.rpBisNaechste) });
+      }
+      karte.appendChild(element("div", "routine-info", rest));
+    }
+
+    const bereich = document.getElementById("fertig-rang");
+    bereich.innerHTML = "";
+    bereich.appendChild(karte);
+  }
+
+  // Die neuen Rekorde eines Trainings als Liste von { name, wert }, in der Reihenfolge der Einträge.
+  // Die Regel ist die des Abzeichens "Rekorde" (rekorde in der raenge.js): ein Tag mit neuem bestem geschätztem 1RM
+  // aus Sätzen mit 1 bis 10 Wdh., der erste Tag einer Übung zählt nicht. Ein Rekord gehört zum Training,
+  // wenn sein Tag der Tag eines Eintrags des Trainings ist. wert ist das 1RM dieses Tages in kg.
+  // stand kommt von rangStand, liste sind die Einträge des Trainings.
+  function berichtRekorde(stand, liste) {
+    const ergebnis = [];
+    const gesehen = [];
+    for (let i = 0; i < liste.length; i++) {
+      for (let j = 0; j < stand.uebungen.length; j++) {
+        const u = stand.uebungen[j];
+        if (gesehen.indexOf(u) !== -1 || !gleicheUebung(liste[i], u.name, u.id)) {
+          continue;
+        }
+        gesehen.push(u);
+        // Die Tage der Einträge dieser Übung im Training, gezählt ab Mitternacht wie in verlaufPunkte
+        const tage = [];
+        for (let k = 0; k < liste.length; k++) {
+          if (hatDatum(liste[k]) && gleicheUebung(liste[k], u.name, u.id)) {
+            const d = new Date(liste[k].datum);
+            tage.push(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime());
+          }
+        }
+        const neu = rekorde([u.punkte]);
+        let wert = 0;
+        for (let k = 0; k < neu.length; k++) {
+          if (tage.indexOf(neu[k].zeit) === -1) {
+            continue;
+          }
+          for (let p = 0; p < u.punkte.length; p++) {
+            if (u.punkte[p].zeit === neu[k].zeit) {
+              wert = Math.max(wert, u.punkte[p].wert);
+            }
+          }
+        }
+        if (wert > 0) {
+          ergebnis.push({ name: anzeigeName(u.name, u.id), wert: wert });
+        }
+      }
+    }
+    return ergebnis;
   }
 
   // Hält das beendete Training als Einheit fest: Startzeit, Endzeit, Routine und die ids der Einträge.
@@ -6133,6 +6238,15 @@
       eintraege: liste,
       minuten: null
     };
+  }
+
+  // Die Dauer eines Trainings in ganzen Minuten (mindestens 1) aus start und ende (ISO-Texte).
+  // Ohne gültige Zeiten: null. Das Tag-Sheet und der Bericht nach dem Training rechnen beide so.
+  function einheitMinuten(t) {
+    if (isNaN(new Date(t.start)) || isNaN(new Date(t.ende))) {
+      return null;
+    }
+    return Math.max(1, Math.round((new Date(t.ende) - new Date(t.start)) / 60000));
   }
 
   // Macht aus Minuten einen Text: "45 Min." oder "1 Std. 5 Min."
@@ -7189,7 +7303,8 @@
   // art "schwer": das schwerste eingetragene Gewicht des Tages.
   // art "volumen": Sätze × Wdh. × Gewicht, über den Tag zusammengezählt.
   // Bei Eigengewicht-Übungen zählt für 1RM und Volumen das Körpergewicht des Tages zum eingetragenen Gewicht dazu.
-  // ohneEintragId lässt einen Eintrag aus (für die Nachfrage "Stimmt der Wert?").
+  // ohneEintragId lässt einen Eintrag aus (für die Nachfrage "Stimmt der Wert?"), eine Liste von ids lässt
+  // alle diese aus (für den Bericht: der Rang ohne das gerade beendete Training).
   function verlaufPunkte(name, id, art, ohneEintragId) {
     const tage = {};
 
@@ -7198,7 +7313,7 @@
       if (!hatDatum(e) || typeof e.uebung !== "string" || !gleicheUebung(e, name, id)) {
         continue;
       }
-      if (ohneEintragId && e.id === ohneEintragId) {
+      if (ohneEintragId && (e.id === ohneEintragId || (Array.isArray(ohneEintragId) && ohneEintragId.indexOf(e.id) !== -1))) {
         continue;
       }
       const saetze = saetzeVon(e);
@@ -10191,11 +10306,10 @@
         continue;
       }
       // Die Dauer wie bei "Letztes Training". Ohne gültige Zeiten bleibt sie weg.
-      let minuten = null;
+      const minuten = einheitMinuten(t);
       let start = 0;
-      if (!isNaN(new Date(t.start)) && !isNaN(new Date(t.ende))) {
+      if (minuten !== null) {
         start = new Date(t.start).getTime();
-        minuten = Math.max(1, Math.round((new Date(t.ende) - new Date(t.start)) / 60000));
       }
       bloecke.push({ name: t.routineName || txt("freiesTraining"), minuten: minuten, eintraege: liste, einheit: t, laeuft: false, start: start });
     }
@@ -10565,7 +10679,8 @@
   // konstanzRp: die Rangpunkte der Serie
   // messungen:  die Zahl der Körpergewicht-Messungen
   // gruende:    zu jedem Muster ohne Wert, warum es leer ist (siehe musterGruende)
-  function rangStand() {
+  // ohne ist freiwillig eine Liste von Eintrag-ids, die nicht mitzählen (für den Bericht nach dem Training).
+  function rangStand(ohne) {
     const jetzt = Date.now();
     const messungen = gewichtMessungen();
     const liste = trainierteUebungen();
@@ -10576,7 +10691,7 @@
       if (fest && fest.rang) {
         rang = fest.rang;
       }
-      uebungen.push({ id: liste[i].id, name: liste[i].name, rang: rang, punkte: verlaufPunkte(liste[i].name, liste[i].id, "rang") });
+      uebungen.push({ id: liste[i].id, name: liste[i].name, rang: rang, punkte: verlaufPunkte(liste[i].name, liste[i].id, "rang", ohne) });
     }
     const kraft = kraftRaenge(uebungen, function (zeit) {
       return rangKoerpergewicht(messungen, zeit, schnittAm);
@@ -10932,6 +11047,18 @@
     });
   }
 
+  // Was zum Gesamt-Kraftrang noch fehlt: Einträge, eine Körpergewicht-Messung oder weitere Muster.
+  // Das Profil und der Bericht nach dem Training zeigen denselben Satz.
+  function rangFehltText(stand) {
+    if (eintraege.length === 0) {
+      return txt("rang.leerEintraege");
+    }
+    if (stand.messungen === 0) {
+      return txt("rang.leerKoerper");
+    }
+    return txtAnzahl("rang.fehlen", stand.kraft.fehlen);
+  }
+
   // Oben: der Gesamt-Kraftrang groß. Solange es ihn nicht gibt, steht da, was fehlt.
   function gesamtRangKarte(stand) {
     const karte = element("div", "karte rang-karte gross");
@@ -10939,15 +11066,11 @@
 
     if (gesamt === null) {
       karte.appendChild(rangKopf(null, txt("rang.gesamt"), txt("rang.keiner")));
-      if (eintraege.length === 0) {
-        karte.appendChild(element("div", "routine-info", txt("rang.leerEintraege")));
-      } else if (stand.messungen === 0) {
-        karte.appendChild(element("div", "routine-info", txt("rang.leerKoerper")));
+      karte.appendChild(element("div", "routine-info", rangFehltText(stand)));
+      if (eintraege.length > 0 && stand.messungen === 0) {
         const knopf = element("button", "knopf rang-knopf", txt("rang.koerperEintragen"));
         knopf.onclick = gewichtSheetOeffnen;
         karte.appendChild(knopf);
-      } else {
-        karte.appendChild(element("div", "routine-info", txtAnzahl("rang.fehlen", stand.kraft.fehlen)));
       }
       // Ohne Gesamt-Rang gibt es nichts zu teilen. Der Text darüber sagt, was noch fehlt.
       karte.appendChild(teilenKnopf(false));

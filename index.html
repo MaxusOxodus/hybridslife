@@ -56,9 +56,9 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=130">
+  <link rel="stylesheet" href="style.css?v=131">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=130">
+  <link rel="stylesheet" href="glass.css?v=131">
 </head>
 <body>
 
@@ -339,6 +339,13 @@
     <div id="ansicht-fertig" class="ansicht versteckt">
       <div class="ansicht-titel" data-t="fertig.titel">Geschafft!</div>
       <p id="fertig-text" class="unterzeile"></p>
+
+      <!-- Der Bericht (seit Version 131): erst die Dauer, dann der Gesamt-Kraftrang mit den neuen Rekorden. Die Rang-Karte baut die app.js. -->
+      <div id="fertig-dauer-karte" class="karte fertig-dauer">
+        <div id="fertig-dauer" class="kachel-zahl"></div>
+        <div class="kachel-titel" data-t="fertig.dauer">Dauer</div>
+      </div>
+      <div id="fertig-rang"></div>
 
       <div class="kacheln">
         <div class="karte">
@@ -1059,9 +1066,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=130"></script>
-<script src="uebungen.js?v=130"></script>
-<script src="erklaerungen.js?v=130"></script>
+<script src="texte.js?v=131"></script>
+<script src="uebungen.js?v=131"></script>
+<script src="erklaerungen.js?v=131"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1083,13 +1090,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=130"></script>
-<script src="bilder.js?v=130"></script>
-<script src="vorlagen.js?v=130"></script>
-<script src="figuren.js?v=130"></script>
+<script src="raenge.js?v=131"></script>
+<script src="bilder.js?v=131"></script>
+<script src="vorlagen.js?v=131"></script>
+<script src="figuren.js?v=131"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=130"></script>
+<script src="app.js?v=131"></script>
 
 </body>
 </html>

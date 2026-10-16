@@ -465,6 +465,10 @@ const TEXTE = {
   "fertig.knopf": { de: "Fertig", en: "Done" },
   "fertig.gespeichert": { de: "{x} von {uebungen} gespeichert", en: "{x} of {uebungen} saved" },
   "fertig.uebersprungen": { de: "{n} übersprungen", en: "{n} skipped" },
+  "fertig.dauer": { de: "Dauer", en: "Duration" },
+  "fertig.aufstieg": { de: "Aufgestiegen", en: "Ranked up" },
+  "fertig.rekorde": { de: "Neue Rekorde (geschätztes 1RM)", en: "New records (estimated 1RM)" },
+  "fertig.hoechster": { de: "Höchster Rang erreicht", en: "Highest rank reached" },
 
   // ---------- Fortschritt ----------
   "fortschritt.unterzeile": { de: "Deine Zahlen auf einen Blick", en: "Your numbers at a glance" },

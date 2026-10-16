@@ -759,8 +759,9 @@ function einfuehrungZeigtSetzen(was) {
     return;
   }
   if (was === "pause" && pauseRest() === 0) {
-    // Es läuft keine Pause: Als Zeit steht die Pausenlänge der aktuellen Übung da, sie läuft nicht herunter
-    document.getElementById("modus-countdown").textContent = pauseText(pauseDauer(laufendesTraining.uebungen[laufendesTraining.index]));
+    // Es läuft keine Pause: Als Zeit steht die Pausenlänge der aktuellen Übung da, sie läuft nicht herunter.
+    // Hat die Übung "Keine Pause", steht die Standard-Pause da statt 0:00.
+    document.getElementById("modus-countdown").textContent = pauseText(pauseDauer(laufendesTraining.uebungen[laufendesTraining.index]) || pauseStandard());
     tourPauseGestellt = true;
   } else if (tourPauseGestellt) {
     // Die hingeschriebene Zeit wieder durch den echten Stand ersetzen

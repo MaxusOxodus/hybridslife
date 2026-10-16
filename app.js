@@ -3439,7 +3439,7 @@
     const kopie = [];
     for (let i = 0; i < uebungen.length; i++) {
       const u = uebungen[i];
-      kopie.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, zielWdhMax: wdhBis(u), pause: pauseLesen(u.pause) });
+      kopie.push({ name: u.name, uebungId: u.uebungId || "", muskelgruppe: u.muskelgruppe, zielSaetze: u.zielSaetze, zielWdh: u.zielWdh, zielWdhMax: wdhBis(u), pause: uebungPauseLesen(u.pause) });
     }
     return kopie;
   }
@@ -3711,6 +3711,15 @@
 
     const auswahl = document.createElement("select");
     auswahl.className = "ziel-haupt";
+    pauseAuswahlFuellen(auswahl, uebung, function () {});
+    rahmen.appendChild(auswahl);
+    return rahmen;
+  }
+
+  // Füllt ein Auswahlfeld für die Pause einer Übung (Routinen-Editor und Trainingsmodus) und schreibt
+  // jede Wahl in uebung.pause. "Keine Pause" ist 0. nachAenderung läuft nach jeder Wahl.
+  function pauseAuswahlFuellen(auswahl, uebung, nachAenderung) {
+    auswahl.innerHTML = "";
     // Zwei Überschriften in der aufgeklappten Liste, damit dieselbe Zeit nicht zweimal ohne Erklärung dasteht
     const standard = document.createElement("optgroup");
     standard.label = txt("profil.standardPause");
@@ -3718,21 +3727,22 @@
     auswahl.appendChild(standard);
     const eigene = document.createElement("optgroup");
     eigene.label = txt("editor.pauseEigene");
+    eigene.appendChild(new Option(txt("pause.keine"), 0));
     for (let sekunden = PAUSE_SCHRITT; sekunden <= PAUSE_MAX; sekunden += PAUSE_SCHRITT) {
       eigene.appendChild(new Option(pauseText(sekunden), sekunden));
     }
     auswahl.appendChild(eigene);
-    if (uebung.pause) {
-      auswahl.value = uebung.pause;
+    const eigen = uebungPauseLesen(uebung.pause);
+    if (eigen !== null) {
+      auswahl.value = eigen;
     }
     // Eine übernommene Standard-Zeit steht dezenter da als eine selbst gewählte
-    auswahl.classList.toggle("uebernommen", !uebung.pause);
+    auswahl.classList.toggle("uebernommen", eigen === null);
     auswahl.onchange = function () {
-      uebung.pause = pauseLesen(auswahl.value);
-      auswahl.classList.toggle("uebernommen", !uebung.pause);
+      uebung.pause = uebungPauseLesen(auswahl.value);
+      auswahl.classList.toggle("uebernommen", uebung.pause === null);
+      nachAenderung();
     };
-    rahmen.appendChild(auswahl);
-    return rahmen;
   }
 
   // Tauscht eine Übung mit der darüber (-1) oder darunter (1)
@@ -3840,7 +3850,7 @@
         zielSaetze: u.zielSaetze,
         zielWdh: u.zielWdh,
         zielWdhMax: wdhBis(u),
-        pause: pauseLesen(u.pause),
+        pause: uebungPauseLesen(u.pause),
         // Jede Übung merkt sich ihre Sätze und die id des Eintrags, in dem sie gespeichert sind.
         // So bleibt alles erhalten, wenn man zwischen den Übungen wechselt.
         saetze: [],
@@ -4138,6 +4148,9 @@
     gewichtTitelSetzen("t-feld-gewicht", u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
     document.getElementById("modus-hinweis").textContent = gewichtErhoehenText(u);
+    // Die Pause dieser Übung lässt sich hier ändern. Das gilt nur für dieses Training, die Routine bleibt, wie sie ist.
+    // Eine laufende Pause bleibt dabei, wie sie ist, die neue Zeit gilt ab dem nächsten Satz.
+    pauseAuswahlFuellen(document.getElementById("modus-pause-feld"), u, trainingMerken);
 
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
@@ -4456,7 +4469,11 @@
 
     gemerkteTrainingWerte = null;
     trainingMerken();
-    pauseStarten(pauseDauer(u));
+    // Bei "Keine Pause" (0) gibt es keinen Countdown, die Eingabe für den nächsten Satz steht gleich da
+    const dauer = pauseDauer(u);
+    if (dauer > 0) {
+      pauseStarten(dauer);
+    }
     // Mit dem letzten Ziel-Satz geht es gleich zur nächsten offenen Übung, die Pause läuft dort weiter.
     // Ohne Satz-Ziel ist nicht klar, welcher Satz der letzte ist, und ohne offene Übung bleibt die App hier.
     const naechste = naechsteOffene();
@@ -4464,7 +4481,8 @@
       uebungZeigen(naechste);
     } else {
       modusFortschrittAnzeigen();
-      modusZustandAnzeigen(false);
+      // Ohne Pause steht die Eingabe gleich wieder da: Zahlenfelder und RIR neu wie nach einer Pause
+      modusZustandAnzeigen(dauer === 0);
       modusSaetzeAnzeigen();
       modusLetztesAnzeigen();
       window.scrollTo(0, 0);
@@ -6186,9 +6204,22 @@
     return pauseLesen(einstellungen.pauseSekunden) || PAUSE_STANDARD;
   }
 
-  // Die Pause für eine Übung: ihre eigene aus der Routine, sonst die Standard-Pause
+  // Die eigene Pause einer Übung: wie pauseLesen, dazu 0 für "Keine Pause". null heißt: die Standard-Pause.
+  // Die Standard-Pause selbst kann nie 0 sein, sie liest weiter pauseLesen.
+  function uebungPauseLesen(wert) {
+    if (wert === 0 || wert === "0") {
+      return 0;
+    }
+    return pauseLesen(wert);
+  }
+
+  // Die Pause für eine Übung: ihre eigene aus der Routine oder dem Training (auch 0), sonst die Standard-Pause
   function pauseDauer(uebung) {
-    return pauseLesen(uebung.pause) || pauseStandard();
+    const eigene = uebungPauseLesen(uebung.pause);
+    if (eigene !== null) {
+      return eigene;
+    }
+    return pauseStandard();
   }
 
   // Einstellungen: zeigt die Standard-Pause
@@ -8597,7 +8628,7 @@
         if (typeof u.uebungId === "string") {
           id = u.uebungId;
         }
-        const neu = { name: u.name, uebungId: id, muskelgruppe: gruppe, zielSaetze: zielLesen(u.zielSaetze, 10), zielWdh: u.zielWdh, zielWdhMax: u.zielWdhMax, pause: pauseLesen(u.pause) };
+        const neu = { name: u.name, uebungId: id, muskelgruppe: gruppe, zielSaetze: zielLesen(u.zielSaetze, 10), zielWdh: u.zielWdh, zielWdhMax: u.zielWdhMax, pause: uebungPauseLesen(u.pause) };
         wdhZielBereinigen(neu);
         idErgaenzen(neu, u.name);
         sauber.uebungen.push(neu);

@@ -57,6 +57,7 @@ const TEXTE = {
   "pause": { de: "Pause", en: "Rest" },
   "pause.vorbei": { de: "Pause vorbei", en: "Rest over" },
   "pause.beenden": { de: "Pause beenden", en: "End rest" },
+  "pause.keine": { de: "Keine Pause", en: "No rest" },
   "ueberspringen": { de: "Überspringen", en: "Skip" },
   "ruhetag": { de: "Ruhetag", en: "Rest day" },
   "heute": { de: "Heute", en: "Today" },

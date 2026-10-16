@@ -240,7 +240,6 @@
 :where([data-stil="glass"]) .home-kachel .kachel-knopf svg,
 :where([data-stil="glass"]) .plan-zeile select,
 :where([data-stil="glass"]) .ziel select,
-:where([data-stil="glass"]) .modus-pause-wahl select,
 :where([data-stil="glass"]) .ziel input,
 :where([data-stil="glass"]) .pfeile button,
 :where([data-stil="glass"]) .vorlage-wochentag:where(:not(.aktiv)) {

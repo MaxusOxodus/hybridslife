@@ -1,7 +1,7 @@
-// Test: Seit Version 125 kann eine Übung "Keine Pause" haben (pause: 0), in der Routine und spontan im Training.
+// Test: Seit Version 125 kann eine Übung in der Routine "Keine Pause" haben (pause: 0).
 // 0 bleibt beim Kopieren, beim Start des Trainings und beim Import erhalten, null heißt weiter "Standard-Pause".
 // Ohne Pause startet nach "Satz fertig" kein Countdown, die Eingabe steht gleich wieder da (mit frischem RIR).
-// Eine Änderung im Training gilt nur für dieses Training, die Routine bleibt, wie sie ist.
+// Das Training ändert die Routine dabei nicht.
 // Starten mit: node tests/pause-keine-test.js
 // Die Datei gehört nicht zur App. Die Funktionen holt sie direkt aus der app.js, alles fürs Zeichnen tut hier nichts.
 
@@ -80,9 +80,8 @@ function umgebung(einstellungen) {
   }
   code += "return {"
     + "  uebungPauseLesen: uebungPauseLesen, pauseLesen: pauseLesen, pauseDauer: pauseDauer, pauseFeld: pauseFeld,"
-    + "  pauseAuswahlFuellen: pauseAuswahlFuellen, kopieren: uebungenKopieren, bereinigen: routineBereinigen,"
-    + "  beginnen: trainingBeginnen, satzFertig: satzFertig, training: function () { return laufendesTraining; },"
-    + "  merken: trainingMerken"
+    + "  kopieren: uebungenKopieren, bereinigen: routineBereinigen,"
+    + "  beginnen: trainingBeginnen, satzFertig: satzFertig, training: function () { return laufendesTraining; }"
     + "};";
   return new Function("document", "Option", "protokoll", code)(dokument, Option, protokoll);
 }
@@ -168,27 +167,11 @@ pruefe("Keine Pause: nach dem letzten Satz gleich weiter zu B, ohne Pause", [t.i
 app.satzFertig();
 pruefe("Standard: bei B startet die Standard-Pause", protokoll.pausen, [90]);
 pruefe("Standard: Eingabe bleibt bis zum Ende der Pause wie bisher", protokoll.zustand[protokoll.zustand.length - 1], false);
-
-// ---------- Pause im Training ändern ----------
-
-const merkenVorher = protokoll.gemerkt;
-const modusFeld = auswahlBauen();
-app.pauseAuswahlFuellen(modusFeld, t.uebungen[1], app.merken);
-pruefe("Training: B zeigt die Standard-Pause", modusFeld.value, "");
-modusFeld.value = "0";
-modusFeld.onchange();
-pruefe("Training: B hat jetzt Keine Pause", t.uebungen[1].pause, 0);
-pruefe("Training: die Änderung wird gespeichert", protokoll.gemerkt, merkenVorher + 1);
-pruefe("Training: die Routine bleibt, wie sie war", JSON.stringify(routine), routineVorher);
 app.satzFertig();
-pruefe("Training: der nächste Satz von B ohne Pause, weiter zu C", [protokoll.pausen, t.index], [[90], 2]);
-app.pauseAuswahlFuellen(modusFeld, t.uebungen[2], app.merken);
-pruefe("Training: C zeigt ihre eigene Zeit 1:00", modusFeld.value, "60");
-modusFeld.value = "150";
-modusFeld.onchange();
 app.satzFertig();
-pruefe("Training: geänderte Zeit 2:30 gilt ab dem nächsten Satz", protokoll.pausen, [90, 150]);
-pruefe("Training: Routine weiter unverändert", JSON.stringify(routine), routineVorher);
+pruefe("Eigene Zeit: bei C startet die Pause 1:00", protokoll.pausen, [90, 90, 60]);
+pruefe("Routine: bleibt nach dem Training unverändert", JSON.stringify(routine), routineVorher);
+
 
 console.log("");
 if (fehler > 0) {

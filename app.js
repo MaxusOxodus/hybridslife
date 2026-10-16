@@ -3711,15 +3711,14 @@
 
     const auswahl = document.createElement("select");
     auswahl.className = "ziel-haupt";
-    pauseAuswahlFuellen(auswahl, uebung, function () {});
+    pauseAuswahlFuellen(auswahl, uebung);
     rahmen.appendChild(auswahl);
     return rahmen;
   }
 
-  // Füllt ein Auswahlfeld für die Pause einer Übung (Routinen-Editor und Trainingsmodus) und schreibt
-  // jede Wahl in uebung.pause. "Keine Pause" ist 0. nachAenderung läuft nach jeder Wahl.
-  function pauseAuswahlFuellen(auswahl, uebung, nachAenderung) {
-    auswahl.innerHTML = "";
+  // Füllt das Auswahlfeld für die Pause einer Übung im Routinen-Editor und schreibt
+  // jede Wahl in uebung.pause. "Keine Pause" ist 0.
+  function pauseAuswahlFuellen(auswahl, uebung) {
     // Zwei Überschriften in der aufgeklappten Liste, damit dieselbe Zeit nicht zweimal ohne Erklärung dasteht
     const standard = document.createElement("optgroup");
     standard.label = txt("profil.standardPause");
@@ -3741,7 +3740,6 @@
     auswahl.onchange = function () {
       uebung.pause = uebungPauseLesen(auswahl.value);
       auswahl.classList.toggle("uebernommen", uebung.pause === null);
-      nachAenderung();
     };
   }
 
@@ -4148,9 +4146,6 @@
     gewichtTitelSetzen("t-feld-gewicht", u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
     document.getElementById("modus-hinweis").textContent = gewichtErhoehenText(u);
-    // Die Pause dieser Übung lässt sich hier ändern. Das gilt nur für dieses Training, die Routine bleibt, wie sie ist.
-    // Eine laufende Pause bleibt dabei, wie sie ist, die neue Zeit gilt ab dem nächsten Satz.
-    pauseAuswahlFuellen(document.getElementById("modus-pause-feld"), u, trainingMerken);
 
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
@@ -6213,7 +6208,7 @@
     return pauseLesen(wert);
   }
 
-  // Die Pause für eine Übung: ihre eigene aus der Routine oder dem Training (auch 0), sonst die Standard-Pause
+  // Die Pause für eine Übung: ihre eigene aus der Routine (auch 0), sonst die Standard-Pause
   function pauseDauer(uebung) {
     const eigene = uebungPauseLesen(uebung.pause);
     if (eigene !== null) {

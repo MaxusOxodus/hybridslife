@@ -6033,6 +6033,56 @@
     return txt("stand.xVonY", { x: gemacht, y: satzZiel(u) });
   }
 
+  // Look Korund (seit Version 142): die Teile einer Zeile in der Übersicht wie im Entwurf.
+  // Kurzer Stand: fertig "3 × 72,5 kg · fertig", angefangen "Satz 2 von 3 · 32 kg", offen "3 × 45 kg" oder "3 Sätze".
+  function uebersichtZeileKorund(zeile, u, i) {
+    const figur = element("span", "sheet-figur");
+    figur.innerHTML = uebungFigurSvg(u);
+    figur.setAttribute("aria-hidden", "true");
+    zeile.appendChild(figur);
+    const text = element("span", "sheet-korund-text");
+    const bekannt = UEBUNG_NACH_ID[u.uebungId];
+    text.appendChild(element("span", "sheet-korund-gruppe", bekannt ? anzeigeGruppe("", u.uebungId) + " · " + bereichName(bekannt.bereich) : (u.muskelgruppe || "")));
+    text.appendChild(element("span", "sheet-korund-name", anzeigeName(u.name, u.uebungId)));
+    const arbeit = u.saetze.filter(function (satz) {
+      return !istAufwaermen(satz);
+    });
+    let schwerstes = null;
+    for (let j = 0; j < arbeit.length; j++) {
+      if (schwerstes === null || arbeit[j].gewicht > schwerstes) {
+        schwerstes = arbeit[j].gewicht;
+      }
+    }
+    let stand = "";
+    if (uebungErledigt(u)) {
+      stand = txt("uebersicht.fertig", { n: arbeit.length, gewicht: gewichtText(schwerstes) });
+    } else if (arbeit.length > 0) {
+      stand = txt("uebersicht.angefangen", { n: satzNummer(arbeit.length, zaehltSeiten(u)), ziel: u.zielSaetze || "–", gewicht: gewichtText(arbeit[arbeit.length - 1].gewicht) });
+    } else {
+      const vorschlag = steigernAn() ? steigerungVorschlag(u) : null;
+      if (u.zielSaetze && vorschlag) {
+        stand = u.zielSaetze + " × " + gewichtText(vorschlag.gewicht);
+      } else {
+        stand = uebungStandText(u);
+      }
+    }
+    text.appendChild(element("span", "sheet-korund-stand", stand));
+    zeile.appendChild(text);
+    // Tauschen direkt aus der Liste: zur Übung springen und die Auswahl öffnen (bei erledigten steht stattdessen das ✓)
+    if (!uebungErledigt(u)) {
+      const tausch = element("span", "sheet-tausch", "⇄");
+      tausch.setAttribute("role", "button");
+      tausch.setAttribute("aria-label", txt("tausch.knopf"));
+      tausch.onclick = function (ereignis) {
+        ereignis.stopPropagation();
+        zusatzSheetsSchliessen();
+        uebungZeigen(i);
+        tauschOeffnen();
+      };
+      zeile.appendChild(tausch);
+    }
+  }
+
   // Öffnet die Übersicht aller Übungen des Trainings. Antippen springt zu der Übung.
   function uebersichtOeffnen() {
     const t = laufendesTraining;
@@ -6055,6 +6105,8 @@
         stand += " · " + txt("tausch.statt", { name: anzeigeName(u.ursprung.name, u.ursprung.uebungId) });
       }
       zeile.appendChild(element("span", "sheet-zeile-zweit", stand));
+      // Look Korund (seit Version 142): Figur, Gruppe, Name ohne Nummer, kurzer Stand und Tausch-Symbol (sonst ausgeblendet)
+      uebersichtZeileKorund(zeile, u, i);
       // Erledigte Übungen stehen leise mit ✓ da, die offenen wie bisher. Die Reihenfolge bleibt die der Routine.
       if (uebungErledigt(u)) {
         zeile.classList.add("erledigt");
@@ -6066,10 +6118,18 @@
       };
       liste.appendChild(zeile);
     }
-    // Übung hinzufügen (seit Version 141): nur im Look Korund zu sehen (korund.css)
+    // Übung hinzufügen (seit Version 141) und Beenden (seit Version 142): nur im Look Korund zu sehen (korund.css)
+    const knoepfe = element("div", "uebersicht-knoepfe");
     const hinzu = element("button", "sheet-neu uebung-hinzu", txt("hinzu.knopf"));
     hinzu.onclick = uebungHinzufuegenOeffnen;
-    liste.appendChild(hinzu);
+    knoepfe.appendChild(hinzu);
+    const beenden = element("button", "uebersicht-beenden", txt("modus.beenden"));
+    beenden.onclick = function () {
+      zusatzSheetsSchliessen();
+      trainingBeendenFragen();
+    };
+    knoepfe.appendChild(beenden);
+    liste.appendChild(knoepfe);
     zusatzSheetOeffnen("uebungen-sheet");
   }
 

@@ -121,6 +121,10 @@
   font-weight: 500;
 }
 
+
+
+
+
 /* ===== Etappe 4 (seit Version 142): Trainingsmodus genau wie im Entwurf ===== */
 
 /* ===== Dunkel gewählt ===== */
@@ -600,24 +604,6 @@
   color: var(--text-leise);
 }
 
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell {
-  margin: 4px 0;
-  padding-left: 14px;
-  padding-right: 32px;
-  border-bottom-color: transparent;
-  border-radius: 14px;
-  background: rgba(var(--fw-signal-rgb), 0.10);
-  box-shadow: inset 3px 0 0 var(--fw-signal);
-}
-
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell .sheet-zeile-name {
-  color: var(--fw-signal);
-}
-
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile-haken {
-  color: var(--fw-erfolg);
-}
-
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz {
   display: block;
   margin-top: 10px;
@@ -787,14 +773,6 @@
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-nummer.satz-w {
   color: #F5B544;
   font-weight: 800;
-}
-
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .uebung-hinzu {
-  display: block;
-  margin-top: 16px;
-  border: 1px dashed rgba(var(--fw-signal-rgb), 0.45);
-  background: rgba(var(--fw-signal-rgb), 0.08);
-  color: var(--fw-signal);
 }
 
 /* Seiten einzeln: R und L eines Satzes stehen als ein Block, zwischen den Paaren eine deutlichere Linie */
@@ -1311,6 +1289,136 @@
 }
 
 
+/* ===== Etappe 4: Übungen im Training wie im Entwurf ===== */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet {
+  height: calc(100dvh - 40px - env(safe-area-inset-top, 0px));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 0;
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(238, 242, 247, 0.1);
+  border-radius: 18px;
+  background: rgba(var(--fw-glas-rgb), 0.6);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell {
+  border-color: rgba(var(--fw-signal-rgb), 0.55);
+  background: rgba(var(--fw-signal-rgb), 0.08);
+  box-shadow: 0 0 18px rgba(var(--fw-signal-rgb), 0.15);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile > .sheet-zeile-name,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile > .sheet-zeile-zweit {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-figur {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  background: rgba(var(--fw-glas-rgb), 0.9);
+  overflow: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-figur .koerper {
+  width: auto;
+  height: 88%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-korund-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .sheet-korund-gruppe,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .sheet-korund-stand {
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .sheet-korund-name {
+  margin: 1px 0;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell .sheet-korund-name {
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.erledigt .sheet-korund-name {
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-tausch {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--text-leise);
+  font-size: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.erledigt {
+  padding-right: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile-haken {
+  position: static;
+  transform: none;
+  color: var(--fw-erfolg);
+  font-size: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-knoepfe {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-knoepfe .uebung-hinzu,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-beenden {
+  display: block;
+  height: 52px;
+  margin: 0;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-knoepfe .uebung-hinzu {
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  color: var(--text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-beenden {
+  border: none;
+  background: var(--fw-knopf);
+  color: var(--fw-knopf-text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-beenden::before {
+  content: "■ ";
+  font-size: 13px;
+}
+
+
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) {
@@ -1788,24 +1896,6 @@
     color: var(--text-leise);
   }
 
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell {
-    margin: 4px 0;
-    padding-left: 14px;
-    padding-right: 32px;
-    border-bottom-color: transparent;
-    border-radius: 14px;
-    background: rgba(var(--fw-signal-rgb), 0.10);
-    box-shadow: inset 3px 0 0 var(--fw-signal);
-  }
-
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell .sheet-zeile-name {
-    color: var(--fw-signal);
-  }
-
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile-haken {
-    color: var(--fw-erfolg);
-  }
-
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz {
     display: block;
     margin-top: 10px;
@@ -1975,14 +2065,6 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-nummer.satz-w {
     color: #F5B544;
     font-weight: 800;
-  }
-
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .uebung-hinzu {
-    display: block;
-    margin-top: 16px;
-    border: 1px dashed rgba(var(--fw-signal-rgb), 0.45);
-    background: rgba(var(--fw-signal-rgb), 0.08);
-    color: var(--fw-signal);
   }
 
   /* Seiten einzeln: R und L eines Satzes stehen als ein Block, zwischen den Paaren eine deutlichere Linie */
@@ -2496,6 +2578,136 @@
     height: calc(100px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(rgba(7, 9, 12, 0), #07090C 55%);
     pointer-events: none;
+  }
+
+
+  /* ===== Etappe 4: Übungen im Training wie im Entwurf ===== */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet {
+    height: calc(100dvh - 40px - env(safe-area-inset-top, 0px));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 0;
+    margin: 0 0 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(238, 242, 247, 0.1);
+    border-radius: 18px;
+    background: rgba(var(--fw-glas-rgb), 0.6);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell {
+    border-color: rgba(var(--fw-signal-rgb), 0.55);
+    background: rgba(var(--fw-signal-rgb), 0.08);
+    box-shadow: 0 0 18px rgba(var(--fw-signal-rgb), 0.15);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile > .sheet-zeile-name,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile > .sheet-zeile-zweit {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-figur {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    background: rgba(var(--fw-glas-rgb), 0.9);
+    overflow: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-figur .koerper {
+    width: auto;
+    height: 88%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-korund-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .sheet-korund-gruppe,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .sheet-korund-stand {
+    color: var(--text-leise);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .sheet-korund-name {
+    margin: 1px 0;
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell .sheet-korund-name {
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.erledigt .sheet-korund-name {
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-tausch {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    color: var(--text-leise);
+    font-size: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.erledigt {
+    padding-right: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile-haken {
+    position: static;
+    transform: none;
+    color: var(--fw-erfolg);
+    font-size: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-knoepfe {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-knoepfe .uebung-hinzu,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-beenden {
+    display: block;
+    height: 52px;
+    margin: 0;
+    border-radius: 16px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-knoepfe .uebung-hinzu {
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    color: var(--text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-beenden {
+    border: none;
+    background: var(--fw-knopf);
+    color: var(--fw-knopf-text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-beenden::before {
+    content: "■ ";
+    font-size: 13px;
   }
 
 }

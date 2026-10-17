@@ -7368,6 +7368,58 @@
     });
   }
 
+  // Training-Tab (seit Version 136): In der Übersicht wechselt ein seitlicher Wisch den Reiter wie ein Tipp auf den
+  // Umschalter "Pläne | Übungen": nach links zu "Übungen", nach rechts zu "Pläne". Steht in "Übungen" der Zurück-Pfeil
+  // (Muskelgruppe, Eigene, Suche), geht es nach rechts stattdessen zurück wie mit dem Pfeil ←.
+  // Der Wisch tippt den Knopf selbst an, so läuft derselbe Weg wie beim Antippen. Die Fläche folgt dem Finger nicht.
+  function trainingWischbarMachen() {
+    const flaeche = document.getElementById("ansicht-uebersicht");
+
+    // Der Knopf, den ein Wisch nach links (weg < 0) oder rechts antippt. null: In dieser Richtung gibt es nichts.
+    function knopf(weg) {
+      const zurueck = document.getElementById("bib-zurueck");
+      if (trainingReiter === "uebungen" && weg > 0 && !zurueck.classList.contains("versteckt")) {
+        return zurueck;
+      }
+      const ziel = weg < 0 ? "uebungen" : "plaene";
+      if (ziel === trainingReiter) {
+        return null;
+      }
+      for (let i = 0; i < TRAINING_REITER.length; i++) {
+        if (TRAINING_REITER[i].id === ziel) {
+          return document.getElementById("training-reiter").children[i];
+        }
+      }
+      return null;
+    }
+
+    wischen(flaeche, {
+      achse: "x",
+      // Keine Geste am Rand (dort wischt Safari zurück), über einem offenen Sheet, im Suchfeld und bei offener Tastatur
+      beginnt: function (ereignis) {
+        const x = ereignis.touches[0].clientX;
+        const fokus = document.activeElement;
+        if (trainingAnsicht !== "uebersicht" || document.body.classList.contains("sheet-offen")
+          || x < WISCH_RAND_PX || x > window.innerWidth - WISCH_RAND_PX
+          || ereignis.target.closest("input, textarea") || (fokus && fokus.matches("input, textarea"))) {
+          return false;
+        }
+      },
+      will: function (weg) {
+        return knopf(weg) !== null;
+      },
+      bewegt: function () {},
+      losgelassen: function (weg, tempo, abgebrochen) {
+        const weit = Math.abs(weg) >= WISCH_SEITE_PX;
+        const schnell = Math.abs(weg) >= WISCH_SCHNELL_WEG_PX && Math.abs(tempo) >= WISCH_SCHNELL_TEMPO && tempo * weg > 0;
+        const ziel = knopf(weg);
+        if (!abgebrochen && (weit || schnell) && ziel) {
+          ziel.click();
+        }
+      }
+    });
+  }
+
   // ---------- Erklärungen ----------
 
   // Die ID, unter der die Erklärung einer Übung in der erklaerungen.js steht. Eine alte ID führt über ALTE_IDS
@@ -12023,6 +12075,7 @@ platzhalterAnwenden();
 // Wischgesten: Die Sheets lassen sich nach unten wischen
 sheetsWischbarMachen();
 modusWischbarMachen();
+trainingWischbarMachen();
 
 // Das gewählte Design (Dunkel, Hell oder System) und sein Umschalter
 designAnwenden();

@@ -68,11 +68,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=143">
+  <link rel="stylesheet" href="style.css?v=144">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=143">
+  <link rel="stylesheet" href="glass.css?v=144">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=143">
+  <link rel="stylesheet" href="korund.css?v=144">
 </head>
 <body>
 
@@ -783,6 +783,32 @@
     </div>
   </div>
 
+  <!-- Look Korund (seit Version 144): Zusatz-Training an einem Tag ohne Plan. Drei Karten wie im Status-Sheet, die app.js füllt sie. -->
+  <div id="zusatztraining-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span class="sheet-titel" data-t="zusatz.titel">Zusatz-Training</span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+    </div>
+    <div class="zusatz-inhalt">
+      <p class="status-sheet-text" data-t="zusatz.text"></p>
+      <div id="zusatztraining-liste" class="status-sheet-liste" role="radiogroup"></div>
+      <button class="speichern-btn" type="button" onclick="zusatzTrainingWeiter()" data-t="rueckblick.weiter">Weiter</button>
+    </div>
+  </div>
+
+  <!-- Look Korund (seit Version 144): eigene Seiten über der App (Serie, Vorschlag von Korund, Geräte, Einschränkungen, Rückblick).
+       Kopf mit Zurück, Titel und rechts einem kurzen Text, darunter Inhalt und unten die Knöpfe. Die app.js füllt sie, nur die korund.css zeigt sie. -->
+  <div id="korund-seite" role="dialog" aria-modal="true" aria-labelledby="korund-seite-titel">
+    <div class="korund-seite-kopf">
+      <button id="korund-seite-zurueck" type="button" aria-label="Zurück">‹</button>
+      <h1 id="korund-seite-titel"></h1>
+      <span id="korund-seite-rechts"></span>
+    </div>
+    <div id="korund-seite-inhalt"></div>
+    <div id="korund-seite-unten"></div>
+  </div>
+
   <div id="uebungen-sheet" class="zusatz-sheet">
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">
@@ -1186,9 +1212,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=143"></script>
-<script src="uebungen.js?v=143"></script>
-<script src="erklaerungen.js?v=143"></script>
+<script src="texte.js?v=144"></script>
+<script src="uebungen.js?v=144"></script>
+<script src="erklaerungen.js?v=144"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1210,13 +1236,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=143"></script>
-<script src="bilder.js?v=143"></script>
-<script src="vorlagen.js?v=143"></script>
-<script src="figuren.js?v=143"></script>
+<script src="raenge.js?v=144"></script>
+<script src="bilder.js?v=144"></script>
+<script src="vorlagen.js?v=144"></script>
+<script src="figuren.js?v=144"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=143"></script>
+<script src="app.js?v=144"></script>
 
 </body>
 </html>

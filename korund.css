@@ -3269,6 +3269,829 @@
   margin-top: 16px;
 }
 
+/* ---------- Runde 2 (seit Version 144): eigene Seiten über der App ----------
+   Serie, Vorschlag von Korund, Geräte, Einschränkungen, Dein Vorschlag und Rückblick liegen in #korund-seite.
+   Werte wie in den Entwürfen: Kopf mit 36-px-Knopf, Glas-Karten, Umschalter mit dunkler Spur, unten feste Knöpfe.
+   Orange #FF9F45 = Serie, Grün (--fw-erfolg) = Plus und erholt, die Signalfarbe für Auswahl, Haken und Links. */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite.offen {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: env(safe-area-inset-top, 0px) max(20px, env(safe-area-inset-right, 0px)) 0 max(20px, env(safe-area-inset-left, 0px));
+  background: var(--fw-schimmer), #000000;
+  color: var(--text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] body.korund-seite-offen {
+  overflow: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-seite-kopf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  margin-top: 8px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-zurueck {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(238, 242, 247, 0.12);
+  border-radius: 12px;
+  background: rgba(var(--fw-glas-rgb), 0.9);
+  color: var(--text);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-titel {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  background: none;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-rechts {
+  flex: none;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-inhalt {
+  padding-bottom: 32px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite.mit-unten #korund-seite-inhalt {
+  padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-unten {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite.mit-unten #korund-seite-unten {
+  display: flex;
+  gap: 10px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 36px max(20px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  background: linear-gradient(rgba(0, 0, 0, 0), #000000 55%);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-unten > button {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  min-height: 54px;
+  margin: 0;
+  border-radius: 16px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-unten > .zweit-btn {
+  border: 1px solid rgba(238, 242, 247, 0.12);
+  background: rgba(var(--fw-glas-rgb), 0.95);
+  color: var(--text);
+  font-size: 16px;
+}
+
+/* Bausteine */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-karte {
+  padding: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-liste {
+  padding: 2px 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 28px 4px 10px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-inhalt > .seiten-label:first-child {
+  margin-top: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-label-knopf {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #A4B0C0;
+  font: inherit;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-umschalter {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid rgba(238, 242, 247, 0.07);
+  border-radius: 12px;
+  background: #10141A;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-inhalt > .seiten-umschalter:first-child {
+  margin-top: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-umschalter button {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 0;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-umschalter button.aktiv {
+  background: #232B36;
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 15px 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile + .seiten-zeile,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-woche + .serie-woche,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-zeile + .vorschlag-zeile,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-aenderung + .rueckblick-aenderung {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile-text {
+  flex: 1;
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile.beschriftet .seiten-zeile-text,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile.aus .seiten-zeile-text,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile.leise .seiten-zeile-text {
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile-wert {
+  flex: none;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile-wert.leise {
+  color: #5F656D;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile-icon {
+  display: grid;
+  flex: none;
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile.signal .seiten-zeile-icon {
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-pfeil {
+  flex: none;
+  color: #5F656D;
+  font-size: 20px;
+  line-height: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-haken {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  border: 1.5px solid rgba(238, 242, 247, 0.2);
+  border-radius: 7px;
+  color: var(--fw-auf-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-zeile[aria-checked="true"] .seiten-haken {
+  border: none;
+  background: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-haken svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 3;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-kopfzeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-rechts {
+  margin-left: auto;
+  text-align: right;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-stapel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-klein {
+  color: var(--text-leise);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-klein b {
+  color: var(--text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-klein-label {
+  color: var(--text-leise);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-titel {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-gross {
+  margin-top: 14px;
+  background: linear-gradient(180deg, #FFFFFF 30%, #C9D3DF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-text {
+  margin: 6px 0 0;
+  color: var(--text-leise);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-fuss {
+  margin: 14px 0 0;
+  color: var(--text-leise);
+  font-size: 12px;
+  text-align: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-trenn {
+  height: 1px;
+  margin: 16px 0;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--fw-signal);
+  font: inherit;
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-link.leise {
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-punkt {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--fw-erfolg);
+  vertical-align: 1px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-figur {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border: 1px solid rgba(238, 242, 247, 0.08);
+  border-radius: 14px;
+  background: #11151B;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-figur svg {
+  width: auto;
+  height: 88%;
+}
+
+/* Serie */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-held {
+  margin-top: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-symbol {
+  display: grid;
+  color: #FF9F45;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-symbol svg {
+  width: 18px;
+  height: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-zahl {
+  margin: 12px 0 8px;
+  color: #FF9F45;
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-zahl small {
+  margin-left: 4px;
+  color: var(--text-leise);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-woche {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 14.5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-kw {
+  flex: none;
+  width: 52px;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-striche {
+  display: flex;
+  gap: 5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-striche i {
+  width: 22px;
+  height: 8px;
+  border-radius: 4px;
+  background: #1B2129;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-striche i.an {
+  background: #FF9F45;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-striche i.frei {
+  background: rgba(95, 212, 196, 0.45);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-ende {
+  margin-left: auto;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+/* Serie antippen (Home, Profil, Statistik) */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-serie:not(:empty),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.tippbar {
+  cursor: pointer;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] button.profil-serie {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Ruhetag und Rückblick im Training-Tab */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .ruhetag-karte .seiten-gross {
+  margin-top: 6px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .ruhetag-karte > .seiten-klein {
+  margin-top: 6px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .ruhetag-liste {
+  margin-top: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-karte {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-bottom: 12px;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-karte .seiten-stapel {
+  flex: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(var(--fw-signal-rgb), 0.14);
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-symbol svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Zusatz-Training: Sheet mit großem Titel und drei Karten */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #zusatztraining-sheet .sheet-titel {
+  background: linear-gradient(180deg, #FFFFFF 30%, #C9D3DF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #zusatztraining-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .zusatz-karte[aria-checked="true"] {
+  background: rgba(var(--fw-glas-rgb), 0.55);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #zusatztraining-sheet .speichern-btn {
+  width: 100%;
+  margin-top: 0;
+}
+
+/* Vorschlag von Korund */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .generator-fokus {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .generator-kachel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 4px 12px;
+  border: 1px solid rgba(238, 242, 247, 0.08);
+  border-radius: 16px;
+  background: #10141A;
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .generator-kachel[aria-pressed="true"] {
+  border-color: rgba(var(--fw-signal-rgb), 0.65);
+  color: var(--text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .generator-kachel .seiten-figur {
+  width: 52px;
+  height: 52px;
+  border: none;
+  background: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .generator-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .generator-details {
+  margin-top: 20px;
+}
+
+/* Dein Vorschlag */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-liste {
+  margin-top: 16px;
+  padding: 4px 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-zeile .seiten-figur {
+  width: 42px;
+  height: 42px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-name {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-neu {
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-tausch {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #5F656D;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-tausch:disabled {
+  opacity: 0.35;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorschlag-tausch svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Einschränkungen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-inhalt > .seiten-text:first-child {
+  margin-top: 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .einschraenkung-offen {
+  margin-top: 10px;
+  padding: 16px 18px;
+  border-color: rgba(var(--fw-signal-rgb), 0.5);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .einschraenkung-frage {
+  margin: 16px 0 8px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .einschraenkung-fuss {
+  margin-top: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-inhalt > .seiten-liste {
+  margin-top: 12px;
+}
+
+/* Rückblick */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-kacheln {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-kachel {
+  min-width: 0;
+  padding: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-kachel b {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-kachel b.plus {
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-kachel b.serie {
+  color: #FF9F45;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-kachel b.metall {
+  background: linear-gradient(180deg, #FFFFFF 30%, #C9D3DF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-frage {
+  margin: 18px 0 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-aenderung {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-aenderung .vorschlag-name {
+  font-size: 15px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-aenderung.aus {
+  opacity: 0.45;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-aenderung.aus .vorschlag-name {
+  text-decoration: line-through;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-marke {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  border-radius: 8px;
+  background: rgba(var(--fw-signal-rgb), 0.13);
+  color: var(--fw-signal);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-marke.plus {
+  background: rgba(var(--fw-erfolg-rgb), 0.13);
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-marke.minus {
+  background: rgba(238, 242, 247, 0.08);
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-woche {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-woche div {
+  padding: 8px 0;
+  border: 1px solid rgba(238, 242, 247, 0.07);
+  border-radius: 12px;
+  background: #10141A;
+  text-align: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-woche small {
+  display: block;
+  color: #5F656D;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-woche b {
+  display: block;
+  margin-top: 4px;
+  color: #5F656D;
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-woche .an b {
+  color: var(--fw-signal);
+}
+
+/* Die Symbole der Seiten als Linien wie die anderen Icons der App */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.serie-symbol, .seiten-zeile-icon, .rueckblick-symbol, .seiten-haken, .vorschlag-tausch) svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-haken svg {
+  stroke-width: 3;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-kachel b {
+  white-space: nowrap;
+}
+
+/* Schmale Bildschirme: Zahlen bleiben zusammen, die Striche der Serie werden schmaler statt zu überlaufen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-klein b,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .ruhetag-karte .seiten-rechts {
+  white-space: nowrap;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-striche {
+  flex: 1;
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-striche i {
+  flex: 0 1 22px;
+  min-width: 8px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-ende {
+  flex: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .ruhetag-karte .seiten-stapel {
+  flex: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .ruhetag-karte .seiten-stapel .seiten-titel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -6410,6 +7233,829 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-held .teilen-knopf {
     margin-top: 16px;
+  }
+
+  /* ---------- Runde 2 (seit Version 144): eigene Seiten über der App ----------
+     Serie, Vorschlag von Korund, Geräte, Einschränkungen, Dein Vorschlag und Rückblick liegen in #korund-seite.
+     Werte wie in den Entwürfen: Kopf mit 36-px-Knopf, Glas-Karten, Umschalter mit dunkler Spur, unten feste Knöpfe.
+     Orange #FF9F45 = Serie, Grün (--fw-erfolg) = Plus und erholt, die Signalfarbe für Auswahl, Haken und Links. */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite.offen {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 18;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: env(safe-area-inset-top, 0px) max(20px, env(safe-area-inset-right, 0px)) 0 max(20px, env(safe-area-inset-left, 0px));
+    background: var(--fw-schimmer), #000000;
+    color: var(--text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) body.korund-seite-offen {
+    overflow: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-seite-kopf {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    margin-top: 8px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-zurueck {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid rgba(238, 242, 247, 0.12);
+    border-radius: 12px;
+    background: rgba(var(--fw-glas-rgb), 0.9);
+    color: var(--text);
+    font: inherit;
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-titel {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    background: none;
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-rechts {
+    flex: none;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-inhalt {
+    padding-bottom: 32px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite.mit-unten #korund-seite-inhalt {
+    padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-unten {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite.mit-unten #korund-seite-unten {
+    display: flex;
+    gap: 10px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    padding: 36px max(20px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+    background: linear-gradient(rgba(0, 0, 0, 0), #000000 55%);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-unten > button {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    min-height: 54px;
+    margin: 0;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-unten > .zweit-btn {
+    border: 1px solid rgba(238, 242, 247, 0.12);
+    background: rgba(var(--fw-glas-rgb), 0.95);
+    color: var(--text);
+    font-size: 16px;
+  }
+
+  /* Bausteine */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-karte {
+    padding: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-liste {
+    padding: 2px 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 28px 4px 10px;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-inhalt > .seiten-label:first-child {
+    margin-top: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-label-knopf {
+    padding: 0;
+    border: none;
+    background: none;
+    color: #A4B0C0;
+    font: inherit;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-umschalter {
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid rgba(238, 242, 247, 0.07);
+    border-radius: 12px;
+    background: #10141A;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-inhalt > .seiten-umschalter:first-child {
+    margin-top: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-umschalter button {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 0;
+    border: none;
+    border-radius: 9px;
+    background: none;
+    color: var(--text-leise);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-umschalter button.aktiv {
+    background: #232B36;
+    color: var(--text);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 15px 0;
+    border: none;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 15px;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile + .seiten-zeile,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-woche + .serie-woche,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-zeile + .vorschlag-zeile,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-aenderung + .rueckblick-aenderung {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile.beschriftet .seiten-zeile-text,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile.aus .seiten-zeile-text,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile.leise .seiten-zeile-text {
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile-wert {
+    flex: none;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile-wert.leise {
+    color: #5F656D;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile-icon {
+    display: grid;
+    flex: none;
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile.signal .seiten-zeile-icon {
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-pfeil {
+    flex: none;
+    color: #5F656D;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-haken {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    box-sizing: border-box;
+    border: 1.5px solid rgba(238, 242, 247, 0.2);
+    border-radius: 7px;
+    color: var(--fw-auf-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-zeile[aria-checked="true"] .seiten-haken {
+    border: none;
+    background: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-haken svg {
+    width: 13px;
+    height: 13px;
+    stroke-width: 3;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-kopfzeile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-rechts {
+    margin-left: auto;
+    text-align: right;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-stapel {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-klein {
+    color: var(--text-leise);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-klein b {
+    color: var(--text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-klein-label {
+    color: var(--text-leise);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-titel {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-gross {
+    margin-top: 14px;
+    background: linear-gradient(180deg, #FFFFFF 30%, #C9D3DF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-text {
+    margin: 6px 0 0;
+    color: var(--text-leise);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-fuss {
+    margin: 14px 0 0;
+    color: var(--text-leise);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-trenn {
+    height: 1px;
+    margin: 16px 0;
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--fw-signal);
+    font: inherit;
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-link.leise {
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-punkt {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--fw-erfolg);
+    vertical-align: 1px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-figur {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    border: 1px solid rgba(238, 242, 247, 0.08);
+    border-radius: 14px;
+    background: #11151B;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-figur svg {
+    width: auto;
+    height: 88%;
+  }
+
+  /* Serie */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-held {
+    margin-top: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-symbol {
+    display: grid;
+    color: #FF9F45;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-symbol svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-zahl {
+    margin: 12px 0 8px;
+    color: #FF9F45;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-zahl small {
+    margin-left: 4px;
+    color: var(--text-leise);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-woche {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    font-size: 14.5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-kw {
+    flex: none;
+    width: 52px;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-striche {
+    display: flex;
+    gap: 5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-striche i {
+    width: 22px;
+    height: 8px;
+    border-radius: 4px;
+    background: #1B2129;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-striche i.an {
+    background: #FF9F45;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-striche i.frei {
+    background: rgba(95, 212, 196, 0.45);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-ende {
+    margin-left: auto;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  /* Serie antippen (Home, Profil, Statistik) */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-serie:not(:empty),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.tippbar {
+    cursor: pointer;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) button.profil-serie {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* Ruhetag und Rückblick im Training-Tab */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .ruhetag-karte .seiten-gross {
+    margin-top: 6px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .ruhetag-karte > .seiten-klein {
+    margin-top: 6px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .ruhetag-liste {
+    margin-top: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-karte {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    margin-bottom: 12px;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-karte .seiten-stapel {
+    flex: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-symbol {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(var(--fw-signal-rgb), 0.14);
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-symbol svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Zusatz-Training: Sheet mit großem Titel und drei Karten */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #zusatztraining-sheet .sheet-titel {
+    background: linear-gradient(180deg, #FFFFFF 30%, #C9D3DF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #zusatztraining-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .zusatz-karte[aria-checked="true"] {
+    background: rgba(var(--fw-glas-rgb), 0.55);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #zusatztraining-sheet .speichern-btn {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  /* Vorschlag von Korund */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .generator-fokus {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .generator-kachel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 10px 4px 12px;
+    border: 1px solid rgba(238, 242, 247, 0.08);
+    border-radius: 16px;
+    background: #10141A;
+    color: var(--text-leise);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .generator-kachel[aria-pressed="true"] {
+    border-color: rgba(var(--fw-signal-rgb), 0.65);
+    color: var(--text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .generator-kachel .seiten-figur {
+    width: 52px;
+    height: 52px;
+    border: none;
+    background: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .generator-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .generator-details {
+    margin-top: 20px;
+  }
+
+  /* Dein Vorschlag */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-liste {
+    margin-top: 16px;
+    padding: 4px 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-zeile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-zeile .seiten-figur {
+    width: 42px;
+    height: 42px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-name {
+    font-size: 15.5px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-neu {
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-tausch {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #5F656D;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-tausch:disabled {
+    opacity: 0.35;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorschlag-tausch svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Einschränkungen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-inhalt > .seiten-text:first-child {
+    margin-top: 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .einschraenkung-offen {
+    margin-top: 10px;
+    padding: 16px 18px;
+    border-color: rgba(var(--fw-signal-rgb), 0.5);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .einschraenkung-frage {
+    margin: 16px 0 8px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .einschraenkung-fuss {
+    margin-top: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-inhalt > .seiten-liste {
+    margin-top: 12px;
+  }
+
+  /* Rückblick */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-kacheln {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-kachel {
+    min-width: 0;
+    padding: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-kachel b {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-kachel b.plus {
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-kachel b.serie {
+    color: #FF9F45;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-kachel b.metall {
+    background: linear-gradient(180deg, #FFFFFF 30%, #C9D3DF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-frage {
+    margin: 18px 0 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-aenderung {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 0;
+    border: none;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-aenderung .vorschlag-name {
+    font-size: 15px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-aenderung.aus {
+    opacity: 0.45;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-aenderung.aus .vorschlag-name {
+    text-decoration: line-through;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-marke {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+    border-radius: 8px;
+    background: rgba(var(--fw-signal-rgb), 0.13);
+    color: var(--fw-signal);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-marke.plus {
+    background: rgba(var(--fw-erfolg-rgb), 0.13);
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-marke.minus {
+    background: rgba(238, 242, 247, 0.08);
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-woche {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-woche div {
+    padding: 8px 0;
+    border: 1px solid rgba(238, 242, 247, 0.07);
+    border-radius: 12px;
+    background: #10141A;
+    text-align: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-woche small {
+    display: block;
+    color: #5F656D;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-woche b {
+    display: block;
+    margin-top: 4px;
+    color: #5F656D;
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-woche .an b {
+    color: var(--fw-signal);
+  }
+
+  /* Die Symbole der Seiten als Linien wie die anderen Icons der App */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.serie-symbol, .seiten-zeile-icon, .rueckblick-symbol, .seiten-haken, .vorschlag-tausch) svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-haken svg {
+    stroke-width: 3;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-kachel b {
+    white-space: nowrap;
+  }
+
+  /* Schmale Bildschirme: Zahlen bleiben zusammen, die Striche der Serie werden schmaler statt zu überlaufen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-klein b,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .ruhetag-karte .seiten-rechts {
+    white-space: nowrap;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-striche {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-striche i {
+    flex: 0 1 22px;
+    min-width: 8px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-ende {
+    flex: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .ruhetag-karte .seiten-stapel {
+    flex: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .ruhetag-karte .seiten-stapel .seiten-titel {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
 }

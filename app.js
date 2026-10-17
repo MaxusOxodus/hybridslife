@@ -1166,6 +1166,10 @@
 
   // Zeigt eine Seite und markiert ihren Tab
   function seiteZeigen(name) {
+    // Die Seiten im Look Korund (Serie, Vorschlag, Rückblick …) liegen über allen Tabs und gehen beim Wechsel zu
+    if (korundSeiten.length > 0) {
+      korundSeitenSchliessen();
+    }
     // Beim Zurückkommen wird der Trainingsmodus neu aufgebaut, deshalb die Eingabe vorher merken
     if (aktiveSeite === "training" && trainingAnsicht === "modus" && !document.getElementById("modus-eingabe").classList.contains("versteckt")) {
       gemerkteTrainingWerte = [gewichtFeldWert("t-feld-gewicht"), feldWert("t-feld-wdh"), gewaehlterRir];
@@ -2860,6 +2864,12 @@
     kachel(String(zahlen.workouts), txt("fortschritt.workouts"));
     kachel(einheiten > 0 ? txt("statistik.stunden", { n: Math.round(minuten / 60) }) : "–", einheiten > 0 ? txt("statistik.schnitt", { m: Math.round(minuten / einheiten) }) : txt("statistik.zeit"));
     kachel(String(zahlen.serie), txt("statistik.serie"), "serie");
+    // Ein Tipp auf die Serie öffnet die Seite Serie (seit Version 144)
+    const serieKachel = kacheln.lastChild;
+    serieKachel.classList.add("tippbar");
+    serieKachel.setAttribute("role", "button");
+    serieKachel.tabIndex = 0;
+    serieKachel.onclick = serieSeiteOeffnen;
     kachel(String(anzahlRekorde), txt("statistik.rekorde"), "rekord");
     bereich.appendChild(kacheln);
 
@@ -3505,8 +3515,15 @@
     if (laufendesTraining) {
       return;
     }
+    // Look Korund (seit Version 144): oben der Rückblick, wenn er fällig ist, und an Tagen ohne Plan die Karte Ruhetag
+    if (lookKorund()) {
+      rueckblickKarteAnzeigen(bereich);
+    }
     const routine = routineFinden(wochenplan[(new Date().getDay() + 6) % 7]);
     if (!routine) {
+      if (lookKorund()) {
+        trainingRuhetagAnzeigen(bereich);
+      }
       return;
     }
     const karte = element("div", "karte heute-karte training-heute-karte");
@@ -7183,6 +7200,14 @@
     const feld = document.getElementById("home-serie");
     const serie = gesamtZahlen().serie;
     feld.textContent = serie > 0 ? txtAnzahl("profil.serieText", serie) : "";
+    feld.onclick = serieSeiteOeffnen;
+    if (serie > 0) {
+      feld.setAttribute("role", "button");
+      feld.tabIndex = 0;
+    } else {
+      feld.removeAttribute("role");
+      feld.removeAttribute("tabindex");
+    }
   }
 
   // Die IDs der Muskelgruppen einer Routine in ihrer Reihenfolge, jede einmal, höchstens max.
@@ -8663,6 +8688,7 @@
     document.getElementById("teilen-sheet").classList.remove("offen");
     document.getElementById("zeit-sheet").classList.remove("offen");
     document.getElementById("status-sheet").classList.remove("offen");
+    document.getElementById("zusatztraining-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
     // Liegt darunter noch die Übungsauswahl (die Erklärung wurde von dort geöffnet), bleibt die Seite gesperrt
     if (!document.getElementById("sheet").classList.contains("offen")) {
@@ -12672,7 +12698,10 @@
       info.appendChild(element("span", "profil-rang", rangName(stand.kraft.gesamt)));
     }
     if (zahlen.serie > 0) {
-      info.appendChild(element("span", "profil-serie", txt("profil.serieKurz", { n: zahlen.serie })));
+      const serie = element("button", "profil-serie", txt("profil.serieKurz", { n: zahlen.serie }));
+      serie.type = "button";
+      serie.onclick = serieSeiteOeffnen;
+      info.appendChild(serie);
     }
 
     // Level mit dünnem Balken
@@ -14551,6 +14580,1125 @@
       karte.appendChild(element("div", "routine-info", txt("rang.zaehltNicht")));
     }
     bereich.appendChild(karte);
+  }
+
+  // ---------- Look Korund, Runde 2 (seit Version 144): eigene Seiten über der App ----------
+  // Serie, Vorschlag von Korund, Geräte, Einschränkungen, Dein Vorschlag und Rückblick sind Seiten in #korund-seite
+  // (index.html, nur in der korund.css zu sehen). Sie liegen über dem Tab, ‹ geht eine Seite zurück.
+  // Jede Seite ist { titel, rechts(), schliessen, bauen(inhalt, unten) }. Keine Seite legt von selbst etwas an,
+  // gespeichert wird nur, was auf den Seiten Geräte und Einschränkungen gewählt wird, und mit „Übernehmen“ im Rückblick.
+  let korundSeiten = [];
+
+  function korundSeiteOeffnen(seite) {
+    korundSeiten.push(seite);
+    korundSeiteZeichnen();
+  }
+
+  function korundSeiteZurueck() {
+    korundSeiten.pop();
+    korundSeiteZeichnen();
+  }
+
+  function korundSeitenSchliessen() {
+    korundSeiten = [];
+    korundSeiteZeichnen();
+  }
+
+  // Zeichnet die oberste Seite neu (auch nach einer Wahl auf ihr, dann ohne nach oben zu springen). Ohne Seite ist die Ebene zu.
+  function korundSeiteZeichnen() {
+    const ebene = document.getElementById("korund-seite");
+    const offen = korundSeiten.length > 0;
+    ebene.classList.toggle("offen", offen);
+    document.body.classList.toggle("korund-seite-offen", offen);
+    if (!offen) {
+      return;
+    }
+    const seite = korundSeiten[korundSeiten.length - 1];
+    const zurueck = document.getElementById("korund-seite-zurueck");
+    zurueck.textContent = seite.schliessen ? "✕" : "‹";
+    zurueck.setAttribute("aria-label", txt(seite.schliessen ? "schliessen" : "zurueck"));
+    zurueck.onclick = seite.schliessen ? korundSeitenSchliessen : korundSeiteZurueck;
+    document.getElementById("korund-seite-titel").textContent = seite.titel;
+    document.getElementById("korund-seite-rechts").textContent = seite.rechts ? seite.rechts() : "";
+    const inhalt = document.getElementById("korund-seite-inhalt");
+    const unten = document.getElementById("korund-seite-unten");
+    const scroll = ebene.scrollTop;
+    inhalt.innerHTML = "";
+    unten.innerHTML = "";
+    seite.bauen(inhalt, unten);
+    ebene.classList.toggle("mit-unten", unten.childElementCount > 0);
+    ebene.scrollTop = seite.gezeichnet ? scroll : 0;
+    seite.gezeichnet = true;
+  }
+
+  // Bausteine der Seiten
+  function seitenUmschalter(auswahl, aktiv, beimWechsel) {
+    const schalter = element("div", "seiten-umschalter");
+    umschalterBauen(schalter, auswahl, aktiv, beimWechsel);
+    return schalter;
+  }
+
+  function seitenLabel(text, rechts) {
+    const label = element("div", "seiten-label");
+    label.appendChild(element("span", "", text));
+    if (rechts) {
+      label.appendChild(rechts);
+    }
+    return label;
+  }
+
+  // Eine Zeile einer Liste: links Symbol und Text, rechts Wert und Pfeil (mit beimTipp ein Knopf)
+  function seitenZeile(text, wert, beimTipp, optionen) {
+    const o = optionen || {};
+    const zeile = element(beimTipp ? "button" : "div", "seiten-zeile" + (o.klasse ? " " + o.klasse : ""));
+    if (beimTipp) {
+      zeile.type = "button";
+      zeile.onclick = beimTipp;
+    }
+    if (o.icon) {
+      const symbol = element("span", "seiten-zeile-icon");
+      symbol.innerHTML = iconSvg(o.icon);
+      zeile.appendChild(symbol);
+    }
+    zeile.appendChild(element("span", "seiten-zeile-text", text));
+    if (wert !== undefined && wert !== "") {
+      zeile.appendChild(element("span", "seiten-zeile-wert" + (o.leise ? " leise" : ""), wert));
+    }
+    if (beimTipp) {
+      zeile.appendChild(element("span", "seiten-pfeil", "›"));
+    }
+    return zeile;
+  }
+
+  function seitenKnopf(text, haupt, beimTipp) {
+    const knopf = element("button", haupt ? "speichern-btn" : "zweit-btn", text);
+    knopf.type = "button";
+    knopf.onclick = beimTipp;
+    return knopf;
+  }
+
+  function seitenFigur(gruppeId) {
+    const figur = element("span", "seiten-figur");
+    figur.innerHTML = koerperSvg(GRUPPE_NACH_ID[gruppeId] || { id: "", ansicht: "vorn" });
+    return figur;
+  }
+
+  // ---------- Serie ----------
+
+  // So viele Wochen zeigt die Liste „Letzte Wochen“, je Woche so viele Striche
+  const SERIE_LISTE_WOCHEN = 7;
+  const SERIE_STRICHE = 5;
+
+  function serieSeiteOeffnen() {
+    if (!lookKorund()) {
+      return;
+    }
+    korundSeiteOeffnen({ titel: txt("serie.titel"), bauen: serieSeiteBauen });
+  }
+
+  // Krank oder Urlaub in der Woche ab montag, sonst ""
+  function auszeitArtInWoche(montag) {
+    const von = montag.getTime();
+    const bis = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 7).getTime();
+    const liste = auszeiten();
+    for (let i = 0; i < liste.length; i++) {
+      const ende = liste[i].bis === null ? Date.now() : liste[i].bis;
+      if (liste[i].von < bis && ende >= von) {
+        return liste[i].art;
+      }
+    }
+    return "";
+  }
+
+  function serieSeiteBauen(inhalt) {
+    const zahlen = gesamtZahlen();
+    const montag = montagDerWoche(new Date());
+    const tage = trainingstage();
+    const jeWoche = {};
+    Object.keys(tage).forEach(function (s) {
+      const m = montagDerWoche(tage[s].datum).getTime();
+      jeWoche[m] = (jeWoche[m] || 0) + 1;
+    });
+
+    const karte = element("div", "karte seiten-karte serie-held");
+    const kopf = element("div", "seiten-kopfzeile");
+    const symbol = element("span", "serie-symbol");
+    symbol.innerHTML = iconSvg("flamme");
+    kopf.appendChild(symbol);
+    kopf.appendChild(element("span", "seiten-klein-label", txt("serie.aktuell")));
+    karte.appendChild(kopf);
+    const zahl = element("div", "serie-zahl");
+    zahl.appendChild(document.createTextNode(String(zahlen.serie)));
+    zahl.appendChild(element("small", "", txt(zahlen.serie === 1 ? "serie.woche" : "serie.wochen")));
+    karte.appendChild(zahl);
+    const diese = jeWoche[montag.getTime()] || 0;
+    const fehlt = SERIE_TAGE_PRO_WOCHE - diese;
+    karte.appendChild(element("div", "seiten-klein", txt("serie.regel", { n: SERIE_TAGE_PRO_WOCHE }) + " " + (fehlt > 0 ? txtAnzahl("serie.fehlt", fehlt) : txt("serie.geschafft"))));
+    karte.appendChild(element("div", "seiten-trenn"));
+    const fuss = element("div", "seiten-kopfzeile seiten-klein");
+    const links = element("span", "");
+    links.appendChild(document.createTextNode(txt("serie.laengste") + " "));
+    links.appendChild(element("b", "", txtAnzahl("serie.anzahl", zahlen.laengsteSerie)));
+    fuss.appendChild(links);
+    const rechts = element("span", "seiten-rechts");
+    rechts.appendChild(document.createTextNode(txt("serie.pausen") + " "));
+    rechts.appendChild(element("b", "", String(zahlen.pausen)));
+    fuss.appendChild(rechts);
+    karte.appendChild(fuss);
+    inhalt.appendChild(karte);
+
+    inhalt.appendChild(seitenLabel(txt("serie.letzte")));
+    const liste = element("div", "karte seiten-liste");
+    for (let w = 0; w < SERIE_LISTE_WOCHEN; w++) {
+      const m = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7 * w);
+      const anzahl = jeWoche[m.getTime()] || 0;
+      const auszeit = anzahl < SERIE_TAGE_PRO_WOCHE ? auszeitArtInWoche(m) : "";
+      const zeile = element("div", "serie-woche");
+      zeile.appendChild(element("span", "serie-kw", txt("serie.kw", { n: kalenderwoche(m) })));
+      const striche = element("span", "serie-striche");
+      for (let i = 0; i < SERIE_STRICHE; i++) {
+        striche.appendChild(element("i", i < anzahl ? (auszeit ? "frei" : "an") : ""));
+      }
+      zeile.appendChild(striche);
+      let ende = anzahl >= SERIE_TAGE_PRO_WOCHE ? "✓" : "–";
+      if (w === 0) {
+        ende = txt("serie.laeuft");
+      } else if (auszeit) {
+        ende = txt("status." + auszeit);
+      }
+      zeile.appendChild(element("span", "serie-ende", ende));
+      liste.appendChild(zeile);
+    }
+    inhalt.appendChild(liste);
+  }
+
+  // ---------- Geräte ----------
+
+  // Die Geräte für „Vorschlag von Korund“. Erkannt wird eine Übung an ihrem Namen (Deutsch und Englisch),
+  // eine Übung kann mehrere brauchen (Bankdrücken: Langhantel und Flachbank). Maschinen ohne eigenes Gerät
+  // brauchen „Andere Maschinen“ (Bereich „maschine“). Übungen ohne Gerät (Eigengewicht) gehen immer.
+  const GERAETE = [
+    { id: "langhantel", gruppe: "frei", muster: /langhantel|barbell|sz-|\bsz\b|ez-bar|ez bar/ },
+    { id: "kurzhantel", gruppe: "frei", muster: /kurzhantel|dumbbell/ },
+    { id: "kettlebell", gruppe: "frei", muster: /kettlebell|turkish get-up/ },
+    { id: "bank", gruppe: "frei", muster: /bankdrücken|bench|schrägbank|negativbank|flachbank|incline|decline/ },
+    { id: "kabel", gruppe: "kabel", muster: /kabel|cable|seilzug|latzug|pulldown|face pull/ },
+    { id: "klimmzug", gruppe: "kabel", muster: /klimmz|pull-up|chin-up|hängendes|hanging/ },
+    { id: "dip", gruppe: "kabel", muster: /\bdips?\b|dip-/ },
+    { id: "beinpresse", gruppe: "maschine", muster: /beinpresse|leg press/ },
+    { id: "multipresse", gruppe: "maschine", muster: /multipresse|smith/ },
+    { id: "maschine", gruppe: "maschine", muster: null }
+  ];
+  const GERAETE_GRUPPEN = ["frei", "kabel", "maschine"];
+  const GERAETE_ORTE = ["gym", "zuhause", "unterwegs"];
+  // Ohne Wahl: im Gym alles, zuhause Kurzhanteln und Bank, unterwegs nichts
+  const GERAETE_START = { zuhause: ["kurzhantel", "bank"], unterwegs: [] };
+
+  // Freie Übungen, deren Name kein Gerät nennt (Stand Version 144: 61 Übungen). Die Kurzhantel-Liste wird zuerst geprüft,
+  // so ist der Goblet Squat eine Kurzhantel-Übung und die Kniebeuge eine Langhantel-Übung.
+  const FREI_KURZHANTEL = /goblet|split squat|cossack|sumo-kniebeuge|sumo squat|hammer|konzentration|concentration|zottman|kickback|seitheben|lateral raise|frontheben|front raise|arnold|reverse fl|farmer|suitcase|ausfallschritt|lunge|step-up|überkopf-trizeps|overhead triceps|handgelenkcurl|wrist curl|mit gewicht|weighted|schulterdrücken|shoulder press|seal row/;
+  const FREI_LANGHANTEL = /meadows|pendlay|landmine|t-bar|kreuzheben|deadlift|good morning|rack pull|trap bar|high pull|military|z-press|bradford|kniebeuge|squat|hip thrust|scott|preacher|drag curl|french press|skull|plate pinch/;
+
+  // Die Geräte, die eine Übung braucht (Liste von ids, leer ohne Gerät). Eigene Übungen kennt der Vorschlag nicht.
+  function uebungGeraete(u) {
+    const name = ((u.de || "") + " " + (u.en || "")).toLowerCase();
+    const liste = [];
+    for (let i = 0; i < GERAETE.length; i++) {
+      if (GERAETE[i].muster && GERAETE[i].muster.test(name)) {
+        liste.push(GERAETE[i].id);
+      }
+    }
+    const nurBank = liste.every(function (id) {
+      return id === "bank";
+    });
+    // Eine Maschine, die keines der Geräte oben ist (Brustpresse, Butterfly …)
+    if (u.bereich === "maschine" && nurBank) {
+      liste.push("maschine");
+    }
+    // Freie Gewichte ohne Gerät im Namen: zuerst die typischen Kurzhantel-Übungen, sonst die mit Langhantel
+    if (u.bereich === "frei" && nurBank) {
+      if (FREI_KURZHANTEL.test(name)) {
+        liste.push("kurzhantel");
+      } else if (FREI_LANGHANTEL.test(name)) {
+        liste.push("langhantel");
+      }
+    }
+    return liste;
+  }
+
+  // Gespeichert in einstellungen.geraete: { ort, gym, zuhause, unterwegs } mit den Listen der vorhandenen Geräte
+  function geraeteStand() {
+    const roh = einstellungen.geraete && typeof einstellungen.geraete === "object" ? einstellungen.geraete : {};
+    const alle = GERAETE.map(function (g) {
+      return g.id;
+    });
+    const stand = { ort: GERAETE_ORTE.indexOf(roh.ort) !== -1 ? roh.ort : "gym" };
+    GERAETE_ORTE.forEach(function (ort) {
+      stand[ort] = Array.isArray(roh[ort]) ? roh[ort].filter(function (id) {
+        return alle.indexOf(id) !== -1;
+      }) : (GERAETE_START[ort] || alle).slice();
+    });
+    return stand;
+  }
+
+  function geraeteSpeichern(stand) {
+    einstellungen.geraete = stand;
+    einstellungenSpeichern();
+  }
+
+  function geraeteVorhanden() {
+    const stand = geraeteStand();
+    return stand[stand.ort];
+  }
+
+  function geraeteSeiteOeffnen() {
+    korundSeiteOeffnen({
+      titel: txt("geraete.titel"),
+      rechts: function () {
+        return txt("geraete.anzahl", { n: geraeteVorhanden().length, von: GERAETE.length });
+      },
+      bauen: geraeteSeiteBauen
+    });
+  }
+
+  function geraeteSeiteBauen(inhalt, unten) {
+    const stand = geraeteStand();
+    const vorhanden = stand[stand.ort];
+    const aendern = function () {
+      geraeteSpeichern(stand);
+      korundSeiteZeichnen();
+    };
+    inhalt.appendChild(seitenUmschalter(GERAETE_ORTE.map(function (o) {
+      return { id: o, text: txt("geraete.ort." + o) };
+    }), stand.ort, function (ort) {
+      stand.ort = ort;
+      aendern();
+    }));
+    GERAETE_GRUPPEN.forEach(function (gruppeId) {
+      const gruppe = GERAETE.filter(function (g) {
+        return g.gruppe === gruppeId;
+      });
+      const alle = gruppe.every(function (g) {
+        return vorhanden.indexOf(g.id) !== -1;
+      });
+      const umschalten = element("button", "seiten-label-knopf", txt(alle ? "geraete.keine" : "geraete.alle"));
+      umschalten.type = "button";
+      umschalten.onclick = function () {
+        gruppe.forEach(function (g) {
+          const platz = vorhanden.indexOf(g.id);
+          if (alle && platz !== -1) {
+            vorhanden.splice(platz, 1);
+          } else if (!alle && platz === -1) {
+            vorhanden.push(g.id);
+          }
+        });
+        aendern();
+      };
+      inhalt.appendChild(seitenLabel(txt("geraete.gruppe." + gruppeId), umschalten));
+      const liste = element("div", "karte seiten-liste");
+      gruppe.forEach(function (g) {
+        const an = vorhanden.indexOf(g.id) !== -1;
+        const zeile = element("button", "seiten-zeile" + (an ? "" : " aus"));
+        zeile.type = "button";
+        zeile.setAttribute("role", "checkbox");
+        zeile.setAttribute("aria-checked", an ? "true" : "false");
+        zeile.appendChild(element("span", "seiten-zeile-text", txt("geraet." + g.id)));
+        const haken = element("span", "seiten-haken");
+        if (an) {
+          haken.innerHTML = iconSvg("haken");
+        }
+        zeile.appendChild(haken);
+        zeile.onclick = function () {
+          const platz = vorhanden.indexOf(g.id);
+          if (platz === -1) {
+            vorhanden.push(g.id);
+          } else {
+            vorhanden.splice(platz, 1);
+          }
+          aendern();
+        };
+        liste.appendChild(zeile);
+      });
+      inhalt.appendChild(liste);
+    });
+    unten.appendChild(seitenKnopf(txt("speichern"), true, korundSeiteZurueck));
+  }
+
+  // ---------- Einschränkungen ----------
+
+  // Die Stellen und welche Übungen sie weglassen: „leicht“ nur die stärksten Belastungen, ab „mittel“ mehr.
+  // Geprüft wird der Name der Übung (Deutsch und Englisch). Kein Ersatz für ärztlichen Rat, das steht auf der Seite.
+  const EINSCHRAENKUNGEN = [
+    { id: "schulter", leicht: /überkopf|overhead|military|schulterdrücken|shoulder press|nackendrücken|aufrechtes rudern|upright row|arnold|z-press|bradford|pike/, mittel: /dips?\b|bankdrücken|bench press|brustpresse|chest press|seitheben|lateral raise|frontheben|front raise|klimmz|pull-up|schrägbank|incline/ },
+    { id: "ellbogen", leicht: /skull|french|stirndrücken|overhead triceps/, mittel: /trizeps|triceps|curl|dips?\b/ },
+    { id: "handgelenk", leicht: /frontkniebeuge|front squat|liegestütz|push-up/, mittel: /langhantel|barbell|curl|handgelenk|wrist/ },
+    { id: "ruecken", leicht: /kreuzheben|deadlift|good morning/, mittel: /vorgebeugt|bent.?over|rudern|row|kniebeuge|squat|hyperextension|rückenstrecker/ },
+    { id: "huefte", leicht: /ausfallschritt|lunge|split squat|sumo/, mittel: /kniebeuge|squat|kreuzheben|deadlift|hip thrust|adduktor|adductor|abduktor|abductor/ },
+    { id: "knie", leicht: /kniebeuge|squat|ausfallschritt|lunge|sprung|jump|step-up/, mittel: /beinstrecker|leg extension|beinpresse|leg press|hackenschmidt|hack/ },
+    { id: "sprunggelenk", leicht: /sprung|jump|seilspringen/, mittel: /ausfallschritt|lunge|kniebeuge|squat|wadenheben|calf raise/ }
+  ];
+  const EINSCHRAENKUNG_SEITEN = ["links", "rechts", "beide"];
+  const EINSCHRAENKUNG_STUFEN = ["leicht", "mittel", "stark"];
+
+  function einschraenkungRegel(stelle) {
+    for (let i = 0; i < EINSCHRAENKUNGEN.length; i++) {
+      if (EINSCHRAENKUNGEN[i].id === stelle) {
+        return EINSCHRAENKUNGEN[i];
+      }
+    }
+    return null;
+  }
+
+  // Gespeichert in einstellungen.einschraenkungen: Liste von { stelle, seite, stufe }. Ungültige Einträge zählen nicht.
+  function einschraenkungen() {
+    if (!Array.isArray(einstellungen.einschraenkungen)) {
+      return [];
+    }
+    return einstellungen.einschraenkungen.filter(function (e) {
+      return e && einschraenkungRegel(e.stelle) && EINSCHRAENKUNG_SEITEN.indexOf(e.seite) !== -1 && EINSCHRAENKUNG_STUFEN.indexOf(e.stufe) !== -1;
+    });
+  }
+
+  function einschraenkungVon(stelle) {
+    return einschraenkungen().filter(function (e) {
+      return e.stelle === stelle;
+    })[0] || null;
+  }
+
+  function einschraenkungSetzen(stelle, wert) {
+    const liste = einschraenkungen().filter(function (e) {
+      return e.stelle !== stelle;
+    });
+    if (wert) {
+      liste.push({ stelle: stelle, seite: wert.seite, stufe: wert.stufe });
+    }
+    einstellungen.einschraenkungen = liste;
+    einstellungenSpeichern();
+  }
+
+  // Lässt eine Übung (aus UEBUNG_NACH_ID) wegen einer Einschränkung weg? Gibt die Stelle zurück oder "".
+  function uebungEingeschraenkt(u) {
+    if (!u) {
+      return "";
+    }
+    const name = ((u.de || "") + " " + (u.en || "")).toLowerCase();
+    const liste = einschraenkungen();
+    for (let i = 0; i < liste.length; i++) {
+      const regel = einschraenkungRegel(liste[i].stelle);
+      if (regel.leicht.test(name) || (liste[i].stufe !== "leicht" && regel.mittel.test(name))) {
+        return liste[i].stelle;
+      }
+    }
+    return "";
+  }
+
+  // Für die Zeile im Vorschlag: „keine“, „Knie links“ oder „2 Stellen“
+  function einschraenkungKurz() {
+    const liste = einschraenkungen();
+    if (liste.length === 0) {
+      return txt("einschraenkung.keine");
+    }
+    if (liste.length > 1) {
+      return txt("einschraenkung.mehrere", { n: liste.length });
+    }
+    return txt("stelle." + liste[0].stelle) + (liste[0].seite === "beide" ? "" : " " + txt("einschraenkung.seiteKurz." + liste[0].seite));
+  }
+
+  // Die Stelle, die auf der Seite gerade offen ist ("" = keine)
+  let einschraenkungOffen = "";
+
+  function einschraenkungenSeiteOeffnen() {
+    einschraenkungOffen = "";
+    korundSeiteOeffnen({ titel: txt("einschraenkung.titel"), bauen: einschraenkungenSeiteBauen });
+  }
+
+  function einschraenkungenSeiteBauen(inhalt) {
+    inhalt.appendChild(element("p", "seiten-text", txt("einschraenkung.text")));
+    if (einschraenkungOffen) {
+      const stelle = einschraenkungOffen;
+      // Eine neu geöffnete Stelle gilt sofort als „links, leicht“, so wie die Auswahl es zeigt
+      if (!einschraenkungVon(stelle)) {
+        einschraenkungSetzen(stelle, { seite: "links", stufe: "leicht" });
+      }
+      const jetzt = einschraenkungVon(stelle);
+      const karte = element("div", "karte seiten-karte einschraenkung-offen");
+      const kopf = element("div", "seiten-kopfzeile");
+      kopf.appendChild(element("span", "seiten-titel", txt("stelle." + stelle)));
+      const fertig = element("button", "seiten-link seiten-rechts", txt("fertig"));
+      fertig.type = "button";
+      fertig.onclick = function () {
+        einschraenkungOffen = "";
+        korundSeiteZeichnen();
+      };
+      kopf.appendChild(fertig);
+      karte.appendChild(kopf);
+      karte.appendChild(element("div", "seiten-klein-label einschraenkung-frage", txt("einschraenkung.seite")));
+      karte.appendChild(seitenUmschalter(EINSCHRAENKUNG_SEITEN.map(function (s) {
+        return { id: s, text: txt("einschraenkung.seite." + s) };
+      }), jetzt.seite, function (s) {
+        einschraenkungSetzen(stelle, { seite: s, stufe: jetzt.stufe });
+        korundSeiteZeichnen();
+      }));
+      karte.appendChild(element("div", "seiten-klein-label einschraenkung-frage", txt("einschraenkung.wieStark")));
+      karte.appendChild(seitenUmschalter(EINSCHRAENKUNG_STUFEN.map(function (s) {
+        return { id: s, text: txt("einschraenkung.stufe." + s) };
+      }), jetzt.stufe, function (s) {
+        einschraenkungSetzen(stelle, { seite: jetzt.seite, stufe: s });
+        korundSeiteZeichnen();
+      }));
+      const fuss = element("div", "seiten-kopfzeile einschraenkung-fuss");
+      fuss.appendChild(element("span", "seiten-klein", txt("einschraenkung.ohne." + stelle + (jetzt.stufe === "leicht" ? ".leicht" : ".mehr"))));
+      const weg = element("button", "seiten-link leise seiten-rechts", txt("einschraenkung.entfernen"));
+      weg.type = "button";
+      weg.onclick = function () {
+        einschraenkungSetzen(stelle, null);
+        einschraenkungOffen = "";
+        korundSeiteZeichnen();
+      };
+      fuss.appendChild(weg);
+      karte.appendChild(fuss);
+      inhalt.appendChild(karte);
+    }
+    const liste = element("div", "karte seiten-liste");
+    EINSCHRAENKUNGEN.forEach(function (regel) {
+      if (regel.id === einschraenkungOffen) {
+        return;
+      }
+      const e = einschraenkungVon(regel.id);
+      const wert = e ? txt("einschraenkung.seite." + e.seite) + " · " + txt("einschraenkung.stufe." + e.stufe) : txt("einschraenkung.keine");
+      liste.appendChild(seitenZeile(txt("stelle." + regel.id), wert, function () {
+        einschraenkungOffen = regel.id;
+        korundSeiteZeichnen();
+      }, { leise: !e }));
+    });
+    inhalt.appendChild(liste);
+    inhalt.appendChild(element("p", "seiten-fuss", txt("einschraenkung.hinweis")));
+  }
+
+  // ---------- Zusatz-Training ----------
+
+  let zusatzWahl = "vorschlag";
+
+  function zusatzTrainingOeffnen() {
+    zusatzWahl = "vorschlag";
+    zusatzTrainingFuellen();
+    zusatzSheetOeffnen("zusatztraining-sheet");
+  }
+
+  // Drei Karten wie im Status-Sheet: Name, kurze Erklärung, rechts der Kreis der Auswahl
+  function zusatzTrainingFuellen() {
+    const liste = document.getElementById("zusatztraining-liste");
+    liste.innerHTML = "";
+    ["vorschlag", "routine", "leer"].forEach(function (art) {
+      const karte = element("button", "status-karte zusatz-karte");
+      karte.type = "button";
+      karte.setAttribute("role", "radio");
+      karte.setAttribute("aria-checked", art === zusatzWahl ? "true" : "false");
+      const text = element("span", "status-karte-text");
+      text.appendChild(element("span", "status-karte-name", txt("zusatz." + art)));
+      text.appendChild(element("span", "status-karte-info", txt("zusatz." + art + ".info")));
+      karte.appendChild(text);
+      karte.appendChild(element("span", "status-kreis"));
+      karte.onclick = function () {
+        zusatzWahl = art;
+        zusatzTrainingFuellen();
+      };
+      liste.appendChild(karte);
+    });
+  }
+
+  function zusatzTrainingWeiter() {
+    zusatzSheetsSchliessen();
+    if (zusatzWahl === "vorschlag") {
+      generatorSeiteOeffnen();
+    } else if (zusatzWahl === "routine") {
+      korundSeiteOeffnen({ titel: txt("zusatz.routine"), bauen: zusatzRoutinenBauen });
+    } else {
+      // „Leer starten“: die Übungen selbst wählen im Editor einer neuen Routine, wie „+ Neue Routine“
+      routineNeu();
+    }
+  }
+
+  function zusatzRoutinenBauen(inhalt) {
+    const liste = element("div", "karte seiten-liste");
+    routinen.forEach(function (r) {
+      if (r.uebungen.length === 0) {
+        return;
+      }
+      const zeile = seitenZeile(r.name, uebungenText(r.uebungen.length), function () {
+        korundSeitenSchliessen();
+        routineStarten(r);
+      }, { leise: true });
+      zeile.insertBefore(seitenFigur(routineGruppenIds(r, 1)[0]), zeile.firstChild);
+      liste.appendChild(zeile);
+    });
+    if (liste.childElementCount === 0) {
+      liste.appendChild(seitenZeile(txt("zusatz.keineRoutine"), undefined, null, { klasse: "leise" }));
+    }
+    inhalt.appendChild(liste);
+  }
+
+  // ---------- Vorschlag von Korund ----------
+
+  // Der Fokus: Figur, Partien für „erholt“ und je Platz eine Muskelgruppe. Die Plätze werden der Reihe nach gefüllt.
+  const FOKUS = [
+    { id: "ganzkoerper", figur: "ganzkoerper", partien: ["brust", "ruecken", "beine", "schultern", "arme"], plaetze: ["lat", "brust", "quadrizeps", "schulter-seite", "bauch", "beinbeuger", "ruecken-oben", "trizeps"] },
+    { id: "oberkoerper", figur: "brust", partien: ["brust", "ruecken", "schultern", "arme"], plaetze: ["brust", "lat", "schulter-vorn", "ruecken-oben", "schulter-seite", "trizeps", "bizeps", "schulter-hinten"] },
+    { id: "beine", figur: "quadrizeps", partien: ["beine"], plaetze: ["quadrizeps", "beinbeuger", "po", "quadrizeps", "waden", "adduktoren", "beinbeuger", "abduktoren"] },
+    { id: "ruecken", figur: "lat", partien: ["ruecken"], plaetze: ["lat", "ruecken-oben", "lat", "schulter-hinten", "bizeps", "ruecken-unten", "trapez", "bizeps"] },
+    { id: "schultern", figur: "schulter-seite", partien: ["schultern"], plaetze: ["schulter-vorn", "schulter-seite", "schulter-hinten", "schulter-seite", "trapez", "schulter-hinten", "trizeps", "bizeps"] },
+    { id: "bauch", figur: "bauch", partien: [], plaetze: ["bauch", "bauch-schraeg", "bauch", "ruecken-unten", "bauch-schraeg", "bauch"] }
+  ];
+  const GENERATOR_ZEITEN = [30, 45, 60, 75];
+  // So viele Minuten braucht eine Übung mit drei Sätzen und Pausen ungefähr
+  const MINUTEN_JE_UEBUNG = 9;
+  // Unter so vielen passenden Übungen je Platz wird gewürfelt
+  const VORSCHLAG_AUSWAHL = 4;
+  // Wdh. je Platz: die ersten zwei schwer, dann mittel, dann leichter
+  const VORSCHLAG_WDH = [[8, 12], [8, 12], [10, 12], [12, 15]];
+
+  // Nur für diese Sitzung, nie im Speicher
+  let generator = { minuten: 45, fokus: "ganzkoerper", uebungen: [], wurf: 0 };
+
+  function generatorSeiteOeffnen() {
+    korundSeiteOeffnen({ titel: txt("generator.titel"), bauen: generatorSeiteBauen });
+  }
+
+  // Ein Fokus ist erholt, wenn mindestens eine seiner Partien in den letzten zwei Wochen trainiert wurde
+  // und keine davon zu frisch ist (ERHOLUNG_TAGE wie bei der Karte Erholung auf Home)
+  function fokusErholt(fokus, tage) {
+    const bekannt = fokus.partien.filter(function (p) {
+      return tage[p] !== undefined;
+    });
+    return bekannt.length > 0 && bekannt.every(function (p) {
+      return tage[p] >= ERHOLUNG_TAGE;
+    });
+  }
+
+  function generatorSeiteBauen(inhalt, unten) {
+    const tage = erholungTage(eintraege, new Date());
+    inhalt.appendChild(seitenLabel(txt("generator.zeit")));
+    inhalt.appendChild(seitenUmschalter(GENERATOR_ZEITEN.map(function (m) {
+      return { id: m, text: txt("generator.minuten", { m: m }) };
+    }), generator.minuten, function (m) {
+      generator.minuten = m;
+      korundSeiteZeichnen();
+    }));
+    const legende = element("span", "seiten-klein");
+    legende.appendChild(element("span", "seiten-punkt"));
+    legende.appendChild(document.createTextNode(txt("generator.erholt")));
+    inhalt.appendChild(seitenLabel(txt("generator.fokus"), legende));
+    const raster = element("div", "generator-fokus");
+    FOKUS.forEach(function (f) {
+      const kachel = element("button", "generator-kachel");
+      kachel.type = "button";
+      kachel.setAttribute("aria-pressed", f.id === generator.fokus ? "true" : "false");
+      kachel.appendChild(seitenFigur(f.figur));
+      const name = element("span", "generator-name");
+      if (fokusErholt(f, tage)) {
+        name.appendChild(element("span", "seiten-punkt"));
+      }
+      name.appendChild(document.createTextNode(txt("fokus." + f.id)));
+      kachel.appendChild(name);
+      kachel.onclick = function () {
+        generator.fokus = f.id;
+        korundSeiteZeichnen();
+      };
+      raster.appendChild(kachel);
+    });
+    inhalt.appendChild(raster);
+    const stand = geraeteStand();
+    const liste = element("div", "karte seiten-liste generator-details");
+    liste.appendChild(seitenZeile(txt("geraete.titel"), txt("geraete.ort." + stand.ort) + " · " + stand[stand.ort].length, geraeteSeiteOeffnen, { klasse: "beschriftet" }));
+    liste.appendChild(seitenZeile(txt("einschraenkung.titel"), einschraenkungKurz(), einschraenkungenSeiteOeffnen, { klasse: "beschriftet" }));
+    inhalt.appendChild(liste);
+    unten.appendChild(seitenKnopf(txt("generator.erstellen"), true, function () {
+      generator.wurf++;
+      generator.uebungen = vorschlagBauen();
+      korundSeiteOeffnen({ titel: txt("vorschlag.titel"), bauen: vorschlagSeiteBauen });
+    }));
+  }
+
+  // Die Übungen, die für eine Muskelgruppe in Frage kommen: passend zu Geräten und Einschränkungen und noch nicht
+  // im Vorschlag. Schon trainierte zuerst (für sie gibt es ein Gewicht vom letzten Mal), sonst wie in der Bibliothek.
+  function vorschlagKandidaten(gruppeId, schonDa) {
+    const listen = UEBUNGSLISTEN[gruppeId];
+    if (!listen) {
+      return [];
+    }
+    const vorhanden = geraeteVorhanden();
+    const ids = (listen.frei || []).concat(listen.maschine || [], listen.eigen || []);
+    const trainiert = {};
+    trainierteUebungen().forEach(function (u) {
+      trainiert[u.id] = true;
+    });
+    const passend = [];
+    ids.forEach(function (id) {
+      const u = UEBUNG_NACH_ID[id];
+      if (!u || u.selbst || schonDa.indexOf(u.id) !== -1 || passend.indexOf(u) !== -1 || uebungEingeschraenkt(u)) {
+        return;
+      }
+      if (uebungGeraete(u).every(function (g) {
+        return vorhanden.indexOf(g) !== -1;
+      })) {
+        passend.push(u);
+      }
+    });
+    // Stabil sortieren: trainierte nach vorn, sonst bleibt die Reihenfolge
+    return passend.map(function (u, i) {
+      return { u: u, i: i };
+    }).sort(function (a, b) {
+      return (trainiert[b.u.id] ? 1 : 0) - (trainiert[a.u.id] ? 1 : 0) || a.i - b.i;
+    }).map(function (x) {
+      return x.u;
+    });
+  }
+
+  // Eine Zahl von 0 bis unter 1, die bei gleichem Wurf gleich bleibt. So würfelt „Neu würfeln“ neu, das Zeichnen nicht.
+  function vorschlagZufall(platz) {
+    const x = Math.sin((generator.wurf + 1) * 9301 + platz * 49297) * 233280;
+    return x - Math.floor(x);
+  }
+
+  function vorschlagWaehlen(kandidaten, platz) {
+    const auswahl = kandidaten.slice(0, VORSCHLAG_AUSWAHL);
+    return auswahl[Math.floor(vorschlagZufall(platz) * auswahl.length)];
+  }
+
+  // So viele Übungen, wie in die Zeit passen (mindestens zwei), je Platz des Fokus eine
+  function vorschlagBauen() {
+    const fokus = FOKUS.filter(function (f) {
+      return f.id === generator.fokus;
+    })[0];
+    const anzahl = Math.max(2, Math.round(generator.minuten / MINUTEN_JE_UEBUNG));
+    const liste = [];
+    const schonDa = [];
+    for (let i = 0; i < fokus.plaetze.length && liste.length < anzahl; i++) {
+      const kandidaten = vorschlagKandidaten(fokus.plaetze[i], schonDa);
+      if (kandidaten.length > 0) {
+        const u = vorschlagWaehlen(kandidaten, i);
+        const wdh = VORSCHLAG_WDH[Math.min(liste.length, VORSCHLAG_WDH.length - 1)];
+        schonDa.push(u.id);
+        liste.push({ id: u.id, gruppe: fokus.plaetze[i], platz: i, wdh: wdh[0], wdhMax: wdh[1] });
+      }
+    }
+    return liste;
+  }
+
+  // Der Vorschlag als Routine für trainingBeginnen: 3 Sätze, Wdh. wie gezeigt, Standard-Pause. Er wird nicht gespeichert.
+  function vorschlagRoutine() {
+    return {
+      id: "",
+      name: txt("fokus." + generator.fokus),
+      uebungen: generator.uebungen.map(function (v) {
+        const u = UEBUNG_NACH_ID[v.id];
+        return { name: anzeigeName(u.de, u.id), uebungId: u.id, muskelgruppe: GRUPPE_NACH_ID[uebungGruppe(u)][sprache], zielSaetze: 3, zielWdh: v.wdh, zielWdhMax: v.wdhMax, pause: null };
+      })
+    };
+  }
+
+  function vorschlagSeiteBauen(inhalt, unten) {
+    inhalt.appendChild(element("div", "seiten-gross", txt("fokus." + generator.fokus)));
+    const stand = geraeteStand();
+    const teile = [txt("generator.minuten", { m: generator.minuten }), uebungenText(generator.uebungen.length), txt("geraete.ort." + stand.ort)];
+    const liste = einschraenkungen();
+    if (liste.length === 1) {
+      teile.push(txt("stelle." + liste[0].stelle + ".schonend"));
+    } else if (liste.length > 1) {
+      teile.push(txt("vorschlag.schonend"));
+    }
+    inhalt.appendChild(element("p", "seiten-text", teile.join(" · ")));
+    const karte = element("div", "karte seiten-liste vorschlag-liste");
+    generator.uebungen.forEach(function (v) {
+      const u = UEBUNG_NACH_ID[v.id];
+      const zeile = element("div", "vorschlag-zeile");
+      zeile.appendChild(seitenFigur(uebungGruppe(u)));
+      const text = element("span", "vorschlag-text");
+      text.appendChild(element("span", "vorschlag-name", anzeigeName(u.de, u.id)));
+      const info = element("span", "seiten-klein", txt("vorschlag.ziel", { s: 3, von: v.wdh, bis: v.wdhMax }));
+      const punkte = verlaufPunkte(u.de, u.id, "schwer");
+      if (punkte.length > 0 && punkte[punkte.length - 1].wert > 0) {
+        info.appendChild(document.createTextNode(" · " + kgText(punkte[punkte.length - 1].wert)));
+      } else if (uebungGeraete(u).length > 0) {
+        info.appendChild(document.createTextNode(" · "));
+        info.appendChild(element("span", "vorschlag-neu", txt("vorschlag.startgewicht")));
+      }
+      text.appendChild(info);
+      zeile.appendChild(text);
+      const tausch = element("button", "vorschlag-tausch");
+      tausch.type = "button";
+      tausch.setAttribute("aria-label", txt("vorschlag.tauschen", { name: anzeigeName(u.de, u.id) }));
+      tausch.innerHTML = iconSvg("wechsel");
+      const kandidaten = vorschlagKandidaten(v.gruppe, generator.uebungen.map(function (x) {
+        return x.id;
+      }));
+      tausch.disabled = kandidaten.length === 0;
+      tausch.onclick = function () {
+        generator.wurf++;
+        v.id = vorschlagWaehlen(kandidaten, v.platz).id;
+        korundSeiteZeichnen();
+      };
+      zeile.appendChild(tausch);
+      karte.appendChild(zeile);
+    });
+    if (generator.uebungen.length === 0) {
+      karte.appendChild(seitenZeile(txt("vorschlag.leer"), undefined, null, { klasse: "leise" }));
+    }
+    inhalt.appendChild(karte);
+    unten.appendChild(seitenKnopf(txt("vorschlag.neu"), false, function () {
+      generator.wurf++;
+      generator.uebungen = vorschlagBauen();
+      korundSeiteZeichnen();
+    }));
+    if (generator.uebungen.length > 0) {
+      unten.appendChild(seitenKnopf("▶ " + txt("routine.starten"), true, function () {
+        const routine = vorschlagRoutine();
+        korundSeitenSchliessen();
+        routineStarten(routine);
+      }));
+    }
+  }
+
+  // ---------- Ruhetag im Training-Tab ----------
+
+  // Die nächste geplante Routine nach heute (bis zu sechs Tage weiter) als { routine, tag } oder null
+  function naechsteGeplante() {
+    const heute = (new Date().getDay() + 6) % 7;
+    for (let i = 1; i < 7; i++) {
+      const routine = routineFinden(wochenplan[(heute + i) % 7]);
+      if (routine && routine.uebungen.length > 0) {
+        return { routine: routine, tag: i === 1 ? txt("ruhetag.morgen") : wochentag((heute + i) % 7) };
+      }
+    }
+    return null;
+  }
+
+  // Heute ist nichts geplant oder Ruhetag: Karte „Heute“ und die Liste mit Zusatz-Training und Verschieben
+  function trainingRuhetagAnzeigen(bereich) {
+    const ruhe = wochenplan[(new Date().getDay() + 6) % 7] === "ruhe";
+    const karte = element("div", "karte seiten-karte ruhetag-karte");
+    karte.appendChild(element("div", "seiten-klein-label", txt("heute")));
+    karte.appendChild(element("div", "seiten-gross", txt(ruhe ? "ruhetag" : "home.nichtsGeplant")));
+    karte.appendChild(element("div", "seiten-klein", txt(ruhe ? "ruhetag.text" : "ruhetag.textLeer")));
+    const naechste = naechsteGeplante();
+    if (naechste) {
+      karte.appendChild(element("div", "seiten-trenn"));
+      const zeile = element("div", "seiten-kopfzeile");
+      zeile.appendChild(seitenFigur(routineGruppenIds(naechste.routine, 1)[0]));
+      const text = element("span", "seiten-stapel");
+      text.appendChild(element("span", "seiten-klein-label", naechste.tag));
+      text.appendChild(element("span", "seiten-titel", naechste.routine.name));
+      zeile.appendChild(text);
+      zeile.appendChild(element("span", "seiten-klein seiten-rechts", uebungenText(naechste.routine.uebungen.length) + " · " + txt("generator.minuten", { m: routineDauerMinuten(naechste.routine) })));
+      karte.appendChild(zeile);
+    }
+    bereich.appendChild(karte);
+    const liste = element("div", "karte seiten-liste ruhetag-liste");
+    liste.appendChild(seitenZeile(txt("zusatz.titel"), undefined, zusatzTrainingOeffnen, { icon: "plus", klasse: "signal" }));
+    // Ohne geplante Routine in der Woche gibt es nichts zu verschieben, dann heißt die Zeile „Woche planen“
+    const geplant = wochenplan.some(function (id) {
+      return routineFinden(id);
+    });
+    liste.appendChild(seitenZeile(txt(geplant ? "ruhetag.verschieben" : "ruhetag.planen"), undefined, function () {
+      document.getElementById("wochenplan").scrollIntoView({ behavior: "smooth", block: "center" });
+    }, { icon: "kalender" }));
+    bereich.appendChild(liste);
+  }
+
+  // ---------- Rückblick nach 6 Wochen ----------
+
+  // Nach so vielen Tagen im Block und mindestens so vielen Trainingstagen darin bietet Korund den Rückblick an
+  const RUECKBLICK_TAGE = 42;
+  const RUECKBLICK_MIN_TRAININGS = 6;
+
+  // Ab wann der Block zählt: der letzte Rückblick (einstellungen.rueckblickAm), sonst der erste Eintrag
+  function rueckblickStart() {
+    if (typeof einstellungen.rueckblickAm === "number" && isFinite(einstellungen.rueckblickAm)) {
+      return einstellungen.rueckblickAm;
+    }
+    let erster = Infinity;
+    eintraege.forEach(function (e) {
+      if (hatDatum(e)) {
+        erster = Math.min(erster, new Date(e.datum).getTime());
+      }
+    });
+    return erster;
+  }
+
+  // Die Trainingstage im Block (ein Tag zählt, wenn er nach dem Start endet)
+  function rueckblickTrainings(start) {
+    const tage = trainingstage();
+    return Object.keys(tage).filter(function (s) {
+      return tage[s].datum.getTime() + 86400000 > start;
+    }).length;
+  }
+
+  function rueckblickFaellig() {
+    const start = rueckblickStart();
+    return isFinite(start) && Date.now() - start >= RUECKBLICK_TAGE * 86400000 && rueckblickTrainings(start) >= RUECKBLICK_MIN_TRAININGS;
+  }
+
+  // Die Karte oben im Training-Tab, wenn ein Rückblick fällig ist
+  function rueckblickKarteAnzeigen(bereich) {
+    if (!rueckblickFaellig()) {
+      return;
+    }
+    const karte = element("button", "karte seiten-karte rueckblick-karte");
+    karte.type = "button";
+    const symbol = element("span", "rueckblick-symbol");
+    symbol.innerHTML = iconSvg("kalender");
+    karte.appendChild(symbol);
+    const text = element("span", "seiten-stapel");
+    text.appendChild(element("span", "seiten-titel", txt("rueckblick.karte")));
+    text.appendChild(element("span", "seiten-klein", txt("rueckblick.karteText")));
+    karte.appendChild(text);
+    karte.appendChild(element("span", "seiten-pfeil", "›"));
+    karte.onclick = rueckblickOeffnen;
+    bereich.appendChild(karte);
+  }
+
+  // Antworten und Vorschläge, nur für diese Sitzung
+  let rueckblick = { schlaf: "gut", energie: "normal", menge: "passt", aenderungen: [] };
+
+  function rueckblickOeffnen() {
+    rueckblick = { schlaf: "gut", energie: "normal", menge: "passt", aenderungen: [] };
+    korundSeiteOeffnen({
+      titel: txt("rueckblick.titel"),
+      schliessen: true,
+      rechts: function () {
+        return txt("rueckblick.schritt", { n: 1 });
+      },
+      bauen: rueckblickFragenBauen
+    });
+  }
+
+  // Die Veränderung des geschätzten 1RM im Block, gemittelt über die Übungen mit mindestens zwei Tagen darin, oder null
+  function rueckblickKraft(start) {
+    const anteile = [];
+    trainierteUebungen().forEach(function (u) {
+      const punkte = verlaufPunkte(u.name, u.id, "1rm").filter(function (p) {
+        return p.zeit + 86400000 > start && p.wert > 0;
+      });
+      if (punkte.length >= 2) {
+        anteile.push(punkte[punkte.length - 1].wert / punkte[0].wert - 1);
+      }
+    });
+    if (anteile.length === 0) {
+      return null;
+    }
+    return anteile.reduce(function (a, b) {
+      return a + b;
+    }, 0) / anteile.length;
+  }
+
+  const RUECKBLICK_FRAGEN = [
+    { id: "schlaf", werte: ["schlecht", "okay", "gut"] },
+    { id: "energie", werte: ["muede", "normal", "stark"] },
+    { id: "menge", werte: ["wenig", "passt", "viel"] }
+  ];
+
+  function rueckblickFragenBauen(inhalt, unten) {
+    const start = rueckblickStart();
+    const wochen = Math.max(1, Math.round((Date.now() - start) / (7 * 86400000)));
+    inhalt.appendChild(element("div", "seiten-gross", txtAnzahl("rueckblick.geschafft", wochen)));
+    inhalt.appendChild(element("p", "seiten-text", txt("rueckblick.text")));
+    const kacheln = element("div", "rueckblick-kacheln");
+    const kachel = function (wert, titel, klasse) {
+      const k = element("div", "karte rueckblick-kachel");
+      k.appendChild(element("b", klasse, wert));
+      k.appendChild(element("span", "seiten-klein", titel));
+      kacheln.appendChild(k);
+    };
+    const kraft = rueckblickKraft(start);
+    kachel(kraft === null ? "–" : prozentText(kraft), txt("rueckblick.kraft"), kraft !== null && kraft > 0 ? "plus" : "metall");
+    kachel(String(rueckblickTrainings(start)), txt("rueckblick.trainings"), "metall");
+    kachel(String(gesamtZahlen().serie), txt("statistik.serie"), "serie");
+    inhalt.appendChild(kacheln);
+    RUECKBLICK_FRAGEN.forEach(function (f) {
+      inhalt.appendChild(element("div", "seiten-titel rueckblick-frage", txt("rueckblick.frage." + f.id)));
+      inhalt.appendChild(seitenUmschalter(f.werte.map(function (w) {
+        return { id: w, text: txt("rueckblick." + f.id + "." + w) };
+      }), rueckblick[f.id], function (w) {
+        rueckblick[f.id] = w;
+        korundSeiteZeichnen();
+      }));
+    });
+    unten.appendChild(seitenKnopf(txt("rueckblick.weiter"), true, function () {
+      rueckblick.aenderungen = rueckblickVorschlaege(start);
+      korundSeiteOeffnen({
+        titel: txt("rueckblick.titel"),
+        rechts: function () {
+          return txt("rueckblick.schritt", { n: 2 });
+        },
+        bauen: rueckblickBlockBauen
+      });
+    }));
+  }
+
+  // Die Arbeitssätze je Körperpartie seit dem Start des Blocks
+  function rueckblickSaetze(start) {
+    const saetze = {};
+    eintraege.forEach(function (e) {
+      if (!hatDatum(e) || new Date(e.datum).getTime() < start) {
+        return;
+      }
+      const partie = erholungPartie(gruppeIdVon(e.uebungId, e.muskelgruppe));
+      if (partie) {
+        saetze[partie] = (saetze[partie] || 0) + arbeitsSaetzeVon(e).length;
+      }
+    });
+    return saetze;
+  }
+
+  // Die Vorschläge für den nächsten Block, je einer: { art, text, info, an, routineId, platz, wert }.
+  // Sie ändern erst mit „Übernehmen“ etwas, und auch dann nur neue Kopien der Routinen. Höchstens einer je Übung.
+  function rueckblickVorschlaege(start) {
+    const liste = [];
+    const vergeben = {};
+    const dazu = function (art, r, platz, text, info, wert) {
+      const schluessel = r.id + ":" + platz;
+      if (vergeben[schluessel]) {
+        return;
+      }
+      vergeben[schluessel] = true;
+      liste.push({ art: art, text: text, info: info, an: true, routineId: r.id, platz: platz, wert: wert });
+    };
+    const saetze = rueckblickSaetze(start);
+    const partieVon = function (u) {
+      return erholungPartie(gruppeIdVon(u.uebungId, u.muskelgruppe));
+    };
+    // 1. Einschränkungen: eine passende andere Übung derselben Muskelgruppe
+    routinen.forEach(function (r) {
+      r.uebungen.forEach(function (u, platz) {
+        const fest = UEBUNG_NACH_ID[u.uebungId];
+        const stelle = uebungEingeschraenkt(fest);
+        if (!stelle) {
+          return;
+        }
+        const andere = vorschlagKandidaten(uebungGruppe(fest), r.uebungen.map(function (x) {
+          return x.uebungId;
+        }));
+        if (andere.length > 0) {
+          const neu = andere[0];
+          const name = anzeigeName(neu.de, neu.id);
+          dazu("tausch", r, platz, txt("rueckblick.tausch", { neu: name, alt: u.name }), txt("rueckblick.tauschInfo." + stelle), { name: name, uebungId: neu.id, muskelgruppe: GRUPPE_NACH_ID[uebungGruppe(neu)][sprache] });
+        }
+      });
+    });
+    // 2. Der Rücken hinkt der Brust hinterher: ein Satz mehr bei der ersten Rücken-Übung jeder Routine
+    if ((saetze.brust || 0) > 0 && (saetze.ruecken || 0) < saetze.brust * 0.8) {
+      routinen.forEach(function (r) {
+        const platz = r.uebungen.findIndex(function (u) {
+          return partieVon(u) === "ruecken";
+        });
+        if (platz !== -1 && r.uebungen[platz].zielSaetze > 0 && r.uebungen[platz].zielSaetze < 10) {
+          dazu("plus", r, platz, txt("rueckblick.mehrRuecken", { name: r.uebungen[platz].name }), txt("rueckblick.mehrRueckenInfo"), { zielSaetze: r.uebungen[platz].zielSaetze + 1 });
+        }
+      });
+    }
+    // 3. Kein Plus im Block bei mindestens vier Tagen und Ziel ab 10 Wdh.: 6–10 Wdh., dafür mehr Gewicht
+    routinen.forEach(function (r) {
+      r.uebungen.forEach(function (u, platz) {
+        const punkte = verlaufPunkte(u.name, u.uebungId, "1rm").filter(function (p) {
+          return p.zeit + 86400000 > start && p.wert > 0;
+        });
+        if (punkte.length >= 4 && punkte[punkte.length - 1].wert <= punkte[0].wert * 1.01 && (u.zielWdhMax || u.zielWdh || 0) >= 10) {
+          dazu("hoch", r, platz, txt("rueckblick.wdh", { name: u.name }), txt("rueckblick.wdhInfo"), { zielWdh: 6, zielWdhMax: 10 });
+        }
+      });
+    });
+    // 4. Die Antworten: zu viel (oder müde nach schlechtem Schlaf) heißt einen Satz weniger ab vier Sätzen,
+    //    zu wenig ohne Müdigkeit einen Satz mehr bei der ersten Übung jeder Routine
+    const weniger = rueckblick.menge === "viel" || (rueckblick.schlaf === "schlecht" && rueckblick.energie === "muede");
+    routinen.forEach(function (r) {
+      if (weniger) {
+        r.uebungen.forEach(function (u, platz) {
+          if (u.zielSaetze >= 4) {
+            dazu("minus", r, platz, txt("rueckblick.weniger", { name: u.name }), txt("rueckblick.wenigerInfo"), { zielSaetze: u.zielSaetze - 1 });
+          }
+        });
+      } else if (rueckblick.menge === "wenig" && rueckblick.energie !== "muede" && r.uebungen.length > 0 && r.uebungen[0].zielSaetze > 0 && r.uebungen[0].zielSaetze < 10) {
+        dazu("plus", r, 0, txt("rueckblick.mehr", { name: r.uebungen[0].name }), txt("rueckblick.mehrInfo"), { zielSaetze: r.uebungen[0].zielSaetze + 1 });
+      }
+    });
+    return liste;
+  }
+
+  function rueckblickBlockBauen(inhalt, unten) {
+    inhalt.appendChild(element("div", "seiten-gross", txt("rueckblick.block")));
+    const liste = rueckblick.aenderungen;
+    inhalt.appendChild(element("p", "seiten-text", txt(liste.length > 0 ? "rueckblick.blockText" : "rueckblick.allesGut")));
+    if (liste.length > 0) {
+      const karte = element("div", "karte seiten-liste");
+      const zeichen = { plus: "+", minus: "−", tausch: "↔", hoch: "↑" };
+      liste.forEach(function (a) {
+        const zeile = element("button", "rueckblick-aenderung" + (a.an ? "" : " aus"));
+        zeile.type = "button";
+        zeile.setAttribute("aria-pressed", a.an ? "true" : "false");
+        zeile.appendChild(element("span", "rueckblick-marke " + a.art, zeichen[a.art]));
+        const text = element("span", "vorschlag-text");
+        text.appendChild(element("span", "vorschlag-name", a.text));
+        text.appendChild(element("span", "seiten-klein", a.info));
+        zeile.appendChild(text);
+        zeile.onclick = function () {
+          a.an = !a.an;
+          korundSeiteZeichnen();
+        };
+        karte.appendChild(zeile);
+      });
+      inhalt.appendChild(karte);
+      inhalt.appendChild(element("p", "seiten-fuss", txt("rueckblick.antippen")));
+    }
+    inhalt.appendChild(seitenLabel(txt("rueckblick.woche")));
+    const woche = element("div", "rueckblick-woche");
+    for (let i = 0; i < 7; i++) {
+      const routine = routineFinden(wochenplan[i]);
+      const tag = element("div", routine ? "an" : "");
+      tag.appendChild(element("small", "", wochentag(i)));
+      tag.appendChild(element("b", "", routine ? routine.name.trim().charAt(0).toUpperCase() : "–"));
+      woche.appendChild(tag);
+    }
+    inhalt.appendChild(woche);
+    unten.appendChild(seitenKnopf(txt("rueckblick.anpassen"), false, korundSeiteZurueck));
+    unten.appendChild(seitenKnopf(txt("rueckblick.uebernehmen"), true, rueckblickUebernehmen));
+  }
+
+  // Legt für jede Routine mit gewählten Änderungen eine Kopie „Name (Block N)“ an und trägt die Änderungen nur dort ein.
+  // Die alten Routinen und der Wochenplan bleiben unverändert. Danach beginnt der neue Block (rueckblickAm, rueckblickAnzahl).
+  function rueckblickUebernehmen() {
+    const nummer = (typeof einstellungen.rueckblickAnzahl === "number" ? einstellungen.rueckblickAnzahl : 0) + 2;
+    const kopien = {};
+    const neu = [];
+    rueckblick.aenderungen.forEach(function (a) {
+      const alt = routineFinden(a.routineId);
+      if (!a.an || !alt || !alt.uebungen[a.platz]) {
+        return;
+      }
+      if (!kopien[a.routineId]) {
+        kopien[a.routineId] = { id: neueId(), name: alt.name.replace(/ \(Block \d+\)$/, "") + " " + txt("rueckblick.blockName", { n: nummer }), uebungen: uebungenKopieren(alt.uebungen) };
+        neu.push(kopien[a.routineId]);
+      }
+      const u = kopien[a.routineId].uebungen[a.platz];
+      Object.keys(a.wert).forEach(function (feld) {
+        u[feld] = a.wert[feld];
+      });
+    });
+    neu.forEach(function (r) {
+      routinen.push(r);
+    });
+    if (neu.length > 0) {
+      routinenSpeichern();
+    }
+    einstellungen.rueckblickAm = Date.now();
+    einstellungen.rueckblickAnzahl = nummer - 1;
+    einstellungenSpeichern();
+    korundSeitenSchliessen();
+    trainingAnzeigen();
+    frageZeigen(txt("rueckblick.fertigTitel"), neu.length > 0 ? txtAnzahl("rueckblick.fertigText", neu.length, {
+      namen: neu.map(function (r) {
+        return r.name;
+      }).join(", ")
+    }) : txt("rueckblick.fertigOhne"), [{ text: txt("ok"), art: "haupt" }]);
   }
 
   // ---------- Einstellungen ----------

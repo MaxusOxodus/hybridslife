@@ -607,6 +607,144 @@
   color: var(--fw-erfolg);
 }
 
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz {
+  display: block;
+  margin-top: 10px;
+  padding: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-titel {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-zahl {
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-raster {
+  display: grid;
+  grid-template-columns: 24px repeat(12, 1fr);
+  grid-template-rows: repeat(7, 13px);
+  grid-auto-flow: column;
+  gap: 4px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-wt {
+  color: var(--text-leise);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld {
+  height: 13px;
+  border-radius: 4px;
+  background: rgba(238, 242, 247, 0.06);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.stufe-1 {
+  background: rgba(var(--fw-signal-rgb), 0.55);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.stufe-2 {
+  background: var(--fw-signal);
+  box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.45);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.heute {
+  outline: 1.5px solid rgba(238, 242, 247, 0.7);
+  outline-offset: 1px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.spaeter {
+  background: transparent;
+  border: 1px dashed rgba(238, 242, 247, 0.08);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-kg-leer="ja"] :is(#kg-kopf, #kg-zeitraum, #kg-legende, #kg-klapp-btn, #kg-klapp, #kg-kacheln),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-kg-leer="ja"] h2:has(+ #kg-kacheln),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-fett-leer="ja"] :is(#fett-kopf, #fett-zeitraum, #fett-legende, #fett-klapp-btn, #fett-klapp) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-info,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-offen {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-anzahl {
+  display: block;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-plakette {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 26px;
+  margin-left: auto;
+  padding: 0 10px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-plakette.plus {
+  background: rgba(var(--fw-erfolg-rgb), 0.14);
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-plakette.minus {
+  background: rgba(255, 107, 107, 0.14);
+  color: #FF8A8A;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-plakette.gleich {
+  background: rgba(238, 242, 247, 0.08);
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-offen-knopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 4px;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-offen-knopf::after {
+  content: "⌄";
+  margin-top: -6px;
+  transition: transform 0.2s;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-offen-auf .gruppen-offen-knopf::after {
+  transform: rotate(180deg) translateY(-6px);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen:not(.gruppen-offen-auf) .gruppen-zeile.aus {
+  display: none;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -1092,6 +1230,144 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile-haken {
     color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz {
+    display: block;
+    margin-top: 10px;
+    padding: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-titel {
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-zahl {
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-raster {
+    display: grid;
+    grid-template-columns: 24px repeat(12, 1fr);
+    grid-template-rows: repeat(7, 13px);
+    grid-auto-flow: column;
+    gap: 4px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-wt {
+    color: var(--text-leise);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld {
+    height: 13px;
+    border-radius: 4px;
+    background: rgba(238, 242, 247, 0.06);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.stufe-1 {
+    background: rgba(var(--fw-signal-rgb), 0.55);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.stufe-2 {
+    background: var(--fw-signal);
+    box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.45);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.heute {
+    outline: 1.5px solid rgba(238, 242, 247, 0.7);
+    outline-offset: 1px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.spaeter {
+    background: transparent;
+    border: 1px dashed rgba(238, 242, 247, 0.08);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-kg-leer="ja"] :is(#kg-kopf, #kg-zeitraum, #kg-legende, #kg-klapp-btn, #kg-klapp, #kg-kacheln),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-kg-leer="ja"] h2:has(+ #kg-kacheln),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-fett-leer="ja"] :is(#fett-kopf, #fett-zeitraum, #fett-legende, #fett-klapp-btn, #fett-klapp) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-info,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-offen {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-anzahl {
+    display: block;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-plakette {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    height: 26px;
+    margin-left: auto;
+    padding: 0 10px;
+    border-radius: 13px;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-plakette.plus {
+    background: rgba(var(--fw-erfolg-rgb), 0.14);
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-plakette.minus {
+    background: rgba(255, 107, 107, 0.14);
+    color: #FF8A8A;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-plakette.gleich {
+    background: rgba(238, 242, 247, 0.08);
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-offen-knopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px 4px;
+    border: none;
+    background: none;
+    color: var(--text-leise);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-offen-knopf::after {
+    content: "⌄";
+    margin-top: -6px;
+    transition: transform 0.2s;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-offen-auf .gruppen-offen-knopf::after {
+    transform: rotate(180deg) translateY(-6px);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen:not(.gruppen-offen-auf) .gruppen-zeile.aus {
+    display: none;
   }
 
 }

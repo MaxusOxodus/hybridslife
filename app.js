@@ -2714,8 +2714,87 @@
     document.getElementById("stat-serie").textContent = zahlen.serie;
     document.getElementById("stat-serie-titel").textContent = txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE });
 
+    konstanzAnzeigen();
     koerpergewichtAnzeigen();
     fortschrittUebungenAnzeigen();
+  }
+
+  // ---------- Fortschritt: Konstanz (nur im Look Korund zu sehen) ----------
+
+  // So viele Wochen zeigt das Raster, die laufende Woche ist die letzte Zeile
+  const KONSTANZ_WOCHEN = 12;
+
+  // Die Trainingstage der letzten Wochen als Raster: eine Zeile je Woche, Montag bis Sonntag.
+  // stufe: 0 = kein Training, 1 = ein Workout, 2 = mehr als ein Workout an dem Tag. Tage nach heute sind "spaeter".
+  function konstanzDaten(liste, heute, wochen) {
+    const jeTag = {};
+    for (let i = 0; i < liste.length; i++) {
+      const e = liste[i];
+      if (!e || !e.datum || isNaN(new Date(e.datum))) {
+        continue;
+      }
+      const tag = tagSchluessel(new Date(e.datum));
+      // Mehrere Einträge eines Trainings zählen als ein Workout: unterschieden wird nach Routine bzw. Stunde
+      const training = (e.routineName || "") + "|" + (e.trainingId || new Date(e.datum).getHours());
+      if (!jeTag[tag]) {
+        jeTag[tag] = {};
+      }
+      jeTag[tag][training] = true;
+    }
+    const heuteTag = tagSchluessel(heute);
+    const start = montagDerWoche(heute);
+    start.setDate(start.getDate() - (wochen - 1) * 7);
+    const zeilen = [];
+    let tage = 0;
+    for (let w = 0; w < wochen; w++) {
+      const zeile = [];
+      for (let d = 0; d < 7; d++) {
+        const datum = new Date(start.getFullYear(), start.getMonth(), start.getDate() + w * 7 + d);
+        const tag = tagSchluessel(datum);
+        const anzahl = jeTag[tag] ? Object.keys(jeTag[tag]).length : 0;
+        zeile.push({ tag: tag, stufe: Math.min(anzahl, 2), heute: tag === heuteTag, spaeter: tag > heuteTag });
+        if (anzahl > 0 && tag <= heuteTag) {
+          tage++;
+        }
+      }
+      zeilen.push(zeile);
+    }
+    return { zeilen: zeilen, tage: tage };
+  }
+
+  function konstanzAnzeigen() {
+    const bereich = document.getElementById("konstanz");
+    if (!bereich) {
+      return;
+    }
+    const daten = konstanzDaten(eintraege, new Date(), KONSTANZ_WOCHEN);
+    bereich.innerHTML = "";
+    const kopf = element("div", "konstanz-kopf");
+    kopf.appendChild(element("span", "konstanz-titel", txt("konstanz.titel")));
+    kopf.appendChild(element("span", "konstanz-zahl", txt("konstanz.tage", { n: daten.tage, w: KONSTANZ_WOCHEN })));
+    bereich.appendChild(kopf);
+
+    const raster = element("div", "konstanz-raster");
+    raster.setAttribute("role", "img");
+    raster.setAttribute("aria-label", txt("konstanz.tage", { n: daten.tage, w: KONSTANZ_WOCHEN }));
+    // Erste Spalte: die Wochentage (Mo, Mi, Fr beschriftet). Danach eine Spalte je Woche, die laufende rechts.
+    for (let d = 0; d < 7; d++) {
+      raster.appendChild(element("span", "konstanz-wt", d % 2 === 0 && d < 6 ? wochentag(d).slice(0, 2) : ""));
+    }
+    for (let w = 0; w < daten.zeilen.length; w++) {
+      for (let d = 0; d < 7; d++) {
+        const f = daten.zeilen[w][d];
+        let klasse = "konstanz-feld stufe-" + f.stufe;
+        if (f.heute) {
+          klasse += " heute";
+        }
+        if (f.spaeter) {
+          klasse += " spaeter";
+        }
+        raster.appendChild(element("span", klasse));
+      }
+    }
+    bereich.appendChild(raster);
   }
 
   // ---------- Training: Helfer ----------
@@ -8250,6 +8329,9 @@
 
   // Ebene 1: die Muskelgruppen als Zeilen. Unter dem Namen stehen die Zahl der trainierten Übungen und die beste
   // Steigerung der Gruppe im gewählten Zeitraum. Gruppen ohne Übung stehen ausgegraut am Ende.
+  // Sind im Look Korund die Gruppen ohne Einträge aufgeklappt?
+  let gruppenOffenAuf = false;
+
   function gruppenListeAnzeigen(bereich, gruppen) {
     fortschrittZeitraumBauen(bereich);
     let titelGesetzt = false;
@@ -8259,6 +8341,25 @@
       const trainiert = g.uebungen.length > 0;
       if (!trainiert && !titelGesetzt) {
         bereich.appendChild(element("div", "sheet-abschnitt gruppen-offen", txt("gruppen.offen")));
+        // Im Look Korund sind die Gruppen ohne Einträge eingeklappt. Dieser Knopf ist nur dort zu sehen (korund.css).
+        let ohne = 0;
+        for (let j = i; j < gruppen.length; j++) {
+          if (gruppen[j].uebungen.length === 0) {
+            ohne++;
+          }
+        }
+        const knopf = element("button", "gruppen-offen-knopf", txt("gruppen.offenKnopf", { n: ohne }));
+        knopf.setAttribute("aria-expanded", gruppenOffenAuf ? "true" : "false");
+        knopf.onclick = function () {
+          gruppenOffenAuf = !gruppenOffenAuf;
+          fortschrittUebungenAnzeigen();
+        };
+        bereich.appendChild(knopf);
+        if (gruppenOffenAuf) {
+          bereich.classList.add("gruppen-offen-auf");
+        } else {
+          bereich.classList.remove("gruppen-offen-auf");
+        }
         titelGesetzt = true;
       }
 
@@ -8278,7 +8379,9 @@
         if (g.beste !== null) {
           steigerung = txt("gruppen.in." + fortschrittZeitraum, { wert: prozentText(g.beste) });
         }
-        text.appendChild(element("span", "routine-info", txtAnzahl("anzahl.uebungen", g.uebungen.length) + " · " + steigerung));
+        text.appendChild(element("span", "routine-info gruppen-info", txtAnzahl("anzahl.uebungen", g.uebungen.length) + " · " + steigerung));
+        // Nur im Look Korund zu sehen: die Zahl der Übungen allein, die Steigerung steht dort als Plakette rechts
+        text.appendChild(element("span", "routine-info gruppen-anzahl", txtAnzahl("anzahl.uebungen", g.uebungen.length)));
       } else {
         zeile.classList.add("aus");
         text.appendChild(element("span", "routine-info", txt("gruppen.keine")));
@@ -8286,6 +8389,11 @@
       zeile.appendChild(text);
 
       if (trainiert) {
+        if (g.beste !== null) {
+          const plakette = element("span", "gruppen-plakette " + (g.beste > 0 ? "plus" : g.beste < 0 ? "minus" : "gleich"), prozentText(g.beste));
+          plakette.setAttribute("aria-hidden", "true");
+          zeile.appendChild(plakette);
+        }
         const pfeil = element("span", "einst-pfeil", "›");
         pfeil.setAttribute("aria-hidden", "true");
         zeile.appendChild(pfeil);
@@ -9351,6 +9459,13 @@
     const liste = gewichtMessungen();
     messBereichAnzeigen("kg");
     messBereichAnzeigen("fett");
+
+    // Ohne Messungen blendet der Look Korund Zeitraum, Legende, Kalender und Kacheln aus (korund.css)
+    const seite = document.getElementById("seite-fortschritt");
+    if (seite && seite.setAttribute) {
+      seite.setAttribute("data-kg-leer", liste.length === 0 ? "ja" : "nein");
+      seite.setAttribute("data-fett-leer", messArt("fett").messungen().length === 0 ? "ja" : "nein");
+    }
 
     // Kacheln: Schnitt am Tag der letzten Messung minus Schnitt so viele Tage davor
     const kacheln = document.getElementById("kg-kacheln");

@@ -6062,3 +6062,11 @@ body.tour-zeigt-pause #modus-wahl {
   line-height: 1.35;
   resize: vertical;
 }
+
+/* Nur im Look Korund zu sehen (korund.css): Konstanz-Raster, Knopf für ungeübte Muskelgruppen, Steigerung als Plakette */
+.konstanz,
+.gruppen-offen-knopf,
+.gruppen-plakette,
+.gruppen-anzahl {
+  display: none;
+}

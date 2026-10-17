@@ -311,13 +311,22 @@
   margin-top: 1px;
   font-size: 19px;
   font-weight: 600;
-  white-space: nowrap;
 }
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-wert small {
+  white-space: nowrap;
   color: var(--text-leise);
   font-size: 13px;
   font-weight: 500;
+}
+
+@media (max-width: 359px) {
+  :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k {
+    gap: 14px;
+  }
+  :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-bild {
+    width: 78px;
+  }
 }
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chips {
@@ -936,13 +945,22 @@
     margin-top: 1px;
     font-size: 19px;
     font-weight: 600;
-    white-space: nowrap;
   }
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-wert small {
+    white-space: nowrap;
     color: var(--text-leise);
     font-size: 13px;
     font-weight: 500;
+  }
+
+  @media (max-width: 359px) {
+    :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k {
+      gap: 14px;
+    }
+    :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-bild {
+      width: 78px;
+    }
   }
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chips {

@@ -715,8 +715,27 @@ h1 {
   margin-top: 0;
 }
 
-/* Die Zahlen der Woche als Ringe (seit Version 137): oben das Volumen, darunter Workouts und Wiederholungen.
+/* Die Zahlen der Woche als Ringe (seit Version 137, Aufbau seit Version 138): oben der Kopf mit Symbol, Titel und Pfeil,
+   darunter links der große Ring, rechts sein Ziel und die zwei kleinen Ringe zum Tauschen.
+   Die Größen hängen an der Breite der Karte (cqw, 1 % ihrer Innenbreite), so passt alles auch bei 320 px.
+   Die erste Zeile mit festen px gilt für Browser, die cqw nicht kennen.
    Die Ringe folgen der Akzentfarbe: Spur ganz leicht, Volumen voll, Workouts im Schrift-Ton, Wiederholungen gedämpft. */
+.wochen-ringe {
+  container-type: inline-size;
+}
+
+.wochen-karte-kopf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -8px -12px 6px 0;
+}
+
+.wochen-symbol {
+  flex-shrink: 0;
+  color: var(--akzent-text);
+}
+
 .wochen-ringe-titel,
 .wochen-ring-titel {
   color: var(--text-leise);
@@ -726,25 +745,55 @@ h1 {
   text-transform: uppercase;
 }
 
-.wochen-ring-gross,
-.wochen-ring-klein {
-  position: relative;
-  margin: 0 auto;
+.wochen-ringe-titel {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* Der Pfeil zur Statistik: 44 px Tippfläche, sichtbar ist der Kreis wie bei den Knöpfen der Kacheln */
+.wochen-pfeil {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+}
+
+.wochen-inhalt {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  gap: 4.4cqw;
 }
 
 .wochen-ring-gross {
-  width: 165px;
-  height: 165px;
-  margin-top: 12px;
+  flex-shrink: 0;
+  width: 140px;
+  width: min(150px, 47.5cqw);
 }
 
-.wochen-ring-klein {
-  width: 90px;
-  height: 90px;
+.wochen-rechts {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Der Kreis gleitet beim Tausch von seinem alten Platz an den neuen (transform aus der app.js, hier läuft es zurück) */
+.wochen-kreis {
+  position: relative;
+  transform-origin: 0 0;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .wochen-ring {
   display: block;
+  width: 100%;
+  height: auto;
 }
 
 .ring-spur,
@@ -779,9 +828,30 @@ h1 {
   }
 }
 
+/* Nach einem Tausch füllen sich die Ringe nicht neu, nur die Schrift blendet ein */
+.getauscht .ring-wert {
+  animation: none;
+}
+
+.getauscht .wochen-ring-innen,
+.getauscht .wochen-ring-name,
+.getauscht .wochen-ziel {
+  animation: wochen-einblenden 0.25s ease-out;
+}
+
+@keyframes wochen-einblenden {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Mit "Bewegung reduzieren" ist jede Animation aus (Regel "prefers-reduced-motion" weiter unten): kein Füllen, kein Gleiten.
+   Nur das kurze Einblenden nach einem Tausch bleibt, damit der Wechsel nicht hart springt. */
 @media (prefers-reduced-motion: reduce) {
-  .ring-wert {
-    animation: none;
+  .getauscht .wochen-ring-innen,
+  .getauscht .wochen-ring-name,
+  .getauscht .wochen-ziel {
+    animation: wochen-einblenden 0.2s ease-out !important;
   }
 }
 
@@ -796,75 +866,124 @@ h1 {
   white-space: nowrap;
 }
 
+.wochen-ring-gross .wochen-ring-titel {
+  font-size: 11px;
+  font-size: min(11px, 3.5cqw);
+}
+
 .wochen-ring-wert {
-  font-size: 34px;
+  font-size: 30px;
+  font-size: min(30px, 9.5cqw);
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.15;
 }
 
 .wochen-ring-wert.lang {
-  font-size: 27px;
+  font-size: 24px;
+  font-size: min(24px, 7.6cqw);
 }
 
-.wochen-ring-einheit {
-  color: var(--text-leise);
-  font-size: 14px;
-}
-
-.wochen-ring-ziel {
-  margin-top: 12px;
+.wochen-ring-unter {
   color: var(--text-leise);
   font-size: 13px;
-  text-align: center;
+  font-size: min(13px, 4.1cqw);
+}
+
+/* Rechts oben das Ziel des großen Rings in zwei Zeilen, darunter die Linie nur über die rechte Spalte */
+.wochen-ziel {
+  color: var(--text-leise);
+  font-size: 13px;
+  font-size: min(13px, 4.1cqw);
+  line-height: 1.35;
   white-space: nowrap;
 }
 
-/* Die Linie geht über die ganze Breite der Karte, auch über ihren Innenabstand */
 .wochen-ringe-linie {
   height: 1px;
-  margin: 18px -20px;
+  margin: 10px 0 12px;
   background: var(--rand);
 }
 
 .wochen-ringe-klein {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
 }
 
-.wochen-ring-spalte {
+/* Ein kleiner Ring ist ein Knopf: Antippen tauscht ihn mit dem großen. Beim Drücken gibt er kurz nach. */
+.wochen-ring-klein {
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-family: inherit;
+  transition: transform 0.1s ease-out;
+}
+
+.wochen-ring-klein:active {
+  transform: scale(0.96);
+}
+
+.wochen-ring-klein .wochen-kreis {
+  width: 68px;
+  width: min(72px, 22.5cqw);
 }
 
 .wochen-ring-zahl {
-  font-size: 24px;
+  font-size: 20px;
+  font-size: min(20px, 6.3cqw);
   font-weight: 500;
   line-height: 1.1;
 }
 
 .wochen-ring-zahl.lang {
-  font-size: 18px;
+  font-size: 16px;
+  font-size: min(16px, 5cqw);
+}
+
+.wochen-ring-zahl.sehr-lang {
+  font-size: 13px;
+  font-size: min(13px, 4.1cqw);
 }
 
 .wochen-ring-von {
   color: var(--text-leise);
-  font-size: 11px;
-}
-
-/* "Ziel erreicht" ist länger als "von 5" und braucht etwas kleinere Schrift, damit es in den Ring passt */
-.wochen-ring-von.erreicht {
   font-size: 10px;
+  font-size: min(10px, 3.2cqw);
 }
 
+.wochen-ring-von.lang {
+  font-size: 9px;
+  font-size: min(9px, 2.85cqw);
+}
+
+/* Unter dem kleinen Ring: Icon und Name */
 .wochen-ring-name {
-  margin-top: 8px;
-  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 6px;
+  font-size: 11px;
+  font-size: min(11px, 3.5cqw);
   font-weight: 500;
   white-space: nowrap;
+}
+
+.wochen-ring-name svg {
+  flex-shrink: 0;
+  width: 1.15em;
+  height: 1.15em;
+  fill: none;
+  stroke: var(--akzent-text);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.75;
 }
 
 .home-tag {
@@ -1037,7 +1156,8 @@ h1 {
   color: var(--text);
 }
 
-.home-kachel .kachel-knopf svg {
+.home-kachel .kachel-knopf svg,
+.wochen-karte-kopf .icon svg {
   box-sizing: content-box;
   width: 16px;
   height: 16px;

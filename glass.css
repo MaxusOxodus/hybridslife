@@ -126,6 +126,20 @@
   --akzent-pille: var(--akzent);
 }
 
+/* Die Ringe der Karte "Diese Woche" auf Home rechnen auch im hellen Glass mit den Tönen der style.css (seit Version 138):
+   Spur leicht getönt, Workouts im dunklen Akzent. Sonst wäre die Spur voll in der Akzentfarbe und der Bogen schwarz. */
+@media (prefers-color-scheme: light) {
+  :root[data-stil="glass"]:not([data-design="dunkel"]) .wochen-ring {
+    --akzent-text: var(--akzent-dunkel);
+    --akzent-leicht: rgba(var(--akzent-dunkel-rgb), 0.12);
+  }
+}
+
+:root[data-stil="glass"][data-design="hell"] .wochen-ring {
+  --akzent-text: var(--akzent-dunkel);
+  --akzent-leicht: rgba(var(--akzent-dunkel-rgb), 0.12);
+}
+
 /* ---------- Hintergrund ---------- */
 
 /* Eine feste Ebene hinter allen Ansichten: zwei weiche Licht-Flecken im Akzentton auf der Grundfarbe.
@@ -238,12 +252,24 @@
 :where([data-stil="glass"]) .knopf:where(:not(.haupt, .leise, #ansicht-modus *)),
 :where([data-stil="glass"]) .schnell button:where(:not(#ansicht-modus *)),
 :where([data-stil="glass"]) .home-kachel .kachel-knopf svg,
+:where([data-stil="glass"]) .wochen-karte-kopf .icon svg,
 :where([data-stil="glass"]) .plan-zeile select,
 :where([data-stil="glass"]) .ziel select,
 :where([data-stil="glass"]) .ziel input,
 :where([data-stil="glass"]) .pfeile button,
 :where([data-stil="glass"]) .vorlage-wochentag:where(:not(.aktiv)) {
   box-shadow: inset 0 0 0 1px var(--glas-kante);
+}
+
+/* Die Ringe der Karte "Diese Woche" auf Home leuchten leicht in der Akzentfarbe, nur im dunklen Design (seit Version 138) */
+:root[data-stil="glass"][data-design="dunkel"] .wochen-ring {
+  filter: drop-shadow(0 0 5px rgba(var(--akzent-rgb), 0.4));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"]:not([data-design="hell"]) .wochen-ring {
+    filter: drop-shadow(0 0 5px rgba(var(--akzent-rgb), 0.4));
+  }
 }
 
 /* Der große grüne Hauptknopf leuchtet weich nach unten, wie "Satz fertig" im Trainingsmodus.

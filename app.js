@@ -9687,7 +9687,12 @@
     wechsel: '<path d="M8 20V4M8 4L4.5 7.5M8 4l3.5 3.5M16 4v16M16 20l-3.5-3.5M16 20l3.5-3.5"/>',
     abzeichen: '<circle cx="12" cy="14.5" r="5"/><path d="M9.3 10.2L6 3h4l2 4 2-4h4l-3.3 7.2"/>',
     anleitung: '<path d="M12 7v13M12 7C10 5.5 7 5 4 5.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5z"/>',
-    steigern: '<path d="M4 17l5-5 4 4 7-8M15 8h5v5"/>'
+    steigern: '<path d="M4 17l5-5 4 4 7-8M15 8h5v5"/>',
+    // Für die Karte "Diese Woche" auf Home (seit Version 138): Balken, Pfeil, Gewicht und Hantel (wie in der Tab-Leiste)
+    balken: '<path d="M6 20v-7M12 20V5M18 20v-10"/>',
+    weiter: '<path d="M10 6l6 6-6 6"/>',
+    gewicht: '<path d="M9 8a3 3 0 0 1 6 0M6.5 8h11l2 12h-15z"/>',
+    hantel: '<path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/>'
   };
 
   // Die Zeichnung eines Icons als SVG-Text
@@ -10181,78 +10186,183 @@
   }
 
   // Ein Ring: die Spur und darüber der Fortschritt, der oben beginnt und im Uhrzeigersinn läuft. anteil wird bei 1 gekappt.
-  // Beim Zeigen füllt er sich von 0 auf den Wert (Animation ring-fuellen in der style.css, ab --ring-leer).
-  function ringSvg(groesse, staerke, anteil, art) {
-    const mitte = groesse / 2;
-    const r = (groesse - staerke) / 2;
+  // Er zeichnet in 100 × 100 Einheiten, seine Größe kommt aus der style.css. So ist ein großer Ring derselbe Ring wie
+  // ein kleiner, nur größer (seit Version 138), und beim Tausch gleitet er nur. Beim Zeigen füllt er sich von 0 auf den Wert
+  // (Animation ring-fuellen in der style.css, ab --ring-leer).
+  function ringSvg(anteil, art) {
+    const staerke = 11;
+    const r = (100 - staerke) / 2;
     const umfang = 2 * Math.PI * r;
-    const kreis = '<circle cx="' + mitte + '" cy="' + mitte + '" r="' + r + '" stroke-width="' + staerke + '"';
-    let svg = '<svg class="wochen-ring" width="' + groesse + '" height="' + groesse + '" viewBox="0 0 ' + groesse + " " + groesse + '" aria-hidden="true">'
-      + kreis + ' class="ring-spur"/>';
+    const kreis = '<circle cx="50" cy="50" r="' + r + '" stroke-width="' + staerke + '"';
+    let svg = '<svg class="wochen-ring" viewBox="0 0 100 100" aria-hidden="true">' + kreis + ' class="ring-spur"/>';
     if (anteil > 0) {
-      svg += kreis + ' class="ring-wert ' + art + '" transform="rotate(-90 ' + mitte + " " + mitte + ')" style="stroke-dasharray: ' + umfang + "px; stroke-dashoffset: "
+      svg += kreis + ' class="ring-wert ' + art + '" transform="rotate(-90 50 50)" style="stroke-dasharray: ' + umfang + "px; stroke-dashoffset: "
         + umfang * (1 - Math.min(1, anteil)) + "px; --ring-leer: " + umfang + 'px"/>';
     }
     return svg + "</svg>";
   }
 
-  // Home (seit Version 137): die Zahlen der gezeigten Woche als Ringe, gemessen an WOCHEN_ZIELE. Oben das Volumen,
-  // darunter Workouts und Wiederholungen. titel ist der Titel der Wochenleiste. Das Profil zeigt die Woche weiter mit wochenZahlenFeld.
-  function wochenRingeFeld(zahlen, titel) {
-    const feld = element("div", "wochen-ringe");
-    feld.appendChild(element("div", "wochen-ringe-titel", titel));
+  // Welcher Ring auf Home groß ist (Stelle 0) und in welcher Reihenfolge die zwei kleinen stehen (seit Version 138).
+  // Nur für diese Sitzung, nie im Speicher: Beim Start ist das Volumen groß. Der Wochenwechsel behält die Wahl.
+  let wochenReihe = ["volumen", "workouts", "wdh"];
+  // Läuft gerade ein Tausch? Solange zählt kein weiterer Tipp.
+  let wochenTauschLaeuft = false;
 
-    // Das Volumen in der gewählten Einheit, gerundet wie in volumenText
+  // Tauscht den großen Ring (Stelle 0) mit dem kleinen an der Stelle index (1 oder 2). Gibt eine neue Reihe zurück.
+  function wochenReiheTauschen(reihe, index) {
+    const neu = reihe.slice();
+    neu[0] = reihe[index];
+    neu[index] = reihe[0];
+    return neu;
+  }
+
+  // Alles, was die drei Ringe zeigen: Wert und Ziel in der gewählten Einheit, Texte, Name und Icon.
+  // Das Volumen ist gerundet wie in volumenText, sein Ziel steht in kg und wird in lbs auf volle 1.000 gerundet.
+  function wochenRingDaten(zahlen) {
     const lbs = einheit() === "lbs";
-    const ziel = lbs ? Math.round(ausKg(WOCHEN_ZIELE.volumen) / 1000) * 1000 : WOCHEN_ZIELE.volumen;
-    const wert = lbs ? Math.round(ausKg(zahlen.volumen)) : zahlen.volumen;
-    const gross = element("div", "wochen-ring-gross");
-    gross.innerHTML = ringSvg(165, 20, wert / ziel, "volumen");
-    const innen = element("div", "wochen-ring-innen");
-    innen.appendChild(element("div", "wochen-ring-titel", txt("verlauf.volumen")));
-    const zahl = element("div", "wochen-ring-wert", wert.toLocaleString(gebiet()));
-    // Lange Zahlen (ab "123.456") etwas kleiner, damit sie in den Ring passen
-    zahl.classList.toggle("lang", zahl.textContent.length > 6);
-    innen.appendChild(zahl);
-    innen.appendChild(element("div", "wochen-ring-einheit", einheit()));
-    gross.appendChild(innen);
-    feld.appendChild(gross);
-    let rest = txt("home.zielErreicht");
-    if (wert < ziel) {
-      rest = txt("home.zielNoch", { n: (ziel - wert).toLocaleString(gebiet()) + " " + einheit() });
-    }
-    feld.appendChild(element("div", "wochen-ring-ziel", txt("home.zielVolumen", { ziel: ziel.toLocaleString(gebiet()) + " " + einheit(), rest: rest })));
-
-    feld.appendChild(element("div", "wochen-ringe-linie"));
-
-    // Unten zwei kleine Ringe nebeneinander
-    const klein = element("div", "wochen-ringe-klein");
-    const ringe = [
-      { wert: zahlen.workouts, ziel: WOCHEN_ZIELE.workouts, art: "workouts", name: txt("profil.workouts") },
-      { wert: zahlen.wdh, ziel: WOCHEN_ZIELE.wdh, art: "wdh", name: txt("wiederholungen") }
-    ];
-    for (let i = 0; i < ringe.length; i++) {
-      const g = ringe[i];
-      const spalte = element("div", "wochen-ring-spalte");
-      const ring = element("div", "wochen-ring-klein");
-      ring.innerHTML = ringSvg(90, 13, g.wert / g.ziel, g.art);
-      const mitte = element("div", "wochen-ring-innen");
-      const z = element("div", "wochen-ring-zahl", g.wert.toLocaleString(gebiet()));
-      z.classList.toggle("lang", z.textContent.length > 3);
-      mitte.appendChild(z);
-      const von = element("div", "wochen-ring-von erreicht", txt("home.zielErreicht"));
-      if (g.wert < g.ziel) {
-        von.className = "wochen-ring-von";
-        von.textContent = txt("home.zielVon", { n: g.ziel.toLocaleString(gebiet()) });
+    const daten = {
+      volumen: {
+        wert: lbs ? Math.round(ausKg(zahlen.volumen)) : zahlen.volumen,
+        ziel: lbs ? Math.round(ausKg(WOCHEN_ZIELE.volumen) / 1000) * 1000 : WOCHEN_ZIELE.volumen,
+        name: txt("verlauf.volumen"), langName: txt("verlauf.volumen"), einheit: einheit(), icon: "gewicht"
+      },
+      workouts: { wert: zahlen.workouts, ziel: WOCHEN_ZIELE.workouts, name: txt("profil.workouts"), langName: txt("profil.workouts"), einheit: txt("profil.workouts"), icon: "person" },
+      wdh: { wert: zahlen.wdh, ziel: WOCHEN_ZIELE.wdh, name: txt("wdh"), langName: txt("wiederholungen"), einheit: txt("wdh"), icon: "hantel" }
+    };
+    Object.keys(daten).forEach(function (art) {
+      const d = daten[art];
+      d.art = art;
+      d.erreicht = d.wert >= d.ziel;
+      d.wertText = d.wert.toLocaleString(gebiet());
+      // Unter dem Wert im Ring: "von 5" oder "Ziel erreicht"
+      d.von = d.erreicht ? txt("home.zielErreicht") : txt("home.zielVon", { n: d.ziel.toLocaleString(gebiet()) });
+      // Die zwei Zeilen rechts oben, wenn dieser Ring groß ist: "Ziel 15.000 kg" und "noch 3.245 kg" oder "erreicht"
+      d.zielZeile = txt("home.ziel", { n: d.ziel.toLocaleString(gebiet()) + " " + d.einheit });
+      d.restZeile = txt("home.zielErreichtKurz");
+      if (!d.erreicht) {
+        d.restZeile = txt("home.zielNoch", { n: (d.ziel - d.wert).toLocaleString(gebiet()) + (art === "volumen" ? " " + d.einheit : "") });
       }
-      mitte.appendChild(von);
-      ring.appendChild(mitte);
-      spalte.appendChild(ring);
-      spalte.appendChild(element("div", "wochen-ring-name", g.name));
-      klein.appendChild(spalte);
+    });
+    return daten;
+  }
+
+  // Der Kreis eines Rings mit der Schrift in seiner Mitte. Groß: Name, Wert und Einheit bzw. "von 5". Klein: Wert und "von 5".
+  function wochenKreis(d, gross) {
+    const kreis = element("div", "wochen-kreis");
+    kreis.innerHTML = ringSvg(d.wert / d.ziel, d.art);
+    const innen = element("div", "wochen-ring-innen");
+    if (gross) {
+      innen.appendChild(element("div", "wochen-ring-titel", d.name));
+      const wert = element("div", "wochen-ring-wert", d.wertText);
+      // Lange Zahlen (ab "123.456") etwas kleiner, damit sie in den Ring passen
+      wert.classList.toggle("lang", d.wertText.length > 6);
+      innen.appendChild(wert);
+      innen.appendChild(element("div", "wochen-ring-unter", d.art === "volumen" ? d.einheit : d.von));
+    } else {
+      const wert = element("div", "wochen-ring-zahl", d.wertText);
+      wert.classList.toggle("lang", d.wertText.length > 3);
+      wert.classList.toggle("sehr-lang", d.wertText.length > 5);
+      innen.appendChild(wert);
+      const von = element("div", "wochen-ring-von", d.von);
+      von.classList.toggle("lang", d.von.length > 8);
+      innen.appendChild(von);
     }
-    feld.appendChild(klein);
+    kreis.appendChild(innen);
+    return kreis;
+  }
+
+  // Home (seit Version 137, Aufbau seit Version 138): die Zahlen der gezeigten Woche als Ringe, gemessen an WOCHEN_ZIELE.
+  // Kopf mit Symbol, Titel der Wochenleiste und Pfeil zur Statistik. Links der große Ring, rechts sein Ziel und die zwei kleinen.
+  // Ein Tipp auf einen kleinen Ring tauscht ihn mit dem großen (wochenTauschen). Das Profil zeigt die Woche weiter mit wochenZahlenFeld.
+  function wochenRingeFeld(zahlen, titel) {
+    const daten = wochenRingDaten(zahlen);
+    const feld = element("div", "wochen-ringe");
+
+    const kopf = element("div", "wochen-karte-kopf");
+    const symbol = element("span", "wochen-symbol icon");
+    symbol.innerHTML = iconSvg("balken");
+    kopf.appendChild(symbol);
+    kopf.appendChild(element("div", "wochen-ringe-titel", titel));
+    const pfeil = element("button", "wochen-pfeil icon");
+    pfeil.innerHTML = iconSvg("weiter");
+    pfeil.setAttribute("aria-label", txt("home.zurStatistik"));
+    pfeil.onclick = function () {
+      seiteZeigen("fortschritt");
+    };
+    kopf.appendChild(pfeil);
+    feld.appendChild(kopf);
+
+    const inhalt = element("div", "wochen-inhalt");
+    const gross = daten[wochenReihe[0]];
+    const links = element("div", "wochen-ring-gross");
+    links.setAttribute("data-ring", gross.art);
+    links.appendChild(wochenKreis(gross, true));
+    inhalt.appendChild(links);
+
+    const rechts = element("div", "wochen-rechts");
+    const ziel = element("div", "wochen-ziel");
+    ziel.appendChild(element("div", "", gross.zielZeile));
+    ziel.appendChild(element("div", "", gross.restZeile));
+    rechts.appendChild(ziel);
+    rechts.appendChild(element("div", "wochen-ringe-linie"));
+    const klein = element("div", "wochen-ringe-klein");
+    for (let i = 1; i <= 2; i++) {
+      const d = daten[wochenReihe[i]];
+      const knopf = element("button", "wochen-ring-klein");
+      knopf.setAttribute("data-ring", d.art);
+      knopf.setAttribute("aria-label", txt("home.ringGross", { name: d.langName }));
+      knopf.appendChild(wochenKreis(d, false));
+      const name = element("div", "wochen-ring-name");
+      name.innerHTML = iconSvg(d.icon);
+      name.appendChild(element("span", "", d.name));
+      knopf.appendChild(name);
+      knopf.onclick = function () {
+        wochenTauschen(feld, i, zahlen, titel);
+      };
+      klein.appendChild(knopf);
+    }
+    rechts.appendChild(klein);
+    inhalt.appendChild(rechts);
+    feld.appendChild(inhalt);
     return feld;
+  }
+
+  // Ein Tipp auf den kleinen Ring an der Stelle index: Er tauscht den Platz mit dem großen. Die Karte wird neu gebaut,
+  // ohne dass sich die Ringe neu füllen (Klasse "getauscht"), die Texte blenden ein. Dann gleiten die zwei Ringe von
+  // ihrem alten Platz an den neuen und ändern dabei ihre Größe (FLIP: transform von alt nach neu, die style.css läuft zurück).
+  // Mit "Bewegung reduzieren" kein Gleiten, nur das Einblenden.
+  function wochenTauschen(feld, index, zahlen, titel) {
+    if (wochenTauschLaeuft || !feld.parentNode) {
+      return;
+    }
+    const arten = [wochenReihe[0], wochenReihe[index]];
+    const vorher = arten.map(function (art) {
+      return feld.querySelector('[data-ring="' + art + '"] .wochen-kreis').getBoundingClientRect();
+    });
+    wochenReihe = wochenReiheTauschen(wochenReihe, index);
+    const neu = wochenRingeFeld(zahlen, titel);
+    neu.classList.add("getauscht");
+    feld.parentNode.replaceChild(neu, feld);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    wochenTauschLaeuft = true;
+    const kreise = arten.map(function (art, i) {
+      const kreis = neu.querySelector('[data-ring="' + art + '"] .wochen-kreis');
+      const jetzt = kreis.getBoundingClientRect();
+      kreis.style.transition = "none";
+      kreis.style.transform = "translate(" + (vorher[i].left - jetzt.left) + "px, " + (vorher[i].top - jetzt.top) + "px) scale(" + vorher[i].width / jetzt.width + ")";
+      return kreis;
+    });
+    // Erst zeichnen lassen, wo die Ringe vorher waren, dann gleiten sie an ihren Platz
+    neu.getBoundingClientRect();
+    kreise.forEach(function (kreis) {
+      kreis.style.transition = "";
+      kreis.style.transform = "";
+    });
+    setTimeout(function () {
+      wochenTauschLaeuft = false;
+    }, 450);
   }
 
   // Die Namen der Übungen eines Trainingstags, jede einmal

@@ -15752,18 +15752,19 @@
   // ---------- Cloud-Backup (seit Version 146) ----------
   // Mit Anmeldung sichert Korund das Backup (genau das von „Backup exportieren“, backupText) bei Supabase:
   // je Nutzer ein Datensatz in der Tabelle backups (SQL in supabase/tabelle-backups.sql). Ohne Anmeldung bleibt alles nur auf dem Gerät.
-  // Angemeldet wird mit einem Code per E-Mail, nicht mit einem Link: Auf dem iPhone haben Safari und die App auf dem Homescreen
-  // getrennte Speicher, ein Link würde nur Safari anmelden.
+  // Angemeldet wird mit E-Mail und Passwort (seit Version 147), ganz ohne E-Mail: Ein Link aus einer E-Mail würde auf dem iPhone
+  // nur Safari anmelden (Safari und die App auf dem Homescreen haben getrennte Speicher), und eigene E-Mail-Vorlagen mit Code
+  // gehen bei Supabase nur mit eigenem E-Mail-Dienst. Dafür ist in Supabase „Confirm email“ aus.
   // Adresse und öffentlicher Schlüssel (publishable) dürfen in der App stehen. Der geheime Schlüssel (sb_secret_…) nie.
   const SUPABASE_URL = "https://saoewdpehahljrmydpan.supabase.co";
   const SUPABASE_KEY = "sb_publishable_auNxZiJoalFlRRbkiooKfw_gthv4_vs";
   // Unter diesem Schlüssel merkt sich supabase-js die Anmeldung. Die Zeit der letzten Sicherung steht unter "cloudZuletzt".
   // Beide stehen nicht im Backup.
   const CLOUD_SPEICHER = "korundCloud";
+  // So lang muss ein Passwort mindestens sein (Supabase verlangt 6, die App 8)
+  const CLOUD_PASSWORT_MIN = 8;
 
   let cloudVerbindung = null;
-  // Die E-Mail, an die gerade ein Code ging ("" = noch keiner)
-  let cloudEmail = "";
   // Läuft gerade eine Anfrage? Dann zählt kein weiterer Tipp.
   let cloudLaeuft = false;
   // Hat die automatische Sicherung zuletzt nicht gesichert, weil in der Cloud mehr Einträge liegen?
@@ -15802,19 +15803,17 @@
     return txt("cloud.stand.tage", { n: tage });
   }
 
-  // Zeigt den passenden Teil der Unterseite: E-Mail eingeben, Code eingeben oder angemeldet
+  // Zeigt den passenden Teil der Unterseite: Anmelden (E-Mail und Passwort) oder angemeldet
   function cloudAnzeigen() {
     const an = cloudAngemeldet();
-    document.getElementById("cloud-abgemeldet").classList.toggle("versteckt", an || cloudEmail !== "");
-    document.getElementById("cloud-code").classList.toggle("versteckt", an || cloudEmail === "");
+    document.getElementById("cloud-abgemeldet").classList.toggle("versteckt", an);
     document.getElementById("cloud-angemeldet").classList.toggle("versteckt", !an);
-    document.getElementById("cloud-code-text").textContent = txt("cloud.codeGesendet", { email: cloudEmail });
     document.getElementById("cloud-konto").textContent = cloudEmailAngemeldet();
     document.getElementById("cloud-stand").textContent = cloudStandText();
     document.getElementById("cloud-sichern").disabled = cloudLaeuft;
     document.getElementById("cloud-holen").disabled = cloudLaeuft;
-    document.getElementById("cloud-code-senden").disabled = cloudLaeuft;
     document.getElementById("cloud-anmelden").disabled = cloudLaeuft;
+    document.getElementById("cloud-registrieren").disabled = cloudLaeuft;
   }
 
   function cloudMeldung(text) {
@@ -15828,13 +15827,31 @@
 
   // Ein Fehler von Supabase oder vom Netz als kurzer Satz
   function cloudFehlerText(fehler) {
-    const code = fehler && (fehler.code || "");
+    // Der Code steht je nach Antwort des Servers in code oder fehlt, dann hilft der englische Text der Meldung
+    const nachricht = (fehler && fehler.message) || "";
+    let code = (fehler && fehler.code) || "";
+    if (!code && /invalid login credentials/i.test(nachricht)) {
+      code = "invalid_credentials";
+    } else if (!code && /already (registered|exists)/i.test(nachricht)) {
+      code = "user_already_exists";
+    } else if (!code && /email not confirmed/i.test(nachricht)) {
+      code = "email_not_confirmed";
+    }
     const status = fehler && fehler.status;
     if (!navigator.onLine || (fehler && (fehler.name === "AuthRetryableFetchError" || /fetch|network|load failed/i.test(fehler.message || "")))) {
       return txt("cloud.keinNetz");
     }
-    if (code === "otp_expired" || code === "otp_invalid" || status === 403) {
-      return txt("cloud.codeFalsch");
+    if (code === "invalid_credentials") {
+      return txt("cloud.falsch");
+    }
+    if (code === "user_already_exists" || code === "email_exists") {
+      return txt("cloud.gibtEsSchon");
+    }
+    if (code === "weak_password") {
+      return txt("cloud.passwortKurz");
+    }
+    if (code === "email_not_confirmed") {
+      return txt("cloud.nichtBestaetigt");
     }
     if (/rate_limit/.test(code) || status === 429) {
       return txt("cloud.zuOft");
@@ -15842,13 +15859,19 @@
     return txt("cloud.fehler", { grund: (fehler && fehler.message) || "?" });
   }
 
-  function cloudCodeSenden() {
+  // Meldet an (neu: false) oder legt ein neues Konto an (neu: true). Beides mit E-Mail und Passwort aus den Feldern.
+  function cloudAnmelden(neu) {
     if (cloudLaeuft) {
       return;
     }
     const email = document.getElementById("cloud-feld-email").value.trim();
+    const passwort = document.getElementById("cloud-feld-passwort").value;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       cloudMeldung(txt("cloud.emailFalsch"));
+      return;
+    }
+    if (passwort.length < CLOUD_PASSWORT_MIN) {
+      cloudMeldung(txt("cloud.passwortKurz"));
       return;
     }
     const verbindung = cloudClient();
@@ -15858,46 +15881,19 @@
     }
     cloudMeldung("");
     cloudBeschaeftigt(true);
-    verbindung.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true } }).then(function (antwort) {
+    const anfrage = neu ? verbindung.auth.signUp({ email: email, password: passwort }) : verbindung.auth.signInWithPassword({ email: email, password: passwort });
+    anfrage.then(function (antwort) {
       cloudBeschaeftigt(false);
       if (antwort.error) {
         cloudMeldung(cloudFehlerText(antwort.error));
         return;
       }
-      cloudEmail = email;
-      document.getElementById("cloud-feld-code").value = "";
-      cloudAnzeigen();
-      document.getElementById("cloud-feld-code").focus();
-    }).catch(function (fehler) {
-      cloudBeschaeftigt(false);
-      cloudMeldung(cloudFehlerText(fehler));
-    });
-  }
-
-  function cloudAndereEmail() {
-    cloudEmail = "";
-    cloudMeldung("");
-    cloudAnzeigen();
-  }
-
-  function cloudAnmelden() {
-    if (cloudLaeuft) {
-      return;
-    }
-    const code = document.getElementById("cloud-feld-code").value.replace(/\s/g, "");
-    if (!/^\d{6,10}$/.test(code)) {
-      cloudMeldung(txt("cloud.codeFalsch"));
-      return;
-    }
-    cloudMeldung("");
-    cloudBeschaeftigt(true);
-    cloudClient().auth.verifyOtp({ email: cloudEmail, token: code, type: "email" }).then(function (antwort) {
-      cloudBeschaeftigt(false);
-      if (antwort.error || !antwort.data || !antwort.data.session) {
-        cloudMeldung(cloudFehlerText(antwort.error));
+      // Ohne Sitzung verlangt Supabase eine Bestätigung per E-Mail („Confirm email“ ist dort noch an)
+      if (!antwort.data || !antwort.data.session) {
+        cloudMeldung(txt("cloud.nichtBestaetigt"));
         return;
       }
-      cloudEmail = "";
+      document.getElementById("cloud-feld-passwort").value = "";
       cloudAnzeigen();
       einstWerteAnzeigen();
       // Gleich nach der Anmeldung: Liegt schon ein Backup in der Cloud (anderes Gerät), fragen, ob es geholt werden soll.

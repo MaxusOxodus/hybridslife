@@ -49,7 +49,8 @@ pruefe("Backup-Version bleibt 12", /version: 12,/.test(app));
 pruefe("Bibliothek in der index.html vor der app.js", index.indexOf('<script src="supabase-2.117.2.js"></script>') !== -1 && index.indexOf("supabase-2.117.2.js") < index.indexOf("app.js?v="));
 pruefe("Bibliothek in DATEIEN", sw.indexOf('"supabase-2.117.2.js",') !== -1 && fs.existsSync(path.join(wurzel, "supabase-2.117.2.js")));
 pruefe("Schlüssel der Anmeldung in EINFUEHRUNG_APP_SCHLUESSEL", /"korundCloud", "cloudZuletzt"/.test(einfuehrung));
-pruefe("Anmeldung per Code, nicht per Link", /verifyOtp\(\{ email: cloudEmail, token: code, type: "email" \}\)/.test(app) && /detectSessionInUrl: false/.test(app));
+pruefe("Anmeldung mit E-Mail und Passwort, kein Link", /signInWithPassword\(\{ email: email, password: passwort \}\)/.test(app) && /signUp\(\{ email: email, password: passwort \}\)/.test(app) && /detectSessionInUrl: false/.test(app) && !/signInWithOtp|verifyOtp/.test(app));
+pruefe("Passwortfeld ist ein Passwortfeld", /id="cloud-feld-passwort" class="form-feld" type="password"/.test(index));
 pruefe("Sicherung nach jedem Training", /trainingseinheitSpeichern\(t\);\n[^\n]*\n\s+cloudAutomatisch\(\);/.test(app));
 
 console.log(pruefungen + " Prüfungen, " + fehler + " Fehler");

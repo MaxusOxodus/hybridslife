@@ -30,10 +30,10 @@ function konstanteHolen(name) {
   return treffer[0];
 }
 
-const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "steigerungVorschlag", "steigerungText", "modusStartWerte", "letzterEintrag", "gleicheUebung", "saetzeVon",
+const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "kurzhantel", "steigerungSchritt", "steigerungVorschlag", "steigerungText", "modusStartWerte", "letzterEintrag", "gleicheUebung", "saetzeVon",
   "rirLesen", "wdhBis", "hatDatum", "istEigengewicht", "einheit", "ausKg", "zuKg", "gewichtAnzeige", "gewichtText",
   "zahlText", "startGewicht", "steigernAn"];
-const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
+const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
 
 // Baut die Funktionen mit diesen Einträgen und Einstellungen
 function umgebung(eintraege, einstellungen) {

@@ -117,6 +117,9 @@
 
   // Liegt das letzte Training einer Übung länger zurück, schlägt der Trainingsmodus keine Steigerung vor
   const STEIGERN_PAUSE_TAGE = 21;
+  // Schritt der automatischen Steigerung bei Kurzhanteln in kg (seit Version 139), sie hängen meist in 2-kg-Stufen.
+  // In lbs bleibt es wie bei allen Übungen der Schritt der Gewichtsknöpfe (5 lbs).
+  const KURZHANTEL_SCHRITT_KG = 2;
 
   // Höhe eines Wertes im Rad in Pixeln. Muss zur Höhe von .rad-wert im CSS passen.
   const RAD_HOEHE = 44;
@@ -4391,12 +4394,33 @@
     document.getElementById("modus-fortschritt").style.width = (begonnen / t.uebungen.length * 100) + "%";
   }
 
+  // Kurzhantel-Übungen (seit Version 139). Ein eigenes Feld dafür gibt es in der uebungen.js nicht, wie bei einseitig
+  // zählt der Name auf Deutsch oder Englisch (bei eigenen Übungen ihr Name).
+  const KURZHANTEL_NAME = /kurzhantel|dumbbell/i;
+
+  function kurzhantel(id, name) {
+    const u = UEBUNG_NACH_ID[id];
+    if (u) {
+      return KURZHANTEL_NAME.test(u.de) || KURZHANTEL_NAME.test(u.en);
+    }
+    return typeof name === "string" && KURZHANTEL_NAME.test(name);
+  }
+
+  // Um so viel steigt der Vorschlag in der gewählten Einheit: bei Kurzhanteln in kg 2 kg, sonst wie die Gewichtsknöpfe
+  // (2,5 kg oder 5 lbs). Die Knöpfe selbst bleiben bei ihrem Schritt.
+  function steigerungSchritt(u) {
+    if (einheit() === "kg" && kurzhantel(u.uebungId, u.name)) {
+      return KURZHANTEL_SCHRITT_KG;
+    }
+    return GEWICHT_EINHEITEN[einheit()].schritt;
+  }
+
   // Der Vorschlag für den ersten Satz einer Übung im Trainingsmodus, aus dem letzten Training dieser Übung.
   // Arbeitsgewicht ist das schwerste Gewicht vom letzten Mal, leichtere Sätze (Aufwärmen) zählen nicht.
   // Die Regel: Haben mindestens so viele Sätze mit dem Arbeitsgewicht, wie das Satz-Ziel vorgibt (mindestens einer),
   // das obere Ende des Wdh.-Ziels erreicht (bei einer festen Zahl diese Zahl), geht es einen Schritt der
-  // Gewichtsknöpfe hoch (2,5 kg oder 5 lbs, in der gewählten Einheit gerechnet, nicht gerundet), mit dem unteren
-  // Ende als Wdh. Sonst bleibt das Gewicht, mit den Wdh. des ersten Satzes mit dem Arbeitsgewicht.
+  // Gewichtsknöpfe hoch (2,5 kg oder 5 lbs, bei Kurzhanteln in kg 2 kg, steigerungSchritt, in der gewählten Einheit gerechnet,
+  // nicht gerundet), mit dem unteren Ende als Wdh. Sonst bleibt das Gewicht, mit den Wdh. des ersten Satzes mit dem Arbeitsgewicht.
   // Nie gesteigert wird ohne Wdh.-Ziel, bei Eigengewicht ohne Zusatzgewicht und nach mehr als STEIGERN_PAUSE_TAGE Tagen.
   // Zurück kommt { art, gewicht (kg), wdh, alt (kg), ziel } mit art "steigern", "halten", "pause", "eigengewicht"
   // oder "ohneZiel". Ohne früheres Training mit Sätzen: null.
@@ -4434,7 +4458,7 @@
       return vorschlag;
     }
     vorschlag.art = "steigern";
-    vorschlag.gewicht = zuKg(ausKg(alt) + GEWICHT_EINHEITEN[einheit()].schritt);
+    vorschlag.gewicht = zuKg(ausKg(alt) + steigerungSchritt(u));
     vorschlag.wdh = u.zielWdh;
     return vorschlag;
   }
@@ -4450,7 +4474,7 @@
       return "";
     }
     if (v.art === "steigern") {
-      const schritt = "+" + zahlText(GEWICHT_EINHEITEN[einheit()].schritt) + " " + einheit();
+      const schritt = "+" + zahlText(steigerungSchritt(u)) + " " + einheit();
       return txt("modus.steigern", { schritt: schritt, gewicht: gewichtText(v.alt), wdh: v.ziel });
     }
     if (v.art === "pause") {

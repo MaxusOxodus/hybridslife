@@ -1758,7 +1758,7 @@
     btn.appendChild(zweit);
 
     // Beim Tauschen: Eine Übung, die schon an einem anderen Platz des Trainings steht, lässt sich nicht wählen
-    if (sheetZiel === "tausch" && tauschVergeben(u.de, u.id)) {
+    if ((sheetZiel === "tausch" && tauschVergeben(u.de, u.id)) || (sheetZiel === "hinzu" && hinzuVergeben(u.de, u.id))) {
       btn.disabled = true;
       btn.appendChild(element("span", "sheet-zeile-zweit", txt("tausch.vergeben")));
     }
@@ -2264,6 +2264,11 @@
     if (sheetZiel === "routine") {
       sheetSchliessen();
       routineUebungHinzufuegen(name, gruppe, id);
+      return;
+    }
+    // Aus der Übersicht im Trainingsmodus geöffnet (seit Version 141): Die Übung kommt ans Ende des Trainings
+    if (sheetZiel === "hinzu") {
+      trainingUebungHinzufuegen(name, gruppe, id);
       return;
     }
     // Aus dem Trainingsmodus geöffnet: Die Übung ersetzt die aktuelle Übung des Trainings
@@ -5521,6 +5526,65 @@
   }
 
   // Steht die Übung schon an einem anderen Platz des laufenden Trainings, als aktuelle oder als getauschte Übung?
+  // Übung hinzufügen (seit Version 141): Steht die Übung schon irgendwo im Training, auch an der aktuellen Stelle?
+  function hinzuVergeben(name, id) {
+    const t = laufendesTraining;
+    if (!t) {
+      return false;
+    }
+    for (let i = 0; i < t.uebungen.length; i++) {
+      if (stelleIst(t.uebungen[i], name, id)) {
+        return true;
+      }
+      for (let j = 0; j < t.uebungen[i].getauscht.length; j++) {
+        if (stelleIst(t.uebungen[i].getauscht[j], name, id)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Satz-Ziel einer Übung, die erst im Training dazukommt: drei Sätze, ohne Wdh.-Ziel, Standard-Pause
+  const HINZU_ZIEL_SAETZE = 3;
+
+  // Hängt eine Übung ans Ende des laufenden Trainings und springt zu ihr. Die Routine bleibt, wie sie ist.
+  function trainingUebungHinzufuegen(name, gruppe, id) {
+    const t = laufendesTraining;
+    if (!t) {
+      sheetSchliessen();
+      return;
+    }
+    if (hinzuVergeben(name, id)) {
+      return;
+    }
+    t.uebungen.push({
+      name: name,
+      uebungId: id || "",
+      muskelgruppe: gruppe || "",
+      zielSaetze: HINZU_ZIEL_SAETZE,
+      zielWdh: null,
+      zielWdhMax: null,
+      pause: null,
+      saetze: [],
+      eintragId: "",
+      extraSatz: false,
+      getauscht: [],
+      hinzugefuegt: true
+    });
+    gemerkteTrainingWerte = null;
+    trainingMerken();
+    sheetSchliessen();
+    uebungZeigen(t.uebungen.length - 1);
+    window.scrollTo(0, 0);
+  }
+
+  // Der Knopf unter der Übersicht der Übungen: schließt die Übersicht und öffnet die Auswahl
+  function uebungHinzufuegenOeffnen() {
+    zusatzSheetsSchliessen();
+    sheetOeffnen("hinzu");
+  }
+
   function tauschVergeben(name, id) {
     const t = laufendesTraining;
     if (!t) {
@@ -5827,6 +5891,10 @@
       };
       liste.appendChild(zeile);
     }
+    // Übung hinzufügen (seit Version 141): nur im Look Korund zu sehen (korund.css)
+    const hinzu = element("button", "sheet-neu uebung-hinzu", txt("hinzu.knopf"));
+    hinzu.onclick = uebungHinzufuegenOeffnen;
+    liste.appendChild(hinzu);
     zusatzSheetOeffnen("uebungen-sheet");
   }
 

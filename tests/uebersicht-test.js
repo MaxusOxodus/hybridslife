@@ -49,7 +49,9 @@ function umgebung(training) {
     + "function txt(s, w) { return s + (w ? ':' + JSON.stringify(w) : ''); }"
     + "function txtAnzahl(s, n) { return n + ' ' + s; }"
     + "function anzeigeName(name) { return name; }"
-    + "function zusatzSheetOeffnen(id) { geoeffnet = id; } function zusatzSheetsSchliessen() {} function uebungZeigen() {}";
+    + "function zusatzSheetOeffnen(id) { geoeffnet = id; } function zusatzSheetsSchliessen() {} function uebungZeigen() {}"
+    // Seit Version 141: der Knopf "+ Übung hinzufügen" unter der Liste
+    + "function uebungHinzufuegenOeffnen() {}";
   for (let i = 0; i < ECHT.length; i++) {
     code += funktionHolen(ECHT[i]);
   }
@@ -82,7 +84,8 @@ function platz(name, ziel, gemacht) {
 
 // Die Zeilen der Übersicht als kurze Beschreibung: Name, erledigt, aktuell, ✓ da, ✓ für Vorleser versteckt
 function zeilen() {
-  return liste.kinder.map(function (z) {
+  // Seit Version 141 steht unter den Übungen der Knopf "+ Übung hinzufügen": Er ist keine Zeile einer Übung
+  return liste.kinder.filter(function (z) { return !z.classList.contains("uebung-hinzu"); }).map(function (z) {
     const haken = z.kinder.find(k => k.classList.contains("sheet-zeile-haken"));
     return {
       name: z.kinder[0].textContent,
@@ -132,7 +135,7 @@ pruefe("Zusatz-Satz: mehr als das Ziel ist erledigt", z[2].erledigt, true);
 app = umgebung({ routineName: "Push", index: 0, erledigt: [], uebungen: [platz("A", 2, 0), platz("B", 2, 0)] });
 app.oeffnen();
 app.oeffnen();
-pruefe("Neu öffnen: die Liste hat nicht doppelt so viele Zeilen", liste.kinder.length, 2);
+pruefe("Neu öffnen: die Liste hat nicht doppelt so viele Zeilen", zeilen().length, 2);
 pruefe("Leeres Training: nichts erledigt", zeilen().map(x => x.erledigt), [false, false]);
 
 console.log("");

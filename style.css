@@ -6072,7 +6072,8 @@ body.tour-zeigt-pause #modus-wahl {
 .gruppen-offen-knopf,
 .gruppen-plakette,
 .gruppen-anzahl,
-.w-knopf {
+.w-knopf,
+.uebung-hinzu {
   display: none;
 }
 

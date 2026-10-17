@@ -530,6 +530,7 @@ const TEXTE = {
   "gruppen.offen": { de: "Noch nicht trainiert", en: "Not trained yet" },
   "gruppen.keine": { de: "Noch keine Einträge", en: "No entries yet" },
   "gruppen.offenKnopf": { de: "Noch nicht trainiert ({n})", en: "Not trained yet ({n})" },
+  "hinzu.knopf": { de: "+ Übung hinzufügen", en: "+ Add exercise" },
   "w.aria": { de: "Aufwärmsatz", en: "Warm-up set" },
   "w.satz": { de: "Aufwärmsatz", en: "Warm-up set" },
   "konstanz.titel": { de: "Konstanz", en: "Consistency" },

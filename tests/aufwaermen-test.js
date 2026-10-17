@@ -82,7 +82,7 @@ pruefe("Schreiben ohne W: kein Feld", !("aufwaermen" in ohne.einzelsaetze[0]));
 // Knöpfe: im HTML vorhanden, in anderen Looks ausgeblendet
 pruefe("Knopf im Trainingsmodus", html.includes('id="modus-w"'));
 pruefe("Knopf im Sheet", html.includes('id="satz-w"'));
-pruefe("andere Looks: Knopf aus", /\.w-knopf \{\s*\n\s*display: none;/.test(stil));
+pruefe("andere Looks: Knopf aus", /\.w-knopf,[^{]*\{\s*\n\s*display: none;/.test(stil));
 
 console.log(pruefungen + " Prüfungen, " + fehler + " Fehler");
 if (fehler === 0) {

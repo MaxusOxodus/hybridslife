@@ -787,6 +787,14 @@
   font-weight: 800;
 }
 
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .uebung-hinzu {
+  display: block;
+  margin-top: 16px;
+  border: 1px dashed rgba(var(--fw-signal-rgb), 0.45);
+  background: rgba(var(--fw-signal-rgb), 0.08);
+  color: var(--fw-signal);
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -1452,6 +1460,14 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-nummer.satz-w {
     color: #F5B544;
     font-weight: 800;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .uebung-hinzu {
+    display: block;
+    margin-top: 16px;
+    border: 1px dashed rgba(var(--fw-signal-rgb), 0.45);
+    background: rgba(var(--fw-signal-rgb), 0.08);
+    color: var(--fw-signal);
   }
 
 }

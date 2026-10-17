@@ -4268,6 +4268,7 @@
     gewichtTitelSetzen("t-feld-gewicht", u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
     document.getElementById("modus-hinweis").textContent = steigerungText(u);
+    modusChipsAnzeigen(u);
 
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
@@ -4485,6 +4486,34 @@
       return txt("modus.eigengewicht");
     }
     return txt("modus.halten", { wdh: v.ziel });
+  }
+
+  // Look Korund (seit Version 140): Ziel und Vorschlag der Übung als Chips über "Satz 2 von 3".
+  // Dieselben Werte wie zielText und steigerungVorschlag, nur kurz: "3 Sätze", "8–12 Wdh." und das Gewicht des Vorschlags.
+  // Steigt der Vorschlag, steht ein Pfeil davor und der Chip ist grün (Klasse "steigt"). Ohne Ziel und Vorschlag bleibt die Zeile leer.
+  function modusChipsAnzeigen(u) {
+    const behaelter = document.getElementById("modus-chips");
+    behaelter.innerHTML = "";
+    if (u.zielSaetze) {
+      behaelter.appendChild(element("span", "modus-chip", txt(zaehltSeiten(u) ? "chip.saetzeSeiten" : "chip.saetze", { n: u.zielSaetze })));
+    }
+    if (u.zielWdh) {
+      let wdh = String(u.zielWdh);
+      if (wdhBis(u)) {
+        wdh += "–" + wdhBis(u);
+      }
+      behaelter.appendChild(element("span", "modus-chip", txt("chip.wdh", { wdh: wdh })));
+    }
+    const v = steigernAn() ? steigerungVorschlag(u) : null;
+    if (v && v.art !== "ohneZiel" && v.gewicht > 0) {
+      const chip = element("span", "modus-chip vorschlag", gewichtText(v.gewicht));
+      chip.setAttribute("aria-label", txt("chip.vorschlag", { gewicht: gewichtText(v.gewicht) }));
+      if (v.art === "steigern") {
+        chip.classList.add("steigt");
+        chip.textContent = "↑ " + chip.textContent;
+      }
+      behaelter.appendChild(chip);
+    }
   }
 
   // Zeigt im Trainingsmodus den passenden Teil: die Eingabe für den nächsten Satz, den Countdown
@@ -5941,6 +5970,7 @@
   // Baut die ganze Übersicht neu auf
   function homeAnzeigen() {
     document.getElementById("home-datum").textContent = new Date().toLocaleDateString(gebiet(), { weekday: "long", day: "numeric", month: "long" });
+    homeSerieAnzeigen();
     homeHeuteAnzeigen();
     homeWocheAnzeigen();
     homeLetztesAnzeigen();
@@ -6008,6 +6038,74 @@
     return Boolean(e && e.datum) && !isNaN(new Date(e.datum));
   }
 
+  // Look Korund (seit Version 140): die Serie oben rechts neben dem Titel, z. B. "Serie: 6 Wochen". Ohne Serie leer.
+  // Dieselbe Zahl wie im Profil (gesamtZahlen). Die korund.css zeigt sie nur im Look Korund.
+  function homeSerieAnzeigen() {
+    const feld = document.getElementById("home-serie");
+    const serie = gesamtZahlen().serie;
+    feld.textContent = serie > 0 ? txtAnzahl("profil.serieText", serie) : "";
+  }
+
+  // Die IDs der Muskelgruppen einer Routine in ihrer Reihenfolge, jede einmal, höchstens max.
+  // Feste Übungen über ihren Hauptmuskel, eigene über den gespeicherten Namen der Gruppe.
+  function routineGruppenIds(routine, max) {
+    const ids = [];
+    for (let i = 0; i < routine.uebungen.length && ids.length < max; i++) {
+      const u = routine.uebungen[i];
+      let id = "";
+      if (UEBUNG_NACH_ID[u.uebungId]) {
+        id = uebungGruppe(UEBUNG_NACH_ID[u.uebungId]);
+      } else {
+        for (let j = 0; j < MUSKELGRUPPEN.length; j++) {
+          if (MUSKELGRUPPEN[j].de === u.muskelgruppe || MUSKELGRUPPEN[j].en === u.muskelgruppe) {
+            id = MUSKELGRUPPEN[j].id;
+          }
+        }
+      }
+      if (id && GRUPPE_NACH_ID[id] && ids.indexOf(id) === -1) {
+        ids.push(id);
+      }
+    }
+    return ids;
+  }
+
+  // Look Korund: die Muskelfiguren einer Routine als kleine Kacheln (Klasse heute-figuren, nur im Look Korund zu sehen)
+  function routineFiguren(routine) {
+    const reihe = element("div", "heute-figuren");
+    const ids = routineGruppenIds(routine, 4);
+    for (let i = 0; i < ids.length; i++) {
+      const kachel = element("span", "heute-figur");
+      kachel.innerHTML = koerperSvg(GRUPPE_NACH_ID[ids[i]]);
+      reihe.appendChild(kachel);
+    }
+    return reihe;
+  }
+
+  // Look Korund: der Hinweis über der Heute-Karte, wenn bei einer Übung der geplanten Routine die Steigerung dran ist,
+  // z. B. "Steigerung möglich · Bankdrücken: heute 92,5 kg". Dieselbe Rechnung wie im Trainingsmodus (steigerungVorschlag).
+  // Ohne Steigerung oder mit ausgeschaltetem Schalter gibt es keinen Hinweis. Die korund.css zeigt ihn nur im Look Korund.
+  function homeHinweis(routine) {
+    if (!steigernAn()) {
+      return null;
+    }
+    for (let i = 0; i < routine.uebungen.length; i++) {
+      const u = routine.uebungen[i];
+      const v = steigerungVorschlag(u);
+      if (v && v.art === "steigern") {
+        const karte = element("div", "karte home-hinweis");
+        const symbol = element("span", "home-hinweis-symbol", "↑");
+        symbol.setAttribute("aria-hidden", "true");
+        karte.appendChild(symbol);
+        const text = element("div", "home-hinweis-text");
+        text.appendChild(element("div", "home-hinweis-titel", txt("home.steigerung")));
+        text.appendChild(element("div", "routine-info", txt("home.steigerungText", { name: anzeigeName(u.name, u.uebungId), gewicht: gewichtText(v.gewicht) })));
+        karte.appendChild(text);
+        return karte;
+      }
+    }
+    return null;
+  }
+
   // Die Karte ganz oben: das laufende Training, sonst das, was laut Wochenplan heute dran ist
   function homeHeuteAnzeigen() {
     const bereich = document.getElementById("home-heute");
@@ -6043,9 +6141,14 @@
         karte.appendChild(element("div", "heute-label", txt("home.erledigt")));
       } else {
         karte.appendChild(element("div", "heute-label", txt("home.geplant")));
+        const hinweis = homeHinweis(routine);
+        if (hinweis) {
+          bereich.insertBefore(hinweis, karte);
+        }
       }
       karte.appendChild(element("div", "ansicht-titel", routine.name));
       karte.appendChild(element("div", "routine-info", routineInfo(routine)));
+      karte.appendChild(routineFiguren(routine));
 
       let start;
       if (erledigt) {

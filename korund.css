@@ -92,6 +92,17 @@
   font-weight: 700;
 }
 
+/* Trainingsmodus: Ziel und Vorschlag als Chips (nur im Look Korund, dort ersetzen sie "Ziel: 3 Sätze × 8–12 Wdh.") */
+.modus-chips {
+  display: none;
+}
+
+/* Home: Serie oben rechts, Muskelfiguren in der Heute-Karte und der Hinweis "Steigerung möglich" (nur im Look Korund) */
+.home-serie,
+.heute-figuren,
+.home-hinweis {
+  display: none;
+}
 
 /* ===== Dunkel gewählt ===== */
 
@@ -292,6 +303,145 @@
   font-weight: 500;
 }
 
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 -4px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chips:empty {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(238, 242, 247, 0.1);
+  border-radius: 11px;
+  background: rgba(238, 242, 247, 0.06);
+  color: #D6DADF;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.steigt {
+  border-color: rgba(var(--fw-erfolg-rgb), 0.35);
+  background: rgba(var(--fw-erfolg-rgb), 0.12);
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-ziel {
+  display: none;
+}
+
+/* "Reps in Reserve (optional)" heißt im Look Korund kurz "RIR" (für Screenreader bleibt der lange Text) */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .rir .rad-titel {
+  flex: 0 0 auto;
+  font-size: 0;
+  line-height: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .rir .rad-titel::before {
+  content: "RIR";
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home {
+  position: relative;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-serie:not(:empty) {
+  position: absolute;
+  top: 14px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  border-radius: 16px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-serie:not(:empty)::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--fw-signal);
+  box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.9);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .heute-figuren {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .heute-figur {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border: 1px solid rgba(238, 242, 247, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .heute-figur .koerper {
+  width: auto;
+  height: 88%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-hinweis {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-hinweis-symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(var(--fw-erfolg-rgb), 0.13);
+  color: var(--fw-erfolg);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-hinweis-titel {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-hinweis .routine-info {
+  margin: 1px 0 0;
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .rir .umschalter {
+  flex: 1 1 0;
+  max-width: none;
+}
+
+
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) {
@@ -490,4 +640,143 @@
     font-size: 13px;
     font-weight: 500;
   }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 -4px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chips:empty {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid rgba(238, 242, 247, 0.1);
+    border-radius: 11px;
+    background: rgba(238, 242, 247, 0.06);
+    color: #D6DADF;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.steigt {
+    border-color: rgba(var(--fw-erfolg-rgb), 0.35);
+    background: rgba(var(--fw-erfolg-rgb), 0.12);
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-ziel {
+    display: none;
+  }
+
+  /* "Reps in Reserve (optional)" heißt im Look Korund kurz "RIR" (für Screenreader bleibt der lange Text) */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .rir .rad-titel {
+    flex: 0 0 auto;
+    font-size: 0;
+    line-height: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .rir .rad-titel::before {
+    content: "RIR";
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home {
+    position: relative;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-serie:not(:empty) {
+    position: absolute;
+    top: 14px;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    border-radius: 16px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-serie:not(:empty)::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--fw-signal);
+    box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.9);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .heute-figuren {
+    display: flex;
+    gap: 8px;
+    margin: 14px 0 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .heute-figur {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    overflow: hidden;
+    border: 1px solid rgba(238, 242, 247, 0.08);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .heute-figur .koerper {
+    width: auto;
+    height: 88%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-hinweis {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-hinweis-symbol {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(var(--fw-erfolg-rgb), 0.13);
+    color: var(--fw-erfolg);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-hinweis-titel {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-hinweis .routine-info {
+    margin: 1px 0 0;
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .rir .umschalter {
+    flex: 1 1 0;
+    max-width: none;
+  }
+
 }

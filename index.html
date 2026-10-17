@@ -84,6 +84,8 @@
 
     <!-- Ansicht: Übersicht. Die Karten füllt die app.js. -->
     <div id="ansicht-home" class="ansicht">
+      <!-- Look Korund (seit Version 140): die Serie oben rechts. Die app.js füllt sie, die korund.css zeigt sie nur im Look Korund. -->
+      <div id="home-serie" class="home-serie"></div>
       <h1 data-t="nav.home">Home</h1>
       <p id="home-datum" class="unterzeile"></p>
 
@@ -283,6 +285,9 @@
           </div>
         </div>
       </div>
+      <!-- Look Korund (seit Version 140): das Ziel der Übung als Chips, z. B. "3 Sätze", "8–12 Wdh." und der Vorschlag "↑ 92,5 kg".
+           Die app.js füllt sie immer, die korund.css zeigt sie nur im Look Korund und blendet dort #modus-ziel aus. -->
+      <div id="modus-chips" class="modus-chips"></div>
       <div id="modus-satz" class="modus-satz"></div>
 
       <!-- Eingabe: die Werte des nächsten Satzes als große Zahlenfelder, darunter Buttons zum Anpassen -->

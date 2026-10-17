@@ -393,6 +393,12 @@ const TEXTE = {
   "ziel.wdh": { de: "Ziel: {wdh} Wdh.", en: "Target: {wdh} reps" },
   "ziel.beidesSeiten": { de: "Ziel: {saetze} Sätze je Seite × {wdh} Wdh.", en: "Target: {saetze} per side × {wdh} reps" },
   "ziel.saetzeSeiten": { de: "Ziel: {saetze} Sätze je Seite", en: "Target sets: {saetze} per side" },
+  "chip.saetze": { de: "{n} Sätze", en: "{n} sets" },
+  "home.steigerung": { de: "Steigerung möglich", en: "Time to add weight" },
+  "home.steigerungText": { de: "{name}: heute {gewicht} probieren", en: "{name}: try {gewicht} today" },
+  "chip.saetzeSeiten": { de: "{n} Sätze je Seite", en: "{n} sets per side" },
+  "chip.wdh": { de: "{wdh} Wdh.", en: "{wdh} reps" },
+  "chip.vorschlag": { de: "Vorschlag: {gewicht}", en: "Suggested: {gewicht}" },
 
   // ---------- Training: Trainingsmodus ----------
   "modus.beenden": { de: "Beenden", en: "Finish" },

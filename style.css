@@ -6099,8 +6099,25 @@ body.tour-zeigt-pause #modus-wahl {
 .sheet-figur,
 .sheet-korund-text,
 .sheet-tausch,
-.uebersicht-knoepfe {
+.uebersicht-knoepfe,
+.korund-kopf-label,
+.korund-kopf-titel,
+.korund-kopf-meta,
+.home-woche-details,
+.plan-datum,
+.training-heute,
+.routinen-bearbeiten,
+.vorlagen-knopf,
+.routine-figuren,
+.routine-korund-info,
+.routine-pfeil {
   display: none;
+}
+
+/* Rahmen, die nur im Look Korund wirken (seit Version 142), sonst stehen die Teile wie vorher direkt in der Seite */
+.routinen-kopf,
+.routinen-knoepfe {
+  display: contents;
 }
 
 /* Rahmen um "Satz 2 von 3": wirkt nur im Look Korund, sonst stehen die Teile wie vorher direkt in der Seite */

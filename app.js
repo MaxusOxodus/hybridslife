@@ -3098,6 +3098,7 @@
   function trainingAnzeigen() {
     laufendKarteAnzeigen();
     wochenplanAnzeigen();
+    trainingHeuteAnzeigen();
     routinenAnzeigen();
     vorlagenAnzeigen();
     trainingReiterAnzeigen();
@@ -3124,6 +3125,8 @@
       unterzeile = "training.unterzeileUebungen";
     }
     document.getElementById("training-unterzeile").textContent = txt(unterzeile);
+    // Look Korund (seit Version 142): Dort steht über dem Titel nur „Woche 42“ (data-korund, korund.css)
+    document.getElementById("training-unterzeile").setAttribute("data-korund", txt("training.woche", { nr: kalenderwoche(montagDerWoche(new Date())) }));
     document.getElementById("reiter-plaene").classList.toggle("versteckt", trainingReiter !== "plaene");
     document.getElementById("reiter-uebungen").classList.toggle("versteckt", trainingReiter !== "uebungen");
     bibliothekAnzeigen();
@@ -3197,6 +3200,10 @@
         zeile.classList.add("heute");
       }
       zeile.appendChild(element("span", "plan-tag", wochentag(i)));
+      // Look Korund (seit Version 142): das Datum des Tags in dieser Woche (sonst ausgeblendet)
+      const tagDatum = montagDerWoche(new Date());
+      tagDatum.setDate(tagDatum.getDate() + i);
+      zeile.appendChild(element("span", "plan-datum", tagDatum.getDate()));
 
       const auswahl = document.createElement("select");
       auswahl.appendChild(new Option(txt("plan.nichtGeplant"), ""));
@@ -3224,6 +3231,90 @@
       zeile.appendChild(kurz);
       plan.appendChild(zeile);
     }
+  }
+
+  // ---------- Training-Tab im Look Korund (seit Version 142) ----------
+
+  // Ist gerade der Look Korund zu sehen? Er wirkt nur mit Glass im dunklen Design (gewählt oder vom Gerät).
+  function lookKorund() {
+    const html = document.documentElement;
+    const dunkel = html.getAttribute("data-design") === "dunkel"
+      || (html.getAttribute("data-design") !== "hell" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    return html.getAttribute("data-stil") === "glass" && html.getAttribute("data-palette") === "korund" && dunkel;
+  }
+
+  // Sind die Knöpfe der Routinen zu sehen („Bearbeiten“)? Nur für diese Sitzung.
+  let routinenBearbeitenAn = false;
+
+  function routinenBearbeitenUmschalten() {
+    routinenBearbeitenAn = !routinenBearbeitenAn;
+    document.getElementById("routinen-liste").classList.toggle("bearbeiten-an", routinenBearbeitenAn);
+    document.getElementById("routinen-bearbeiten").textContent = txt(routinenBearbeitenAn ? "fertig" : "routinen.bearbeiten");
+  }
+
+  // „Vorlagen“ klappt die Vorlagen auf und zu und rollt beim Aufklappen hin
+  function vorlagenUmschalten() {
+    const plaene = document.getElementById("reiter-plaene");
+    plaene.classList.toggle("vorlagen-offen");
+    if (plaene.classList.contains("vorlagen-offen")) {
+      document.getElementById("vorlagen-liste").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  // Wann eine Routine zuletzt trainiert wurde: in den letzten 6 Tagen der Wochentag ("Di"), sonst das Datum. Ohne: "".
+  function routineZuletzt(routine) {
+    let zuletzt = null;
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (e && e.routineId === routine.id && hatDatum(e)) {
+        const datum = new Date(e.datum);
+        if (!zuletzt || datum > zuletzt) {
+          zuletzt = datum;
+        }
+      }
+    }
+    if (!zuletzt) {
+      return "";
+    }
+    const tage = Math.round((tagNull(new Date()) - tagNull(zuletzt)) / 86400000);
+    if (tage < 7) {
+      return wochentag((zuletzt.getDay() + 6) % 7);
+    }
+    return tagMonat(zuletzt);
+  }
+
+  function tagNull(datum) {
+    return new Date(datum.getFullYear(), datum.getMonth(), datum.getDate()).getTime();
+  }
+
+  // Die Karte des heutigen Trainings im Training-Tab: Name, „HEUTE“, Dauer, Übungen, Figuren und „Starten“.
+  // Nur wenn heute eine Routine geplant ist und kein Training läuft.
+  function trainingHeuteAnzeigen() {
+    const bereich = document.getElementById("training-heute");
+    bereich.innerHTML = "";
+    if (laufendesTraining) {
+      return;
+    }
+    const routine = routineFinden(wochenplan[(new Date().getDay() + 6) % 7]);
+    if (!routine) {
+      return;
+    }
+    const karte = element("div", "karte heute-karte training-heute-karte");
+    const kopf = element("div", "training-heute-kopf");
+    kopf.appendChild(element("span", "training-heute-name", routine.name));
+    kopf.appendChild(element("span", "training-heute-marke", txt("heute")));
+    karte.appendChild(kopf);
+    const meta = element("div", "korund-kopf-meta");
+    meta.appendChild(element("span", "korund-dauer", txt("routine.dauer", { n: routineDauerMinuten(routine) })));
+    meta.appendChild(element("span", "korund-anzahl", uebungenText(routine.uebungen.length)));
+    karte.appendChild(meta);
+    karte.appendChild(routineFiguren(routine));
+    const start = element("button", "speichern-btn", txt("routine.starten"));
+    start.onclick = function () {
+      routineStarten(routine);
+    };
+    karte.appendChild(start);
+    bereich.appendChild(karte);
   }
 
   // Die Symbole der Routine-Karte als Pfad für ein SVG mit 24 × 24 Einheiten: Stift, zwei Blätter, Papierkorb
@@ -3259,6 +3350,25 @@
       }
       karte.appendChild(element("div", "routine-name", routine.name));
       karte.appendChild(element("div", "routine-info", routineInfo(routine)));
+      // Look Korund (seit Version 142): kompakte Zeile mit Figuren, „5 Übungen · zuletzt Di“ und Pfeil (sonst ausgeblendet).
+      // Ein Tipp auf die Zeile öffnet dort die Routine, die Knöpfe zeigt „Bearbeiten“.
+      const figuren = routineFiguren(routine);
+      figuren.className = "routine-figuren";
+      karte.insertBefore(figuren, karte.firstChild);
+      let info = uebungenText(routine.uebungen.length);
+      const zuletzt = routineZuletzt(routine);
+      if (zuletzt) {
+        info += " · " + txt("routine.zuletzt", { tag: zuletzt });
+      }
+      karte.appendChild(element("div", "routine-korund-info", info));
+      const pfeil = element("span", "routine-pfeil", "›");
+      pfeil.setAttribute("aria-hidden", "true");
+      karte.appendChild(pfeil);
+      karte.addEventListener("click", function (ereignis) {
+        if (lookKorund() && !routinenBearbeitenAn && !ereignis.target.closest("button")) {
+          routineBearbeiten(routine);
+        }
+      });
 
       const knoepfe = element("div", "karten-knoepfe");
       const start = element("button", "knopf haupt", txt("routine.starten"));
@@ -6523,6 +6633,8 @@
 
   // Baut die ganze Übersicht neu auf
   function homeAnzeigen() {
+    // Look Korund (seit Version 142): Der Titel heißt dort "Heute" (die korund.css zeigt data-korund statt des Texts)
+    document.querySelector("#ansicht-home > h1").setAttribute("data-korund", txt("home.heute"));
     document.getElementById("home-datum").textContent = new Date().toLocaleDateString(gebiet(), { weekday: "long", day: "numeric", month: "long" });
     homeSerieAnzeigen();
     homeHeuteAnzeigen();
@@ -6712,6 +6824,48 @@
     return ids;
   }
 
+  // Look Korund (seit Version 142): Wie lange eine Routine ungefähr dauert, in Minuten. Aus den letzten (bis zu 5)
+  // Trainings dieser Routine mit Start und Ende, sonst geschätzt: je Satz 45 s Arbeit plus die Pause der Übung.
+  function routineDauerMinuten(routine) {
+    const dauern = [];
+    for (let i = trainings.length - 1; i >= 0 && dauern.length < 5; i--) {
+      const t = trainings[i];
+      if (t && t.routineId === routine.id && t.start && t.ende) {
+        const minuten = (new Date(t.ende) - new Date(t.start)) / 60000;
+        if (minuten > 5 && minuten < 300) {
+          dauern.push(minuten);
+        }
+      }
+    }
+    if (dauern.length > 0) {
+      return Math.round(dauern.reduce(function (a, b) { return a + b; }, 0) / dauern.length);
+    }
+    let sekunden = 0;
+    for (let i = 0; i < routine.uebungen.length; i++) {
+      const u = routine.uebungen[i];
+      sekunden += (u.zielSaetze || 3) * (45 + pauseDauer(u));
+    }
+    return Math.round(sekunden / 60);
+  }
+
+  // Look Korund (seit Version 142): der Kopf einer Routinen-Karte wie im Entwurf. Die Teile sind sonst ausgeblendet.
+  function routineKopfKorund(karte, routine, label) {
+    karte.classList.add("mit-korund-kopf");
+    const gruppen = [];
+    const ids = routineGruppenIds(routine, 3);
+    for (let i = 0; i < ids.length; i++) {
+      gruppen.push(GRUPPE_NACH_ID[ids[i]][sprache] || GRUPPE_NACH_ID[ids[i]].de);
+    }
+    if (label) {
+      karte.appendChild(element("div", "korund-kopf-label", label + " · " + routine.name));
+    }
+    karte.appendChild(element("div", "korund-kopf-titel", gruppen.length > 0 ? gruppen.join(", ") : routine.name));
+    const meta = element("div", "korund-kopf-meta");
+    meta.appendChild(element("span", "korund-dauer", txt("routine.dauer", { n: routineDauerMinuten(routine) })));
+    meta.appendChild(element("span", "korund-anzahl", uebungenText(routine.uebungen.length)));
+    karte.appendChild(meta);
+  }
+
   // Look Korund (seit Version 142): die Muskelfigur einer einzelnen Übung als SVG, ohne Gruppe die leere Figur
   function uebungFigurSvg(u) {
     const ids = routineGruppenIds({ uebungen: [u] }, 1);
@@ -6811,6 +6965,8 @@
       }
       karte.appendChild(element("div", "ansicht-titel", routine.name));
       karte.appendChild(element("div", "routine-info", routineInfo(routine)));
+      // Look Korund (seit Version 142): "GEPLANT · PUSH", die Muskelgruppen als Titel und "ca. 62 Min · 4 Übungen"
+      routineKopfKorund(karte, routine, txt(erledigt ? "home.erledigt" : "home.geplantKurz"));
       karte.appendChild(routineFiguren(routine));
 
       let start;
@@ -6929,6 +7085,10 @@
       const tag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + i);
       const trainiert = homeTage[tagSchluessel(tag)];
       const btn = element("button", "home-tag");
+      // Nur ein Merkmal für den Look Korund (gefüllter Kreis): an der Anzeige sonst ändert es nichts
+      if (trainiert) {
+        btn.classList.add("trainiert");
+      }
       btn.appendChild(element("span", "tag-name", wochentag(i)));
       btn.appendChild(element("span", "tag-zahl", tag.getDate()));
 

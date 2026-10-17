@@ -104,6 +104,8 @@
           </div>
         </div>
         <button id="home-woche-vor" onclick="homeWocheBlaettern(1)" aria-label="Woche vor" data-t-aria="log.wocheVor">›</button>
+        <!-- Look Korund (seit Version 142): "Details" rechts neben "Diese Woche", öffnet den Fortschritt. Sonst ausgeblendet. -->
+        <button class="home-woche-details" type="button" onclick="seiteZeigen('fortschritt')" data-t="home.details">Details</button>
       </div>
       <div id="home-woche-rahmen" data-tour="home-woche">
         <div id="home-woche"></div>
@@ -196,10 +198,20 @@
       <div id="reiter-plaene">
       <h2 class="abschnitt" data-t="wochenplan">Wochenplan</h2>
       <div id="wochenplan" class="karte wochenplan" data-tour="training-wochenplan"></div>
+      <!-- Look Korund (seit Version 142): die Karte des heutigen Trainings mit „Starten“. Die app.js füllt sie, sonst ausgeblendet. -->
+      <div id="training-heute" class="training-heute"></div>
 
-      <h2 class="abschnitt" data-t="training.meineRoutinen">Meine Routinen</h2>
+      <!-- Der Rahmen um „Meine Routinen“ und „Bearbeiten“ wirkt nur im Look Korund (sonst display: contents) -->
+      <div class="routinen-kopf">
+        <h2 class="abschnitt" data-t="training.meineRoutinen">Meine Routinen</h2>
+        <button id="routinen-bearbeiten" class="routinen-bearbeiten" type="button" onclick="routinenBearbeitenUmschalten()" data-t="routinen.bearbeiten">Bearbeiten</button>
+      </div>
       <div id="routinen-liste"></div>
-      <button class="zweit-btn" onclick="routineNeu()" data-t="editor.neu" data-tour="training-neu">Neue Routine</button>
+      <div class="routinen-knoepfe">
+        <button class="zweit-btn" onclick="routineNeu()" data-t="editor.neu" data-tour="training-neu">Neue Routine</button>
+        <!-- Look Korund (seit Version 142): „Vorlagen“ klappt die Vorlagen auf. Sonst ausgeblendet, dort stehen sie immer da. -->
+        <button class="zweit-btn vorlagen-knopf" type="button" onclick="vorlagenUmschalten()" data-t="training.vorlagen">Vorlagen</button>
+      </div>
 
       <h2 class="abschnitt" data-t="training.vorlagen">Vorlagen</h2>
       <p class="vorlagen-frage" data-t="vorlage.frage">Wie oft trainierst du pro Woche?</p>

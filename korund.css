@@ -1418,6 +1418,412 @@
   font-size: 13px;
 }
 
+/* ===== Etappe 4: Home wie im Entwurf ===== */
+/* Oben klein das Datum, darunter groß „Heute“, rechts die Serie */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home {
+  display: flex;
+  flex-direction: column;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-datum {
+  order: -2;
+  margin: 12px 0 0;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home > h1 {
+  order: -1;
+  margin-top: 2px;
+  font-size: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home > h1::before {
+  content: attr(data-korund);
+  font-size: 34px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-serie:not(:empty) {
+  top: 36px;
+}
+
+/* Die Karte des geplanten Trainings: „GEPLANT · PUSH“, Muskelgruppen als Titel, Dauer und Zahl der Übungen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mit-korund-kopf > .heute-label,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mit-korund-kopf > .ansicht-titel,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mit-korund-kopf > .routine-info {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-kopf-label {
+  display: block;
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-kopf-titel {
+  display: block;
+  margin-top: 4px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-kopf-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  color: var(--text-leise);
+  font-size: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-dauer::before {
+  content: "◷ ";
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-anzahl::before {
+  content: "☰ ";
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .heute-karte .speichern-btn::before {
+  content: "▶  ";
+  font-size: 0.8em;
+}
+
+/* „Diese Woche … Details“ als kleine Zeile, die Woche und das K in einer Karte */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home .home-wochen-kopf {
+  display: flex;
+  align-items: baseline;
+  margin: 24px 4px 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home .home-wochen-kopf > button:not(.home-woche-details) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home .home-wochen-text {
+  flex: 1;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-woche-titel {
+  margin: 0;
+  color: var(--text-leise);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home #home-woche-zeitraum {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-woche-details {
+  display: block;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #D3D8DD;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-woche-rahmen {
+  padding: 14px 10px 8px;
+  border: 1px solid rgba(238, 242, 247, 0.12);
+  border-bottom: none;
+  border-radius: 22px 22px 0 0;
+  background: rgba(var(--fw-glas-rgb), 0.6);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-woche-zahlen {
+  margin-top: 0 !important;
+  border-top: none !important;
+  border-radius: 0 0 22px 22px !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-woche-zahlen .wochen-karte-kopf {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag {
+  min-height: 0;
+  padding: 0;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag .tag-name {
+  color: var(--text-leise);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag .tag-zahl {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-top: 6px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag.trainiert .tag-zahl {
+  background: var(--fw-signal);
+  color: var(--fw-auf-signal);
+  box-shadow: 0 0 10px rgba(var(--fw-signal-rgb), 0.45);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag.heute .tag-zahl {
+  box-shadow: 0 0 0 2px #07090C, 0 0 0 4px var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag .tag-plan,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag .tag-punkt {
+  display: none;
+}
+
+/* ===== Etappe 4: Training-Tab wie im Entwurf ===== */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht {
+  display: flex;
+  flex-direction: column;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht > #training-unterzeile {
+  order: -2;
+  margin: 12px 0 0;
+  font-size: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht > #training-unterzeile::before {
+  content: attr(data-korund);
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht > h1 {
+  order: -1;
+  margin-top: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf {
+  top: 36px;
+}
+
+/* Der Wochenplan als offene Leiste: Tag, Datum, darunter die Routine. Nur „heute“ hat einen Rahmen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #reiter-plaene > h2.abschnitt:first-child {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochenplan {
+  margin-top: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile {
+  gap: 4px;
+  padding: 8px 2px;
+  border-color: transparent;
+  background: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile:last-child {
+  border-bottom-color: transparent;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile.heute {
+  border-color: rgba(238, 242, 247, 0.22);
+  background: rgba(var(--fw-glas-rgb), 0.8);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-datum {
+  display: block;
+  order: 1;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile .plan-tag {
+  order: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile .plan-kurz {
+  order: 2;
+  font-size: 11px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile.geplant .plan-kurz {
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile.heute .plan-kurz {
+  color: var(--text);
+}
+
+/* Die Karte „Push · HEUTE“ */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute {
+  display: block;
+  margin-top: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute:empty {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-name {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-marke {
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: rgba(var(--fw-signal-rgb), 0.16);
+  color: var(--fw-signal);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-karte .heute-figuren {
+  margin: 12px 0 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-karte .speichern-btn::before {
+  content: "▶  ";
+  font-size: 0.8em;
+}
+
+/* „Meine Routinen“ mit „Bearbeiten“ rechts, darunter kompakte Zeilen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 26px 4px 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-kopf h2.abschnitt {
+  margin: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-bearbeiten {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #D3D8DD;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-karte {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "figuren name pfeil" "figuren info pfeil" "knoepfe knoepfe knoepfe";
+  align-items: center;
+  column-gap: 12px;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-figuren {
+  display: flex;
+  grid-area: figuren;
+  gap: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-figuren .figur-kachel,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-figuren > * {
+  width: 30px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-name {
+  grid-area: name;
+  font-size: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-info {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-korund-info {
+  display: block;
+  grid-area: info;
+  color: var(--text-leise);
+  font-size: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-pfeil {
+  display: block;
+  grid-area: pfeil;
+  color: var(--text-leise);
+  font-size: 20px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .karten-knoepfe {
+  display: none;
+  grid-area: knoepfe;
+  margin-top: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste.bearbeiten-an .karten-knoepfe {
+  display: flex;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste.bearbeiten-an .routine-pfeil {
+  visibility: hidden;
+}
+
+/* „+ Neue Routine“ und „Vorlagen“ nebeneinander, die Vorlagen erst nach Antippen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-knoepfe {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-knoepfe .zweit-btn {
+  display: block;
+  margin: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-knoepfe .zweit-btn:first-child::before {
+  content: "+ ";
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #reiter-plaene:not(.vorlagen-offen) > :is(h2.abschnitt:nth-last-of-type(1), .vorlagen-frage, #vorlagen-liste) {
+  display: none;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -2708,6 +3114,412 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-beenden::before {
     content: "■ ";
     font-size: 13px;
+  }
+
+  /* ===== Etappe 4: Home wie im Entwurf ===== */
+  /* Oben klein das Datum, darunter groß „Heute“, rechts die Serie */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home {
+    display: flex;
+    flex-direction: column;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-datum {
+    order: -2;
+    margin: 12px 0 0;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home > h1 {
+    order: -1;
+    margin-top: 2px;
+    font-size: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home > h1::before {
+    content: attr(data-korund);
+    font-size: 34px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-serie:not(:empty) {
+    top: 36px;
+  }
+
+  /* Die Karte des geplanten Trainings: „GEPLANT · PUSH“, Muskelgruppen als Titel, Dauer und Zahl der Übungen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mit-korund-kopf > .heute-label,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mit-korund-kopf > .ansicht-titel,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mit-korund-kopf > .routine-info {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-kopf-label {
+    display: block;
+    color: var(--text-leise);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-kopf-titel {
+    display: block;
+    margin-top: 4px;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-kopf-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+    color: var(--text-leise);
+    font-size: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-dauer::before {
+    content: "◷ ";
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-anzahl::before {
+    content: "☰ ";
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .heute-karte .speichern-btn::before {
+    content: "▶  ";
+    font-size: 0.8em;
+  }
+
+  /* „Diese Woche … Details“ als kleine Zeile, die Woche und das K in einer Karte */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home .home-wochen-kopf {
+    display: flex;
+    align-items: baseline;
+    margin: 24px 4px 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home .home-wochen-kopf > button:not(.home-woche-details) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home .home-wochen-text {
+    flex: 1;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-woche-titel {
+    margin: 0;
+    color: var(--text-leise);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-align: left;
+    text-transform: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home #home-woche-zeitraum {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-woche-details {
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #D3D8DD;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-woche-rahmen {
+    padding: 14px 10px 8px;
+    border: 1px solid rgba(238, 242, 247, 0.12);
+    border-bottom: none;
+    border-radius: 22px 22px 0 0;
+    background: rgba(var(--fw-glas-rgb), 0.6);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-woche-zahlen {
+    margin-top: 0 !important;
+    border-top: none !important;
+    border-radius: 0 0 22px 22px !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-woche-zahlen .wochen-karte-kopf {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag {
+    min-height: 0;
+    padding: 0;
+    background: none !important;
+    box-shadow: none !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag .tag-name {
+    color: var(--text-leise);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag .tag-zahl {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin-top: 6px;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag.trainiert .tag-zahl {
+    background: var(--fw-signal);
+    color: var(--fw-auf-signal);
+    box-shadow: 0 0 10px rgba(var(--fw-signal-rgb), 0.45);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag.heute .tag-zahl {
+    box-shadow: 0 0 0 2px #07090C, 0 0 0 4px var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag .tag-plan,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag .tag-punkt {
+    display: none;
+  }
+
+  /* ===== Etappe 4: Training-Tab wie im Entwurf ===== */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht {
+    display: flex;
+    flex-direction: column;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht > #training-unterzeile {
+    order: -2;
+    margin: 12px 0 0;
+    font-size: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht > #training-unterzeile::before {
+    content: attr(data-korund);
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht > h1 {
+    order: -1;
+    margin-top: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf {
+    top: 36px;
+  }
+
+  /* Der Wochenplan als offene Leiste: Tag, Datum, darunter die Routine. Nur „heute“ hat einen Rahmen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #reiter-plaene > h2.abschnitt:first-child {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochenplan {
+    margin-top: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile {
+    gap: 4px;
+    padding: 8px 2px;
+    border-color: transparent;
+    background: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile:last-child {
+    border-bottom-color: transparent;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile.heute {
+    border-color: rgba(238, 242, 247, 0.22);
+    background: rgba(var(--fw-glas-rgb), 0.8);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-datum {
+    display: block;
+    order: 1;
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile .plan-tag {
+    order: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile .plan-kurz {
+    order: 2;
+    font-size: 11px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile.geplant .plan-kurz {
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile.heute .plan-kurz {
+    color: var(--text);
+  }
+
+  /* Die Karte „Push · HEUTE“ */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute {
+    display: block;
+    margin-top: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute:empty {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-name {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-marke {
+    padding: 3px 8px;
+    border-radius: 7px;
+    background: rgba(var(--fw-signal-rgb), 0.16);
+    color: var(--fw-signal);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-karte .heute-figuren {
+    margin: 12px 0 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-karte .speichern-btn::before {
+    content: "▶  ";
+    font-size: 0.8em;
+  }
+
+  /* „Meine Routinen“ mit „Bearbeiten“ rechts, darunter kompakte Zeilen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 26px 4px 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-kopf h2.abschnitt {
+    margin: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-bearbeiten {
+    display: block;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #D3D8DD;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-karte {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "figuren name pfeil" "figuren info pfeil" "knoepfe knoepfe knoepfe";
+    align-items: center;
+    column-gap: 12px;
+    margin-bottom: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-figuren {
+    display: flex;
+    grid-area: figuren;
+    gap: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-figuren .figur-kachel,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-figuren > * {
+    width: 30px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-name {
+    grid-area: name;
+    font-size: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-info {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-korund-info {
+    display: block;
+    grid-area: info;
+    color: var(--text-leise);
+    font-size: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-pfeil {
+    display: block;
+    grid-area: pfeil;
+    color: var(--text-leise);
+    font-size: 20px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .karten-knoepfe {
+    display: none;
+    grid-area: knoepfe;
+    margin-top: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste.bearbeiten-an .karten-knoepfe {
+    display: flex;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste.bearbeiten-an .routine-pfeil {
+    visibility: hidden;
+  }
+
+  /* „+ Neue Routine“ und „Vorlagen“ nebeneinander, die Vorlagen erst nach Antippen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-knoepfe {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-knoepfe .zweit-btn {
+    display: block;
+    margin: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-knoepfe .zweit-btn:first-child::before {
+    content: "+ ";
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #reiter-plaene:not(.vorlagen-offen) > :is(h2.abschnitt:nth-last-of-type(1), .vorlagen-frage, #vorlagen-liste) {
+    display: none;
   }
 
 }

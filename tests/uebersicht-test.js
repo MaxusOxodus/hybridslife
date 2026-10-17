@@ -51,7 +51,9 @@ function umgebung(training) {
     + "function anzeigeName(name) { return name; }"
     + "function zusatzSheetOeffnen(id) { geoeffnet = id; } function zusatzSheetsSchliessen() {} function uebungZeigen() {}"
     // Seit Version 141: der Knopf "+ Übung hinzufügen" unter der Liste
-    + "function uebungHinzufuegenOeffnen() {}";
+    + "function uebungHinzufuegenOeffnen() {} function trainingBeendenFragen() {}"
+    // Seit Version 142: Teile der Zeile für den Look Korund (hier ohne Bedeutung)
+    + "function uebersichtZeileKorund() {}";
   for (let i = 0; i < ECHT.length; i++) {
     code += funktionHolen(ECHT[i]);
   }
@@ -85,7 +87,7 @@ function platz(name, ziel, gemacht) {
 // Die Zeilen der Übersicht als kurze Beschreibung: Name, erledigt, aktuell, ✓ da, ✓ für Vorleser versteckt
 function zeilen() {
   // Seit Version 141 steht unter den Übungen der Knopf "+ Übung hinzufügen": Er ist keine Zeile einer Übung
-  return liste.kinder.filter(function (z) { return !z.classList.contains("uebung-hinzu"); }).map(function (z) {
+  return liste.kinder.filter(function (z) { return !z.classList.contains("uebersicht-knoepfe"); }).map(function (z) {
     const haken = z.kinder.find(k => k.classList.contains("sheet-zeile-haken"));
     return {
       name: z.kinder[0].textContent,

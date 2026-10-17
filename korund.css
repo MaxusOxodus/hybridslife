@@ -121,6 +121,12 @@
   font-weight: 500;
 }
 
+
+
+
+
+/* ===== Etappe 4 (seit Version 142): Trainingsmodus genau wie im Entwurf ===== */
+
 /* ===== Dunkel gewählt ===== */
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] {
@@ -598,24 +604,6 @@
   color: var(--text-leise);
 }
 
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell {
-  margin: 4px 0;
-  padding-left: 14px;
-  padding-right: 32px;
-  border-bottom-color: transparent;
-  border-radius: 14px;
-  background: rgba(var(--fw-signal-rgb), 0.10);
-  box-shadow: inset 3px 0 0 var(--fw-signal);
-}
-
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell .sheet-zeile-name {
-  color: var(--fw-signal);
-}
-
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile-haken {
-  color: var(--fw-erfolg);
-}
-
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz {
   display: block;
   margin-top: 10px;
@@ -787,14 +775,6 @@
   font-weight: 800;
 }
 
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .uebung-hinzu {
-  display: block;
-  margin-top: 16px;
-  border: 1px dashed rgba(var(--fw-signal-rgb), 0.45);
-  background: rgba(var(--fw-signal-rgb), 0.08);
-  color: var(--fw-signal);
-}
-
 /* Seiten einzeln: R und L eines Satzes stehen als ein Block, zwischen den Paaren eine deutlichere Linie */
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-reihe + .satz-reihe.seite-l,
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .tag-reihe + .tag-reihe.seite-l {
@@ -851,6 +831,1322 @@
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.seiten-chip.gesperrt {
   opacity: 0.55;
+}
+
+/* Ohne Tab-Leiste: Unten stehen nur der Optionen-Knopf und „Satz fertig“ bzw. „Pause überspringen“ */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] body:has(#seite-training.aktiv #ansicht-modus:not(.versteckt)) #navigation {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus {
+  padding-bottom: 96px;
+}
+
+/* Kopf: ‹ links, Name der Routine in der Mitte, … rechts. Uhr und „Beenden“ wandern woanders hin */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-kopf {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-kopf #modus-uhr,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-kopf .text-btn {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-routine {
+  grid-column: 2;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-kopf-knopf {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(238, 242, 247, 0.12);
+  border-radius: 12px;
+  background: rgba(var(--fw-glas-rgb), 0.7);
+  color: var(--text);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-kopf-zurueck {
+  grid-column: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-kopf-menue {
+  grid-column: 3;
+  justify-self: end;
+  letter-spacing: 0.04em;
+}
+
+/* Fortschritt als Segmente: der Balken bleibt, nur dünner und mit Abstand */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-balken {
+  height: 4px;
+  margin-top: 12px;
+}
+
+/* Übungskarte ohne Rahmen: oben „ZEIT 23:41“ und „‹ Übung 2 von 4 ⌄ ›“, darunter Figur, Gruppe, Name und Tauschen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-karte {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "zeit wechsel" "uebung uebung";
+  align-items: center;
+  margin-top: 14px;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-zeit {
+  display: block;
+  grid-area: zeit;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-zeit::before {
+  content: attr(data-label);
+  margin-right: 6px;
+  color: var(--text-leise);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-wechsel {
+  grid-area: wechsel;
+  justify-self: end;
+  gap: 2px;
+  margin-top: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-wechsel button {
+  width: 28px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font-size: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-wechsel .modus-schritt {
+  flex: none;
+  width: auto;
+  padding: 0 4px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-uebung-zeile {
+  grid-area: uebung;
+  margin-top: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-bild {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-figur {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(238, 242, 247, 0.1);
+  border-radius: 16px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  overflow: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-figur .koerper {
+  width: auto;
+  height: 88%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-uebung-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus #modus-geraet {
+  order: -1;
+  margin: 0 0 2px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-name-zeile .ansicht-titel {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-name-zeile .verlauf-icon {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-tausch-symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 20px;
+}
+
+/* „Satz 2 von 3“ links, „Letztes Mal 30 × 8“ rechts */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-satz-zeile {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-satz-zeile #modus-satz {
+  margin: 0;
+  font-size: 26px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-letztmal {
+  display: block;
+  flex: none;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Zahlenfelder: oben klein „KG“ und „WDH.“, ohne Symbol */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .eingaben .feld-icon {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .eingaben .rad-titel {
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .eingaben .gewicht-titel {
+  font-size: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .eingaben .gewicht-titel::before {
+  content: attr(data-kurz);
+  font-size: 12px;
+}
+
+/* Satz-Tabelle: Spalten SATZ, KG, WDH., RIR und Haken, ohne Überschrift „Deine Sätze“ */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze > .abschnitt {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-tabelle {
+  margin-top: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-reihe {
+  grid-template-columns: 34px repeat(3, minmax(0, 1fr)) 20px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-kg-text,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-rir {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-kg-zahl,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-rir-spalte {
+  display: block;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-reihe.kopf {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Unten am Rand: links der Optionen-Knopf, rechts „Satz fertig“ bzw. „Pause überspringen“ */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-neben {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus:has(#modus-eingabe:not(.versteckt)) .modus-optionen-knopf,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus:has(#modus-pause:not(.versteckt)) .modus-optionen-knopf {
+  display: grid;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-optionen-knopf {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  border-radius: 16px;
+  background: rgba(var(--fw-glas-rgb), 0.92);
+  color: var(--text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-optionen-knopf svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe > .speichern-btn.gross,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .modus-pause-weiter {
+  position: fixed;
+  left: calc(max(16px, env(safe-area-inset-left, 0px)) + 64px);
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  width: auto;
+  height: 54px;
+  min-height: 0;
+  margin: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .modus-pause-weiter {
+  display: block;
+}
+
+/* Pause: ohne Übungszeile, Chips, Tabelle und Hinweise. Der Ring zeigt „von 2:00“, darunter der gespeicherte Satz */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus:has(#modus-pause:not(.versteckt)) :is(.modus-uebung-zeile, #modus-chips, .modus-satz-zeile, #modus-saetze, #modus-hinweis, #modus-letztes, .modus-notiz, #modus-naechstes) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause {
+  margin-top: 22px;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  text-align: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause > .heute-label {
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-countdown {
+  width: 230px;
+  height: 230px;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-countdown::after {
+  content: attr(data-von);
+  position: absolute;
+  top: calc(50% + 36px);
+  left: 0;
+  right: 0;
+  color: var(--text-leise);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-gespeichert {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--fw-erfolg);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-gespeichert:empty {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-gespeichert::before {
+  content: "✓ ";
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .karten-knoepfe {
+  justify-content: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .karten-knoepfe .knopf:nth-child(3) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-als-naechstes {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 26px;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-figur {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  overflow: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-figur .koerper {
+  width: auto;
+  height: 88%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-label {
+  color: var(--text-leise);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-name {
+  margin-top: 2px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-ziel {
+  margin-top: 2px;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-titel {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .karten-knoepfe .knopf {
+  flex: none;
+  width: auto;
+  min-width: 76px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  font-size: 16px;
+}
+
+/* Der Hinweis steht im Look Korund als grüner Chip „↑ 32 kg“ oben und als Karte auf Home */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus #modus-hinweis {
+  display: none;
+}
+
+/* Hinter den Knöpfen unten verläuft die Seite ins Dunkle, damit nichts darunter durchscheint */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 29;
+  height: calc(100px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(rgba(7, 9, 12, 0), #07090C 55%);
+  pointer-events: none;
+}
+
+
+/* ===== Etappe 4: Übungen im Training wie im Entwurf ===== */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet {
+  height: calc(100dvh - 40px - env(safe-area-inset-top, 0px));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 0;
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(238, 242, 247, 0.1);
+  border-radius: 18px;
+  background: rgba(var(--fw-glas-rgb), 0.6);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell {
+  border-color: rgba(var(--fw-signal-rgb), 0.55);
+  background: rgba(var(--fw-signal-rgb), 0.08);
+  box-shadow: 0 0 18px rgba(var(--fw-signal-rgb), 0.15);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile > .sheet-zeile-name,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile > .sheet-zeile-zweit {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-figur {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  background: rgba(var(--fw-glas-rgb), 0.9);
+  overflow: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-figur .koerper {
+  width: auto;
+  height: 88%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-korund-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .sheet-korund-gruppe,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .sheet-korund-stand {
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .sheet-korund-name {
+  margin: 1px 0;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell .sheet-korund-name {
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.erledigt .sheet-korund-name {
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-tausch {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--text-leise);
+  font-size: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.erledigt {
+  padding-right: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile-haken {
+  position: static;
+  transform: none;
+  color: var(--fw-erfolg);
+  font-size: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-knoepfe {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-knoepfe .uebung-hinzu,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-beenden {
+  display: block;
+  height: 52px;
+  margin: 0;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-knoepfe .uebung-hinzu {
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  color: var(--text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-beenden {
+  border: none;
+  background: var(--fw-knopf);
+  color: var(--fw-knopf-text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .uebersicht-beenden::before {
+  content: "■ ";
+  font-size: 13px;
+}
+
+/* ===== Etappe 4: Home wie im Entwurf ===== */
+/* Oben klein das Datum, darunter groß „Heute“, rechts die Serie */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home {
+  display: flex;
+  flex-direction: column;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-datum {
+  order: -2;
+  margin: 12px 0 0;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home > h1 {
+  order: -1;
+  margin-top: 2px;
+  font-size: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home > h1::before {
+  content: attr(data-korund);
+  font-size: 34px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-serie:not(:empty) {
+  top: 36px;
+}
+
+/* Die Karte des geplanten Trainings: „GEPLANT · PUSH“, Muskelgruppen als Titel, Dauer und Zahl der Übungen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mit-korund-kopf > .heute-label,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mit-korund-kopf > .ansicht-titel,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mit-korund-kopf > .routine-info {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-kopf-label {
+  display: block;
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-kopf-titel {
+  display: block;
+  margin-top: 4px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-kopf-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  color: var(--text-leise);
+  font-size: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-dauer::before {
+  content: "◷ ";
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .korund-anzahl::before {
+  content: "☰ ";
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .heute-karte .speichern-btn::before {
+  content: "▶  ";
+  font-size: 0.8em;
+}
+
+/* „Diese Woche … Details“ als kleine Zeile, die Woche und das K in einer Karte */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home .home-wochen-kopf {
+  display: flex;
+  align-items: baseline;
+  margin: 24px 4px 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home .home-wochen-kopf > button:not(.home-woche-details) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home .home-wochen-text {
+  flex: 1;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-woche-titel {
+  margin: 0;
+  color: var(--text-leise);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home #home-woche-zeitraum {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-woche-details {
+  display: block;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #D3D8DD;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-woche-rahmen {
+  padding: 14px 10px 8px;
+  border: 1px solid rgba(238, 242, 247, 0.12);
+  border-bottom: none;
+  border-radius: 22px 22px 0 0;
+  background: rgba(var(--fw-glas-rgb), 0.6);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-woche-zahlen {
+  margin-top: 0 !important;
+  border-top: none !important;
+  border-radius: 0 0 22px 22px !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-woche-zahlen .wochen-karte-kopf {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag {
+  min-height: 0;
+  padding: 0;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag .tag-name {
+  color: var(--text-leise);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag .tag-zahl {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-top: 6px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag.trainiert .tag-zahl {
+  background: var(--fw-signal);
+  color: var(--fw-auf-signal);
+  box-shadow: 0 0 10px rgba(var(--fw-signal-rgb), 0.45);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag.heute .tag-zahl {
+  box-shadow: 0 0 0 2px #07090C, 0 0 0 4px var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag .tag-plan,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-tag .tag-punkt {
+  display: none;
+}
+
+/* ===== Etappe 4: Training-Tab wie im Entwurf ===== */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht {
+  display: flex;
+  flex-direction: column;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht > #training-unterzeile {
+  order: -2;
+  margin: 12px 0 0;
+  font-size: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht > #training-unterzeile::before {
+  content: attr(data-korund);
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht > h1 {
+  order: -1;
+  margin-top: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf {
+  top: 36px;
+}
+
+/* Der Wochenplan als offene Leiste: Tag, Datum, darunter die Routine. Nur „heute“ hat einen Rahmen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #reiter-plaene > h2.abschnitt:first-child {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochenplan {
+  margin-top: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile {
+  gap: 4px;
+  padding: 8px 2px;
+  border-color: transparent;
+  background: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile:last-child {
+  border-bottom-color: transparent;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile.heute {
+  border-color: rgba(238, 242, 247, 0.22);
+  background: rgba(var(--fw-glas-rgb), 0.8);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-datum {
+  display: block;
+  order: 1;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile .plan-tag {
+  order: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile .plan-kurz {
+  order: 2;
+  font-size: 11px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile.geplant .plan-kurz {
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile.heute .plan-kurz {
+  color: var(--text);
+}
+
+/* Die Karte „Push · HEUTE“ */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute {
+  display: block;
+  margin-top: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute:empty {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-name {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-marke {
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: rgba(var(--fw-signal-rgb), 0.16);
+  color: var(--fw-signal);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-karte .heute-figuren {
+  margin: 12px 0 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .training-heute-karte .speichern-btn::before {
+  content: "▶  ";
+  font-size: 0.8em;
+}
+
+/* „Meine Routinen“ mit „Bearbeiten“ rechts, darunter kompakte Zeilen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 26px 4px 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-kopf h2.abschnitt {
+  margin: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-bearbeiten {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #D3D8DD;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-karte {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "figuren name pfeil" "figuren info pfeil" "knoepfe knoepfe knoepfe";
+  align-items: center;
+  column-gap: 12px;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-figuren {
+  display: flex;
+  grid-area: figuren;
+  gap: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-figuren .figur-kachel,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-figuren > * {
+  width: 30px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-name {
+  grid-area: name;
+  font-size: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-info {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-korund-info {
+  display: block;
+  grid-area: info;
+  color: var(--text-leise);
+  font-size: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .routine-pfeil {
+  display: block;
+  grid-area: pfeil;
+  color: var(--text-leise);
+  font-size: 20px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste .karten-knoepfe {
+  display: none;
+  grid-area: knoepfe;
+  margin-top: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste.bearbeiten-an .karten-knoepfe {
+  display: flex;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #routinen-liste.bearbeiten-an .routine-pfeil {
+  visibility: hidden;
+}
+
+/* „+ Neue Routine“ und „Vorlagen“ nebeneinander, die Vorlagen erst nach Antippen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-knoepfe {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-knoepfe .zweit-btn {
+  display: block;
+  margin: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-knoepfe .zweit-btn:first-child::before {
+  content: "+ ";
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #reiter-plaene:not(.vorlagen-offen) > :is(h2.abschnitt:nth-last-of-type(1), .vorlagen-frage, #vorlagen-liste) {
+  display: none;
+}
+
+/* ---------- Status-Sheet (seit Version 142) ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-sheet-text {
+  margin: 0 0 16px;
+  color: var(--text-leise);
+  font-size: 14px;
+  line-height: 1.45;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #status-sheet-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(var(--fw-glas-rgb), 0.55);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte[aria-checked="true"] {
+  border-color: rgba(var(--fw-signal-rgb), 0.7);
+  background: rgba(var(--fw-signal-rgb), 0.1);
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-symbol {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(var(--fw-signal-rgb), 0.14);
+  color: var(--fw-signal);
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-krank .status-symbol { background: rgba(255, 140, 120, 0.14); color: #FF9C8A; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-urlaub .status-symbol { background: rgba(255, 205, 110, 0.14); color: #FFCF70; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-symbol svg { width: 22px; height: 22px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte-name { font-size: 16px; font-weight: 600; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte-info { font-size: 13px; color: var(--text-leise); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-kreis {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-sizing: border-box;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte[aria-checked="true"] .status-kreis {
+  border: 6px solid var(--fw-signal);
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #status-sheet .speichern-btn { width: 100%; }
+
+/* ---------- Fortschritt wie im Entwurf (seit Version 142) ----------
+   Oben „Letzte 30 Tage“, der Titel und die Reiter Kraft, Körper, Statistik. data-teil (index.html) sagt, was in welchem Reiter steht.
+   Während eines Rundgangs stellt die Einführung den passenden Reiter ein. */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-ueber {
+  display: block;
+  margin: 12px 0 0;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt > h1 {
+  margin-top: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt > .unterzeile {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-reiter {
+  display: flex;
+  margin: 8px 0 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-reiter button {
+  flex: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-reiter="kraft"] [data-teil]:not([data-teil="kraft"]),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-reiter="koerper"] [data-teil]:not([data-teil="koerper"]),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-reiter="statistik"] [data-teil]:not([data-teil="statistik"]) {
+  display: none !important;
+}
+
+/* Im Reiter Statistik braucht es die Überschrift nicht, der Reiter sagt es schon. Im Reiter Kraft fehlt „Kraftentwicklung“ und in der Liste der Zeitraum. */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt h2[data-teil="statistik"],
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt #kraft-abschnitt,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste > .umschalter.klein {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt h2#kg-abschnitt {
+  margin-top: 0;
+}
+
+/* Konstanz: 30 Tage in zwei Reihen zu 15 */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz {
+  margin-top: 0;
+  padding: 18px 18px 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-zahl {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-raster {
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: none;
+  grid-auto-flow: row;
+  gap: 6px 5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld {
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.stufe-1,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.stufe-2 {
+  background: var(--fw-signal);
+  box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.35);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.heute {
+  outline: 2px solid rgba(238, 242, 247, 0.9);
+  outline-offset: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-fuss {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 16px;
+  color: var(--text-leise);
+  font-size: 15px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-fuss-zahl b {
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+/* Kraft: je Gruppe ein Kopf „BRUST ›“ und darunter die Karte ihrer Übung */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) {
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 0;
+  margin: 22px 0 8px;
+  padding: 4px 4px;
+  border: none;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus)::before,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus)::after {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) :is(.gruppen-figur, .gruppen-anzahl, .gruppen-plakette) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) .listen-text {
+  flex: none;
+  color: var(--text-leise);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) .einst-pfeil {
+  margin-left: 4px;
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste > .gruppen-zeile:first-of-type {
+  margin-top: 6px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 16px 18px 10px;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-kopf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-figur {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(238, 242, 247, 0.1);
+  border-radius: 14px;
+  background: rgba(var(--fw-glas-rgb), 0.6);
+  overflow: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-figur svg {
+  width: 40px;
+  height: 40px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-info {
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-plus {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 4px;
+  color: var(--text-leise);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-plus.plus {
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-linie {
+  display: block;
+  margin-top: 4px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-linie svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-flaeche-oben { stop-color: rgba(var(--fw-signal-rgb), 0.28); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-flaeche-unten { stop-color: rgba(var(--fw-signal-rgb), 0); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-flaeche { fill: url(#kraft-flaeche); }
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-weg {
+  fill: none;
+  stroke: var(--fw-signal);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(var(--fw-signal-rgb), 0.5));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-anfang {
+  fill: var(--hintergrund, #0B0D10);
+  stroke: var(--fw-signal);
+  stroke-width: 2.5;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-ende {
+  fill: var(--fw-signal);
+  stroke: #0B0D10;
+  stroke-width: 2.5;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-wert-klein {
+  fill: var(--text-leise);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-wert {
+  fill: var(--text);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 
@@ -1331,24 +2627,6 @@
     color: var(--text-leise);
   }
 
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell {
-    margin: 4px 0;
-    padding-left: 14px;
-    padding-right: 32px;
-    border-bottom-color: transparent;
-    border-radius: 14px;
-    background: rgba(var(--fw-signal-rgb), 0.10);
-    box-shadow: inset 3px 0 0 var(--fw-signal);
-  }
-
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell .sheet-zeile-name {
-    color: var(--fw-signal);
-  }
-
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile-haken {
-    color: var(--fw-erfolg);
-  }
-
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz {
     display: block;
     margin-top: 10px;
@@ -1520,14 +2798,6 @@
     font-weight: 800;
   }
 
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .uebung-hinzu {
-    display: block;
-    margin-top: 16px;
-    border: 1px dashed rgba(var(--fw-signal-rgb), 0.45);
-    background: rgba(var(--fw-signal-rgb), 0.08);
-    color: var(--fw-signal);
-  }
-
   /* Seiten einzeln: R und L eines Satzes stehen als ein Block, zwischen den Paaren eine deutlichere Linie */
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-reihe + .satz-reihe.seite-l,
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .tag-reihe + .tag-reihe.seite-l {
@@ -1584,6 +2854,1322 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.seiten-chip.gesperrt {
     opacity: 0.55;
+  }
+
+  /* Ohne Tab-Leiste: Unten stehen nur der Optionen-Knopf und „Satz fertig“ bzw. „Pause überspringen“ */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) body:has(#seite-training.aktiv #ansicht-modus:not(.versteckt)) #navigation {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus {
+    padding-bottom: 96px;
+  }
+
+  /* Kopf: ‹ links, Name der Routine in der Mitte, … rechts. Uhr und „Beenden“ wandern woanders hin */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-kopf {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-kopf #modus-uhr,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-kopf .text-btn {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-routine {
+    grid-column: 2;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-kopf-knopf {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid rgba(238, 242, 247, 0.12);
+    border-radius: 12px;
+    background: rgba(var(--fw-glas-rgb), 0.7);
+    color: var(--text);
+    font: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-kopf-zurueck {
+    grid-column: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-kopf-menue {
+    grid-column: 3;
+    justify-self: end;
+    letter-spacing: 0.04em;
+  }
+
+  /* Fortschritt als Segmente: der Balken bleibt, nur dünner und mit Abstand */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-balken {
+    height: 4px;
+    margin-top: 12px;
+  }
+
+  /* Übungskarte ohne Rahmen: oben „ZEIT 23:41“ und „‹ Übung 2 von 4 ⌄ ›“, darunter Figur, Gruppe, Name und Tauschen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-karte {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "zeit wechsel" "uebung uebung";
+    align-items: center;
+    margin-top: 14px;
+    padding: 0 !important;
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-zeit {
+    display: block;
+    grid-area: zeit;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-zeit::before {
+    content: attr(data-label);
+    margin-right: 6px;
+    color: var(--text-leise);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-wechsel {
+    grid-area: wechsel;
+    justify-self: end;
+    gap: 2px;
+    margin-top: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-wechsel button {
+    width: 28px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: var(--text-leise);
+    font-size: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-wechsel .modus-schritt {
+    flex: none;
+    width: auto;
+    padding: 0 4px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-uebung-zeile {
+    grid-area: uebung;
+    margin-top: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-bild {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-figur {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border: 1px solid rgba(238, 242, 247, 0.1);
+    border-radius: 16px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    overflow: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-figur .koerper {
+    width: auto;
+    height: 88%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-uebung-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus #modus-geraet {
+    order: -1;
+    margin: 0 0 2px;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-name-zeile .ansicht-titel {
+    font-size: 22px;
+    line-height: 1.2;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-name-zeile .verlauf-icon {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-tausch-symbol {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-leise);
+    font: inherit;
+    font-size: 20px;
+  }
+
+  /* „Satz 2 von 3“ links, „Letztes Mal 30 × 8“ rechts */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-satz-zeile {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-satz-zeile #modus-satz {
+    margin: 0;
+    font-size: 26px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-letztmal {
+    display: block;
+    flex: none;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  /* Zahlenfelder: oben klein „KG“ und „WDH.“, ohne Symbol */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .eingaben .feld-icon {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .eingaben .rad-titel {
+    color: var(--text-leise);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .eingaben .gewicht-titel {
+    font-size: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .eingaben .gewicht-titel::before {
+    content: attr(data-kurz);
+    font-size: 12px;
+  }
+
+  /* Satz-Tabelle: Spalten SATZ, KG, WDH., RIR und Haken, ohne Überschrift „Deine Sätze“ */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze > .abschnitt {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-tabelle {
+    margin-top: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-reihe {
+    grid-template-columns: 34px repeat(3, minmax(0, 1fr)) 20px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-kg-text,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-rir {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-kg-zahl,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-rir-spalte {
+    display: block;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-reihe.kopf {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Unten am Rand: links der Optionen-Knopf, rechts „Satz fertig“ bzw. „Pause überspringen“ */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-neben {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus:has(#modus-eingabe:not(.versteckt)) .modus-optionen-knopf,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus:has(#modus-pause:not(.versteckt)) .modus-optionen-knopf {
+    display: grid;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-optionen-knopf {
+    position: fixed;
+    left: max(16px, env(safe-area-inset-left, 0px));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 30;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    padding: 0;
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    border-radius: 16px;
+    background: rgba(var(--fw-glas-rgb), 0.92);
+    color: var(--text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-optionen-knopf svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe > .speichern-btn.gross,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .modus-pause-weiter {
+    position: fixed;
+    left: calc(max(16px, env(safe-area-inset-left, 0px)) + 64px);
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 30;
+    width: auto;
+    height: 54px;
+    min-height: 0;
+    margin: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .modus-pause-weiter {
+    display: block;
+  }
+
+  /* Pause: ohne Übungszeile, Chips, Tabelle und Hinweise. Der Ring zeigt „von 2:00“, darunter der gespeicherte Satz */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus:has(#modus-pause:not(.versteckt)) :is(.modus-uebung-zeile, #modus-chips, .modus-satz-zeile, #modus-saetze, #modus-hinweis, #modus-letztes, .modus-notiz, #modus-naechstes) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause {
+    margin-top: 22px;
+    padding: 0 !important;
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    text-align: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause > .heute-label {
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-countdown {
+    width: 230px;
+    height: 230px;
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-countdown::after {
+    content: attr(data-von);
+    position: absolute;
+    top: calc(50% + 36px);
+    left: 0;
+    right: 0;
+    color: var(--text-leise);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-gespeichert {
+    display: block;
+    margin-bottom: 14px;
+    color: var(--fw-erfolg);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-gespeichert:empty {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-gespeichert::before {
+    content: "✓ ";
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .karten-knoepfe {
+    justify-content: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .karten-knoepfe .knopf:nth-child(3) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-als-naechstes {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 26px;
+    padding: 14px 16px;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-figur {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    overflow: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-figur .koerper {
+    width: auto;
+    height: 88%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-label {
+    color: var(--text-leise);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-name {
+    margin-top: 2px;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-ziel {
+    margin-top: 2px;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-titel {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .karten-knoepfe .knopf {
+    flex: none;
+    width: auto;
+    min-width: 76px;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+
+  /* Der Hinweis steht im Look Korund als grüner Chip „↑ 32 kg“ oben und als Karte auf Home */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus #modus-hinweis {
+    display: none;
+  }
+
+  /* Hinter den Knöpfen unten verläuft die Seite ins Dunkle, damit nichts darunter durchscheint */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 29;
+    height: calc(100px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(rgba(7, 9, 12, 0), #07090C 55%);
+    pointer-events: none;
+  }
+
+
+  /* ===== Etappe 4: Übungen im Training wie im Entwurf ===== */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet {
+    height: calc(100dvh - 40px - env(safe-area-inset-top, 0px));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 0;
+    margin: 0 0 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(238, 242, 247, 0.1);
+    border-radius: 18px;
+    background: rgba(var(--fw-glas-rgb), 0.6);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell {
+    border-color: rgba(var(--fw-signal-rgb), 0.55);
+    background: rgba(var(--fw-signal-rgb), 0.08);
+    box-shadow: 0 0 18px rgba(var(--fw-signal-rgb), 0.15);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile > .sheet-zeile-name,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile > .sheet-zeile-zweit {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-figur {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    background: rgba(var(--fw-glas-rgb), 0.9);
+    overflow: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-figur .koerper {
+    width: auto;
+    height: 88%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-korund-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .sheet-korund-gruppe,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .sheet-korund-stand {
+    color: var(--text-leise);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .sheet-korund-name {
+    margin: 1px 0;
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell .sheet-korund-name {
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.erledigt .sheet-korund-name {
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-tausch {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    color: var(--text-leise);
+    font-size: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.erledigt {
+    padding-right: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile-haken {
+    position: static;
+    transform: none;
+    color: var(--fw-erfolg);
+    font-size: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-knoepfe {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-knoepfe .uebung-hinzu,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-beenden {
+    display: block;
+    height: 52px;
+    margin: 0;
+    border-radius: 16px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-knoepfe .uebung-hinzu {
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    color: var(--text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-beenden {
+    border: none;
+    background: var(--fw-knopf);
+    color: var(--fw-knopf-text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .uebersicht-beenden::before {
+    content: "■ ";
+    font-size: 13px;
+  }
+
+  /* ===== Etappe 4: Home wie im Entwurf ===== */
+  /* Oben klein das Datum, darunter groß „Heute“, rechts die Serie */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home {
+    display: flex;
+    flex-direction: column;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-datum {
+    order: -2;
+    margin: 12px 0 0;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home > h1 {
+    order: -1;
+    margin-top: 2px;
+    font-size: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home > h1::before {
+    content: attr(data-korund);
+    font-size: 34px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-serie:not(:empty) {
+    top: 36px;
+  }
+
+  /* Die Karte des geplanten Trainings: „GEPLANT · PUSH“, Muskelgruppen als Titel, Dauer und Zahl der Übungen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mit-korund-kopf > .heute-label,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mit-korund-kopf > .ansicht-titel,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mit-korund-kopf > .routine-info {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-kopf-label {
+    display: block;
+    color: var(--text-leise);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-kopf-titel {
+    display: block;
+    margin-top: 4px;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-kopf-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+    color: var(--text-leise);
+    font-size: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-dauer::before {
+    content: "◷ ";
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .korund-anzahl::before {
+    content: "☰ ";
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .heute-karte .speichern-btn::before {
+    content: "▶  ";
+    font-size: 0.8em;
+  }
+
+  /* „Diese Woche … Details“ als kleine Zeile, die Woche und das K in einer Karte */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home .home-wochen-kopf {
+    display: flex;
+    align-items: baseline;
+    margin: 24px 4px 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home .home-wochen-kopf > button:not(.home-woche-details) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home .home-wochen-text {
+    flex: 1;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-woche-titel {
+    margin: 0;
+    color: var(--text-leise);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-align: left;
+    text-transform: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home #home-woche-zeitraum {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-woche-details {
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #D3D8DD;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-woche-rahmen {
+    padding: 14px 10px 8px;
+    border: 1px solid rgba(238, 242, 247, 0.12);
+    border-bottom: none;
+    border-radius: 22px 22px 0 0;
+    background: rgba(var(--fw-glas-rgb), 0.6);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-woche-zahlen {
+    margin-top: 0 !important;
+    border-top: none !important;
+    border-radius: 0 0 22px 22px !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-woche-zahlen .wochen-karte-kopf {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag {
+    min-height: 0;
+    padding: 0;
+    background: none !important;
+    box-shadow: none !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag .tag-name {
+    color: var(--text-leise);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag .tag-zahl {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin-top: 6px;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag.trainiert .tag-zahl {
+    background: var(--fw-signal);
+    color: var(--fw-auf-signal);
+    box-shadow: 0 0 10px rgba(var(--fw-signal-rgb), 0.45);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag.heute .tag-zahl {
+    box-shadow: 0 0 0 2px #07090C, 0 0 0 4px var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag .tag-plan,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-tag .tag-punkt {
+    display: none;
+  }
+
+  /* ===== Etappe 4: Training-Tab wie im Entwurf ===== */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht {
+    display: flex;
+    flex-direction: column;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht > #training-unterzeile {
+    order: -2;
+    margin: 12px 0 0;
+    font-size: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht > #training-unterzeile::before {
+    content: attr(data-korund);
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht > h1 {
+    order: -1;
+    margin-top: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf {
+    top: 36px;
+  }
+
+  /* Der Wochenplan als offene Leiste: Tag, Datum, darunter die Routine. Nur „heute“ hat einen Rahmen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #reiter-plaene > h2.abschnitt:first-child {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochenplan {
+    margin-top: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile {
+    gap: 4px;
+    padding: 8px 2px;
+    border-color: transparent;
+    background: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile:last-child {
+    border-bottom-color: transparent;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile.heute {
+    border-color: rgba(238, 242, 247, 0.22);
+    background: rgba(var(--fw-glas-rgb), 0.8);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-datum {
+    display: block;
+    order: 1;
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile .plan-tag {
+    order: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile .plan-kurz {
+    order: 2;
+    font-size: 11px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile.geplant .plan-kurz {
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile.heute .plan-kurz {
+    color: var(--text);
+  }
+
+  /* Die Karte „Push · HEUTE“ */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute {
+    display: block;
+    margin-top: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute:empty {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-name {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-marke {
+    padding: 3px 8px;
+    border-radius: 7px;
+    background: rgba(var(--fw-signal-rgb), 0.16);
+    color: var(--fw-signal);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-karte .heute-figuren {
+    margin: 12px 0 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .training-heute-karte .speichern-btn::before {
+    content: "▶  ";
+    font-size: 0.8em;
+  }
+
+  /* „Meine Routinen“ mit „Bearbeiten“ rechts, darunter kompakte Zeilen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 26px 4px 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-kopf h2.abschnitt {
+    margin: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-bearbeiten {
+    display: block;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #D3D8DD;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-karte {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "figuren name pfeil" "figuren info pfeil" "knoepfe knoepfe knoepfe";
+    align-items: center;
+    column-gap: 12px;
+    margin-bottom: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-figuren {
+    display: flex;
+    grid-area: figuren;
+    gap: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-figuren .figur-kachel,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-figuren > * {
+    width: 30px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-name {
+    grid-area: name;
+    font-size: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-info {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-korund-info {
+    display: block;
+    grid-area: info;
+    color: var(--text-leise);
+    font-size: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .routine-pfeil {
+    display: block;
+    grid-area: pfeil;
+    color: var(--text-leise);
+    font-size: 20px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste .karten-knoepfe {
+    display: none;
+    grid-area: knoepfe;
+    margin-top: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste.bearbeiten-an .karten-knoepfe {
+    display: flex;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #routinen-liste.bearbeiten-an .routine-pfeil {
+    visibility: hidden;
+  }
+
+  /* „+ Neue Routine“ und „Vorlagen“ nebeneinander, die Vorlagen erst nach Antippen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-knoepfe {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-knoepfe .zweit-btn {
+    display: block;
+    margin: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-knoepfe .zweit-btn:first-child::before {
+    content: "+ ";
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #reiter-plaene:not(.vorlagen-offen) > :is(h2.abschnitt:nth-last-of-type(1), .vorlagen-frage, #vorlagen-liste) {
+    display: none;
+  }
+
+  /* ---------- Status-Sheet (seit Version 142) ---------- */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-sheet-text {
+    margin: 0 0 16px;
+    color: var(--text-leise);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #status-sheet-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(var(--fw-glas-rgb), 0.55);
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte[aria-checked="true"] {
+    border-color: rgba(var(--fw-signal-rgb), 0.7);
+    background: rgba(var(--fw-signal-rgb), 0.1);
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-symbol {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(var(--fw-signal-rgb), 0.14);
+    color: var(--fw-signal);
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-krank .status-symbol { background: rgba(255, 140, 120, 0.14); color: #FF9C8A; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-urlaub .status-symbol { background: rgba(255, 205, 110, 0.14); color: #FFCF70; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-symbol svg { width: 22px; height: 22px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte-name { font-size: 16px; font-weight: 600; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte-info { font-size: 13px; color: var(--text-leise); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-kreis {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    box-sizing: border-box;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte[aria-checked="true"] .status-kreis {
+    border: 6px solid var(--fw-signal);
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #status-sheet .speichern-btn { width: 100%; }
+
+  /* ---------- Fortschritt wie im Entwurf (seit Version 142) ----------
+     Oben „Letzte 30 Tage“, der Titel und die Reiter Kraft, Körper, Statistik. data-teil (index.html) sagt, was in welchem Reiter steht.
+     Während eines Rundgangs stellt die Einführung den passenden Reiter ein. */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-ueber {
+    display: block;
+    margin: 12px 0 0;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt > h1 {
+    margin-top: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt > .unterzeile {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-reiter {
+    display: flex;
+    margin: 8px 0 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-reiter button {
+    flex: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-reiter="kraft"] [data-teil]:not([data-teil="kraft"]),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-reiter="koerper"] [data-teil]:not([data-teil="koerper"]),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-reiter="statistik"] [data-teil]:not([data-teil="statistik"]) {
+    display: none !important;
+  }
+
+  /* Im Reiter Statistik braucht es die Überschrift nicht, der Reiter sagt es schon. Im Reiter Kraft fehlt „Kraftentwicklung“ und in der Liste der Zeitraum. */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt h2[data-teil="statistik"],
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt #kraft-abschnitt,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste > .umschalter.klein {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt h2#kg-abschnitt {
+    margin-top: 0;
+  }
+
+  /* Konstanz: 30 Tage in zwei Reihen zu 15 */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz {
+    margin-top: 0;
+    padding: 18px 18px 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-zahl {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-raster {
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: none;
+    grid-auto-flow: row;
+    gap: 6px 5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld {
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: 5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.stufe-1,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.stufe-2 {
+    background: var(--fw-signal);
+    box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.35);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.heute {
+    outline: 2px solid rgba(238, 242, 247, 0.9);
+    outline-offset: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-fuss {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 16px;
+    color: var(--text-leise);
+    font-size: 15px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-fuss-zahl b {
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 700;
+  }
+
+  /* Kraft: je Gruppe ein Kopf „BRUST ›“ und darunter die Karte ihrer Übung */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) {
+    justify-content: flex-start;
+    gap: 4px;
+    min-height: 0;
+    margin: 22px 0 8px;
+    padding: 4px 4px;
+    border: none;
+    background: none;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus)::before,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus)::after {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) :is(.gruppen-figur, .gruppen-anzahl, .gruppen-plakette) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) .listen-text {
+    flex: none;
+    color: var(--text-leise);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) .einst-pfeil {
+    margin-left: 4px;
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste > .gruppen-zeile:first-of-type {
+    margin-top: 6px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 16px 18px 10px;
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-kopf {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-figur {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(238, 242, 247, 0.1);
+    border-radius: 14px;
+    background: rgba(var(--fw-glas-rgb), 0.6);
+    overflow: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-figur svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-name {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-info {
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-plus {
+    flex: none;
+    align-self: flex-start;
+    margin-top: 4px;
+    color: var(--text-leise);
+    font-size: 17px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-plus.plus {
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-linie {
+    display: block;
+    margin-top: 4px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-linie svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-flaeche-oben { stop-color: rgba(var(--fw-signal-rgb), 0.28); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-flaeche-unten { stop-color: rgba(var(--fw-signal-rgb), 0); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-flaeche { fill: url(#kraft-flaeche); }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-weg {
+    fill: none;
+    stroke: var(--fw-signal);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 4px rgba(var(--fw-signal-rgb), 0.5));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-anfang {
+    fill: var(--hintergrund, #0B0D10);
+    stroke: var(--fw-signal);
+    stroke-width: 2.5;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-ende {
+    fill: var(--fw-signal);
+    stroke: #0B0D10;
+    stroke-width: 2.5;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-wert-klein {
+    fill: var(--text-leise);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-wert {
+    fill: var(--text);
+    font-size: 14px;
+    font-weight: 700;
   }
 
 }

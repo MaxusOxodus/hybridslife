@@ -121,7 +121,6 @@
   font-weight: 500;
 }
 
-
 /* ===== Dunkel gewählt ===== */
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] {
@@ -590,6 +589,25 @@
   color: var(--text-leise);
 }
 
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell {
+  margin: 4px 0;
+  padding-left: 14px;
+  padding-right: 32px;
+  border-bottom-color: transparent;
+  border-radius: 14px;
+  background: rgba(var(--fw-signal-rgb), 0.10);
+  box-shadow: inset 3px 0 0 var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell .sheet-zeile-name {
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile-haken {
+  color: var(--fw-erfolg);
+}
+
+
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) {
@@ -1057,4 +1075,23 @@
     margin: -6px 0 0 6px;
     color: var(--text-leise);
   }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell {
+    margin: 4px 0;
+    padding-left: 14px;
+    padding-right: 32px;
+    border-bottom-color: transparent;
+    border-radius: 14px;
+    background: rgba(var(--fw-signal-rgb), 0.10);
+    box-shadow: inset 3px 0 0 var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell .sheet-zeile-name {
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile-haken {
+    color: var(--fw-erfolg);
+  }
+
 }

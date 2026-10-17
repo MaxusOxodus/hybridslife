@@ -4679,6 +4679,17 @@
       }
       behaelter.appendChild(element("span", "modus-chip", txt("chip.wdh", { wdh: wdh })));
     }
+    // Einseitige Übung (seit Version 141): Ein Tipp schaltet für dieses Training zwischen "Beide" und "Einzeln" (R/L) um
+    if (einseitig(u.uebungId, u.name)) {
+      const seiten = element("button", "modus-chip seiten-chip", txt(zaehltSeiten(u) ? "chip.seitenEinzeln" : "chip.seitenBeide"));
+      seiten.type = "button";
+      seiten.setAttribute("aria-pressed", zaehltSeiten(u) ? "true" : "false");
+      seiten.setAttribute("aria-label", txt("chip.seitenAria"));
+      seiten.onclick = function () {
+        seitenUmschalten(u);
+      };
+      behaelter.appendChild(seiten);
+    }
     const v = steigernAn() ? steigerungVorschlag(u) : null;
     if (v && v.art !== "ohneZiel" && v.gewicht > 0) {
       const chip = element("span", "modus-chip vorschlag", gewichtText(v.gewicht));
@@ -4689,6 +4700,24 @@
       }
       behaelter.appendChild(chip);
     }
+  }
+
+  // Schaltet bei einer einseitigen Übung im laufenden Training um: "Beide" (ein Satz sind beide Seiten) oder "Einzeln"
+  // (jede Seite ein eigener Satz, R und L). Es gilt nur für dieses Training, die Routine bleibt, wie sie ist.
+  // Die eingetragenen Sätze bleiben gleich, nur Nummern und Satz-Ziel rechnen danach anders.
+  function seitenUmschalten(u) {
+    if (zaehltSeiten(u)) {
+      delete u.zaehlweise;
+    } else {
+      u.zaehlweise = "seiten";
+    }
+    trainingMerken();
+    document.getElementById("modus-ziel").textContent = zielText(u);
+    modusChipsAnzeigen(u);
+    modusFortschrittAnzeigen();
+    modusZustandAnzeigen(false);
+    modusSaetzeAnzeigen();
+    modusLetztesAnzeigen();
   }
 
   // Zeigt im Trainingsmodus den passenden Teil: die Eingabe für den nächsten Satz, den Countdown

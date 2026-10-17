@@ -835,6 +835,20 @@
   color: var(--text-leise);
 }
 
+/* Einseitige Übung: der Chip zum Umschalten Beide / R / L ist antippbar */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.seiten-chip {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.seiten-chip[aria-pressed="true"] {
+  border-color: rgba(var(--fw-signal-rgb), 0.5);
+  background: rgba(var(--fw-signal-rgb), 0.14);
+  color: var(--fw-signal);
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -1548,6 +1562,20 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile.seite-l .satz-nummer .satz-seite {
     color: var(--text-leise);
+  }
+
+  /* Einseitige Übung: der Chip zum Umschalten Beide / R / L ist antippbar */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.seiten-chip {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.seiten-chip[aria-pressed="true"] {
+    border-color: rgba(var(--fw-signal-rgb), 0.5);
+    background: rgba(var(--fw-signal-rgb), 0.14);
+    color: var(--fw-signal);
   }
 
 }

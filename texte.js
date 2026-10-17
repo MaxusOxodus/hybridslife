@@ -407,6 +407,9 @@ const TEXTE = {
   "home.status.urlaub": { de: "Schönen Urlaub! Wochenziel und Serie pausieren. Trainieren kannst du trotzdem.", en: "Enjoy your vacation! Your weekly goal and streak pause. You can still train." },
   "home.steigerungText": { de: "{name}: heute {gewicht} probieren", en: "{name}: try {gewicht} today" },
   "chip.saetzeSeiten": { de: "{n} Sätze je Seite", en: "{n} sets per side" },
+  "chip.seitenBeide": { de: "Seiten: Beide ⇄", en: "Sides: both ⇄" },
+  "chip.seitenEinzeln": { de: "Seiten: R / L ⇄", en: "Sides: R / L ⇄" },
+  "chip.seitenAria": { de: "Seiten umschalten: beide zusammen oder rechts und links einzeln", en: "Switch sides: both together or right and left separately" },
   "chip.wdh": { de: "{wdh} Wdh.", en: "{wdh} reps" },
   "chip.vorschlag": { de: "Vorschlag: {gewicht}", en: "Suggested: {gewicht}" },
 

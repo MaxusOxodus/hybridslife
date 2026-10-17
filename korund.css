@@ -811,6 +811,30 @@
   visibility: visible;
 }
 
+/* Letzte Trainingsergebnisse: R und L eines Satzes als ein Kästchen mit zwei Zeilen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-zeile:has(+ .letztes-zeile.seite-l) {
+  border-bottom-color: transparent;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-zeile.seite-l {
+  margin-top: 0;
+  border-top: 1px dashed rgba(238, 242, 247, 0.1);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-zeile.seite-l .satz-nummer {
+  background: transparent;
+  box-shadow: none;
+  color: transparent;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-zeile.seite-l .satz-nummer .satz-seite {
+  color: var(--text-leise);
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -1500,6 +1524,30 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-reihe.seite-l .satz-nummer .satz-seite,
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .tag-reihe.seite-l .satz-nummer .satz-seite {
     visibility: visible;
+  }
+
+  /* Letzte Trainingsergebnisse: R und L eines Satzes als ein Kästchen mit zwei Zeilen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile:has(+ .letztes-zeile.seite-l) {
+    border-bottom-color: transparent;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile.seite-l {
+    margin-top: 0;
+    border-top: 1px dashed rgba(238, 242, 247, 0.1);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile.seite-l .satz-nummer {
+    background: transparent;
+    box-shadow: none;
+    color: transparent;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile.seite-l .satz-nummer .satz-seite {
+    color: var(--text-leise);
   }
 
 }

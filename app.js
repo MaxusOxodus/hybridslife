@@ -4488,10 +4488,13 @@
     for (let i = 0; i < daten.saetze.length; i++) {
       const satz = daten.saetze[i];
       const zeile = element("div", "letztes-zeile");
-      if (i === dran) {
+      // Aufwärmsätze stehen mit "W" da und zählen beim Vergleich mit heute nicht mit (seit Version 141)
+      const platz = istAufwaermen(satz) ? -1 : arbeitsIndex(daten.saetze, i);
+      if (platz >= 0 && platz === dran) {
         zeile.classList.add("aktuell");
       }
-      zeile.appendChild(satzNummerElement(i, zaehltSeiten(u)));
+      zeile.appendChild(satzKennungElement(daten.saetze, i, zaehltSeiten(u)));
+      seiteLMarkieren(zeile, zaehltSeiten(u) ? platz : -1);
 
       // Drei Spalten, jede mit kleinem Titel und dem Wert darunter. Ohne RIR-Angabe steht ein Strich.
       let rir = "–";
@@ -5079,6 +5082,10 @@
     let hoechstes = -Infinity;
     let niedrigstes = Infinity;
     for (let i = 0; i < saetze.length; i++) {
+      // Aufwärmsätze (seit Version 141) können nicht der beste Satz sein
+      if (istAufwaermen(saetze[i])) {
+        continue;
+      }
       const wert = epley1RM(saetze[i].gewicht + zusatz, saetze[i].wdh);
       if (wert > hoechstes) {
         hoechstes = wert;

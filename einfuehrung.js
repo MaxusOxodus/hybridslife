@@ -360,6 +360,7 @@ const EINFUEHRUNG_SCHRITTE = [
     bereich: "fortschritt",
     seite: "fortschritt",
     ziel: "fortschritt-veraenderung",
+    braucht: "veraenderung",
     pose: "zeigen",
     titel: {
       de: "Veränderung",
@@ -661,6 +662,15 @@ const EINFUEHRUNG_BRAUCHT = {
     }
     const uebung = laufendesTraining.uebungen[laufendesTraining.index];
     return erklaerungId(uebung.uebungId, uebung.name) !== "";
+  },
+  // Die Kacheln "Veränderung": Der Look Korund (seit Version 141, nur Glass im dunklen Design) blendet sie aus,
+  // solange es kein Körpergewicht gibt. In allen anderen Looks sind sie immer da.
+  veraenderung: function () {
+    const html = document.documentElement;
+    const dunkel = html.getAttribute("data-design") === "dunkel"
+      || (html.getAttribute("data-design") !== "hell" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const korund = html.getAttribute("data-stil") === "glass" && html.getAttribute("data-palette") === "korund" && dunkel;
+    return !korund || gewichtMessungen().length > 0;
   }
 };
 

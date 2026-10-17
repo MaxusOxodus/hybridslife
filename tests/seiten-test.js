@@ -30,6 +30,13 @@ function konstanteHolen(name) {
 const ECHT = ["einseitig", "zaehltSeiten", "satzZiel", "satzNummer", "satzSeite", "zaehlweiseKopieren", "uebungenKopieren", "routineBereinigen",
   "uebungErledigt", "uebungStandText", "zielText", "wdhBis", "zielLesen", "wdhZielBereinigen", "uebungPauseLesen", "pauseLesen", "neueId"];
 
+// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+const funktionHolenOhneW = funktionHolen;
+funktionHolen = function (name) {
+  return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
+};
+
 const a = new Function(uebungenQuelle
   + "const UEBUNG_NACH_ID = {}; for (const u of UEBUNGEN) UEBUNG_NACH_ID[u.id] = u;"
   + "const PAUSE_SCHRITT = 15; const PAUSE_MAX = 600; let idZaehler = 0;"

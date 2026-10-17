@@ -6067,6 +6067,13 @@ body.tour-zeigt-pause #modus-wahl {
 .konstanz,
 .gruppen-offen-knopf,
 .gruppen-plakette,
-.gruppen-anzahl {
+.gruppen-anzahl,
+.w-knopf {
   display: none;
+}
+
+/* Aufwärmsatz (seit Version 140): In den Tabellen steht statt der Nummer ein "W" in der leisen Farbe.
+   Zu sehen nur, wenn es Aufwärmsätze gibt, in allen Looks. */
+.satz-nummer.satz-w {
+  color: var(--text-leise);
 }

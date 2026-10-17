@@ -24,6 +24,13 @@ const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "ri
   "trainingUebungListen", "satzFertig", "satzSpeichern", "satzLoeschen", "satzAenderungSichern", "uebungTauschen",
   "naechsteOffene", "uebungErledigt"];
 
+// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+const funktionHolenOhneW = funktionHolen;
+funktionHolen = function (name) {
+  return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
+};
+
 // Die zeichnen nur oder gehören zu anderen Teilen der App: Hier tun sie nichts
 const LEER = ["anzeigen", "letztesMalAnzeigen", "trainingMerken", "pauseStarten", "pauseDauer", "modusFortschrittAnzeigen",
   "modusZustandAnzeigen", "modusSaetzeAnzeigen", "modusLetztesAnzeigen", "bestwertPruefen", "satzSheetSchliessen",

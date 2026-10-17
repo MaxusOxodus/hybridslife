@@ -754,6 +754,37 @@
   display: none;
 }
 
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .w-knopf {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  border-radius: 23px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .w-knopf[aria-pressed="true"] {
+  border-color: rgba(245, 181, 68, 0.6);
+  background: rgba(245, 181, 68, 0.18);
+  color: #F5B544;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #satz-sheet .w-knopf {
+  margin-top: 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-nummer.satz-w {
+  color: #F5B544;
+  font-weight: 800;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -1386,6 +1417,37 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen:not(.gruppen-offen-auf) .gruppen-zeile.aus {
     display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .w-knopf {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    border-radius: 23px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    color: var(--text-leise);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .w-knopf[aria-pressed="true"] {
+    border-color: rgba(245, 181, 68, 0.6);
+    background: rgba(245, 181, 68, 0.18);
+    color: #F5B544;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #satz-sheet .w-knopf {
+    margin-top: 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-nummer.satz-w {
+    color: #F5B544;
+    font-weight: 800;
   }
 
 }

@@ -319,6 +319,8 @@
         <div class="rir" data-tour="modus-rir">
           <div class="rad-titel" data-t="modus.rir">Reps in Reserve (optional)</div>
           <div id="modus-rir" class="umschalter"></div>
+          <!-- Aufwärmsatz: Nur im Look Korund zu sehen. Ein W-Satz zählt nicht zum Ziel und nicht zum Volumen. -->
+          <button id="modus-w" class="w-knopf" type="button" aria-pressed="false" onclick="aufwaermenUmschalten()" aria-label="Aufwärmsatz" data-t-aria="w.aria">W</button>
         </div>
         <button class="speichern-btn gross" onclick="satzFertig()" data-t="modus.satzFertig" data-tour="modus-satz-fertig">Satz fertig</button>
       </div>
@@ -795,6 +797,7 @@
       <div class="rir">
         <div class="rad-titel" data-t="modus.rir">Reps in Reserve (optional)</div>
         <div id="satz-rir" class="umschalter"></div>
+        <button id="satz-w" class="w-knopf" type="button" aria-pressed="false" onclick="satzWUmschalten()" aria-label="Aufwärmsatz" data-t-aria="w.aria">W</button>
       </div>
       <button class="speichern-btn" onclick="satzSpeichern()" data-t="speichern">Speichern</button>
       <button class="zweit-btn gefahr" onclick="satzLoeschenFragen()" data-t="satz.loeschen">Satz löschen</button>

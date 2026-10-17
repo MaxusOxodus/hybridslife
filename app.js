@@ -2384,7 +2384,7 @@
     let saetze = 0;
     let volumen = 0;
     for (let i = 0; i < block.eintraege.length; i++) {
-      saetze += saetzeVon(block.eintraege[i]).length;
+      saetze += arbeitsSaetzeVon(block.eintraege[i]).length;
       volumen += eintragVolumen(block.eintraege[i], 0);
     }
 
@@ -2576,6 +2576,9 @@
             if (typeof s.zeit === "string") {
               satz.zeit = s.zeit;
             }
+            if (s.aufwaermen === true) {
+              satz.aufwaermen = true;
+            }
             liste.push(satz);
           }
         }
@@ -2597,8 +2600,32 @@
 
   // Das bewegte Gewicht eines Eintrags: Wdh. × Gewicht, über alle Sätze zusammengezählt.
   // zusatz kommt bei jedem Satz zum Gewicht dazu (das Körpergewicht bei Eigengewicht-Übungen, sonst 0).
+  // Aufwärmsätze (seit Version 140, Feld aufwaermen: true am Satz) zählen nicht mit: nicht beim Volumen,
+  // nicht bei der Zahl der Sätze, nicht beim Satz-Ziel und nicht beim 1RM. Ohne das Feld ist jeder Satz ein Arbeitssatz.
+  function istAufwaermen(satz) {
+    return !!satz && satz.aufwaermen === true;
+  }
+
+  // Wie viele Sätze einer Liste keine Aufwärmsätze sind
+  function arbeitsAnzahl(saetze) {
+    let n = 0;
+    for (let i = 0; i < saetze.length; i++) {
+      if (!istAufwaermen(saetze[i])) {
+        n++;
+      }
+    }
+    return n;
+  }
+
+  // Die Sätze eines Eintrags ohne Aufwärmsätze
+  function arbeitsSaetzeVon(e) {
+    return saetzeVon(e).filter(function (satz) {
+      return !istAufwaermen(satz);
+    });
+  }
+
   function eintragVolumen(e, zusatz) {
-    const saetze = saetzeVon(e);
+    const saetze = arbeitsSaetzeVon(e);
     let summe = 0;
     for (let i = 0; i < saetze.length; i++) {
       summe += saetze[i].wdh * (saetze[i].gewicht + zusatz);
@@ -4181,7 +4208,7 @@
         continue;
       }
       stand.eintraege.push(eintrag);
-      stand.saetze += saetzeVon(eintrag).length;
+      stand.saetze += arbeitsSaetzeVon(eintrag).length;
       stand.bewegt += eintragVolumen(eintrag, 0);
     }
     return stand;
@@ -4400,6 +4427,9 @@
     let hoechstes = -Infinity;
     let niedrigstes = Infinity;
     for (let i = 0; i < saetze.length; i++) {
+      if (istAufwaermen(saetze[i])) {
+        continue;
+      }
       const wert = epley1RM(saetze[i].gewicht + zusatz, saetze[i].wdh);
       if (wert > hoechstes) {
         hoechstes = wert;
@@ -4442,7 +4472,7 @@
     const eintrag = eintragFinden(u.eintragId);
     let dran = 0;
     if (eintrag) {
-      dran = saetzeVon(eintrag).length;
+      dran = arbeitsAnzahl(saetzeVon(eintrag));
     }
     const ziel = satzZiel(u);
     if (ziel > 0 && dran >= ziel && !u.extraSatz) {
@@ -4529,7 +4559,7 @@
     if (!letzter) {
       return null;
     }
-    const saetze = saetzeVon(letzter);
+    const saetze = arbeitsSaetzeVon(letzter);
     if (saetze.length === 0) {
       return null;
     }
@@ -4663,7 +4693,8 @@
     }
     const u = t.uebungen[t.index];
     const ziel = satzZiel(u);
-    const gemacht = u.saetze.length;
+    // Aufwärmsätze zählen nicht zum Ziel
+    const gemacht = arbeitsAnzahl(u.saetze);
     // Weiter geht es zur nächsten offenen Übung. Ist keine mehr offen, wird das Training abgeschlossen.
     const naechsteIndex = naechsteOffene();
     const keineOffene = naechsteIndex < 0;
@@ -4748,7 +4779,7 @@
       }
     } else {
       const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
-      const saetze = letzter ? saetzeVon(letzter) : [];
+      const saetze = letzter ? arbeitsSaetzeVon(letzter) : [];
       if (saetze.length > 0) {
         return [saetze[0].gewicht, saetze[0].wdh];
       }
@@ -4787,6 +4818,9 @@
       gewaehlterRir = rirLesen(gemerkteTrainingWerte[2]);
     }
     rirAnzeigen();
+    // Jeder neue Satz ist erst einmal ein Arbeitssatz
+    aufwaermenGewaehlt = false;
+    wKnopfAnzeigen("modus-w", false);
   }
 
   // Die Auswahl der Reps in Reserve
@@ -4824,8 +4858,16 @@
       satz.rir = gewaehlterRir;
     }
     satz.zeit = new Date().toISOString();
+    // Aufwärmsatz (seit Version 140): nur, wenn "W" gewählt ist. Danach ist "W" wieder aus.
+    if (aufwaermenGewaehlt) {
+      satz.aufwaermen = true;
+    }
+    aufwaermenGewaehlt = false;
+    wKnopfAnzeigen("modus-w", false);
     u.saetze.push(satz);
-    u.extraSatz = false;
+    if (!satz.aufwaermen) {
+      u.extraSatz = false;
+    }
 
     let eintrag = eintragFinden(u.eintragId);
     if (!eintrag) {
@@ -4859,7 +4901,7 @@
     // Mit dem letzten Ziel-Satz geht es gleich zur nächsten offenen Übung, die Pause läuft dort weiter.
     // Ohne Satz-Ziel ist nicht klar, welcher Satz der letzte ist, und ohne offene Übung bleibt die App hier.
     const naechste = naechsteOffene();
-    if (satzZiel(u) > 0 && u.saetze.length === satzZiel(u) && naechste >= 0) {
+    if (!satz.aufwaermen && satzZiel(u) > 0 && arbeitsAnzahl(u.saetze) === satzZiel(u) && naechste >= 0) {
       uebungZeigen(naechste);
     } else {
       modusFortschrittAnzeigen();
@@ -4887,6 +4929,9 @@
       if (typeof s.zeit === "string") {
         einzeln.zeit = s.zeit;
       }
+      if (s.aufwaermen === true) {
+        einzeln.aufwaermen = true;
+      }
       eintrag.einzelsaetze.push(einzeln);
       if (s.gewicht > schwerster.gewicht || (s.gewicht === schwerster.gewicht && s.wdh > schwerster.wdh)) {
         schwerster = s;
@@ -4904,7 +4949,7 @@
   function bestwertPruefen(eintrag, index) {
     const saetze = saetzeVon(eintrag);
     const satz = saetze[index];
-    if (!satz || !hatDatum(eintrag)) {
+    if (!satz || istAufwaermen(satz) || !hatDatum(eintrag)) {
       return;
     }
     const datum = new Date(eintrag.datum);
@@ -4914,7 +4959,7 @@
     }
     const neu = epley1RM(satz.gewicht + koerper, satz.wdh);
     for (let i = 0; i < index; i++) {
-      if (epley1RM(saetze[i].gewicht + koerper, saetze[i].wdh) >= neu) {
+      if (!istAufwaermen(saetze[i]) && epley1RM(saetze[i].gewicht + koerper, saetze[i].wdh) >= neu) {
         return;
       }
     }
@@ -4944,6 +4989,53 @@
   let satzEintragId = "";
   let satzIndex = -1;
   let satzRir = null;
+  // Ist der bearbeitete Satz ein Aufwärmsatz? Umschalten mit "W" im Sheet (nur im Look Korund zu sehen).
+  let satzW = false;
+
+  // Ist "W" für den nächsten Satz im Trainingsmodus gewählt? Nur im Speicher der Seite, nach "Satz fertig" wieder aus.
+  let aufwaermenGewaehlt = false;
+
+  // Zeigt einen der zwei Knöpfe "W" (Trainingsmodus "modus-w", Sheet "satz-w") an oder aus
+  function wKnopfAnzeigen(id, an) {
+    const knopf = document.getElementById(id);
+    if (knopf && knopf.setAttribute) {
+      knopf.setAttribute("aria-pressed", an ? "true" : "false");
+    }
+  }
+
+  // Ein Tipp auf "W" im Trainingsmodus: Der nächste Satz wird ein Aufwärmsatz (noch ein Tipp nimmt es zurück)
+  function aufwaermenUmschalten() {
+    aufwaermenGewaehlt = !aufwaermenGewaehlt;
+    wKnopfAnzeigen("modus-w", aufwaermenGewaehlt);
+  }
+
+  // Ein Tipp auf "W" im Sheet "Satz bearbeiten"
+  function satzWUmschalten() {
+    satzW = !satzW;
+    wKnopfAnzeigen("satz-w", satzW);
+  }
+
+  // Der Platz eines Satzes unter den Arbeitssätzen davor (ohne Aufwärmsätze), ab 0
+  function arbeitsIndex(saetze, index) {
+    return arbeitsAnzahl(saetze.slice(0, index));
+  }
+
+  // Die Kennung eines Satzes als Text: "W" für einen Aufwärmsatz, sonst die Nummer unter den Arbeitssätzen
+  function satzKennung(saetze, index, seiten) {
+    if (istAufwaermen(saetze[index])) {
+      return "W";
+    }
+    return satzNummer(arbeitsIndex(saetze, index), seiten);
+  }
+
+  // Dasselbe als Element für die Tabellen. Ohne Aufwärmsätze genau das Element von früher.
+  function satzKennungElement(saetze, index, seiten) {
+    if (istAufwaermen(saetze[index])) {
+      const w = element("span", "satz-nummer satz-w", "W");
+      return w;
+    }
+    return satzNummerElement(arbeitsIndex(saetze, index), seiten);
+  }
 
   // "80 kg × 10", mit Reps in Reserve "80 kg × 10 · RIR 2"
   function satzText(satz) {
@@ -4995,7 +5087,7 @@
 
     for (let i = 0; i < saetze.length; i++) {
       const zeile = element("button", "tag-reihe");
-      zeile.appendChild(satzNummerElement(i, seiten));
+      zeile.appendChild(satzKennungElement(saetze, i, seiten));
 
       const werte = element("span", "tag-werte");
       werte.appendChild(element("span", "", gewichtText(saetze[i].gewicht) + " × " + saetze[i].wdh));
@@ -5015,7 +5107,7 @@
       const pfeil = element("span", "einst-pfeil", "›");
       pfeil.setAttribute("aria-hidden", "true");
       zeile.appendChild(pfeil);
-      zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzNummer(i, seiten) }) + ": " + satzText(saetze[i]));
+      zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzKennung(saetze, i, seiten) }) + ": " + satzText(saetze[i]));
       zeile.onclick = function () {
         satzSheetOeffnen(eintrag.id, i);
       };
@@ -5043,11 +5135,13 @@
     const seiten = zaehltSeiten(u);
 
     // Nach dem letzten Ziel-Satz gibt es keinen aktuellen Satz, bis "+ Satz" einen weiteren startet
+    // Aufwärmsätze stehen mit "W" in der Tabelle, zählen aber nicht zum Ziel
     const ziel = satzZiel(u);
-    const zielErreicht = ziel > 0 && saetze.length >= ziel && !u.extraSatz;
-    let zeilen = Math.max(saetze.length, ziel);
+    const aufwaermen = saetze.length - arbeitsAnzahl(saetze);
+    const zielErreicht = ziel > 0 && saetze.length - aufwaermen >= ziel && !u.extraSatz;
+    let zeilen = Math.max(saetze.length, ziel + aufwaermen);
     if (!zielErreicht) {
-      zeilen = Math.max(saetze.length + 1, ziel);
+      zeilen = Math.max(saetze.length + 1, ziel + aufwaermen);
     }
 
     let zielWdh = "–";
@@ -5072,7 +5166,7 @@
       if (i < saetze.length) {
         const satz = saetze[i];
         zeile = element("button", "satz-reihe erledigt");
-        zeile.appendChild(satzNummerElement(i, seiten));
+        zeile.appendChild(satzKennungElement(saetze, i, seiten));
         zeile.appendChild(element("span", "", gewichtText(satz.gewicht)));
         const wdh = element("span", "", satz.wdh);
         if (rirLesen(satz.rir) !== null) {
@@ -5082,7 +5176,7 @@
         const haken = element("span", "satz-haken", "✓");
         haken.setAttribute("aria-hidden", "true");
         zeile.appendChild(haken);
-        zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzNummer(i, seiten) }) + ": " + satzText(satz));
+        zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzKennung(saetze, i, seiten) }) + ": " + satzText(satz));
         zeile.onclick = function () {
           satzSheetOeffnen(eintrag.id, i);
         };
@@ -5091,7 +5185,7 @@
         if (i === saetze.length && !zielErreicht) {
           zeile.className = "satz-reihe aktuell";
         }
-        zeile.appendChild(satzNummerElement(i, seiten));
+        zeile.appendChild(satzNummerElement(i - aufwaermen, seiten));
         zeile.appendChild(element("span", "", "–"));
         zeile.appendChild(element("span", "", zielWdh));
         zeile.appendChild(element("span", ""));
@@ -5114,8 +5208,10 @@
     satzEintragId = eintragId;
     satzIndex = index;
     satzRir = satz.rir;
+    satzW = istAufwaermen(satz);
+    wKnopfAnzeigen("satz-w", satzW);
 
-    document.getElementById("satz-sheet-titel").textContent = txt("satz.bearbeiten", { n: satzNummer(index, eintragSeiten(eintrag)) });
+    document.getElementById("satz-sheet-titel").textContent = txt("satz.bearbeiten", { n: satzKennung(saetzeVon(eintrag), index, eintragSeiten(eintrag)) });
     document.getElementById("satz-sheet-uebung").textContent = anzeigeName(eintrag.uebung, eintrag.uebungId);
     gewichtTitelSetzen("s-feld-gewicht", eintrag.uebungId);
     gewichtFeldSetzen("s-feld-gewicht", startGewicht());
@@ -5173,6 +5269,9 @@
     if (alt.zeit) {
       saetze[satzIndex].zeit = alt.zeit;
     }
+    if (satzW) {
+      saetze[satzIndex].aufwaermen = true;
+    }
     const geaendert = gewicht !== alt.gewicht || saetze[satzIndex].wdh !== alt.wdh;
     const index = satzIndex;
 
@@ -5199,7 +5298,7 @@
 
     let text = txt("satz.loeschenText", {
       name: anzeigeName(eintrag.uebung, eintrag.uebungId),
-      n: satzNummer(satzIndex, eintragSeiten(eintrag)),
+      n: satzKennung(saetze, satzIndex, eintragSeiten(eintrag)),
       satz: satzText(saetze[satzIndex])
     });
     if (saetze.length === 1) {
@@ -5264,6 +5363,9 @@
             }
             if (saetze[j].zeit) {
               satz.zeit = saetze[j].zeit;
+            }
+            if (saetze[j].aufwaermen === true) {
+              satz.aufwaermen = true;
             }
             u.saetze.push(satz);
           }
@@ -5335,9 +5437,9 @@
   // Eine angefangene Übung (2 von 3 Sätzen) ist noch offen.
   function uebungErledigt(u) {
     if (satzZiel(u) > 0) {
-      return u.saetze.length >= satzZiel(u);
+      return arbeitsAnzahl(u.saetze) >= satzZiel(u);
     }
-    return u.saetze.length > 0;
+    return arbeitsAnzahl(u.saetze) > 0;
   }
 
   // Der Platz der nächsten offenen Übung: zuerst die hinter der aktuellen, dann wieder von vorn.
@@ -5666,7 +5768,7 @@
 
   // Wie weit eine Übung im laufenden Training ist: "offen", "2 von 3 Sätzen" oder "fertig · 3 Sätze"
   function uebungStandText(u) {
-    const gemacht = u.saetze.length;
+    const gemacht = arbeitsAnzahl(u.saetze);
     if (gemacht === 0) {
       return txt("stand.offen");
     }
@@ -5758,7 +5860,7 @@
     for (let i = 0; i < t.erledigt.length; i++) {
       // Gezählt wird, was im Eintrag steht. Gibt es ihn nicht mehr, gelten die gemerkten Werte.
       const eintrag = eintragFinden(t.erledigt[i].id) || t.erledigt[i];
-      anzahlSaetze += saetzeVon(eintrag).length;
+      anzahlSaetze += arbeitsSaetzeVon(eintrag).length;
       bewegt += eintragVolumen(eintrag, 0);
     }
 
@@ -6890,7 +6992,7 @@
         anzahlUebungen++;
       }
       // Einträge, bei denen keine Zahl steht, werden wie auf der Fortschritt-Seite übersprungen
-      anzahlSaetze += saetzeVon(e).length;
+      anzahlSaetze += arbeitsSaetzeVon(e).length;
       bewegt += eintragVolumen(e, 0);
     }
 
@@ -8011,7 +8113,7 @@
       if (ohneEintragId && (e.id === ohneEintragId || (Array.isArray(ohneEintragId) && ohneEintragId.indexOf(e.id) !== -1))) {
         continue;
       }
-      const saetze = saetzeVon(e);
+      const saetze = arbeitsSaetzeVon(e);
       if (saetze.length === 0) {
         continue;
       }
@@ -10747,7 +10849,7 @@
         };
       }
       const tag = tage[schluessel];
-      const saetze = saetzeVon(e);
+      const saetze = arbeitsSaetzeVon(e);
       tag.eintraege.push(e);
       tag.saetze += saetze.length;
       for (let j = 0; j < saetze.length; j++) {
@@ -11867,7 +11969,7 @@
       if (zeit <= jetzt - BESTWERT_TAGE * TAG_MS || zeit > jetzt) {
         continue;
       }
-      const saetze = saetzeVon(e);
+      const saetze = arbeitsSaetzeVon(e);
       for (let j = 0; j < saetze.length; j++) {
         stand.saetze = true;
         if (saetze[j].wdh >= RANG_WDH_MIN && saetze[j].wdh <= RANG_WDH_MAX) {

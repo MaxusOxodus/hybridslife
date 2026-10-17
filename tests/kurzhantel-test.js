@@ -32,6 +32,13 @@ function konstanteHolen(name) {
 const ECHT = ["satzZiel", "zaehltSeiten", "einseitig", "kurzhantel", "steigerungSchritt", "steigerungVorschlag", "steigerungText", "modusStartWerte",
   "letzterEintrag", "gleicheUebung", "saetzeVon", "rirLesen", "wdhBis", "hatDatum", "istEigengewicht", "einheit", "ausKg", "zuKg",
   "gewichtAnzeige", "gewichtText", "zahlText", "startGewicht", "steigernAn"];
+
+// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+const funktionHolenOhneW = funktionHolen;
+funktionHolen = function (name) {
+  return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
+};
 const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
 
 // Baut die Funktionen mit diesen Einträgen, Einstellungen und Sprache. Die Übungen sind die echten aus der uebungen.js.

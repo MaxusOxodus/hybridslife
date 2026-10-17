@@ -43,6 +43,13 @@ const ECHT = ["notizenBereinigen", "gespeichertLesen", "sicherSpeichern", "speic
   "gewichteSpeichern", "gewichtMessungen", "koerpergewichtAm", "trainingBereinigen", "gewichteImportieren",
   "eigeneImportieren", "backupText", "backupLesen", "eintragSchluessel", "importAusfuehren"];
 
+// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+const funktionHolenOhneW = funktionHolen;
+funktionHolen = function (name) {
+  return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
+};
+
 // Die gibt es erst seit dem Fix
 const NEU = ["geloeschteEigengewichtAufnehmen"];
 

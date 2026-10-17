@@ -30,6 +30,13 @@ function konstanteHolen(name) {
 const ECHT = ["satzNummer", "satzSeite", "satzNummerElement", "eintragSeiten", "einseitig", "zaehltSeiten", "satzZiel",
   "uebungStandText", "gleicheUebung", "routineFinden"];
 
+// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+const funktionHolenOhneW = funktionHolen;
+funktionHolen = function (name) {
+  return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
+};
+
 // sprache: "de" oder "en". routinen und laufend: was im Speicher steht. Die Texte kommen echt aus der texte.js.
 function umgebung(sprache, routinen, laufend) {
   return new Function(uebungenQuelle + texteQuelle

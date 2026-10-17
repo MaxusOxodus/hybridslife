@@ -32,6 +32,10 @@
   // So nah am linken oder rechten Bildschirmrand (in Pixeln) beginnt keine seitliche Geste: Dort wischt Safari zurück
   const WISCH_RAND_PX = 24;
 
+  // Ziele einer Woche für die Ringe auf Home (seit Version 137): Workouts (Trainingstage), Volumen in kg und Wiederholungen.
+  // Sie stehen nur hier und sollen sich später einstellen lassen. In lbs wird das Volumen umgerechnet und auf volle 1.000 gerundet.
+  const WOCHEN_ZIELE = { workouts: 5, volumen: 15000, wdh: 320 };
+
   // Die Sprache der App als Kürzel, z. B. "de" oder "en". Sie gilt für die Texte der Oberfläche
   // und für die Namen der Übungen und Muskelgruppen. Der richtige Wert kommt weiter unten,
   // sobald die Einstellungen gelesen sind.
@@ -6249,7 +6253,7 @@
     const zahlen = wochenZahlen(homeTage, homeMontag);
     let satz;
     if (zahlen.workouts > 0) {
-      karte.appendChild(wochenZahlenFeld(zahlen));
+      karte.appendChild(wochenRingeFeld(zahlen, titel || zeitraum));
       return;
     } else if (istDiese) {
       satz = txt("home.wocheLeerNoch");
@@ -10173,6 +10177,81 @@
     const volumen = homeZahl(volumenText(zahlen.volumen), txt("verlauf.volumen"));
     volumen.classList.add("breit");
     feld.appendChild(volumen);
+    return feld;
+  }
+
+  // Ein Ring: die Spur und darüber der Fortschritt, der oben beginnt und im Uhrzeigersinn läuft. anteil wird bei 1 gekappt.
+  // Beim Zeigen füllt er sich von 0 auf den Wert (Animation ring-fuellen in der style.css, ab --ring-leer).
+  function ringSvg(groesse, staerke, anteil, art) {
+    const mitte = groesse / 2;
+    const r = (groesse - staerke) / 2;
+    const umfang = 2 * Math.PI * r;
+    const kreis = '<circle cx="' + mitte + '" cy="' + mitte + '" r="' + r + '" stroke-width="' + staerke + '"';
+    let svg = '<svg class="wochen-ring" width="' + groesse + '" height="' + groesse + '" viewBox="0 0 ' + groesse + " " + groesse + '" aria-hidden="true">'
+      + kreis + ' class="ring-spur"/>';
+    if (anteil > 0) {
+      svg += kreis + ' class="ring-wert ' + art + '" transform="rotate(-90 ' + mitte + " " + mitte + ')" style="stroke-dasharray: ' + umfang + "px; stroke-dashoffset: "
+        + umfang * (1 - Math.min(1, anteil)) + "px; --ring-leer: " + umfang + 'px"/>';
+    }
+    return svg + "</svg>";
+  }
+
+  // Home (seit Version 137): die Zahlen der gezeigten Woche als Ringe, gemessen an WOCHEN_ZIELE. Oben das Volumen,
+  // darunter Workouts und Wiederholungen. titel ist der Titel der Wochenleiste. Das Profil zeigt die Woche weiter mit wochenZahlenFeld.
+  function wochenRingeFeld(zahlen, titel) {
+    const feld = element("div", "wochen-ringe");
+    feld.appendChild(element("div", "wochen-ringe-titel", titel));
+
+    // Das Volumen in der gewählten Einheit, gerundet wie in volumenText
+    const lbs = einheit() === "lbs";
+    const ziel = lbs ? Math.round(ausKg(WOCHEN_ZIELE.volumen) / 1000) * 1000 : WOCHEN_ZIELE.volumen;
+    const wert = lbs ? Math.round(ausKg(zahlen.volumen)) : zahlen.volumen;
+    const gross = element("div", "wochen-ring-gross");
+    gross.innerHTML = ringSvg(165, 20, wert / ziel, "volumen");
+    const innen = element("div", "wochen-ring-innen");
+    innen.appendChild(element("div", "wochen-ring-titel", txt("verlauf.volumen")));
+    const zahl = element("div", "wochen-ring-wert", wert.toLocaleString(gebiet()));
+    // Lange Zahlen (ab "123.456") etwas kleiner, damit sie in den Ring passen
+    zahl.classList.toggle("lang", zahl.textContent.length > 6);
+    innen.appendChild(zahl);
+    innen.appendChild(element("div", "wochen-ring-einheit", einheit()));
+    gross.appendChild(innen);
+    feld.appendChild(gross);
+    let rest = txt("home.zielErreicht");
+    if (wert < ziel) {
+      rest = txt("home.zielNoch", { n: (ziel - wert).toLocaleString(gebiet()) + " " + einheit() });
+    }
+    feld.appendChild(element("div", "wochen-ring-ziel", txt("home.zielVolumen", { ziel: ziel.toLocaleString(gebiet()) + " " + einheit(), rest: rest })));
+
+    feld.appendChild(element("div", "wochen-ringe-linie"));
+
+    // Unten zwei kleine Ringe nebeneinander
+    const klein = element("div", "wochen-ringe-klein");
+    const ringe = [
+      { wert: zahlen.workouts, ziel: WOCHEN_ZIELE.workouts, art: "workouts", name: txt("profil.workouts") },
+      { wert: zahlen.wdh, ziel: WOCHEN_ZIELE.wdh, art: "wdh", name: txt("wiederholungen") }
+    ];
+    for (let i = 0; i < ringe.length; i++) {
+      const g = ringe[i];
+      const spalte = element("div", "wochen-ring-spalte");
+      const ring = element("div", "wochen-ring-klein");
+      ring.innerHTML = ringSvg(90, 13, g.wert / g.ziel, g.art);
+      const mitte = element("div", "wochen-ring-innen");
+      const z = element("div", "wochen-ring-zahl", g.wert.toLocaleString(gebiet()));
+      z.classList.toggle("lang", z.textContent.length > 3);
+      mitte.appendChild(z);
+      const von = element("div", "wochen-ring-von erreicht", txt("home.zielErreicht"));
+      if (g.wert < g.ziel) {
+        von.className = "wochen-ring-von";
+        von.textContent = txt("home.zielVon", { n: g.ziel.toLocaleString(gebiet()) });
+      }
+      mitte.appendChild(von);
+      ring.appendChild(mitte);
+      spalte.appendChild(ring);
+      spalte.appendChild(element("div", "wochen-ring-name", g.name));
+      klein.appendChild(spalte);
+    }
+    feld.appendChild(klein);
     return feld;
   }
 

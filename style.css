@@ -715,6 +715,158 @@ h1 {
   margin-top: 0;
 }
 
+/* Die Zahlen der Woche als Ringe (seit Version 137): oben das Volumen, darunter Workouts und Wiederholungen.
+   Die Ringe folgen der Akzentfarbe: Spur ganz leicht, Volumen voll, Workouts im Schrift-Ton, Wiederholungen gedämpft. */
+.wochen-ringe-titel,
+.wochen-ring-titel {
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wochen-ring-gross,
+.wochen-ring-klein {
+  position: relative;
+  margin: 0 auto;
+}
+
+.wochen-ring-gross {
+  width: 165px;
+  height: 165px;
+  margin-top: 12px;
+}
+
+.wochen-ring-klein {
+  width: 90px;
+  height: 90px;
+}
+
+.wochen-ring {
+  display: block;
+}
+
+.ring-spur,
+.ring-wert {
+  fill: none;
+}
+
+.ring-spur {
+  stroke: var(--akzent-leicht);
+}
+
+.ring-wert {
+  stroke-linecap: round;
+  animation: ring-fuellen 0.8s ease-out;
+}
+
+.ring-wert.volumen {
+  stroke: var(--akzent);
+}
+
+.ring-wert.workouts {
+  stroke: var(--akzent-text);
+}
+
+.ring-wert.wdh {
+  stroke: rgba(var(--akzent-rgb), 0.55);
+}
+
+@keyframes ring-fuellen {
+  from {
+    stroke-dashoffset: var(--ring-leer);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-wert {
+    animation: none;
+  }
+}
+
+/* Die Schrift in der Mitte eines Rings */
+.wochen-ring-innen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.wochen-ring-wert {
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.wochen-ring-wert.lang {
+  font-size: 27px;
+}
+
+.wochen-ring-einheit {
+  color: var(--text-leise);
+  font-size: 14px;
+}
+
+.wochen-ring-ziel {
+  margin-top: 12px;
+  color: var(--text-leise);
+  font-size: 13px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Die Linie geht über die ganze Breite der Karte, auch über ihren Innenabstand */
+.wochen-ringe-linie {
+  height: 1px;
+  margin: 18px -20px;
+  background: var(--rand);
+}
+
+.wochen-ringe-klein {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.wochen-ring-spalte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.wochen-ring-zahl {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.wochen-ring-zahl.lang {
+  font-size: 18px;
+}
+
+.wochen-ring-von {
+  color: var(--text-leise);
+  font-size: 11px;
+}
+
+/* "Ziel erreicht" ist länger als "von 5" und braucht etwas kleinere Schrift, damit es in den Ring passt */
+.wochen-ring-von.erreicht {
+  font-size: 10px;
+}
+
+.wochen-ring-name {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .home-tag {
   display: flex;
   flex-direction: column;

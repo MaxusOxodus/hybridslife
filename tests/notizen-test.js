@@ -38,7 +38,7 @@ pruefe("Bereinigen: kaputt gibt leer", JSON.stringify(f.notizenBereinigen([1, 2]
 pruefe("Im Backup", /notizen: notizen,/.test(funktionHolen("backupText")));
 pruefe("Backup-Version bleibt 12", /version: 12,/.test(funktionHolen("backupText")));
 pruefe("Import: Ersetzen und Hinzufügen", /if \(art === "ersetzen"\) \{\n\s+notizen = importNotizen;/.test(quelle) && /if \(!notizen\[schluessel\]\)/.test(quelle));
-pruefe("Schlüssel in EINFUEHRUNG_APP_SCHLUESSEL", /"einfuehrungVariante", "notizen"\]/.test(einfuehrung));
+pruefe("Schlüssel in EINFUEHRUNG_APP_SCHLUESSEL", /"einfuehrungVariante", "notizen"[,\]]/.test(einfuehrung));
 pruefe("Feld in der index.html", index.indexOf('id="modus-notiz-feld"') !== -1 && index.indexOf('oninput="notizSpeichern()"') !== -1);
 pruefe("Notiz speichert nur notizen", !/eintraege|routinen|trainings\b/.test(funktionHolen("notizSpeichern")));
 pruefe("Texte DE/EN", ["notiz.titel", "notiz.platzhalter"].every(k => TEXTE[k] && TEXTE[k].de && TEXTE[k].en));

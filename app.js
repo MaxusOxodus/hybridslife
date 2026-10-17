@@ -6632,6 +6632,8 @@
     berichtAnzeigen(t, trainingStand().eintraege);
 
     trainingseinheitSpeichern(t);
+    // Mit Anmeldung geht das Backup nach jedem Training still in die Cloud (seit Version 146)
+    cloudAutomatisch();
 
     // Nach dem Training braucht es keine Pause mehr
     pause = null;
@@ -11701,6 +11703,7 @@
     pokal: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/>',
     // Look Korund (seit Version 143): Symbole der Abzeichen
     puls: '<path d="M3 9.5h4l2-4 4 9 2-5h6"/>',
+    wolke: '<path d="M7 18.5h10.5a4 4 0 0 0 .4-7.98A6 6 0 0 0 6.2 9.6a4.45 4.45 0 0 0 .8 8.9z"/>',
     flamme: '<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1.2-3.6 2.5-4.8.3 1.8 1.2 2.8 2.3 3.1C11.2 9 11 6 12 3z"/>',
     kalender: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
     blitz: '<path d="M13 3 5 13h6l-1 8 8-10h-6z"/>',
@@ -15746,6 +15749,292 @@
     }) : txt("rueckblick.fertigOhne"), [{ text: txt("ok"), art: "haupt" }]);
   }
 
+  // ---------- Cloud-Backup (seit Version 146) ----------
+  // Mit Anmeldung sichert Korund das Backup (genau das von „Backup exportieren“, backupText) bei Supabase:
+  // je Nutzer ein Datensatz in der Tabelle backups (SQL in supabase/tabelle-backups.sql). Ohne Anmeldung bleibt alles nur auf dem Gerät.
+  // Angemeldet wird mit einem Code per E-Mail, nicht mit einem Link: Auf dem iPhone haben Safari und die App auf dem Homescreen
+  // getrennte Speicher, ein Link würde nur Safari anmelden.
+  // Adresse und öffentlicher Schlüssel (publishable) dürfen in der App stehen. Der geheime Schlüssel (sb_secret_…) nie.
+  const SUPABASE_URL = "https://saoewdpehahljrmydpan.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_auNxZiJoalFlRRbkiooKfw_gthv4_vs";
+  // Unter diesem Schlüssel merkt sich supabase-js die Anmeldung. Die Zeit der letzten Sicherung steht unter "cloudZuletzt".
+  // Beide stehen nicht im Backup.
+  const CLOUD_SPEICHER = "korundCloud";
+
+  let cloudVerbindung = null;
+  // Die E-Mail, an die gerade ein Code ging ("" = noch keiner)
+  let cloudEmail = "";
+  // Läuft gerade eine Anfrage? Dann zählt kein weiterer Tipp.
+  let cloudLaeuft = false;
+  // Hat die automatische Sicherung zuletzt nicht gesichert, weil in der Cloud mehr Einträge liegen?
+  let cloudUebersprungen = false;
+
+  // Die Verbindung zu Supabase, erst beim ersten Gebrauch gebaut. Ohne die Bibliothek (supabase-2.117.2.js) null.
+  function cloudClient() {
+    if (!cloudVerbindung && window.supabase) {
+      cloudVerbindung = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { storageKey: CLOUD_SPEICHER, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+      });
+    }
+    return cloudVerbindung;
+  }
+
+  // Angemeldet heißt: Die Anmeldung liegt im Speicher. So stimmt die Anzeige auch ohne Netz.
+  function cloudAngemeldet() {
+    return localStorage.getItem(CLOUD_SPEICHER) !== null;
+  }
+
+  function cloudEmailAngemeldet() {
+    const sitzung = gespeichertLesen(CLOUD_SPEICHER, null);
+    return sitzung && sitzung.user && typeof sitzung.user.email === "string" ? sitzung.user.email : "";
+  }
+
+  // „Gesichert: heute, 18:04“, „Gesichert: gestern, 18:04“, „Gesichert: vor 3 Tagen“ oder „Noch nicht gesichert“
+  function cloudStandText() {
+    const zuletzt = gespeichertLesen("cloudZuletzt", null);
+    const tage = tageSeit(zuletzt);
+    if (tage === null) {
+      return txt("cloud.stand.nie");
+    }
+    if (tage <= 1) {
+      return txt(tage === 0 ? "cloud.stand.heute" : "cloud.stand.gestern", { zeit: uhrzeitText(new Date(zuletzt)) });
+    }
+    return txt("cloud.stand.tage", { n: tage });
+  }
+
+  // Zeigt den passenden Teil der Unterseite: E-Mail eingeben, Code eingeben oder angemeldet
+  function cloudAnzeigen() {
+    const an = cloudAngemeldet();
+    document.getElementById("cloud-abgemeldet").classList.toggle("versteckt", an || cloudEmail !== "");
+    document.getElementById("cloud-code").classList.toggle("versteckt", an || cloudEmail === "");
+    document.getElementById("cloud-angemeldet").classList.toggle("versteckt", !an);
+    document.getElementById("cloud-code-text").textContent = txt("cloud.codeGesendet", { email: cloudEmail });
+    document.getElementById("cloud-konto").textContent = cloudEmailAngemeldet();
+    document.getElementById("cloud-stand").textContent = cloudStandText();
+    document.getElementById("cloud-sichern").disabled = cloudLaeuft;
+    document.getElementById("cloud-holen").disabled = cloudLaeuft;
+    document.getElementById("cloud-code-senden").disabled = cloudLaeuft;
+    document.getElementById("cloud-anmelden").disabled = cloudLaeuft;
+  }
+
+  function cloudMeldung(text) {
+    document.getElementById("cloud-meldung").textContent = text;
+  }
+
+  function cloudBeschaeftigt(an) {
+    cloudLaeuft = an;
+    cloudAnzeigen();
+  }
+
+  // Ein Fehler von Supabase oder vom Netz als kurzer Satz
+  function cloudFehlerText(fehler) {
+    const code = fehler && (fehler.code || "");
+    const status = fehler && fehler.status;
+    if (!navigator.onLine || (fehler && (fehler.name === "AuthRetryableFetchError" || /fetch|network|load failed/i.test(fehler.message || "")))) {
+      return txt("cloud.keinNetz");
+    }
+    if (code === "otp_expired" || code === "otp_invalid" || status === 403) {
+      return txt("cloud.codeFalsch");
+    }
+    if (/rate_limit/.test(code) || status === 429) {
+      return txt("cloud.zuOft");
+    }
+    return txt("cloud.fehler", { grund: (fehler && fehler.message) || "?" });
+  }
+
+  function cloudCodeSenden() {
+    if (cloudLaeuft) {
+      return;
+    }
+    const email = document.getElementById("cloud-feld-email").value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      cloudMeldung(txt("cloud.emailFalsch"));
+      return;
+    }
+    const verbindung = cloudClient();
+    if (!verbindung) {
+      cloudMeldung(txt("cloud.keinNetz"));
+      return;
+    }
+    cloudMeldung("");
+    cloudBeschaeftigt(true);
+    verbindung.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true } }).then(function (antwort) {
+      cloudBeschaeftigt(false);
+      if (antwort.error) {
+        cloudMeldung(cloudFehlerText(antwort.error));
+        return;
+      }
+      cloudEmail = email;
+      document.getElementById("cloud-feld-code").value = "";
+      cloudAnzeigen();
+      document.getElementById("cloud-feld-code").focus();
+    }).catch(function (fehler) {
+      cloudBeschaeftigt(false);
+      cloudMeldung(cloudFehlerText(fehler));
+    });
+  }
+
+  function cloudAndereEmail() {
+    cloudEmail = "";
+    cloudMeldung("");
+    cloudAnzeigen();
+  }
+
+  function cloudAnmelden() {
+    if (cloudLaeuft) {
+      return;
+    }
+    const code = document.getElementById("cloud-feld-code").value.replace(/\s/g, "");
+    if (!/^\d{6,10}$/.test(code)) {
+      cloudMeldung(txt("cloud.codeFalsch"));
+      return;
+    }
+    cloudMeldung("");
+    cloudBeschaeftigt(true);
+    cloudClient().auth.verifyOtp({ email: cloudEmail, token: code, type: "email" }).then(function (antwort) {
+      cloudBeschaeftigt(false);
+      if (antwort.error || !antwort.data || !antwort.data.session) {
+        cloudMeldung(cloudFehlerText(antwort.error));
+        return;
+      }
+      cloudEmail = "";
+      cloudAnzeigen();
+      einstWerteAnzeigen();
+      // Gleich nach der Anmeldung: Liegt schon ein Backup in der Cloud (anderes Gerät), fragen, ob es geholt werden soll.
+      // Sonst sofort sichern.
+      cloudSichern(true, true);
+    }).catch(function (fehler) {
+      cloudBeschaeftigt(false);
+      cloudMeldung(cloudFehlerText(fehler));
+    });
+  }
+
+  // Sichert das Backup in der Cloud. manuell: Antippen von „Jetzt sichern“ (oder direkt nach der Anmeldung).
+  // Liegen in der Cloud mehr Einträge als hier, sichert die automatische Sicherung nicht (sonst könnte ein neues Gerät
+  // mit wenigen Daten das Backup eines anderen Geräts überschreiben). Von Hand fragt die App dann nach.
+  // nachAnmeldung: direkt nach der Anmeldung, dann ist „Aus der Cloud holen“ die erste Wahl.
+  function cloudSichern(manuell, nachAnmeldung) {
+    const verbindung = cloudClient();
+    if (!verbindung || !cloudAngemeldet() || cloudLaeuft) {
+      return;
+    }
+    cloudBeschaeftigt(true);
+    verbindung.auth.getSession().then(function (antwort) {
+      const sitzung = antwort.data && antwort.data.session;
+      if (!sitzung) {
+        throw new Error(txt("cloud.abgelaufen"));
+      }
+      return verbindung.from("backups").select("eintraege, aktualisiert").maybeSingle().then(function (alt) {
+        if (alt.error) {
+          throw alt.error;
+        }
+        if (alt.data && alt.data.eintraege > eintraege.length) {
+          cloudBeschaeftigt(false);
+          if (!manuell) {
+            cloudUebersprungen = true;
+            return;
+          }
+          cloudUeberschreibenFragen(alt.data, sitzung.user.id, nachAnmeldung);
+          return;
+        }
+        return cloudHochladen(sitzung.user.id, manuell);
+      });
+    }).catch(function (fehler) {
+      cloudBeschaeftigt(false);
+      if (manuell) {
+        cloudMeldung(cloudFehlerText(fehler));
+      }
+    });
+  }
+
+  function cloudUeberschreibenFragen(alt, nutzer, nachAnmeldung) {
+    const text = txt("cloud.mehrInCloud", { n: alt.eintraege, datum: datumMitJahr(new Date(alt.aktualisiert)), hier: eintraege.length });
+    const holen = { text: txt("cloud.holen"), art: "haupt", aktion: cloudHolen };
+    const ueberschreiben = { text: txt("cloud.ueberschreiben"), art: "gefahr", aktion: function () {
+      cloudBeschaeftigt(true);
+      cloudHochladen(nutzer, true).catch(function (fehler) {
+        cloudBeschaeftigt(false);
+        cloudMeldung(cloudFehlerText(fehler));
+      });
+    } };
+    frageZeigen(txt("cloud.mehrTitel"), text, [holen, ueberschreiben, { text: txt(nachAnmeldung ? "spaeter" : "abbrechen"), art: "leise" }]);
+  }
+
+  function cloudHochladen(nutzer, manuell) {
+    const jetzt = new Date().toISOString();
+    return cloudClient().from("backups").upsert({ user_id: nutzer, daten: JSON.parse(backupText()), eintraege: eintraege.length, aktualisiert: jetzt }).then(function (antwort) {
+      if (antwort.error) {
+        throw antwort.error;
+      }
+      sicherSpeichern("cloudZuletzt", jetzt);
+      cloudUebersprungen = false;
+      cloudBeschaeftigt(false);
+      einstWerteAnzeigen();
+      if (manuell) {
+        cloudMeldung(txt("cloud.gesichert", { n: eintraege.length }));
+      }
+    });
+  }
+
+  // Nach jedem Training: still sichern, wenn angemeldet. Fehler (z. B. kein Netz) zeigt die App nicht, das nächste Training versucht es wieder.
+  function cloudAutomatisch() {
+    if (cloudAngemeldet()) {
+      cloudSichern(false, false);
+    }
+  }
+
+  // Holt das Backup aus der Cloud und öffnet damit den normalen Import (Ergänzen oder Ersetzen, backupLesen)
+  function cloudHolen() {
+    const verbindung = cloudClient();
+    if (!verbindung || cloudLaeuft) {
+      return;
+    }
+    cloudMeldung("");
+    cloudBeschaeftigt(true);
+    verbindung.from("backups").select("daten").maybeSingle().then(function (antwort) {
+      cloudBeschaeftigt(false);
+      if (antwort.error) {
+        cloudMeldung(cloudFehlerText(antwort.error));
+        return;
+      }
+      if (!antwort.data) {
+        cloudMeldung(txt("cloud.leer"));
+        return;
+      }
+      // Die Meldungen des Imports stehen unter „Daten“ auf der Übersicht
+      einstZeigen("haupt");
+      backupLesen(JSON.stringify(antwort.data.daten));
+    }).catch(function (fehler) {
+      cloudBeschaeftigt(false);
+      cloudMeldung(cloudFehlerText(fehler));
+    });
+  }
+
+  function cloudAbmeldenFragen() {
+    frageZeigen(txt("cloud.abmeldenTitel"), txt("cloud.abmeldenText"), [
+      { text: txt("cloud.abmelden"), art: "gefahr", aktion: cloudAbmelden },
+      { text: txt("abbrechen"), art: "leise" }
+    ]);
+  }
+
+  // Meldet nur dieses Gerät ab. Die Daten auf dem Gerät und das Backup in der Cloud bleiben.
+  function cloudAbmelden() {
+    const fertig = function () {
+      localStorage.removeItem(CLOUD_SPEICHER);
+      localStorage.removeItem("cloudZuletzt");
+      cloudUebersprungen = false;
+      cloudMeldung(txt("cloud.abgemeldet"));
+      cloudAnzeigen();
+      einstWerteAnzeigen();
+    };
+    const verbindung = cloudClient();
+    if (!verbindung) {
+      fertig();
+      return;
+    }
+    verbindung.auth.signOut({ scope: "local" }).then(fertig, fertig);
+  }
+
   // ---------- Einstellungen ----------
 
   // Die Ansichten der Einstellungen und der Schlüssel ihres Titels: die Übersicht ("haupt") und die Unterseiten
@@ -15757,7 +16046,8 @@
     sprache: "profil.sprache",
     faq: "einst.faq",
     anleitung: "tour.titel",
-    ueber: "einst.ueber"
+    ueber: "einst.ueber",
+    cloud: "cloud.titel"
   };
 
   // Die sichtbare Ansicht. einstDirekt ist true, wenn die Einstellungen gleich mit einer Unterseite geöffnet wurden
@@ -15850,6 +16140,10 @@
     if (name === "ueber") {
       document.getElementById("ueber-version").textContent = appVersion() + einfuehrungDiagnoseText();
     }
+    if (name === "cloud") {
+      cloudMeldung(cloudUebersprungen ? txt("cloud.uebersprungen") : "");
+      cloudAnzeigen();
+    }
   }
 
   // Der Titel der sichtbaren Ansicht und der Knopf oben links: ✕ schließt, ‹ führt zurück zur Übersicht
@@ -15884,6 +16178,9 @@
     document.getElementById("einst-wert-design").textContent = txt("design." + design());
     document.getElementById("einst-wert-sprache").textContent = spracheDaten().name;
     document.getElementById("backup-zuletzt").textContent = backupZuletztText();
+    // Cloud-Backup (seit Version 146): Stand der letzten Sicherung, und der Satz unter „Daten“ stimmt auch mit Anmeldung
+    document.getElementById("cloud-zuletzt").textContent = cloudAngemeldet() ? cloudStandText() : txt("cloud.aus");
+    document.getElementById("backup-nur-hier").textContent = txt(cloudAngemeldet() ? "cloud.nurHierAn" : "backup.nurHier");
 
     folgenZeile("folgen-instagram", INSTAGRAM_URL);
     folgenZeile("folgen-tiktok", TIKTOK_URL);

@@ -543,8 +543,8 @@ const EINFUEHRUNG_SCHRITTE = [
       en: "Your data"
     },
     text: {
-      de: "Deine Daten liegen nur auf diesem Gerät. Ein Backup sichert sie als Datei.",
-      en: "Your data lives only on this device. A backup saves it as a file."
+      de: "Deine Daten liegen auf diesem Gerät. Ein Backup sichert sie als Datei, mit Anmeldung auch in der Cloud.",
+      en: "Your data lives on this device. A backup saves it as a file, and in the cloud once you sign in."
     }
   },
   {
@@ -968,7 +968,7 @@ function einfuehrungLaeuft() {
 // Gezählt wird nicht localStorage.length: Auf GitHub Pages teilen sich alle Projekte unter einer Adresse einen Speicher.
 const EINFUEHRUNG_APP_SCHLUESSEL = ["eintraege", "eintraegeKaputt", "eintraegeKaputt2", "routinen", "wochenplan", "laufendesTraining",
   "einstellungen", "profil", "pause", "trainings", "koerpergewicht", "eigeneUebungen", "geloeschteEigengewicht", "letztesBackup",
-  "backupHinweisWeg", "einfuehrungGesehen", "einfuehrungDiagnose", "einfuehrungVariante", "notizen"];
+  "backupHinweisWeg", "einfuehrungGesehen", "einfuehrungDiagnose", "einfuehrungVariante", "notizen", "korundCloud", "cloudZuletzt"];
 
 // Ist die App neu (allererster Start, noch nichts im Speicher)? Einmal beim Laden festgehalten, denn die einfuehrung.js
 // lädt vor der app.js, und deren Start schreibt sofort etwas in den Speicher (z. B. den Merker der Ränge).

@@ -68,11 +68,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=145">
+  <link rel="stylesheet" href="style.css?v=146">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=145">
+  <link rel="stylesheet" href="glass.css?v=146">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=145">
+  <link rel="stylesheet" href="korund.css?v=146">
 </head>
 <body>
 
@@ -991,6 +991,15 @@
 
         <h2 class="abschnitt" data-t="profil.daten">Daten</h2>
         <div id="einst-daten-karte" class="karte einst-liste" data-tour="einst-daten">
+          <!-- Cloud-Backup (seit Version 146): öffnet die Unterseite zum Anmelden, Sichern und Holen -->
+          <button class="einst-zeile" onclick="einstZeigen('cloud')">
+            <span class="icon einst-icon" data-icon="wolke"></span>
+            <span class="einst-text">
+              <span class="einst-titel" data-t="cloud.titel">Cloud-Backup</span>
+              <span id="cloud-zuletzt" class="einst-unter"></span>
+            </span>
+            <span class="einst-pfeil" aria-hidden="true">›</span>
+          </button>
           <button class="einst-zeile" onclick="backupExportieren()">
             <span class="icon einst-icon" data-icon="export"></span>
             <span class="einst-text">
@@ -1012,7 +1021,7 @@
           <input id="backup-datei" class="unsichtbar" type="file" accept=".json,application/json" onchange="backupDateiGewaehlt(this)">
         </div>
         <p id="daten-meldung" class="einst-fuss"></p>
-        <p class="einst-fuss" data-t="backup.nurHier">Deine Daten liegen nur auf diesem Gerät. Ein Backup schützt sie.</p>
+        <p id="backup-nur-hier" class="einst-fuss" data-t="backup.nurHier">Deine Daten liegen nur auf diesem Gerät. Ein Backup schützt sie.</p>
 
         <!-- Folge uns: Die Adressen stehen oben in der app.js. Ohne Adresse bleibt die Zeile ausgeblendet. -->
         <div id="einst-folgen" class="versteckt">
@@ -1055,6 +1064,52 @@
           <span class="einst-pfeil" aria-hidden="true">›</span>
         </button>
         </div>
+      </div>
+
+      <!-- Unterseite: Cloud-Backup (seit Version 146). Sichtbar ist einer der drei Teile: E-Mail eingeben, Code eingeben, angemeldet.
+           Welcher, entscheidet cloudAnzeigen in der app.js. -->
+      <div id="einst-ansicht-cloud" class="einst-ansicht versteckt">
+        <div id="cloud-abgemeldet">
+          <p class="einst-fuss" data-t="cloud.erklaerung">Mit Anmeldung sichert Korund dein Backup nach jedem Training in der Cloud. Auf einem neuen Handy holst du es mit derselben E-Mail zurück.</p>
+          <label class="form-titel" for="cloud-feld-email" data-t="cloud.email">E-Mail</label>
+          <input id="cloud-feld-email" class="form-feld" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="name@beispiel.de" data-t-platzhalter="cloud.emailPlatzhalter" onkeydown="if (event.key === 'Enter') cloudCodeSenden()">
+          <button id="cloud-code-senden" class="speichern-btn" onclick="cloudCodeSenden()" data-t="cloud.codeSenden">Code senden</button>
+          <p class="einst-fuss" data-t="cloud.datenschutz">Gespeichert wird dein Backup auf Servern in der EU. Nur du kannst es lesen.</p>
+        </div>
+        <div id="cloud-code" class="versteckt">
+          <p id="cloud-code-text" class="einst-fuss"></p>
+          <label class="form-titel" for="cloud-feld-code" data-t="cloud.code">Code aus der E-Mail</label>
+          <input id="cloud-feld-code" class="form-feld" inputmode="numeric" autocomplete="one-time-code" maxlength="10" enterkeyhint="done" placeholder="123456" onkeydown="if (event.key === 'Enter') cloudAnmelden()">
+          <button id="cloud-anmelden" class="speichern-btn" onclick="cloudAnmelden()" data-t="cloud.anmelden">Anmelden</button>
+          <button class="text-btn" onclick="cloudAndereEmail()" data-t="cloud.andereEmail">Andere E-Mail</button>
+        </div>
+        <div id="cloud-angemeldet" class="versteckt">
+          <div class="karte einst-liste">
+            <div class="einst-zeile">
+              <span class="icon einst-icon" data-icon="person"></span>
+              <span class="einst-text">
+                <span class="einst-titel" data-t="cloud.angemeldetAls">Angemeldet als</span>
+                <span id="cloud-konto" class="einst-unter"></span>
+              </span>
+            </div>
+            <button id="cloud-sichern" class="einst-zeile" onclick="cloudSichern(true, false)">
+              <span class="icon einst-icon" data-icon="export"></span>
+              <span class="einst-text">
+                <span class="einst-titel" data-t="cloud.jetzt">Jetzt sichern</span>
+                <span id="cloud-stand" class="einst-unter"></span>
+              </span>
+              <span class="einst-pfeil" aria-hidden="true">›</span>
+            </button>
+            <button id="cloud-holen" class="einst-zeile" onclick="cloudHolen()">
+              <span class="icon einst-icon" data-icon="import"></span>
+              <span class="einst-titel" data-t="cloud.holen">Aus der Cloud holen</span>
+              <span class="einst-pfeil" aria-hidden="true">›</span>
+            </button>
+          </div>
+          <p class="einst-fuss" data-t="cloud.automatisch">Nach jedem Training sichert Korund von selbst. Gesichert wird dasselbe wie beim Backup-Export.</p>
+          <button class="zweit-btn" onclick="cloudAbmeldenFragen()" data-t="cloud.abmelden">Abmelden</button>
+        </div>
+        <p id="cloud-meldung" class="meldung form-meldung" role="status"></p>
       </div>
 
       <!-- Unterseite: Name und Benutzername -->
@@ -1212,9 +1267,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=145"></script>
-<script src="uebungen.js?v=145"></script>
-<script src="erklaerungen.js?v=145"></script>
+<script src="texte.js?v=146"></script>
+<script src="uebungen.js?v=146"></script>
+<script src="erklaerungen.js?v=146"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1236,13 +1291,15 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=145"></script>
-<script src="bilder.js?v=145"></script>
-<script src="vorlagen.js?v=145"></script>
-<script src="figuren.js?v=145"></script>
+<script src="raenge.js?v=146"></script>
+<script src="bilder.js?v=146"></script>
+<script src="vorlagen.js?v=146"></script>
+<script src="figuren.js?v=146"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=145"></script>
+<!-- Supabase für das Cloud-Backup (seit Version 146). Die Version steht im Dateinamen, deshalb ohne ?v=N -->
+<script src="supabase-2.117.2.js"></script>
+<script src="app.js?v=146"></script>
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-// Test: Seit Version 140 gibt es Notizen je Übung im Trainingsmodus. Gespeichert unter dem eigenen Schlüssel "notizen"
+// Test: Seit Version 141 gibt es Notizen je Übung im Trainingsmodus. Gespeichert unter dem eigenen Schlüssel "notizen"
 // als { schluessel: text }, Schlüssel ist die ID der Übung oder "name:" und der Name. Im Backup als Feld "notizen"
 // (Backup-Version bleibt 12). Beim Import: Ersetzen übernimmt die Notizen, Hinzufügen nur fehlende.
 // Starten mit: node tests/notizen-test.js

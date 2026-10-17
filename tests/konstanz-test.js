@@ -1,4 +1,4 @@
-// Test: Seit Version 140 zeigt der Fortschritt im Look Korund das Raster "Konstanz": die Trainingstage
+// Test: Seit Version 141 zeigt der Fortschritt im Look Korund das Raster "Konstanz": die Trainingstage
 // der letzten 12 Wochen, eine Spalte je Woche. Gerechnet wird nur aus den Einträgen, gespeichert wird nichts.
 // Starten mit: node tests/konstanz-test.js
 // Die Datei gehört nicht zur App. Die Funktionen holt sie aus der app.js.

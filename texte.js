@@ -531,6 +531,7 @@ const TEXTE = {
   "gruppen.keine": { de: "Noch keine Einträge", en: "No entries yet" },
   "gruppen.offenKnopf": { de: "Noch nicht trainiert ({n})", en: "Not trained yet ({n})" },
   "w.aria": { de: "Aufwärmsatz", en: "Warm-up set" },
+  "w.satz": { de: "Aufwärmsatz", en: "Warm-up set" },
   "konstanz.titel": { de: "Konstanz", en: "Consistency" },
   "konstanz.tage": { de: "{n} Trainingstage in {w} Wochen", en: "{n} training days in {w} weeks" },
   "gruppen.weitere": { de: "Weitere Übungen", en: "Other exercises" },

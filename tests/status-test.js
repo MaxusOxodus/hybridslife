@@ -1,4 +1,4 @@
-// Test: Seit Version 140 gibt es den Status Aktiv, Krank oder Urlaub. Krank und Urlaub sind Auszeiten
+// Test: Seit Version 141 gibt es den Status Aktiv, Krank oder Urlaub. Krank und Urlaub sind Auszeiten
 // (einstellungen.auszeiten: { art, von, bis }). Eine Woche mit Auszeit ohne genug Trainingstage bricht die Serie nicht
 // und verbraucht keine Pausenwoche. Trainingsdaten ändern sich nie.
 // Starten mit: node tests/status-test.js

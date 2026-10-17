@@ -564,7 +564,7 @@
 
 /* Für Graphit und Mockup: An diesen Elementen sind die Akzent-Variablen die Signalfarbe. So rechnen alle vorhandenen
    Regeln mit ihr, ohne dass eine davon hier stehen muss. */
-:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie, .wochen-ringe) {
+:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .nav-btn.wisch-ziel, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie, .wochen-ringe) {
   --akzent: var(--akzent-signal);
   --akzent-rgb: var(--akzent-signal-rgb);
   --akzent-schrift: var(--akzent-signal);
@@ -586,7 +586,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie, .wochen-ringe) {
+  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .nav-btn.wisch-ziel, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie, .wochen-ringe) {
     --akzent: var(--akzent-signal);
     --akzent-rgb: var(--akzent-signal-rgb);
     --akzent-schrift: var(--akzent-signal);
@@ -607,7 +607,7 @@
 }
 
 /* ---------- Look "Mockup" (seit Version 121) ----------
-   Seit Version 140 gelten alle Regeln dieses Blocks auch für den Look "Korund" (data-palette="korund").
+   Seit Version 141 gelten alle Regeln dieses Blocks auch für den Look "Korund" (data-palette="korund").
    Was Korund anders macht (schwarzer Grund, Farbwelten, neue Bausteine), steht in der korund.css.
 
    Wie Graphit (data-palette="mockup", nur Glass im dunklen Design, Signal-Elemente, heller Hauptknopf und "Beenden"

@@ -30,7 +30,7 @@ function konstanteHolen(name) {
 const ECHT = ["satzNummer", "satzSeite", "satzNummerElement", "eintragSeiten", "einseitig", "zaehltSeiten", "satzZiel",
   "uebungStandText", "gleicheUebung", "routineFinden"];
 
-// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+// Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
 const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {

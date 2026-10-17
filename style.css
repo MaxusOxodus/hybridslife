@@ -333,6 +333,8 @@ h1 {
   background: var(--glas);
   -webkit-backdrop-filter: var(--glas-filter);
   backdrop-filter: var(--glas-filter);
+  /* Seitlich wischt die Leiste selbst (seit Version 140), senkrecht bleibt alles wie bisher */
+  touch-action: pan-y;
 }
 
 .nav-btn {
@@ -375,7 +377,9 @@ h1 {
   color: var(--akzent-text);
 }
 
-.nav-btn.aktiv .nav-icon {
+/* Beim Wischen auf der Leiste (seit Version 140) zeigt der Tab, zu dem es geht, schon denselben Kreis */
+.nav-btn.aktiv .nav-icon,
+.nav-btn.wisch-ziel .nav-icon {
   background: var(--akzent-leicht);
 }
 
@@ -6034,7 +6038,7 @@ body.tour-zeigt-pause #modus-wahl {
   text-align: center;
 }
 
-/* ---------- Trainingsmodus: Notizen je Übung (seit Version 140) ---------- */
+/* ---------- Trainingsmodus: Notizen je Übung (seit Version 141) ---------- */
 
 .modus-notiz {
   margin-top: 20px;
@@ -6072,7 +6076,7 @@ body.tour-zeigt-pause #modus-wahl {
   display: none;
 }
 
-/* Aufwärmsatz (seit Version 140): In den Tabellen steht statt der Nummer ein "W" in der leisen Farbe.
+/* Aufwärmsatz (seit Version 141): In den Tabellen steht statt der Nummer ein "W" in der leisen Farbe.
    Zu sehen nur, wenn es Aufwärmsätze gibt, in allen Looks. */
 .satz-nummer.satz-w {
   color: var(--text-leise);

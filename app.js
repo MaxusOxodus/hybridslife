@@ -296,7 +296,7 @@
   // weiter mit dem Körpergewicht, siehe istEigengewicht. Im Backup stehen sie ab Backup-Version 11.
   let geloeschteEigengewicht = [];
 
-  // Notizen je Übung (seit Version 140): { schluessel: text }. Schlüssel ist die ID der Übung, bei Übungen ohne ID "name:" und der Name.
+  // Notizen je Übung (seit Version 141): { schluessel: text }. Schlüssel ist die ID der Übung, bei Übungen ohne ID "name:" und der Name.
   let notizen = gespeichertLesen("notizen", {});
   if (!notizen || typeof notizen !== "object" || Array.isArray(notizen)) {
     notizen = {};
@@ -2600,7 +2600,7 @@
 
   // Das bewegte Gewicht eines Eintrags: Wdh. × Gewicht, über alle Sätze zusammengezählt.
   // zusatz kommt bei jedem Satz zum Gewicht dazu (das Körpergewicht bei Eigengewicht-Übungen, sonst 0).
-  // Aufwärmsätze (seit Version 140, Feld aufwaermen: true am Satz) zählen nicht mit: nicht beim Volumen,
+  // Aufwärmsätze (seit Version 141, Feld aufwaermen: true am Satz) zählen nicht mit: nicht beim Volumen,
   // nicht bei der Zahl der Sätze, nicht beim Satz-Ziel und nicht beim 1RM. Ohne das Feld ist jeder Satz ein Arbeitssatz.
   function istAufwaermen(satz) {
     return !!satz && satz.aufwaermen === true;
@@ -3198,7 +3198,7 @@
         auswahl.appendChild(new Option(routinen[j].name, routinen[j].id));
       }
       auswahl.value = wochenplan[i];
-      // Look Korund (seit Version 140): Der Plan steht als sieben schmale Tages-Kacheln nebeneinander. Die Auswahl liegt
+      // Look Korund (seit Version 141): Der Plan steht als sieben schmale Tages-Kacheln nebeneinander. Die Auswahl liegt
       // unsichtbar über der Kachel, sichtbar ist nur der kurze Text darunter ("Push", "Ruhe" oder "–"). Nur dort zu sehen.
       const kurz = element("span", "plan-kurz");
       kurz.setAttribute("aria-hidden", "true");
@@ -4616,7 +4616,7 @@
     return txt("modus.halten", { wdh: v.ziel });
   }
 
-  // ---------- Notizen je Übung (seit Version 140) ----------
+  // ---------- Notizen je Übung (seit Version 141) ----------
 
   // Der Schlüssel einer Übung für die Notizen: ihre ID, ohne ID der Name (kleingeschrieben, ohne Leerzeichen am Rand)
   function notizSchluessel(u) {
@@ -4655,7 +4655,7 @@
     return sauber;
   }
 
-  // Look Korund (seit Version 140): Ziel und Vorschlag der Übung als Chips über "Satz 2 von 3".
+  // Look Korund (seit Version 141): Ziel und Vorschlag der Übung als Chips über "Satz 2 von 3".
   // Dieselben Werte wie zielText und steigerungVorschlag, nur kurz: "3 Sätze", "8–12 Wdh." und das Gewicht des Vorschlags.
   // Steigt der Vorschlag, steht ein Pfeil davor und der Chip ist grün (Klasse "steigt"). Ohne Ziel und Vorschlag bleibt die Zeile leer.
   function modusChipsAnzeigen(u) {
@@ -4734,7 +4734,7 @@
     // Pause: Countdown und was danach kommt
     document.getElementById("modus-pause").classList.toggle("versteckt", !pauseLaeuft);
     document.getElementById("modus-countdown").textContent = pauseText(Math.ceil(pauseRest() / 1000));
-    // Look Korund (seit Version 140): Der Ring um den Countdown zeigt den Rest der Pause, gemessen an der Pause dieser Übung.
+    // Look Korund (seit Version 141): Der Ring um den Countdown zeigt den Rest der Pause, gemessen an der Pause dieser Übung.
     // Nur eine Variable für die korund.css, gespeichert wird nichts. Nach "+15 s" bleibt der Ring höchstens voll.
     const dauer = pauseDauer(u) * 1000;
     document.getElementById("modus-pause").style.setProperty("--pause-anteil", dauer > 0 ? Math.min(1, pauseRest() / dauer).toFixed(3) : "1");
@@ -4858,7 +4858,7 @@
       satz.rir = gewaehlterRir;
     }
     satz.zeit = new Date().toISOString();
-    // Aufwärmsatz (seit Version 140): nur, wenn "W" gewählt ist. Danach ist "W" wieder aus.
+    // Aufwärmsatz (seit Version 141): nur, wenn "W" gewählt ist. Danach ist "W" wieder aus.
     if (aufwaermenGewaehlt) {
       satz.aufwaermen = true;
     }
@@ -5000,6 +5000,8 @@
     const knopf = document.getElementById(id);
     if (knopf && knopf.setAttribute) {
       knopf.setAttribute("aria-pressed", an ? "true" : "false");
+      // Zusätzlich als Klasse: Daran hängt die Farbe in der korund.css
+      knopf.classList.toggle("an", an);
     }
   }
 
@@ -5007,6 +5009,12 @@
   function aufwaermenUmschalten() {
     aufwaermenGewaehlt = !aufwaermenGewaehlt;
     wKnopfAnzeigen("modus-w", aufwaermenGewaehlt);
+    // Die Überschrift sagt, was als Nächstes kommt: "Aufwärmsatz" oder wieder "Satz 1 von 3"
+    if (aufwaermenGewaehlt) {
+      document.getElementById("modus-satz").textContent = txt("w.satz");
+    } else {
+      modusZustandAnzeigen(false);
+    }
   }
 
   // Ein Tipp auf "W" im Sheet "Satz bearbeiten"
@@ -6281,7 +6289,7 @@
     return Boolean(e && e.datum) && !isNaN(new Date(e.datum));
   }
 
-  // ---------- Status: Aktiv, Krank oder Urlaub (seit Version 140) ----------
+  // ---------- Status: Aktiv, Krank oder Urlaub (seit Version 141) ----------
 
   // Krank und Urlaub sind Auszeiten. Gespeichert in einstellungen.auszeiten als Liste von { art, von, bis }
   // (Zeiten in Millisekunden, bis ist null, solange die Auszeit läuft). Ohne Eintrag ist man aktiv.
@@ -6370,7 +6378,7 @@
     frageZeigen(txt("status.titel"), txt("status.text"), knoepfe);
   }
 
-  // Look Korund (seit Version 140): die Serie oben rechts neben dem Titel, z. B. "Serie: 6 Wochen". Ohne Serie leer.
+  // Look Korund (seit Version 141): die Serie oben rechts neben dem Titel, z. B. "Serie: 6 Wochen". Ohne Serie leer.
   // Dieselbe Zahl wie im Profil (gesamtZahlen). Die korund.css zeigt sie nur im Look Korund.
   function homeSerieAnzeigen() {
     const feld = document.getElementById("home-serie");
@@ -7888,6 +7896,66 @@
       },
       bewegt: function () {},
       losgelassen: function (weg, tempo, abgebrochen) {
+        const weit = Math.abs(weg) >= WISCH_SEITE_PX;
+        const schnell = Math.abs(weg) >= WISCH_SCHNELL_WEG_PX && Math.abs(tempo) >= WISCH_SCHNELL_TEMPO && tempo * weg > 0;
+        const ziel = knopf(weg);
+        if (!abgebrochen && (weit || schnell) && ziel) {
+          ziel.click();
+        }
+      }
+    });
+  }
+
+  // Tab-Leiste (seit Version 140): Ein seitlicher Wisch auf der Leiste unten wechselt den Tab wie ein Tipp auf ihn:
+  // nach links zum Tab rechts daneben, nach rechts zum Tab links daneben. Am Ende der Reihe passiert nichts.
+  // Die Geste beginnt nur auf einem Tab-Knopf, nicht im Streifen darunter: Dort wischt iOS zwischen den Apps.
+  // Ist der Wisch weit genug, zeigt der Tab, zu dem es geht, schon den hellen Kreis (Klasse wisch-ziel).
+  function navWischbarMachen() {
+    const leiste = document.getElementById("navigation");
+
+    // Der Tab-Knopf, den ein Wisch nach links (weg < 0) oder rechts antippt. null: In dieser Richtung gibt es keinen.
+    // Ausgeblendete Tabs (der Gym-Tab, solange SHOW_PLATZHALTER aus ist) zählen nicht mit.
+    function knopf(weg) {
+      const knoepfe = Array.prototype.filter.call(leiste.querySelectorAll(".nav-btn"), function (k) {
+        return !k.classList.contains("versteckt");
+      });
+      const i = knoepfe.indexOf(document.getElementById("nav-" + aktiveSeite)) + (weg < 0 ? 1 : -1);
+      return knoepfe[i] || null;
+    }
+
+    // Setzt den hellen Kreis an den Ziel-Tab, null nimmt ihn weg
+    function vorschau(ziel) {
+      const knoepfe = leiste.querySelectorAll(".nav-btn");
+      for (let i = 0; i < knoepfe.length; i++) {
+        knoepfe[i].classList.toggle("wisch-ziel", knoepfe[i] === ziel);
+      }
+    }
+
+    wischen(leiste, {
+      achse: "x",
+      // Keine Geste neben den Knöpfen, am Rand (dort wischt Safari zurück), in der Trainingsansicht,
+      // über einem offenen Sheet und bei offener Tastatur. Unter einem Knopf beginnt auch dann nichts, wenn der Browser
+      // die Berührung dem nächsten Knopf zuschreibt (das tut Chrome), deshalb zählt auch die Höhe des Fingers.
+      beginnt: function (ereignis) {
+        const x = ereignis.touches[0].clientX;
+        const fokus = document.activeElement;
+        const tab = ereignis.target.closest(".nav-btn");
+        if (!tab || ereignis.touches[0].clientY > tab.getBoundingClientRect().bottom
+          || (aktiveSeite === "training" && trainingAnsicht === "modus")
+          || document.body.classList.contains("sheet-offen")
+          || x < WISCH_RAND_PX || x > window.innerWidth - WISCH_RAND_PX
+          || (fokus && fokus.matches("input, select, textarea"))) {
+          return false;
+        }
+      },
+      will: function (weg) {
+        return knopf(weg) !== null;
+      },
+      bewegt: function (weg) {
+        vorschau(Math.abs(weg) >= WISCH_SEITE_PX ? knopf(weg) : null);
+      },
+      losgelassen: function (weg, tempo, abgebrochen) {
+        vorschau(null);
         const weit = Math.abs(weg) >= WISCH_SEITE_PX;
         const schnell = Math.abs(weg) >= WISCH_SCHNELL_WEG_PX && Math.abs(tempo) >= WISCH_SCHNELL_TEMPO && tempo * weg > 0;
         const ziel = knopf(weg);
@@ -9823,7 +9891,7 @@
     if (e.rangMerker && typeof e.rangMerker === "object") {
       sauber.rangMerker = rangMerkerBereinigen(e.rangMerker);
     }
-    // Die Auszeiten (Krank, Urlaub) gibt es seit Version 140. Sie gehören zur Serie und kommen deshalb mit.
+    // Die Auszeiten (Krank, Urlaub) gibt es seit Version 141. Sie gehören zur Serie und kommen deshalb mit.
     if (Array.isArray(e.auszeiten)) {
       sauber.auszeiten = e.auszeiten.filter(function (a) {
         return a && AUSZEIT_ARTEN.indexOf(a.art) !== -1 && typeof a.von === "number" && (a.bis === null || typeof a.bis === "number");
@@ -10012,7 +10080,7 @@
       importGeloeschte = daten.geloeschteEigengewicht;
     }
 
-    // Notizen je Übung gibt es seit Version 140 (Backup-Version bleibt 12, ältere Versionen lassen das Feld liegen)
+    // Notizen je Übung gibt es seit Version 141 (Backup-Version bleibt 12, ältere Versionen lassen das Feld liegen)
     importNotizen = null;
     if (daten && !Array.isArray(daten) && daten.notizen && typeof daten.notizen === "object") {
       importNotizen = notizenBereinigen(daten.notizen);
@@ -10415,7 +10483,7 @@
 
   // ---------- Look: Korund, Schwarz, Graphit oder Mockup ----------
 
-  // "korund" ist seit Version 140 der Standard. Die alten Looks bleiben wählbar (das Design bis Version 139 ist "Schwarz").
+  // "korund" ist seit Version 141 der Standard. Die alten Looks bleiben wählbar (das Design bis Version 140 ist "Schwarz").
   const PALETTE_AUSWAHL = [
     { id: "korund", schluessel: "palette.korund" },
     { id: "schwarz", schluessel: "palette.schwarz" },
@@ -10423,7 +10491,7 @@
     { id: "mockup", schluessel: "palette.mockup" }
   ];
 
-  // Der gewählte Look. Ohne Eintrag gilt seit Version 140 "korund", bei einem unbekannten Wert "schwarz".
+  // Der gewählte Look. Ohne Eintrag gilt seit Version 141 "korund", bei einem unbekannten Wert "schwarz".
   function palette() {
     if (einstellungen.palette === undefined || einstellungen.palette === "korund") {
       return "korund";
@@ -10460,7 +10528,7 @@
     farbweltAnzeigen();
   }
 
-  // ---------- Farbwelt (seit Version 140, nur im Look Korund) ----------
+  // ---------- Farbwelt (seit Version 141, nur im Look Korund) ----------
 
   // Die fünf Farbwelten. "farben" sind die drei Töne des K (Volumen, Workouts, Wdh.) für die Punkte in der Auswahl.
   // "rang" ist der Kraft-Rang (1 Starter bis 6 Legende), ab dem die Farbwelt frei ist, wenn FARBWELTEN_PER_RANG an ist.
@@ -10541,7 +10609,7 @@
     farbweltAnzeigen();
   }
 
-  // ---------- Das Korund-K als Fortschritt (seit Version 140) ----------
+  // ---------- Das Korund-K als Fortschritt (seit Version 141) ----------
 
   // Die drei Teile des Logos (viewBox 0 0 130 131, wie icons/korund-mark-mono-weiss.svg). Jeder Teil füllt sich entlang
   // seiner Achse von a nach b: der Stamm (Volumen) von unten nach oben, die Arme (Workouts oben, Wdh. unten) vom Stamm nach außen.
@@ -11030,7 +11098,7 @@
     return feld;
   }
 
-  // Look Korund (seit Version 140): statt der Ringe das Korund-K. Der Stamm zeigt das Volumen, der obere Arm die Workouts,
+  // Look Korund (seit Version 141): statt der Ringe das Korund-K. Der Stamm zeigt das Volumen, der obere Arm die Workouts,
   // der untere Arm die Wiederholungen. Rechts die drei Zahlen, je mit einem kleinen K, in dem nur der passende Teil leuchtet.
   // Die korund.css zeigt diesen Teil nur im Look Korund und blendet dort die Ringe aus.
   function wochenKFeld(daten) {
@@ -13002,6 +13070,7 @@ platzhalterAnwenden();
 sheetsWischbarMachen();
 modusWischbarMachen();
 trainingWischbarMachen();
+navWischbarMachen();
 
 // Das gewählte Design (Dunkel, Hell oder System) und sein Umschalter
 designAnwenden();

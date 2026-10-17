@@ -1,4 +1,4 @@
-// Test: Seit Version 140 kann ein Satz ein Aufwärmsatz sein (Feld aufwaermen: true im Satz, "W" im Look Korund).
+// Test: Seit Version 141 kann ein Satz ein Aufwärmsatz sein (Feld aufwaermen: true im Satz, "W" im Look Korund).
 // Aufwärmsätze stehen mit "W" in den Tabellen, zählen aber nicht zum Satz-Ziel, nicht zum Volumen,
 // nicht zur Zahl der Sätze und nicht zum 1RM. Sätze ohne das Feld bleiben genau wie bisher.
 // Starten mit: node tests/aufwaermen-test.js

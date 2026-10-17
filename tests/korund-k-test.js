@@ -1,4 +1,4 @@
-// Test: Seit Version 140 zeigt der Look "Korund" auf Home statt der Ringe das Korund-K. Der Stamm füllt sich mit dem Volumen,
+// Test: Seit Version 141 zeigt der Look "Korund" auf Home statt der Ringe das Korund-K. Der Stamm füllt sich mit dem Volumen,
 // der obere Arm mit den Workouts, der untere Arm mit den Wiederholungen, je gemessen an WOCHEN_ZIELE (bei 100 % gekappt).
 // Dazu die Farbwelten: fünf Werte, ohne Eintrag oder bei Unbekanntem "blau". Nichts davon ändert Trainingsdaten.
 // Starten mit: node tests/korund-k-test.js

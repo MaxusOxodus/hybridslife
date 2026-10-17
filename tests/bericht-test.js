@@ -22,7 +22,7 @@ function funktionHolen(name) {
 const ECHT = ["einheitMinuten", "verlaufPunkte", "berichtRekorde", "gleicheUebung", "hatDatum", "saetzeVon", "rirLesen",
   "tagSchluessel", "koerperZusatz", "istEigengewicht", "anzeigeName", "uebungName"];
 
-// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+// Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
 const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {

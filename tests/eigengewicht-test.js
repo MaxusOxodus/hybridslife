@@ -42,7 +42,7 @@ const ECHT = ["notizenBereinigen", "gespeichertLesen", "sicherSpeichern", "speic
   "gewichteSpeichern", "gewichtMessungen", "koerpergewichtAm", "trainingBereinigen", "gewichteImportieren",
   "eigeneImportieren", "backupText", "backupLesen", "eintragSchluessel", "importAusfuehren"];
 
-// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+// Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
 const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
@@ -93,7 +93,7 @@ function umgebung(inhalt) {
     + "let importEintraege = []; let importRoutinen = null; let importWochenplan = null; let importTrainings = null;"
     + "let importGewichte = null; let importEinstellungen = null; let importProfil = null; let importEigene = null;"
     + "let importGeloeschte = null;"
-    // Seit Version 140: Notizen je Übung im Backup, Auszeiten in den Einstellungen
+    // Seit Version 141: Notizen je Übung im Backup, Auszeiten in den Einstellungen
     + "let notizen = {}; let importNotizen = null;" + konstanteHolen("AUSZEIT_ARTEN")
     // Eine Rückfrage gilt sofort als bestätigt: Der erste Knopf wird gedrückt
     + "function frageZeigen(titel, text, knoepfe) { if (knoepfe[0].aktion) { knoepfe[0].aktion(); } }"

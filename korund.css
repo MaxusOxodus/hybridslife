@@ -1,4 +1,4 @@
-/* ---------- Look "Korund" (seit Version 140) ----------
+/* ---------- Look "Korund" (seit Version 141) ----------
 
    Der neue Standard-Look: schwarzer Grund mit farbigem Schimmer oben, Glas-Karten mit heller Kante (wie "Mockup"),
    dazu fünf Farbwelten (data-farbwelt am <html>): blau (Standard), aurora, volt, gold, puls.
@@ -770,10 +770,12 @@
   font-weight: 800;
 }
 
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .w-knopf.an,
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .w-knopf[aria-pressed="true"] {
-  border-color: rgba(245, 181, 68, 0.6);
-  background: rgba(245, 181, 68, 0.18);
-  color: #F5B544;
+  border-color: #F5B544;
+  background: #F5B544;
+  color: #1A1206;
+  box-shadow: 0 0 14px rgba(245, 181, 68, 0.45);
 }
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #satz-sheet .w-knopf {
@@ -1435,10 +1437,12 @@
     font-weight: 800;
   }
 
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .w-knopf.an,
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .w-knopf[aria-pressed="true"] {
-    border-color: rgba(245, 181, 68, 0.6);
-    background: rgba(245, 181, 68, 0.18);
-    color: #F5B544;
+    border-color: #F5B544;
+    background: #F5B544;
+    color: #1A1206;
+    box-shadow: 0 0 14px rgba(245, 181, 68, 0.45);
   }
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #satz-sheet .w-knopf {

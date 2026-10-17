@@ -33,7 +33,7 @@ const ECHT = ["satzZiel", "zaehltSeiten", "einseitig", "kurzhantel", "steigerung
   "letzterEintrag", "gleicheUebung", "saetzeVon", "rirLesen", "wdhBis", "hatDatum", "istEigengewicht", "einheit", "ausKg", "zuKg",
   "gewichtAnzeige", "gewichtText", "zahlText", "startGewicht", "steigernAn"];
 
-// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+// Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
 const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {

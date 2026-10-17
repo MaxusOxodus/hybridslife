@@ -25,7 +25,7 @@ const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "pa
   "uebungenKopieren", "wdhBis", "zielLesen", "wdhZielBereinigen", "routineBereinigen", "neueId", "trainingBeginnen",
   "rirLesen", "eintragSaetzeSchreiben", "eintragFinden", "satzFertig", "uebungZeigen", "uebungErledigt", "naechsteOffene"];
 
-// Seit Version 140: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+// Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
 const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
@@ -59,7 +59,7 @@ function auswahlBauen() {
   };
 }
 const dokument = {
-  // Seit Version 140 zeigt satzFertig den Knopf "W" wieder aus: hier gibt es ihn nicht
+  // Seit Version 141 zeigt satzFertig den Knopf "W" wieder aus: hier gibt es ihn nicht
   getElementById: function () { return null; },
   createElement: function (art) {
     if (art === "optgroup") {

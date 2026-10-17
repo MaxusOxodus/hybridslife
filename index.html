@@ -48,7 +48,7 @@
       if (akzent === "limette" || akzent === "rot" || akzent === "pink" || akzent === "lila") {
         document.documentElement.setAttribute("data-akzent", akzent);
       }
-      // Der Look: Ohne Eintrag gilt seit Version 140 "korund". "graphit", "mockup" und "korund" setzen ein Attribut,
+      // Der Look: Ohne Eintrag gilt seit Version 141 "korund". "graphit", "mockup" und "korund" setzen ein Attribut,
       // nur wer ausdrücklich "schwarz" gewählt hat, bekommt keins
       palette = gespeichert.palette;
       // Die Farbwelt des Looks Korund: ohne Eintrag oder bei einem unbekannten Wert "blau"
@@ -68,11 +68,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=140">
+  <link rel="stylesheet" href="style.css?v=141">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=140">
-  <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 140). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=140">
+  <link rel="stylesheet" href="glass.css?v=141">
+  <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
+  <link rel="stylesheet" href="korund.css?v=141">
 </head>
 <body>
 
@@ -84,7 +84,7 @@
 
     <!-- Ansicht: Übersicht. Die Karten füllt die app.js. -->
     <div id="ansicht-home" class="ansicht">
-      <!-- Look Korund (seit Version 140): die Serie oben rechts. Die app.js füllt sie, die korund.css zeigt sie nur im Look Korund. -->
+      <!-- Look Korund (seit Version 141): die Serie oben rechts. Die app.js füllt sie, die korund.css zeigt sie nur im Look Korund. -->
       <div id="home-serie" class="home-serie"></div>
       <h1 data-t="nav.home">Home</h1>
       <p id="home-datum" class="unterzeile"></p>
@@ -181,7 +181,7 @@
 
     <!-- Ansicht: Übersicht mit Wochenplan, Routinen und Vorlagen -->
     <div id="ansicht-uebersicht" class="ansicht">
-      <!-- Look Korund (seit Version 140): der Status (Aktiv, Krank, Urlaub) oben rechts. Die app.js setzt den Text. -->
+      <!-- Look Korund (seit Version 141): der Status (Aktiv, Krank, Urlaub) oben rechts. Die app.js setzt den Text. -->
       <button id="status-knopf" class="status-knopf" onclick="statusWaehlen()"></button>
       <h1 data-t="nav.training">Training</h1>
       <!-- Im Reiter "Übungen" setzt die app.js hier einen anderen Text ein -->
@@ -287,7 +287,7 @@
           </div>
         </div>
       </div>
-      <!-- Look Korund (seit Version 140): das Ziel der Übung als Chips, z. B. "3 Sätze", "8–12 Wdh." und der Vorschlag "↑ 92,5 kg".
+      <!-- Look Korund (seit Version 141): das Ziel der Übung als Chips, z. B. "3 Sätze", "8–12 Wdh." und der Vorschlag "↑ 92,5 kg".
            Die app.js füllt sie immer, die korund.css zeigt sie nur im Look Korund und blendet dort #modus-ziel aus. -->
       <div id="modus-chips" class="modus-chips"></div>
       <div id="modus-satz" class="modus-satz"></div>
@@ -356,7 +356,7 @@
       <p id="modus-hinweis" class="modus-hinweis"></p>
       <!-- Das letzte Training dieser Übung als kleine Tabelle. Die Zeilen baut die app.js. -->
       <div id="modus-letztes"></div>
-      <!-- Notizen je Übung (seit Version 140): z. B. Sitzhöhe oder Griff. Gespeichert beim Tippen, gilt für die Übung in jedem Training. -->
+      <!-- Notizen je Übung (seit Version 141): z. B. Sitzhöhe oder Griff. Gespeichert beim Tippen, gilt für die Übung in jedem Training. -->
       <div class="karte modus-notiz">
         <label for="modus-notiz-feld" class="rad-titel" data-t="notiz.titel">Notizen</label>
         <textarea id="modus-notiz-feld" rows="2" maxlength="300" placeholder="z. B. Sitzhöhe 4, Griff eng" data-t-platzhalter="notiz.platzhalter" oninput="notizSpeichern()"></textarea>
@@ -1021,7 +1021,7 @@
         <h2 class="abschnitt" data-t="palette">Look</h2>
         <div id="palette-auswahl" class="umschalter gross"></div>
         <p class="einst-fuss" data-t="palette.hinweis">Der Look gilt nur mit „Glass“ im dunklen Design. „Korund“ ist das neue Design, „Schwarz“ das bisherige. Bei „Graphit“ und „Mockup“ zeigt die gewählte Farbe „Heute“ und deinen Fortschritt.</p>
-        <!-- Die Farbwelt (seit Version 140): nur im Look Korund. Die Zeilen baut die app.js. -->
+        <!-- Die Farbwelt (seit Version 141): nur im Look Korund. Die Zeilen baut die app.js. -->
         <h2 class="abschnitt" data-t="farbwelt">Farbwelt</h2>
         <div id="farbwelt-auswahl" class="karte einst-liste"></div>
         <p class="einst-fuss" data-t="farbwelt.hinweis">Die Farbwelt gilt im Look „Korund“. Sie färbt Fortschritt, Knöpfe und das K auf Home.</p>
@@ -1114,9 +1114,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=140"></script>
-<script src="uebungen.js?v=140"></script>
-<script src="erklaerungen.js?v=140"></script>
+<script src="texte.js?v=141"></script>
+<script src="uebungen.js?v=141"></script>
+<script src="erklaerungen.js?v=141"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1138,13 +1138,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=140"></script>
-<script src="bilder.js?v=140"></script>
-<script src="vorlagen.js?v=140"></script>
-<script src="figuren.js?v=140"></script>
+<script src="raenge.js?v=141"></script>
+<script src="bilder.js?v=141"></script>
+<script src="vorlagen.js?v=141"></script>
+<script src="figuren.js?v=141"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=140"></script>
+<script src="app.js?v=141"></script>
 
 </body>
 </html>

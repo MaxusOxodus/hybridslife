@@ -6069,6 +6069,13 @@ body.tour-zeigt-pause #modus-wahl {
 
 /* Nur im Look Korund zu sehen (korund.css): Konstanz-Raster, Knopf für ungeübte Muskelgruppen, Steigerung als Plakette */
 .konstanz,
+.verlauf-rekord,
+.mess-label,
+.koerper-kacheln,
+.vorlagen-seite-frage,
+.kraftrang-zeile,
+.rang-ansicht-kopf,
+.abzeichen-gruppe-kopf,
 .profil-korund-info,
 .profil-level,
 .muster-korund,
@@ -6140,3 +6147,10 @@ body.tour-zeigt-pause #modus-wahl {
 .modus-satz-zeile {
   display: contents;
 }
+
+/* Hüllen der Profil-Karte (seit Version 143): Nur im Look Korund werden daraus zwei Karten, sonst ändern sie nichts */
+.profil-oben,
+.profil-aktivitaet {
+  display: contents;
+}
+

@@ -467,7 +467,9 @@
     <div id="konstanz" class="karte konstanz" data-teil="kraft"></div>
 
     <h2 id="kg-abschnitt" class="abschnitt" data-t="koerpergewicht" data-teil="koerper">Körpergewicht</h2>
-    <div class="karte" data-tour="fortschritt-gewicht" data-teil="koerper">
+    <div class="karte mess-karte" data-tour="fortschritt-gewicht" data-teil="koerper">
+      <!-- Look Korund (seit Version 143): die Überschrift steht dort in der Karte, sonst ausgeblendet -->
+      <div class="mess-label" data-t="koerpergewicht">Körpergewicht</div>
       <!-- Kopf mit dem letzten Eintrag und Zeitraum des Diagramms: Beides baut die app.js -->
       <div id="kg-kopf" class="mess-kopf"></div>
       <div id="kg-zeitraum" class="umschalter"></div>
@@ -477,6 +479,8 @@
         <span><i class="legende-punkt"></i><span data-t="fortschritt.messung">Messung</span></span>
       </div>
     </div>
+    <!-- Look Korund (seit Version 143): Körperfett und Magermasse als Kacheln. Die app.js füllt sie, sonst ausgeblendet. -->
+    <div id="koerper-kacheln" class="koerper-kacheln" data-teil="koerper"></div>
     <button class="zweit-btn" onclick="gewichtSheetOeffnen()" data-t="fortschritt.gewichtEintragen" data-tour="fortschritt-eintragen" data-teil="koerper">Gewicht eintragen</button>
     <!-- "Alle Einträge": Der Button klappt den Kalender mit allen Messungen auf und zu. Am Anfang ist er zu.
          Den Inhalt des Kalenders baut die app.js. -->
@@ -529,7 +533,10 @@
     <!-- Erinnerung ans Backup: erscheint nur, wenn das letzte zu lange her ist -->
     <div id="backup-hinweis"></div>
 
-    <div class="karte">
+    <!-- Look Korund (seit Version 143): Die Karte zerfällt dort in zwei Karten (profil-oben, profil-aktivitaet).
+         In den anderen Looks sind beide Hüllen display: contents und ändern nichts. -->
+    <div id="profil-karte" class="karte profil-karte">
+      <div id="profil-oben" class="profil-oben">
       <div class="profil-person" data-tour="profil-person">
         <div id="profil-avatar" class="avatar"></div>
         <div class="profil-namen">
@@ -539,7 +546,9 @@
       </div>
       <div id="profil-zahlen" class="home-zahlen profil-zahlen"></div>
       <button class="profil-btn" onclick="einstOeffnen('profil')" data-t="profil.bearbeiten">Profil bearbeiten</button>
+      </div>
 
+      <div id="profil-aktivitaet" class="profil-aktivitaet">
       <!-- Aktivität: ein Feld pro Tag, eine Spalte pro Woche. Die Tage stehen fest, die Wochen lassen sich seitlich wischen. -->
       <div class="raster-kopf">
         <span class="raster-titel" data-t="raster.titel">Aktivität</span>
@@ -557,6 +566,7 @@
         <span data-t="raster.weniger">Weniger</span>
         <i class="raster-feld"></i><i class="raster-feld stufe-1"></i><i class="raster-feld stufe-2"></i><i class="raster-feld stufe-3"></i><i class="raster-feld stufe-4"></i>
         <span data-t="raster.mehr">Mehr</span>
+      </div>
       </div>
     </div>
 

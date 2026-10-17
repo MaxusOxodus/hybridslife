@@ -2929,6 +2929,14 @@
 
   function fortschrittReiterAnzeigen() {
     document.getElementById("seite-fortschritt").setAttribute("data-reiter", fortschrittReiter);
+    // Die kleine Zeile über dem Titel passt zum Reiter (seit Version 143): Kraft 30 Tage, Körper der gewählte Zeitraum, Statistik seit Beginn
+    let ueber = txt("fortschritt.ueber");
+    if (fortschrittReiter === "statistik") {
+      ueber = txt("fortschritt.ueberStart");
+    } else if (fortschrittReiter === "koerper") {
+      ueber = txt("fortschritt.ueberZeitraum." + messStand.kg.zeitraum);
+    }
+    document.getElementById("fortschritt-ueber").textContent = ueber;
     umschalterBauen(document.getElementById("fortschritt-reiter"), FORTSCHRITT_REITER, fortschrittReiter, function (id) {
       fortschrittReiter = id;
       fortschrittReiterAnzeigen();
@@ -3449,6 +3457,13 @@
 
   // „Vorlagen“ klappt die Vorlagen auf und zu und rollt beim Aufklappen hin
   function vorlagenUmschalten() {
+    // Seit Version 143 öffnet der Knopf im Look Korund die Vorlagen als eigene Seite wie im Entwurf
+    if (lookKorund()) {
+      vorlagenSeiteAnzeigen();
+      trainingAnsichtZeigen("varianten");
+      window.scrollTo(0, 0);
+      return;
+    }
     const plaene = document.getElementById("reiter-plaene");
     plaene.classList.toggle("vorlagen-offen");
     if (plaene.classList.contains("vorlagen-offen")) {
@@ -3686,6 +3701,9 @@
     umschalterBauen(schalter, auswahl, vorlagenTage, function (tage) {
       vorlagenTage = tage;
       vorlagenAnzeigen();
+      if (vorlagenSeiteOffen) {
+        vorlagenSeiteAnzeigen();
+      }
     });
     bereich.appendChild(schalter);
     for (let i = 0; i < VORLAGEN_PLAENE.length; i++) {
@@ -3719,7 +3737,21 @@
     trainingAnsichtZeigen("uebersicht");
   }
 
+  // Look Korund: die Seite "Vorlagen" in der Ansicht der Varianten. Oben die Frage, dann Umschalter und Pläne.
+  // Die Vorschau geht von dort wie bisher zurück zu dieser Ansicht.
+  let vorlagenSeiteOffen = false;
+
+  function vorlagenSeiteAnzeigen() {
+    vorlagenSeiteOffen = true;
+    document.getElementById("varianten-titel").textContent = txt("training.vorlagen");
+    const liste = document.getElementById("varianten-liste");
+    liste.innerHTML = "";
+    liste.appendChild(element("div", "vorlagen-seite-frage", txt("vorlage.frageKurz")));
+    vorlagenKorundAnzeigen(liste);
+  }
+
   function variantenAnzeigen() {
+    vorlagenSeiteOffen = false;
     document.getElementById("varianten-titel").textContent = txt("vorlage.tageProWoche", { n: vorlagePlan.tage });
     const liste = document.getElementById("varianten-liste");
     liste.innerHTML = "";
@@ -3768,8 +3800,7 @@
   }
 
   function vorschauZurueck() {
-    // Im Look Korund gibt es die Ebene der Varianten nicht, die Vorschau geht zurück zur Übersicht (seit Version 143)
-    trainingAnsichtZeigen(lookKorund() ? "uebersicht" : "varianten");
+    trainingAnsichtZeigen("varianten");
   }
 
   // Die Übung, die gerade an einem Slot steht: die getauschte, sonst die Standard-Übung des Plans.
@@ -8480,6 +8511,10 @@
         }
         // Bei sehr vielen Werten wird die Linie feiner (Klasse "viele"), damit sie lesbar bleibt
         svg += '<path class="linie-' + reihen[r].art + (punkte.length > 45 ? " viele" : "") + '" d="' + weg + '"/>';
+        // Eine Linie mit Beschriftung (das Ziel im Look Korund) bekommt ihren Text links darüber
+        if (reihen[r].beschriftung) {
+          svg += '<text class="ziel-text" x="' + LINKS + '" y="' + (y(punkte[0].wert) - 6).toFixed(1) + '">' + reihen[r].beschriftung + "</text>";
+        }
       }
       // Bei sehr vielen Werten würden die Punkte die Linie verdecken. Ein einzelner Wert braucht immer einen.
       if ((reihen[r].mitPunkten && punkte.length <= 45) || punkte.length === 1) {
@@ -10498,17 +10533,50 @@
       const unterschied = Math.round((wert - messWert(art, liste[liste.length - 2].wert)) * 10) / 10;
       zeile += " · " + txt("messung.zurDavor", { wert: aenderungText(unterschied, art.text) });
     }
-    kopf.appendChild(element("div", "routine-info", zeile));
-    // Look Korund: das Ziel des Körpergewichts und wie viel noch fehlt
-    const ziel = kennung === "kg" ? zielGewicht() : null;
-    if (ziel !== null && lookKorund()) {
-      const rest = Math.round((messWert(art, ziel) - wert) * 10) / 10;
-      let text = txt("ziel.gewichtErreicht", { ziel: art.text(messWert(art, ziel)) });
-      if (rest !== 0) {
-        text = txt("ziel.gewichtNoch", { ziel: art.text(messWert(art, ziel)), rest: art.text(Math.abs(rest)) });
-      }
-      kopf.appendChild(element("div", "routine-info mess-ziel", text));
+    if (!lookKorund()) {
+      kopf.appendChild(element("div", "routine-info", zeile));
+      return;
     }
+    // Look Korund (seit Version 143): die Veränderung im gewählten Zeitraum, beim Körpergewicht dazu das Ziel
+    const zeitraum = messStand[kennung].zeitraum;
+    const grenze = zeitraum > 0 ? Date.now() - zeitraum * 86400000 : -Infinity;
+    const imZeitraum = liste.filter(function (m) {
+      return m.zeit >= grenze;
+    });
+    const info = element("div", "routine-info mess-ziel");
+    if (imZeitraum.length > 1) {
+      const anfang = messWert(art, imZeitraum[0].wert);
+      const unterschied = Math.round((wert - anfang) * 10) / 10;
+      const zeichen = unterschied > 0 ? "+" : unterschied < 0 ? "−" : "±";
+      const betrag = element("span", "mess-delta", zeichen + art.text(Math.abs(unterschied)));
+      info.appendChild(betrag);
+      const rest = txt("gruppen.in." + zeitraum, { wert: "" }).trim();
+      info.appendChild(document.createTextNode(" " + rest));
+    } else {
+      info.appendChild(document.createTextNode(datumMitJahr(new Date(letzte.zeit))));
+    }
+    const ziel = kennung === "kg" ? zielGewicht() : null;
+    if (ziel !== null) {
+      const zielWert = messWert(art, ziel);
+      const fehlt = Math.round((zielWert - wert) * 10) / 10;
+      let text = txt("ziel.gewichtErreicht", { ziel: art.text(zielWert) });
+      if (fehlt !== 0) {
+        text = txt("ziel.gewichtKurz", { ziel: art.text(zielWert) });
+        // Schätzung aus dem Tempo im Zeitraum: nur wenn es in Richtung Ziel geht und unter einem Jahr bleibt
+        if (imZeitraum.length > 1) {
+          const tage = (imZeitraum[imZeitraum.length - 1].zeit - imZeitraum[0].zeit) / 86400000;
+          const tempo = (wert - messWert(art, imZeitraum[0].wert)) / Math.max(tage, 1);
+          if (tage >= 7 && tempo !== 0 && Math.sign(tempo) === Math.sign(fehlt)) {
+            const wochen = Math.ceil(Math.abs(fehlt) / Math.abs(tempo) / 7);
+            if (wochen <= 52) {
+              text = txtAnzahl("ziel.inWochen", wochen);
+            }
+          }
+        }
+      }
+      info.appendChild(document.createTextNode(" · " + text));
+    }
+    kopf.appendChild(info);
   }
 
   // ---------- Ziel für das Körpergewicht (Look Korund, seit Version 143) ----------
@@ -10593,7 +10661,7 @@
       if (ziel !== null && lookKorund()) {
         const anfang = von === undefined ? messungen[0].zeit : von;
         const ende = von === undefined ? messungen[messungen.length - 1].zeit : bis;
-        reihen.unshift({ punkte: [{ zeit: anfang, wert: art.umrechnen(ziel) }, { zeit: ende, wert: art.umrechnen(ziel) }], art: "ziel", mitPunkten: false });
+        reihen.unshift({ punkte: [{ zeit: anfang, wert: art.umrechnen(ziel) }, { zeit: ende, wert: art.umrechnen(ziel) }], art: "ziel", mitPunkten: false, beschriftung: txt("ziel.gewichtKurz", { ziel: art.text(messWert(art, ziel)) }) });
       }
       diagrammZeichnen(diagramm, reihen, function (p) {
         return art.text(p.wert);
@@ -10768,9 +10836,62 @@
     umschalterBauen(document.getElementById(kennung + "-zeitraum"), KG_ZEITRAEUME, stand.zeitraum, function (tage) {
       stand.zeitraum = tage;
       messBereichAnzeigen(kennung);
+      fortschrittReiterAnzeigen();
     });
     messungenZeichnen(kennung, art, liste, stand.zeitraum);
     messKalenderAnzeigen(kennung, art, liste);
+    if (kennung === "fett") {
+      koerperKachelnAnzeigen();
+    }
+  }
+
+  // Look Korund (seit Version 143): unter der Karte Körpergewicht zwei Kacheln Körperfett und Magermasse.
+  // Ein Tipp auf Körperfett klappt den ganzen Bereich Körperfett (Diagramm, Eintragen) auf und zu. Sonst ausgeblendet.
+  let koerperFettOffen = false;
+
+  function koerperKachelnAnzeigen() {
+    const bereich = document.getElementById("koerper-kacheln");
+    if (!bereich) {
+      return;
+    }
+    bereich.innerHTML = "";
+    document.getElementById("seite-fortschritt").setAttribute("data-fett-offen", koerperFettOffen ? "ja" : "nein");
+    const fett = fettMessungen();
+    const fettKachel = element("button", "karte koerper-kachel");
+    fettKachel.type = "button";
+    fettKachel.setAttribute("aria-expanded", koerperFettOffen ? "true" : "false");
+    fettKachel.appendChild(element("div", "statistik-label", txt("koerperfett")));
+    if (fett.length === 0) {
+      fettKachel.appendChild(element("div", "koerper-wert leise", "–"));
+      fettKachel.appendChild(element("div", "statistik-klein", txt("koerper.fettLeer")));
+    } else {
+      const letzte = fett[fett.length - 1];
+      fettKachel.appendChild(element("div", "koerper-wert", fettText(letzte.wert)));
+      if (fett.length > 1) {
+        const unterschied = Math.round((letzte.wert - fett[fett.length - 2].wert) * 10) / 10;
+        const zeichen = unterschied > 0 ? "+" : unterschied < 0 ? "−" : "±";
+        fettKachel.appendChild(element("div", "statistik-klein" + (unterschied < 0 ? " plus" : ""), zeichen + fettText(Math.abs(unterschied))));
+      }
+    }
+    fettKachel.onclick = function () {
+      koerperFettOffen = !koerperFettOffen;
+      koerperKachelnAnzeigen();
+    };
+    bereich.appendChild(fettKachel);
+
+    // Magermasse: Gewicht ohne Fett, aus der letzten Messung, die beides hat
+    const gewichte = gewichtMessungen();
+    let mager = null;
+    for (let i = gewichte.length - 1; i >= 0 && mager === null; i--) {
+      if (gewichte[i].fett !== null) {
+        mager = gewichte[i].wert * (1 - gewichte[i].fett / 100);
+      }
+    }
+    const magerKachel = element("div", "karte koerper-kachel");
+    magerKachel.appendChild(element("div", "statistik-label", txt("koerper.mager")));
+    magerKachel.appendChild(element("div", "koerper-wert" + (mager === null ? " leise" : ""), mager === null ? "–" : kgText(mager)));
+    magerKachel.appendChild(element("div", "statistik-klein", mager === null ? txt("koerper.magerLeer") : txt("koerper.magerInfo")));
+    bereich.appendChild(magerKachel);
   }
 
   // Fortschritt-Tab: Körpergewicht und Körperfett mit Kopf, Diagramm und Kalender, dazu die Kacheln
@@ -11455,8 +11576,32 @@
     gewicht: '<path d="M9 8a3 3 0 0 1 6 0M6.5 8h11l2 12h-15z"/>',
     hantel: '<path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/>',
     // Look Korund (seit Version 143): Rekord-Zeile auf Home
-    pokal: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/>'
+    pokal: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/>',
+    // Look Korund (seit Version 143): Symbole der Abzeichen
+    flamme: '<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1.2-3.6 2.5-4.8.3 1.8 1.2 2.8 2.3 3.1C11.2 9 11 6 12 3z"/>',
+    kalender: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    blitz: '<path d="M13 3 5 13h6l-1 8 8-10h-6z"/>',
+    stern: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/>',
+    haken: '<path d="M5 12.5l4.5 4.5L19 7.5"/>'
   };
+
+  // Das Symbol eines Abzeichens im Look Korund: nach Gruppe, offene höhere Stufen mit Stern statt Pokal
+  function abzeichenSymbol(a) {
+    const kat = abzeichenKategorie(a);
+    if (kat === "konstanz") {
+      return a.gruppe === "workouts" ? "kalender" : "flamme";
+    }
+    if (kat === "volumen") {
+      return "hantel";
+    }
+    if (kat === "rekorde") {
+      return a.stufe === 3 ? "stern" : "pokal";
+    }
+    if (kat === "kraft") {
+      return a.erreicht ? "blitz" : "schloss";
+    }
+    return "haken";
+  }
 
   // Die Zeichnung eines Icons als SVG-Text
   function iconSvg(name) {
@@ -12423,7 +12568,12 @@
     const zahlen = gesamtZahlen();
     const bereich = document.getElementById("profil-zahlen");
     bereich.innerHTML = "";
-    if (lookKorund()) {
+    // Look Korund: zwei Karten statt einer (die Klasse "karte" wandert an die Hüllen), sonst wie bisher eine
+    const korund = lookKorund();
+    document.getElementById("profil-karte").classList.toggle("karte", !korund);
+    document.getElementById("profil-oben").classList.toggle("karte", korund);
+    document.getElementById("profil-aktivitaet").classList.toggle("karte", korund);
+    if (korund) {
       profilKarteKorund(zahlen, bereich);
       return;
     }
@@ -12749,14 +12899,46 @@
       return;
     }
 
+    // Look Korund (seit Version 143): Datum ohne Jahr, dazu die Dauer und die Zahl der Rekorde des Tages
+    const korund = lookKorund();
+    const rekordeJeTag = {};
+    const minutenJeTag = {};
+    if (korund) {
+      rekorde(rangStand().uebungen.map(function (u) {
+        return u.punkte;
+      })).forEach(function (r) {
+        const s = tagSchluessel(new Date(r.zeit));
+        rekordeJeTag[s] = (rekordeJeTag[s] || 0) + 1;
+      });
+      for (let i = 0; i < trainings.length; i++) {
+        const t = trainings[i];
+        const dauer = t ? Math.round((new Date(t.ende) - new Date(t.start)) / 60000) : NaN;
+        if (!isNaN(dauer) && dauer > 0 && dauer < 24 * 60) {
+          const s = tagSchluessel(new Date(t.start));
+          minutenJeTag[s] = (minutenJeTag[s] || 0) + dauer;
+        }
+      }
+    }
+
     for (let i = 0; i < schluessel.length && i < verlaufGezeigt; i++) {
       const tag = profilTage[schluessel[i]];
       const zeile = element("button", "verlauf-zeile");
       const links = element("span", "verlauf-text");
       links.appendChild(element("span", "verlauf-name", tagName(tag)));
-      links.appendChild(element("span", "verlauf-info", tagTextMitJahr(tag.datum) + " · " + txtAnzahl("anzahl.saetze", tag.saetze)));
+      let info = tagTextMitJahr(tag.datum) + " · " + txtAnzahl("anzahl.saetze", tag.saetze);
+      if (korund) {
+        info = tagText(tag.datum) + " · " + txtAnzahl("anzahl.saetze", tag.saetze);
+        if (minutenJeTag[tag.schluessel]) {
+          info += " · " + dauerText(minutenJeTag[tag.schluessel]);
+        }
+      }
+      links.appendChild(element("span", "verlauf-info", info));
       zeile.appendChild(links);
-      zeile.appendChild(element("span", "verlauf-volumen", volumenText(tag.volumen)));
+      const rechts = element("span", "verlauf-volumen", volumenText(tag.volumen));
+      if (korund && rekordeJeTag[tag.schluessel]) {
+        rechts.appendChild(element("span", "verlauf-rekord", txtAnzahl("verlauf.rekorde", rekordeJeTag[tag.schluessel])));
+      }
+      zeile.appendChild(rechts);
       zeile.onclick = function () {
         tagSheetOeffnen(tag.schluessel);
       };
@@ -13149,6 +13331,10 @@
     // Wer die Ränge hier sieht, braucht dazu keine Meldung mehr
     const daten = rangPruefen(false);
     const stand = daten.stand;
+    if (lookKorund()) {
+      profilAbzeichenKorund(inhalt, daten, stand);
+      return;
+    }
 
     // Die Einführung erklärt Rang, "Teilen" und Abzeichen an der Karte des Gesamt-Rangs, ihrem Knopf und dem ersten Abzeichen (einfuehrung.js)
     const gesamt = gesamtRangKarte(stand);
@@ -14046,10 +14232,107 @@
     kachel.classList.add("kat-" + abzeichenKategorie(a));
     const bild = element("span", "abzeichen-bild");
     bild.innerHTML = medailleSvg(a.stufe);
+    // Look Korund: ein Symbol im Kreis statt der Medaille
+    if (lookKorund()) {
+      bild.classList.add("abzeichen-symbol");
+      bild.innerHTML = iconSvg(abzeichenSymbol(a));
+    }
     kachel.appendChild(bild);
     kachel.appendChild(element("div", "abzeichen-titel", abzeichenTitel(a)));
     kachel.appendChild(element("div", "abzeichen-info", abzeichenInfo(a, stand)));
     return kachel;
+  }
+
+  // Look Korund (seit Version 143): Ist die Seite "Kraftrang" im Reiter Abzeichen offen? Wird nie gespeichert.
+  let profilKraftrang = false;
+
+  // Die Reihenfolge und Namen der Farbgruppen im Reiter Abzeichen
+  const ABZEICHEN_KATEGORIEN = ["konstanz", "volumen", "rekorde", "kraft", "meilenstein"];
+
+  // Der Reiter Abzeichen im Look Korund: oben "Als Nächstes", dann eine Zeile "Kraftrang ›", dann die Abzeichen nach Farbgruppen
+  // mit "2 von 3". Die Zeile öffnet die Seite Kraftrang mit Gesamt-Rang, Konstanz-Rang und Bewegungsmustern.
+  function profilAbzeichenKorund(inhalt, daten, stand) {
+    if (profilKraftrang) {
+      const kopf = element("div", "rang-ansicht-kopf");
+      const zurueck = element("button", "rang-zurueck", "‹");
+      zurueck.setAttribute("aria-label", txt("zurueck"));
+      zurueck.onclick = function () {
+        profilKraftrang = false;
+        profilReiterAnzeigen();
+      };
+      kopf.appendChild(zurueck);
+      kopf.appendChild(element("span", "rang-ansicht-titel", txt("rang.seite")));
+      inhalt.appendChild(kopf);
+      const gesamt = gesamtRangKarte(stand);
+      gesamt.setAttribute("data-tour", "profil-rang");
+      gesamt.querySelector(".teilen-knopf").setAttribute("data-tour", "profil-teilen");
+      inhalt.appendChild(gesamt);
+      inhalt.appendChild(konstanzKarte(stand));
+      inhalt.appendChild(element("h2", "abschnitt", txt("rang.muster")));
+      inhalt.appendChild(musterKorund(stand));
+      inhalt.appendChild(element("p", "meldung rang-fussnote", txt("rang.hinweis")));
+      return;
+    }
+
+    const naechstes = naechstesAbzeichen(daten.abzeichen);
+    if (naechstes) {
+      inhalt.appendChild(naechstesAbzeichenKarte(naechstes, stand));
+    }
+
+    const zeile = element("button", "karte kraftrang-zeile");
+    zeile.type = "button";
+    const bild = element("span", "rang-bild");
+    bild.innerHTML = rangSvg(stand.kraft.gesamt);
+    zeile.appendChild(bild);
+    const text = element("span", "kraftrang-text");
+    text.appendChild(element("span", "kraftrang-label", txt("rang.seite")));
+    text.appendChild(element("span", "kraftrang-name", stand.kraft.gesamt === null ? txt("rang.keiner") : rangName(stand.kraft.gesamt)));
+    zeile.appendChild(text);
+    zeile.appendChild(element("span", "einst-pfeil", "›"));
+    zeile.onclick = function () {
+      profilKraftrang = true;
+      profilReiterAnzeigen();
+      window.scrollTo(0, document.getElementById("profil-reiter").offsetTop - 60);
+    };
+    inhalt.appendChild(zeile);
+
+    let erstes = true;
+    for (let k = 0; k < ABZEICHEN_KATEGORIEN.length; k++) {
+      const kat = ABZEICHEN_KATEGORIEN[k];
+      const liste = daten.abzeichen.filter(function (a) {
+        return abzeichenKategorie(a) === kat && !(a.geheim && !a.erreicht);
+      });
+      if (liste.length === 0) {
+        continue;
+      }
+      const erreicht = liste.filter(function (a) {
+        return a.erreicht;
+      }).length;
+      const kopf = element("div", "abzeichen-gruppe-kopf");
+      kopf.appendChild(element("span", "", txt("abzeichen.kat." + kat)));
+      kopf.appendChild(element("span", "abzeichen-gruppe-zahl", txt("abzeichen.vonN", { n: erreicht, von: liste.length })));
+      inhalt.appendChild(kopf);
+      const raster = element("div", "abzeichen-raster");
+      for (let i = 0; i < liste.length; i++) {
+        const kachel = abzeichenKachel(liste[i], stand);
+        if (erstes) {
+          kachel.setAttribute("data-tour", "profil-abzeichen");
+          erstes = false;
+        }
+        raster.appendChild(kachel);
+      }
+      inhalt.appendChild(raster);
+    }
+    inhalt.appendChild(element("p", "meldung rang-fussnote", txt("rang.hinweis")));
+  }
+
+  // Für die Einführung: Rang und "Teilen" liegen im Look Korund auf der Seite Kraftrang, das erste Abzeichen in der Übersicht
+  function profilKraftrangFuer(ziel) {
+    const offen = lookKorund() && (ziel === "profil-rang" || ziel === "profil-teilen");
+    if (offen !== profilKraftrang) {
+      profilKraftrang = offen;
+      profilReiterAnzeigen();
+    }
   }
 
   // Die Farbgruppe eines Abzeichens im Look Korund: Konstanz orange, Volumen blau, Rekorde gold, Kraft lila, sonst grün

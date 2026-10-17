@@ -2751,6 +2751,329 @@
   font-size: 20px;
 }
 
+/* ---------- Profil wie im Entwurf (seit Version 143): zwei Karten, ohne Unterzeile, ohne „Profil bearbeiten“ ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-profil .profil-kopf .unterzeile,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-profil .profil-btn,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-profil .raster-legende {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #profil-karte {
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #profil-oben.karte,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #profil-aktivitaet.karte {
+  display: block;
+  margin: 0;
+  padding: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #profil-aktivitaet.karte {
+  margin-top: 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #profil-aktivitaet .raster-kopf {
+  margin-top: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-profil .avatar {
+  border: 1.5px solid rgba(var(--fw-signal-rgb), 0.6);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #profil-name {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Reiter Abzeichen: Zeile Kraftrang, Gruppen mit „2 von 3“, eigene Seite Kraftrang */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraftrang-zeile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 14px 18px;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraftrang-zeile .rang-bild {
+  width: 40px;
+  flex: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraftrang-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraftrang-label {
+  color: var(--text-leise);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraftrang-name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen-gruppe-kopf {
+  display: flex;
+  justify-content: space-between;
+  margin: 26px 4px 10px;
+  color: var(--text-leise);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen-gruppe-zahl {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-abzeichen {
+  margin-top: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-ansicht-kopf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-zurueck {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(238, 242, 247, 0.12);
+  border-radius: 12px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  color: var(--text);
+  font: inherit;
+  font-size: 20px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-ansicht-titel {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen-bild.abzeichen-symbol {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto;
+  border: 1px solid rgba(238, 242, 247, 0.08);
+  border-radius: 50%;
+  background: rgba(16, 20, 26, 0.9);
+  color: #4A5059;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen-symbol svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen.erreicht .abzeichen-symbol {
+  border-color: color-mix(in srgb, var(--abz) 35%, transparent);
+  background: color-mix(in srgb, var(--abz) 12%, transparent);
+  color: var(--abz) !important;
+}
+
+/* Vorlagen als eigene Seite (seit Version 143) */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-varianten .vorlagen-seite-frage {
+  display: block;
+  margin: 14px 0 16px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-varianten .vorlagen-korund {
+  display: flex;
+}
+
+/* Wochenleiste der Pläne als feine Balken mit dem Tag darunter */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .vorlage-woche {
+  gap: 5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .vorlage-wochentag {
+  position: relative;
+  padding: 12px 0 0;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  color: #4A5059;
+  font-size: 10.5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .vorlage-wochentag::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(238, 242, 247, 0.08);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .vorlage-wochentag.aktiv {
+  background: none !important;
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .vorlage-wochentag.aktiv::before {
+  background: var(--fw-signal);
+}
+
+/* Home: die Kacheln ohne Gitter, Datum und runden Knopf, nur Anfang und Ende als Punkt */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-kachel .kachel-knopf,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-kachel .mini-daten,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-kachel .mini-diagramm .gitter,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-kachel .mini-diagramm .punkt-neben,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-kachel .mini-diagramm .punkt-haupt:not(:last-child) {
+  display: none;
+}
+
+/* ---------- Fortschritt › Körper wie im Entwurf (seit Version 143) ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt #kg-abschnitt,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt #kg-legende,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt #kg-klapp-btn,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt #kg-klapp,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt h2:has(+ #kg-kacheln),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt #kg-kacheln,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-fett-offen="nein"] :is(h2[data-t="koerperfett"], .karte:has(#fett-kopf), button[onclick="fettSheetOeffnen()"], #fett-klapp-btn, #fett-klapp) {
+  display: none !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-karte {
+  position: relative;
+  padding: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-label {
+  display: block;
+  color: var(--text-leise);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-karte #kg-kopf {
+  margin-top: 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-karte #kg-zeitraum {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  margin: 0;
+  padding: 2px;
+  border-radius: 9px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-karte #kg-zeitraum button {
+  min-height: 0;
+  padding: 4px 9px;
+  font-size: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-karte #kg-zeitraum button:is(:nth-child(1), :nth-child(4), :nth-child(6)) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-delta {
+  color: var(--text);
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #kg-diagramm .diagramm .gitter,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #kg-diagramm .diagramm > text {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .koerper-kacheln {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .koerper-kachel {
+  margin: 0;
+  padding: 16px;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .koerper-wert {
+  margin-top: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .koerper-wert.leise {
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .koerper-kachel .statistik-klein.plus {
+  color: var(--fw-erfolg);
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt button[data-tour="fortschritt-eintragen"] {
+  margin-top: 14px;
+  border: none;
+  background: #F0F0F0;
+  color: #07090C;
+  box-shadow: 0 0 22px rgba(240, 240, 240, 0.14);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #kg-diagramm .diagramm text.ziel-text {
+  display: block;
+  fill: var(--text-leise);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .verlauf-rekord {
+  display: block;
+  margin-top: 2px;
+  color: #F5C04A;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .verlauf-volumen {
+  text-align: right;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -5374,6 +5697,329 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-zahlen .home-zahl {
     font-size: 20px;
+  }
+
+  /* ---------- Profil wie im Entwurf (seit Version 143): zwei Karten, ohne Unterzeile, ohne „Profil bearbeiten“ ---------- */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-profil .profil-kopf .unterzeile,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-profil .profil-btn,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-profil .raster-legende {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-karte {
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-oben.karte,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-aktivitaet.karte {
+    display: block;
+    margin: 0;
+    padding: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-aktivitaet.karte {
+    margin-top: 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-aktivitaet .raster-kopf {
+    margin-top: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-profil .avatar {
+    border: 1.5px solid rgba(var(--fw-signal-rgb), 0.6);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-name {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  /* Reiter Abzeichen: Zeile Kraftrang, Gruppen mit „2 von 3“, eigene Seite Kraftrang */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraftrang-zeile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    margin: 10px 0 0;
+    padding: 14px 18px;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraftrang-zeile .rang-bild {
+    width: 40px;
+    flex: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraftrang-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraftrang-label {
+    color: var(--text-leise);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraftrang-name {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen-gruppe-kopf {
+    display: flex;
+    justify-content: space-between;
+    margin: 26px 4px 10px;
+    color: var(--text-leise);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen-gruppe-zahl {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-abzeichen {
+    margin-top: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-ansicht-kopf {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-zurueck {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(238, 242, 247, 0.12);
+    border-radius: 12px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    color: var(--text);
+    font: inherit;
+    font-size: 20px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-ansicht-titel {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen-bild.abzeichen-symbol {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    margin: 0 auto;
+    border: 1px solid rgba(238, 242, 247, 0.08);
+    border-radius: 50%;
+    background: rgba(16, 20, 26, 0.9);
+    color: #4A5059;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen-symbol svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen.erreicht .abzeichen-symbol {
+    border-color: color-mix(in srgb, var(--abz) 35%, transparent);
+    background: color-mix(in srgb, var(--abz) 12%, transparent);
+    color: var(--abz) !important;
+  }
+
+  /* Vorlagen als eigene Seite (seit Version 143) */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-varianten .vorlagen-seite-frage {
+    display: block;
+    margin: 14px 0 16px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-varianten .vorlagen-korund {
+    display: flex;
+  }
+
+  /* Wochenleiste der Pläne als feine Balken mit dem Tag darunter */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .vorlage-woche {
+    gap: 5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .vorlage-wochentag {
+    position: relative;
+    padding: 12px 0 0;
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    color: #4A5059;
+    font-size: 10.5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .vorlage-wochentag::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(238, 242, 247, 0.08);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .vorlage-wochentag.aktiv {
+    background: none !important;
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .vorlage-wochentag.aktiv::before {
+    background: var(--fw-signal);
+  }
+
+  /* Home: die Kacheln ohne Gitter, Datum und runden Knopf, nur Anfang und Ende als Punkt */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-kachel .kachel-knopf,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-kachel .mini-daten,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-kachel .mini-diagramm .gitter,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-kachel .mini-diagramm .punkt-neben,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-kachel .mini-diagramm .punkt-haupt:not(:last-child) {
+    display: none;
+  }
+
+  /* ---------- Fortschritt › Körper wie im Entwurf (seit Version 143) ---------- */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt #kg-abschnitt,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt #kg-legende,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt #kg-klapp-btn,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt #kg-klapp,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt h2:has(+ #kg-kacheln),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt #kg-kacheln,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-fett-offen="nein"] :is(h2[data-t="koerperfett"], .karte:has(#fett-kopf), button[onclick="fettSheetOeffnen()"], #fett-klapp-btn, #fett-klapp) {
+    display: none !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-karte {
+    position: relative;
+    padding: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-label {
+    display: block;
+    color: var(--text-leise);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-karte #kg-kopf {
+    margin-top: 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-karte #kg-zeitraum {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    margin: 0;
+    padding: 2px;
+    border-radius: 9px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-karte #kg-zeitraum button {
+    min-height: 0;
+    padding: 4px 9px;
+    font-size: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-karte #kg-zeitraum button:is(:nth-child(1), :nth-child(4), :nth-child(6)) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-delta {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #kg-diagramm .diagramm .gitter,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #kg-diagramm .diagramm > text {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .koerper-kacheln {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .koerper-kachel {
+    margin: 0;
+    padding: 16px;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .koerper-wert {
+    margin-top: 8px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .koerper-wert.leise {
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .koerper-kachel .statistik-klein.plus {
+    color: var(--fw-erfolg);
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt button[data-tour="fortschritt-eintragen"] {
+    margin-top: 14px;
+    border: none;
+    background: #F0F0F0;
+    color: #07090C;
+    box-shadow: 0 0 22px rgba(240, 240, 240, 0.14);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #kg-diagramm .diagramm text.ziel-text {
+    display: block;
+    fill: var(--text-leise);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .verlauf-rekord {
+    display: block;
+    margin-top: 2px;
+    color: #F5C04A;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .verlauf-volumen {
+    text-align: right;
   }
 
 }

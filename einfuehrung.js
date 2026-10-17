@@ -670,7 +670,8 @@ const EINFUEHRUNG_BRAUCHT = {
     const dunkel = html.getAttribute("data-design") === "dunkel"
       || (html.getAttribute("data-design") !== "hell" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
     const korund = html.getAttribute("data-stil") === "glass" && html.getAttribute("data-palette") === "korund" && dunkel;
-    return !korund || gewichtMessungen().length > 0;
+    // Seit Version 143 stehen dort im Look Korund statt der Kacheln Körperfett und Magermasse, der Schritt entfällt
+    return !korund;
   }
 };
 
@@ -743,6 +744,10 @@ function einfuehrungVorbereiten(schritt) {
   if (schritt.seite === "profil" && schritt.reiter && profilReiter !== schritt.reiter) {
     profilReiter = schritt.reiter;
     profilReiterAnzeigen();
+  }
+  // Im Look Korund liegen Rang und "Teilen" auf der eigenen Seite Kraftrang (seit Version 143)
+  if (schritt.seite === "profil" && typeof profilKraftrangFuer === "function") {
+    profilKraftrangFuer(schritt.ziel);
   }
   // Im Look Korund sind die Vorlagen eingeklappt (seit Version 142): Der Schritt dazu klappt sie auf, sie bleiben danach offen
   if (schritt.ziel === "training-vorlagen") {
@@ -931,6 +936,10 @@ function einfuehrungAufraeumen() {
   // Nach dem Rundgang durch die Einstellungen bleiben sie offen. Hat nur die Prüfung sie geöffnet, gehen sie wieder zu.
   if (tourBereich !== "einstellungen" && tourVorher && !tourVorher.einstOffen && document.getElementById("einst-sheet").classList.contains("offen")) {
     einstSchliessen();
+  }
+  // Im Look Korund ist danach die Seite Kraftrang wieder zu (seit Version 143)
+  if (typeof profilKraftrangFuer === "function") {
+    profilKraftrangFuer("");
   }
   // Im Profil steht wieder der Reiter von vorher
   if (tourVorher && profilReiter !== tourVorher.profilReiter) {

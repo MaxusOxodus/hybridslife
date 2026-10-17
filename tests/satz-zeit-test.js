@@ -54,7 +54,7 @@ function umgebung(eintraegeVorher) {
     + "let satzEintragId = ''; let satzIndex = -1; let satzRir = null; let trainingAnsicht = 'modus'; let aktiveSeite = 'training';"
     + "let tauschAuchRoutine = false; let tagSheetSchluessel = '';"
     + "const window = { scrollTo: function () {} };"
-    + "const document = { getElementById: function () { return { classList: { contains: function () { return false; } } }; } };"
+    + "const document = { getElementById: function () { return { style: { setProperty: function () {} }, classList: { contains: function () { return false; } } }; } };"
     + "function feldWert(id) { return felder[id]; } function gewichtFeldWert(id) { return felder[id]; }"
     + "function gewichtAnzeige(kg) { return kg; } function tauschVergeben() { return false; }";
   for (let i = 0; i < LEER.length; i++) {

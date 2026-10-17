@@ -47,6 +47,7 @@ function auswahlBauen() {
     appendChild: function (gruppe) { for (const o of gruppe.kinder) { optionen.push(o); } },
     get value() { return wert; },
     set value(w) { const s = String(w); wert = optionen.some(o => o.value === s) ? s : ""; },
+    style: { setProperty: function () {} },
     classList: { contains: k => klassen.has(k), toggle: function (k, an) { if (an) { klassen.add(k); } else { klassen.delete(k); } } }
   };
 }

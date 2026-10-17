@@ -35,6 +35,8 @@ function elementHolen(id) {
     const klassen = new Set();
     elemente[id] = {
       textContent: "",
+      // Seit Version 140 setzt die Pause eine Variable für den Ring des Looks Korund
+      style: { setProperty: function () {} },
       classList: {
         contains: function (k) { return klassen.has(k); },
         toggle: function (k, an) { if (an) { klassen.add(k); } else { klassen.delete(k); } }

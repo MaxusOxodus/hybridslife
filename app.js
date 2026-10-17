@@ -4578,6 +4578,10 @@
     // Pause: Countdown und was danach kommt
     document.getElementById("modus-pause").classList.toggle("versteckt", !pauseLaeuft);
     document.getElementById("modus-countdown").textContent = pauseText(Math.ceil(pauseRest() / 1000));
+    // Look Korund (seit Version 140): Der Ring um den Countdown zeigt den Rest der Pause, gemessen an der Pause dieser Übung.
+    // Nur eine Variable für die korund.css, gespeichert wird nichts. Nach "+15 s" bleibt der Ring höchstens voll.
+    const dauer = pauseDauer(u) * 1000;
+    document.getElementById("modus-pause").style.setProperty("--pause-anteil", dauer > 0 ? Math.min(1, pauseRest() / dauer).toFixed(3) : "1");
     let danach = txt("modus.alsNaechstes", { text: satzText });
     if (zielErreicht && keineOffene) {
       danach = txt("modus.alleErledigt");

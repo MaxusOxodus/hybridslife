@@ -511,6 +511,28 @@
   color: var(--text);
 }
 
+/* Trainingsmodus, Pause: großer Countdown in einem Ring, der mit der Pause schrumpft (nur im Look Korund) */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-countdown {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 210px;
+  height: 210px;
+  margin: 10px auto 14px;
+  border-radius: 50%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-countdown::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--fw-signal) calc(var(--pause-anteil, 1) * 360deg), rgba(255, 255, 255, 0.08) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+  filter: drop-shadow(0 0 8px rgba(var(--fw-signal-rgb), 0.5));
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -912,6 +934,28 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile.geplant .plan-kurz {
     color: var(--text);
+  }
+
+  /* Trainingsmodus, Pause: großer Countdown in einem Ring, der mit der Pause schrumpft (nur im Look Korund) */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-countdown {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 210px;
+    height: 210px;
+    margin: 10px auto 14px;
+    border-radius: 50%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-countdown::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(var(--fw-signal) calc(var(--pause-anteil, 1) * 360deg), rgba(255, 255, 255, 0.08) 0);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+    filter: drop-shadow(0 0 8px rgba(var(--fw-signal-rgb), 0.5));
   }
 
 }

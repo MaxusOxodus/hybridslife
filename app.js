@@ -4685,6 +4685,10 @@
       seiten.type = "button";
       seiten.setAttribute("aria-pressed", zaehltSeiten(u) ? "true" : "false");
       seiten.setAttribute("aria-label", txt("chip.seitenAria"));
+      // Nach dem ersten Satz ist die Wahl fest: Ein Satz mit "Beide" lässt sich nicht sinnvoll in R und L aufteilen
+      if (u.saetze.length > 0) {
+        seiten.classList.add("gesperrt");
+      }
       seiten.onclick = function () {
         seitenUmschalten(u);
       };
@@ -4704,8 +4708,13 @@
 
   // Schaltet bei einer einseitigen Übung im laufenden Training um: "Beide" (ein Satz sind beide Seiten) oder "Einzeln"
   // (jede Seite ein eigener Satz, R und L). Es gilt nur für dieses Training, die Routine bleibt, wie sie ist.
-  // Die eingetragenen Sätze bleiben gleich, nur Nummern und Satz-Ziel rechnen danach anders.
+  // Nur vor dem ersten Satz der Übung: Danach bleibt die Wahl, damit kein Satz falsch als R oder L dasteht.
   function seitenUmschalten(u) {
+    // Umstellen geht nur, solange die Übung in diesem Training noch keinen Satz hat (auch keinen Aufwärmsatz)
+    if (u.saetze.length > 0) {
+      frageZeigen(txt("seiten.festTitel"), txt("seiten.festText"), [{ text: txt("ok"), art: "haupt" }]);
+      return;
+    }
     if (zaehltSeiten(u)) {
       delete u.zaehlweise;
     } else {
@@ -5191,6 +5200,11 @@
     }
     // Bei "Einzeln" tragen die Nummern die Seite (seit Version 135)
     const seiten = zaehltSeiten(u);
+    // Der Chip "Seiten" (Look Korund) ist gesperrt, sobald die Übung einen Satz hat, und wieder frei ohne Satz
+    const seitenChip = document.querySelector ? document.querySelector("#modus-chips .seiten-chip") : null;
+    if (seitenChip) {
+      seitenChip.classList.toggle("gesperrt", u.saetze.length > 0);
+    }
 
     // Nach dem letzten Ziel-Satz gibt es keinen aktuellen Satz, bis "+ Satz" einen weiteren startet
     // Aufwärmsätze stehen mit "W" in der Tabelle, zählen aber nicht zum Ziel

@@ -410,6 +410,8 @@ const TEXTE = {
   "chip.seitenBeide": { de: "Seiten: Beide ⇄", en: "Sides: both ⇄" },
   "chip.seitenEinzeln": { de: "Seiten: R / L ⇄", en: "Sides: R / L ⇄" },
   "chip.seitenAria": { de: "Seiten umschalten: beide zusammen oder rechts und links einzeln", en: "Switch sides: both together or right and left separately" },
+  "seiten.festTitel": { de: "Seiten schon festgelegt", en: "Sides already set" },
+  "seiten.festText": { de: "Beide oder R / L wählst du vor dem ersten Satz. Willst du umstellen, lösch erst die Sätze dieser Übung.", en: "Choose both or R / L before the first set. To switch, delete this exercise's sets first." },
   "chip.wdh": { de: "{wdh} Wdh.", en: "{wdh} reps" },
   "chip.vorschlag": { de: "Vorschlag: {gewicht}", en: "Suggested: {gewicht}" },
 

@@ -849,6 +849,10 @@
   color: var(--fw-signal);
 }
 
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.seiten-chip.gesperrt {
+  opacity: 0.55;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -1576,6 +1580,10 @@
     border-color: rgba(var(--fw-signal-rgb), 0.5);
     background: rgba(var(--fw-signal-rgb), 0.14);
     color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.seiten-chip.gesperrt {
+    opacity: 0.55;
   }
 
 }

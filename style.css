@@ -6069,6 +6069,22 @@ body.tour-zeigt-pause #modus-wahl {
 
 /* Nur im Look Korund zu sehen (korund.css): Konstanz-Raster, Knopf für ungeübte Muskelgruppen, Steigerung als Plakette */
 .konstanz,
+.profil-korund-info,
+.profil-level,
+.muster-korund,
+.naechstes-abzeichen,
+.statistik-korund,
+.ziel-eingabe,
+.mess-ziel,
+.vorlagen-korund,
+.letztes-label,
+.letztes-rekord,
+.kachel-delta,
+#home-erholung-titel,
+#home-erholung,
+.fortschritt-ueber,
+#fortschritt-reiter,
+.kraft-karte,
 .gruppen-offen-knopf,
 .gruppen-plakette,
 .gruppen-anzahl,
@@ -6081,4 +6097,46 @@ body.tour-zeigt-pause #modus-wahl {
    Zu sehen nur, wenn es Aufwärmsätze gibt, in allen Looks. */
 .satz-nummer.satz-w {
   color: var(--text-leise);
+}
+
+/* Trainingsmodus im Look Korund (seit Version 142): Diese Teile gibt es nur dort (korund.css), sonst sind sie ausgeblendet */
+.modus-kopf-knopf,
+.modus-zeit,
+.modus-figur,
+.modus-tausch-symbol,
+.modus-letztmal,
+.modus-gespeichert,
+.modus-als-naechstes,
+.modus-optionen-knopf,
+.modus-pause .modus-pause-weiter,
+#modus-pause .modus-pause-weiter,
+.satz-kg-zahl,
+.satz-rir-spalte,
+.sheet-figur,
+.sheet-korund-text,
+.sheet-tausch,
+.uebersicht-knoepfe,
+.korund-kopf-label,
+.korund-kopf-titel,
+.korund-kopf-meta,
+.home-woche-details,
+.plan-datum,
+.training-heute,
+.routinen-bearbeiten,
+.vorlagen-knopf,
+.routine-figuren,
+.routine-korund-info,
+.routine-pfeil {
+  display: none;
+}
+
+/* Rahmen, die nur im Look Korund wirken (seit Version 142), sonst stehen die Teile wie vorher direkt in der Seite */
+.routinen-kopf,
+.routinen-knoepfe {
+  display: contents;
+}
+
+/* Rahmen um "Satz 2 von 3": wirkt nur im Look Korund, sonst stehen die Teile wie vorher direkt in der Seite */
+.modus-satz-zeile {
+  display: contents;
 }

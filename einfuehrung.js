@@ -749,7 +749,7 @@ function einfuehrungVorbereiten(schritt) {
   if (schritt.seite === "profil" && typeof profilKraftrangFuer === "function") {
     profilKraftrangFuer(schritt.ziel);
   }
-  // Im Look Korund sind die Vorlagen eingeklappt (seit Version 142): Der Schritt dazu klappt sie auf, sie bleiben danach offen
+  // Im Look Korund sind die Vorlagen eingeklappt (seit Version 142): Der Schritt dazu klappt sie auf, danach klappt einfuehrungAufraeumen sie wieder zu
   if (schritt.ziel === "training-vorlagen") {
     document.getElementById("reiter-plaene").classList.add("vorlagen-offen");
   }
@@ -853,7 +853,7 @@ function einfuehrungStarten(bereich) {
     homeWocheHeute();
   }
   tourBereich = bereich;
-  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen") };
+  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen"), vorlagenOffen: document.getElementById("reiter-plaene").classList.contains("vorlagen-offen") };
   // Nur Schritte mit sichtbarem Element zählen, damit "1 von 2" stimmt
   const schritte = [];
   tourLeise = true;
@@ -936,6 +936,10 @@ function einfuehrungAufraeumen() {
   // Nach dem Rundgang durch die Einstellungen bleiben sie offen. Hat nur die Prüfung sie geöffnet, gehen sie wieder zu.
   if (tourBereich !== "einstellungen" && tourVorher && !tourVorher.einstOffen && document.getElementById("einst-sheet").classList.contains("offen")) {
     einstSchliessen();
+  }
+  // Die Vorlagen sind wieder zu, wenn sie vorher zu waren (seit Version 145, sonst stand „Vorlagen“ im Look Korund doppelt da)
+  if (tourVorher && !tourVorher.vorlagenOffen) {
+    document.getElementById("reiter-plaene").classList.remove("vorlagen-offen");
   }
   // Im Look Korund ist danach die Seite Kraftrang wieder zu (seit Version 143)
   if (typeof profilKraftrangFuer === "function") {
@@ -1665,7 +1669,7 @@ function einfuehrungPruefen() {
   // Schritte, die gerade zu Recht fehlen (keine Routine, kein Training, keine Erklärung): nur ein Hinweis, kein Fehler
   const hinweise = [];
   tourBereich = "training";
-  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen") };
+  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen"), vorlagenOffen: document.getElementById("reiter-plaene").classList.contains("vorlagen-offen") };
   tourLeise = true;
   for (let i = 0; i < EINFUEHRUNG_SCHRITTE.length; i++) {
     const schritt = EINFUEHRUNG_SCHRITTE[i];

@@ -2252,59 +2252,142 @@
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-erholung {
   display: block;
-  padding: 18px;
 }
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(#home-erholung, #home-erholung-titel)[data-leer="ja"] {
   display: none;
 }
 
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-zeile {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  font-size: 15px;
-  line-height: 1.4;
+/* Seit Version 145 wie im ersten Entwurf „Bereit für heute“: Satz mit rundem Symbol, Figuren je Partie, Knopf zur Routine.
+   Grün = erholt, Orange = noch nicht (wie die Serie, die Farbe für „warm“) */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-erholung {
+  padding: 16px 16px 14px;
 }
 
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-zeile::before {
-  content: "";
-  flex: none;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--fw-erfolg);
-  transform: translateY(-1px);
-}
-
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-zeile.muede {
-  margin-top: 6px;
-  color: var(--text-leise);
-  font-size: 13px;
-}
-
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-zeile.muede::before {
-  background: #5F656D;
-}
-
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-start {
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-kopf {
   display: flex;
   align-items: center;
-  width: 100%;
-  margin-top: 16px;
-  padding: 14px 0 0;
-  border: none;
-  border-top: 1px solid rgba(238, 242, 247, 0.07);
-  background: none;
-  color: var(--text);
-  font: inherit;
-  font-size: 15px;
-  text-align: left;
+  gap: 12px;
 }
 
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-start-knopf {
-  margin-left: auto;
-  color: var(--fw-signal);
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 159, 69, 0.14);
+  color: #FF9F45;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-symbol.erholt {
+  background: rgba(var(--fw-erfolg-rgb), 0.12);
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-symbol svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-text {
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-text b {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-info {
+  margin-top: 1px;
+  color: var(--text-leise);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-liste {
+  display: grid;
+  grid-template-columns: repeat(var(--spalten, 4), minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-partie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  text-align: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-figur {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 58px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(238, 242, 247, 0.08);
+  border-radius: 14px;
+  background: #11151B;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-figur svg {
+  width: auto;
+  height: 88%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-punkt {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: #FF9F45;
+  vertical-align: 1px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-punkt.erholt {
+  background: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-partie small {
+  margin-top: -4px;
+  color: var(--text-leise);
+  font-size: 10.5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-erholung .erholung-start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  margin: 14px 0 0;
+  border: 1px solid rgba(238, 242, 247, 0.12);
+  border-radius: 16px;
+  background: rgba(var(--fw-glas-rgb), 0.95);
+  color: var(--text);
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -6218,59 +6301,142 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-erholung {
     display: block;
-    padding: 18px;
   }
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(#home-erholung, #home-erholung-titel)[data-leer="ja"] {
     display: none;
   }
 
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-zeile {
-    display: flex;
-    align-items: baseline;
-    gap: 9px;
-    font-size: 15px;
-    line-height: 1.4;
+  /* Seit Version 145 wie im ersten Entwurf „Bereit für heute“: Satz mit rundem Symbol, Figuren je Partie, Knopf zur Routine.
+     Grün = erholt, Orange = noch nicht (wie die Serie, die Farbe für „warm“) */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-erholung {
+    padding: 16px 16px 14px;
   }
 
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-zeile::before {
-    content: "";
-    flex: none;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--fw-erfolg);
-    transform: translateY(-1px);
-  }
-
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-zeile.muede {
-    margin-top: 6px;
-    color: var(--text-leise);
-    font-size: 13px;
-  }
-
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-zeile.muede::before {
-    background: #5F656D;
-  }
-
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-start {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-kopf {
     display: flex;
     align-items: center;
-    width: 100%;
-    margin-top: 16px;
-    padding: 14px 0 0;
-    border: none;
-    border-top: 1px solid rgba(238, 242, 247, 0.07);
-    background: none;
-    color: var(--text);
-    font: inherit;
-    font-size: 15px;
-    text-align: left;
+    gap: 12px;
   }
 
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-start-knopf {
-    margin-left: auto;
-    color: var(--fw-signal);
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-symbol {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 159, 69, 0.14);
+    color: #FF9F45;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-symbol.erholt {
+    background: rgba(var(--fw-erfolg-rgb), 0.12);
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-symbol svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-text {
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-text b {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-info {
+    margin-top: 1px;
+    color: var(--text-leise);
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-liste {
+    display: grid;
+    grid-template-columns: repeat(var(--spalten, 4), minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-partie {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    text-align: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-figur {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    max-width: 58px;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: 1px solid rgba(238, 242, 247, 0.08);
+    border-radius: 14px;
+    background: #11151B;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-figur svg {
+    width: auto;
+    height: 88%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-name {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-punkt {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 4px;
+    border-radius: 50%;
+    background: #FF9F45;
+    vertical-align: 1px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-punkt.erholt {
+    background: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-partie small {
+    margin-top: -4px;
+    color: var(--text-leise);
+    font-size: 10.5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-erholung .erholung-start {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 46px;
+    margin: 14px 0 0;
+    border: 1px solid rgba(238, 242, 247, 0.12);
+    border-radius: 16px;
+    background: rgba(var(--fw-glas-rgb), 0.95);
+    color: var(--text);
+    font-size: 15px;
     font-weight: 600;
   }
 

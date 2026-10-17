@@ -8034,6 +8034,12 @@
   }
 
   // Die Karte "Erholung" auf Home. Ohne Training in den letzten zwei Wochen fehlt sie ganz (data-leer).
+  // Die Figur je Partie und welche Partien in der Mehrzahl stehen („Beine sind“, „Brust ist“)
+  const ERHOLUNG_FIGUR = { brust: "brust", ruecken: "lat", beine: "quadrizeps", schultern: "schulter-seite", arme: "bizeps" };
+  const ERHOLUNG_MEHRZAHL = ["beine", "schultern", "arme"];
+
+  // Seit Version 145 wie im ersten Entwurf „Bereit für heute“: oben ein Satz mit rundem Symbol, darunter je trainierter Partie
+  // Figur, Punkt (grün erholt, orange noch nicht) und die Tage seit dem Training, unten der Knopf zur passenden Routine
   function homeErholungAnzeigen() {
     const bereich = document.getElementById("home-erholung");
     const titel = document.getElementById("home-erholung-titel");
@@ -8042,45 +8048,83 @@
     }
     bereich.innerHTML = "";
     const tage = erholungTage(eintraege, new Date());
-    const erholt = [];
-    const muede = [];
-    for (let i = 0; i < ERHOLUNG_PARTIEN.length; i++) {
-      const p = ERHOLUNG_PARTIEN[i].id;
-      if (tage[p] === undefined) {
-        continue;
-      }
-      if (tage[p] >= ERHOLUNG_TAGE) {
-        erholt.push(txt("partie." + p));
-      } else {
-        muede.push(txt("partie." + p));
-      }
-    }
-    if (erholt.length === 0 && muede.length === 0) {
+    // Die Partien mit Training in den letzten zwei Wochen, die am längsten erholten zuerst
+    const partien = ERHOLUNG_PARTIEN.map(function (p) {
+      return p.id;
+    }).filter(function (id) {
+      return tage[id] !== undefined;
+    }).sort(function (a, b) {
+      return tage[b] - tage[a];
+    });
+    if (partien.length === 0) {
       bereich.setAttribute("data-leer", "ja");
       titel.setAttribute("data-leer", "ja");
       return;
     }
     bereich.removeAttribute("data-leer");
     titel.removeAttribute("data-leer");
+    const erholt = partien.filter(function (id) {
+      return tage[id] >= ERHOLUNG_TAGE;
+    });
+    const muede = partien.filter(function (id) {
+      return tage[id] < ERHOLUNG_TAGE;
+    });
+    const namen = function (liste) {
+      return listeText(liste.map(function (id) {
+        return txt("partie." + id);
+      }));
+    };
+    const mehrzahl = function (liste) {
+      return liste.length > 1 || ERHOLUNG_MEHRZAHL.indexOf(liste[0]) !== -1;
+    };
 
-    if (erholt.length > 0) {
-      bereich.appendChild(element("div", "erholung-zeile erholt", txt(erholt.length === 1 ? "erholung.erholtEins" : "erholung.erholt", { wer: listeText(erholt) })));
-    }
+    const kopf = element("div", "erholung-kopf");
+    const symbol = element("span", "erholung-symbol" + (erholt.length > 0 ? " erholt" : ""));
+    symbol.innerHTML = iconSvg("puls");
+    kopf.appendChild(symbol);
+    const text = element("div", "erholung-text");
+    text.appendChild(element("b", "", erholt.length > 0 ? txt(mehrzahl(erholt) ? "erholung.erholt" : "erholung.erholtEins", { wer: namen(erholt) }) : txt("erholung.nochNicht")));
     if (muede.length > 0) {
-      bereich.appendChild(element("div", "erholung-zeile muede", txt("erholung.muede", { wer: listeText(muede) })));
+      // Am längsten braucht die zuletzt trainierte Partie
+      const rest = ERHOLUNG_TAGE - Math.min.apply(null, muede.map(function (id) {
+        return tage[id];
+      }));
+      text.appendChild(element("div", "erholung-info", txt(mehrzahl(muede) ? "erholung.brauchen" : "erholung.braucht", { wer: namen(muede), tage: txtAnzahl("erholung.tage", rest) })));
     }
+    kopf.appendChild(text);
+    bereich.appendChild(kopf);
+
+    const liste = element("div", "erholung-liste");
+    liste.style.setProperty("--spalten", partien.length);
+    partien.forEach(function (id) {
+      const partie = element("div", "erholung-partie");
+      const figur = element("span", "erholung-figur");
+      figur.innerHTML = koerperSvg(GRUPPE_NACH_ID[ERHOLUNG_FIGUR[id]]);
+      partie.appendChild(figur);
+      const name = element("span", "erholung-name");
+      name.appendChild(element("i", "erholung-punkt" + (tage[id] >= ERHOLUNG_TAGE ? " erholt" : "")));
+      name.appendChild(document.createTextNode(txt("partie." + id)));
+      partie.appendChild(name);
+      let wann = txtAnzahl("erholung.tage", tage[id]);
+      if (tage[id] === 0) {
+        wann = txt("heute");
+      } else if (tage[id] === 1) {
+        wann = txt("erholung.gestern");
+      }
+      partie.appendChild(element("small", "", wann));
+      liste.appendChild(partie);
+    });
+    bereich.appendChild(liste);
 
     const plan = wochenplan[(new Date().getDay() + 6) % 7];
     const routine = laufendesTraining ? null : erholungRoutine(tage, routinen, plan);
     if (routine) {
-      const zeile = element("button", "erholung-start");
-      zeile.type = "button";
-      zeile.appendChild(element("span", "", txt("erholung.passt", { name: routine.name })));
-      zeile.appendChild(element("span", "erholung-start-knopf", txt("erholung.starten")));
-      zeile.onclick = function () {
+      const knopf = element("button", "zweit-btn erholung-start", txt("erholung.starten", { name: routine.name }));
+      knopf.type = "button";
+      knopf.onclick = function () {
         routineStarten(routine);
       };
-      bereich.appendChild(zeile);
+      bereich.appendChild(knopf);
     }
   }
 
@@ -11656,6 +11700,7 @@
     // Look Korund (seit Version 143): Rekord-Zeile auf Home
     pokal: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/>',
     // Look Korund (seit Version 143): Symbole der Abzeichen
+    puls: '<path d="M3 9.5h4l2-4 4 9 2-5h6"/>',
     flamme: '<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1.2-3.6 2.5-4.8.3 1.8 1.2 2.8 2.3 3.1C11.2 9 11 6 12 3z"/>',
     kalender: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
     blitz: '<path d="M13 3 5 13h6l-1 8 8-10h-6z"/>',

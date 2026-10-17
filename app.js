@@ -3086,11 +3086,23 @@
         auswahl.appendChild(new Option(routinen[j].name, routinen[j].id));
       }
       auswahl.value = wochenplan[i];
+      // Look Korund (seit Version 140): Der Plan steht als sieben schmale Tages-Kacheln nebeneinander. Die Auswahl liegt
+      // unsichtbar über der Kachel, sichtbar ist nur der kurze Text darunter ("Push", "Ruhe" oder "–"). Nur dort zu sehen.
+      const kurz = element("span", "plan-kurz");
+      kurz.setAttribute("aria-hidden", "true");
+      function kurzSetzen() {
+        const routine = routineFinden(auswahl.value);
+        kurz.textContent = routine ? routine.name : (auswahl.value === "ruhe" ? txt("ruhetag") : "–");
+        zeile.classList.toggle("geplant", Boolean(routine));
+      }
+      kurzSetzen();
       auswahl.onchange = function () {
         wochenplan[i] = auswahl.value;
         routinenSpeichern();
+        kurzSetzen();
       };
       zeile.appendChild(auswahl);
+      zeile.appendChild(kurz);
       plan.appendChild(zeile);
     }
   }

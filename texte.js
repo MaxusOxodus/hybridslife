@@ -753,6 +753,7 @@ const TEXTE = {
   "farbwelt.volt": { de: "Volt", en: "Volt" },
   "farbwelt.gold": { de: "Champagner", en: "Champagne" },
   "farbwelt.puls": { de: "Puls", en: "Pulse" },
+  "farbwelt.abRang": { de: "ab Rang {rang}", en: "from rank {rang}" },
   "palette.hinweis": {
     de: "Der Look gilt nur mit „Glass“ im dunklen Design. „Korund“ ist das neue Design, „Schwarz“ das bisherige. Bei „Graphit“ und „Mockup“ zeigt die gewählte Farbe „Heute“ und deinen Fortschritt.",
     en: "The look only applies with “Glass” in the dark design. “Korund” is the new design, “Black” the previous one. With “Graphite” and “Mockup”, your chosen color shows “Today” and your progress."

@@ -10246,18 +10246,32 @@
   // ---------- Farbwelt (seit Version 140, nur im Look Korund) ----------
 
   // Die fünf Farbwelten. "farben" sind die drei Töne des K (Volumen, Workouts, Wdh.) für die Punkte in der Auswahl.
+  // "rang" ist der Kraft-Rang (1 Starter bis 6 Legende), ab dem die Farbwelt frei ist, wenn FARBWELTEN_PER_RANG an ist.
   const FARBWELT_AUSWAHL = [
-    { id: "blau", schluessel: "farbwelt.blau", farben: ["#71B5FF", "#6FD8E0", "#8E9BFF"] },
-    { id: "aurora", schluessel: "farbwelt.aurora", farben: ["#5B8CFF", "#8F7CFF", "#B57BFF"] },
-    { id: "volt", schluessel: "farbwelt.volt", farben: ["#C6F135", "#45E09A", "#F2E04A"] },
-    { id: "gold", schluessel: "farbwelt.gold", farben: ["#E3B866", "#D99A5B", "#E6D3AE"] },
-    { id: "puls", schluessel: "farbwelt.puls", farben: ["#FF4D5E", "#FF7A45", "#FF5FA8"] }
+    { id: "blau", schluessel: "farbwelt.blau", farben: ["#71B5FF", "#6FD8E0", "#8E9BFF"], rang: 0 },
+    { id: "volt", schluessel: "farbwelt.volt", farben: ["#C6F135", "#45E09A", "#F2E04A"], rang: 2 },
+    { id: "puls", schluessel: "farbwelt.puls", farben: ["#FF4D5E", "#FF7A45", "#FF5FA8"], rang: 3 },
+    { id: "aurora", schluessel: "farbwelt.aurora", farben: ["#5B8CFF", "#8F7CFF", "#B57BFF"], rang: 4 },
+    { id: "gold", schluessel: "farbwelt.gold", farben: ["#E3B866", "#D99A5B", "#E6D3AE"], rang: 5 }
   ];
 
-  // Die gewählte Farbwelt. Ohne Eintrag oder bei einem unbekannten Wert gilt "blau".
+  // Schalter: Schaltet der Kraft-Rang die Farbwelten frei? Aus (false) sind alle fünf sofort wählbar.
+  // An (true) zählt der höchste je erreichte Gesamt-Kraftrang (hoechsterGesamtRP im Merker der Ränge): Einmal frei bleibt frei.
+  const FARBWELTEN_PER_RANG = false;
+
+  // Ist eine Farbwelt wählbar?
+  function farbweltFrei(welt) {
+    if (!FARBWELTEN_PER_RANG || welt.rang <= 1) {
+      return true;
+    }
+    const hoechster = rangMerkerBereinigen(einstellungen.rangMerker).hoechsterGesamtRP;
+    return Math.floor(hoechster / RP_JE_RANG) + 1 >= welt.rang;
+  }
+
+  // Die gewählte Farbwelt. Ohne Eintrag, bei einem unbekannten Wert oder einer (noch) gesperrten gilt "blau".
   function farbwelt() {
     for (let i = 0; i < FARBWELT_AUSWAHL.length; i++) {
-      if (FARBWELT_AUSWAHL[i].id === einstellungen.farbwelt) {
+      if (FARBWELT_AUSWAHL[i].id === einstellungen.farbwelt && farbweltFrei(FARBWELT_AUSWAHL[i])) {
         return einstellungen.farbwelt;
       }
     }
@@ -10279,11 +10293,16 @@
       const zeile = element("button", "einst-zeile farbwelt-zeile");
       zeile.setAttribute("data-farbwelt-zeile", welt.id);
       zeile.setAttribute("aria-pressed", String(welt.id === farbwelt()));
-      zeile.disabled = aus;
+      const frei = farbweltFrei(welt);
+      zeile.disabled = aus || !frei;
       const k = element("span", "farbwelt-k");
       k.innerHTML = kSvg({ stamm: 1, oben: 1, unten: 1 }, welt.farben);
       zeile.appendChild(k);
-      zeile.appendChild(element("span", "einst-titel", txt(welt.schluessel)));
+      const name = element("span", "einst-titel", txt(welt.schluessel));
+      if (!frei) {
+        name.appendChild(element("small", "farbwelt-sperre", txt("farbwelt.abRang", { rang: txt("rang.name." + welt.rang) })));
+      }
+      zeile.appendChild(name);
       const punkte = element("span", "farbwelt-punkte");
       for (let j = 0; j < 3; j++) {
         const punkt = element("i", "");

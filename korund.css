@@ -114,6 +114,14 @@
   display: none;
 }
 
+.farbwelt-sperre {
+  display: block;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+
 /* ===== Dunkel gewählt ===== */
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] {
@@ -582,7 +590,6 @@
   color: var(--text-leise);
 }
 
-
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) {
@@ -1050,5 +1057,4 @@
     margin: -6px 0 0 6px;
     color: var(--text-leise);
   }
-
 }

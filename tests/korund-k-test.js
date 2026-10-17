@@ -43,8 +43,10 @@ function pruefe(name, ok, info) {
 }
 
 function bauen(sprache, einheitWahl, einst) {
-  const code = konstanteHolen("WOCHEN_ZIELE") + konstanteHolen("LBS_JE_KG") + konstanteHolen("K_TEILE") + konstanteHolen("FARBWELT_AUSWAHL")
-    + "let kZaehler = 0; const einstellungen = einst;"
+  const code = konstanteHolen("WOCHEN_ZIELE") + konstanteHolen("LBS_JE_KG") + konstanteHolen("K_TEILE") + konstanteHolen("FARBWELT_AUSWAHL") + konstanteHolen("FARBWELTEN_PER_RANG")
+    + "let kZaehler = 0; const einstellungen = einst; const RP_JE_RANG = 300;"
+    + "function rangMerkerBereinigen(m) { return { hoechsterGesamtRP: m && m.hoechsterGesamtRP || 0 }; }"
+    + funktionHolen("farbweltFrei")
     + "function einheit() { return einheitWahl; }"
     + "function ausKg(kg) { return einheit() === 'lbs' ? kg * LBS_JE_KG : kg; }"
     + "function gebiet() { return sprache === 'de' ? 'de-DE' : 'en-US'; }"
@@ -113,6 +115,17 @@ const text = e => alle(e).map(k => k.textContent).filter(Boolean).join(" | ");
     pruefe("Farbwelt " + id + " Text DE/EN", TEXTE["farbwelt." + id] && TEXTE["farbwelt." + id].de && TEXTE["farbwelt." + id].en);
     pruefe("Farbwelt " + id + " im Start-Skript", id === "blau" || index.indexOf('gespeichert.farbwelt === "' + id + '"') !== -1);
   }
+  // Freischalten per Rang: mit dem Schalter an zählt der höchste je erreichte Gesamt-Kraftrang
+  const frei = new Function("einstellungen", konstanteHolen("FARBWELT_AUSWAHL") + "const FARBWELTEN_PER_RANG = true; const RP_JE_RANG = 300;"
+    + "function rangMerkerBereinigen(m) { return { hoechsterGesamtRP: m && m.hoechsterGesamtRP || 0 }; }" + funktionHolen("farbweltFrei") + funktionHolen("farbwelt")
+    + "return { frei: function (id) { return farbweltFrei(FARBWELT_AUSWAHL.find(w => w.id === id)); }, farbwelt };");
+  const ohneRang = frei({ farbwelt: "gold" });
+  pruefe("Schalter an, ohne Rang: nur Blau frei", ohneRang.frei("blau") && !ohneRang.frei("volt") && !ohneRang.frei("gold"));
+  pruefe("Schalter an, gesperrte Wahl gilt als Blau", ohneRang.farbwelt() === "blau");
+  const stark = frei({ farbwelt: "aurora", rangMerker: { hoechsterGesamtRP: 950 } });
+  pruefe("Rang Stark: Volt, Puls, Aurora frei, Gold nicht", stark.frei("volt") && stark.frei("puls") && stark.frei("aurora") && !stark.frei("gold"));
+  pruefe("Rang Stark: Aurora gilt", stark.farbwelt() === "aurora");
+  pruefe("Schalter steht aus (alle frei)", /const FARBWELTEN_PER_RANG = false;/.test(quelle));
   pruefe("farbwelt setzt nur die Einstellungen", !/eintraege|trainings|routinen/.test(funktionHolen("farbweltSetzen")));
 }
 {

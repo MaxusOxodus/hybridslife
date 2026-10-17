@@ -337,7 +337,10 @@ function fortschrittRang(punkte, jetzt) {
 // Sie zählt selbst nicht mit. Die laufende Woche zählt erst, wenn sie vorbei ist.
 // Zurück kommt { serie, pausen, laengste, erreichtAm }: die laufende Serie, die angesparten Pausenwochen,
 // die längste Serie überhaupt und zu jeder je erreichten Länge der Sonntag, an dem sie zum ersten Mal erreicht war.
-function serieBerechnen(tageProWoche, aktuellerMontag, minTage) {
+// auszeit (seit Version 140, freiwillig): Montage (Millisekunden) von Wochen mit Status "Krank" oder "Urlaub", als Objekt
+// { montag: true }. Eine solche Woche ohne genug Trainingstage ist neutral: Sie bricht die Serie nicht, verbraucht keine
+// Pausenwoche und zählt nicht mit. Mit genug Trainingstagen zählt sie ganz normal.
+function serieBerechnen(tageProWoche, aktuellerMontag, minTage, auszeit) {
   const ergebnis = { serie: 0, pausen: 0, laengste: 0, erreichtAm: {} };
   const montage = Object.keys(tageProWoche).map(Number).sort(function (a, b) {
     return a - b;
@@ -358,6 +361,8 @@ function serieBerechnen(tageProWoche, aktuellerMontag, minTage) {
         ergebnis.laengste = ergebnis.serie;
         ergebnis.erreichtAm[ergebnis.serie] = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 6).getTime();
       }
+    } else if (auszeit && auszeit[montag.getTime()]) {
+      // Auszeit: nichts ändert sich
     } else if (ergebnis.serie > 0 && ergebnis.pausen > 0) {
       ergebnis.pausen--;
     } else {

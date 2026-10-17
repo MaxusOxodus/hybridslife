@@ -2692,7 +2692,7 @@
 
     // Serie: Wochen in Folge mit genug Trainingstagen, mit Pausenwochen (serieBerechnen in der raenge.js).
     // Die laufende Woche zählt erst, wenn sie vorbei ist. Sie unterbricht die Serie aber nicht.
-    const serie = serieBerechnen(tageProWoche, montagDerWoche(new Date()).getTime(), SERIE_TAGE_PRO_WOCHE);
+    const serie = serieBerechnen(tageProWoche, montagDerWoche(new Date()).getTime(), SERIE_TAGE_PRO_WOCHE, auszeitMontage());
 
     return {
       workouts: anzahlTage, uebungen: anzahlUebungen, gewicht: gesamtgewicht,
@@ -6054,6 +6054,95 @@
     return Boolean(e && e.datum) && !isNaN(new Date(e.datum));
   }
 
+  // ---------- Status: Aktiv, Krank oder Urlaub (seit Version 140) ----------
+
+  // Krank und Urlaub sind Auszeiten. Gespeichert in einstellungen.auszeiten als Liste von { art, von, bis }
+  // (Zeiten in Millisekunden, bis ist null, solange die Auszeit läuft). Ohne Eintrag ist man aktiv.
+  // Eine Woche mit Auszeit ohne genug Trainingstage bricht die Serie nicht und verbraucht keine Pausenwoche (serieBerechnen).
+  const AUSZEIT_ARTEN = ["krank", "urlaub"];
+
+  // Die gespeicherten Auszeiten, nur gültige Einträge
+  function auszeiten() {
+    if (!Array.isArray(einstellungen.auszeiten)) {
+      return [];
+    }
+    return einstellungen.auszeiten.filter(function (a) {
+      return a && AUSZEIT_ARTEN.indexOf(a.art) !== -1 && typeof a.von === "number" && (a.bis === null || typeof a.bis === "number");
+    });
+  }
+
+  // Die laufende Auszeit oder null
+  function auszeitAktuell() {
+    const liste = auszeiten();
+    for (let i = liste.length - 1; i >= 0; i--) {
+      if (liste[i].bis === null) {
+        return liste[i];
+      }
+    }
+    return null;
+  }
+
+  // Die Montage aller Wochen, die eine Auszeit berühren, als { montag: true } für serieBerechnen
+  function auszeitMontage() {
+    const montage = {};
+    const liste = auszeiten();
+    for (let i = 0; i < liste.length; i++) {
+      const ende = liste[i].bis === null ? Date.now() : liste[i].bis;
+      let montag = montagDerWoche(new Date(liste[i].von));
+      while (montag.getTime() <= ende) {
+        montage[montag.getTime()] = true;
+        montag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 7);
+      }
+    }
+    return montage;
+  }
+
+  // Setzt den Status: "aktiv" beendet die laufende Auszeit, "krank" oder "urlaub" beginnt eine (eine andere laufende endet dabei)
+  function statusSetzen(art) {
+    const liste = auszeiten();
+    const jetzt = Date.now();
+    const laufend = auszeitAktuell();
+    if (laufend && laufend.art === art) {
+      return;
+    }
+    if (laufend) {
+      laufend.bis = jetzt;
+    }
+    if (AUSZEIT_ARTEN.indexOf(art) !== -1) {
+      liste.push({ art: art, von: jetzt, bis: null });
+    }
+    einstellungen.auszeiten = liste;
+    einstellungenSpeichern();
+    statusAnzeigen();
+    homeAnzeigen();
+  }
+
+  // Training-Tab (Look Korund): der Knopf oben rechts mit dem Status. Ein Tipp öffnet die Auswahl.
+  function statusAnzeigen() {
+    const knopf = document.getElementById("status-knopf");
+    const laufend = auszeitAktuell();
+    const art = laufend ? laufend.art : "aktiv";
+    knopf.textContent = txt("status." + art);
+    knopf.setAttribute("data-status", art);
+    knopf.setAttribute("aria-label", txt("status.titel") + ": " + txt("status." + art));
+  }
+
+  function statusWaehlen() {
+    const laufend = auszeitAktuell();
+    const jetzt = laufend ? laufend.art : "aktiv";
+    const knoepfe = ["aktiv", "krank", "urlaub"].map(function (art) {
+      return {
+        text: (art === jetzt ? "✓ " : "") + txt("status." + art),
+        art: art === jetzt ? "haupt" : "",
+        aktion: function () {
+          statusSetzen(art);
+        }
+      };
+    });
+    knoepfe.push({ text: txt("abbrechen"), art: "leise" });
+    frageZeigen(txt("status.titel"), txt("status.text"), knoepfe);
+  }
+
   // Look Korund (seit Version 140): die Serie oben rechts neben dem Titel, z. B. "Serie: 6 Wochen". Ohne Serie leer.
   // Dieselbe Zahl wie im Profil (gesamtZahlen). Die korund.css zeigt sie nur im Look Korund.
   function homeSerieAnzeigen() {
@@ -6136,6 +6225,20 @@
       const weiter = element("button", "speichern-btn", txt("training.fortsetzen"));
       weiter.onclick = trainingFortsetzen;
       karte.appendChild(weiter);
+      return;
+    }
+
+    // Läuft eine Auszeit (Krank oder Urlaub), steht sie oben, mit dem Knopf zurück zu "Aktiv"
+    const auszeit = auszeitAktuell();
+    if (auszeit) {
+      karte.appendChild(element("div", "heute-label", txt("status.titel")));
+      karte.appendChild(element("div", "ansicht-titel", txt("status." + auszeit.art)));
+      karte.appendChild(element("div", "routine-info", txt("home.status." + auszeit.art)));
+      const aktiv = element("button", "knopf heute-knopf", txt("status.wiederAktiv"));
+      aktiv.onclick = function () {
+        statusSetzen("aktiv");
+      };
+      karte.appendChild(aktiv);
       return;
     }
 
@@ -12602,6 +12705,9 @@ paletteAnwenden();
 paletteAnzeigen();
 farbweltAnwenden();
 farbweltAnzeigen();
+
+// Der Status (Aktiv, Krank, Urlaub) im Training-Tab
+statusAnzeigen();
 
 // Beschriftungen und Schnellbuttons in der gewählten Einheit, dazu das Rad für das Körpergewicht
 // (30 bis 200 kg oder 66 bis 440 lbs)

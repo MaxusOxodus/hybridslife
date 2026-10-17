@@ -109,6 +109,11 @@
   display: none;
 }
 
+/* Training: der Status oben rechts (nur im Look Korund) */
+.status-knopf {
+  display: none;
+}
+
 /* ===== Dunkel gewählt ===== */
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] {
@@ -531,6 +536,50 @@
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
   filter: drop-shadow(0 0 8px rgba(var(--fw-signal-rgb), 0.5));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht {
+  position: relative;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf {
+  position: absolute;
+  top: 14px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  border-radius: 17px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #3DDC84;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf[data-status="krank"]::before {
+  background: #F5B544;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf[data-status="urlaub"]::before {
+  background: #5AC8FA;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf::after {
+  content: "⌄";
+  margin: -6px 0 0 6px;
+  color: var(--text-leise);
 }
 
 
@@ -956,6 +1005,50 @@
     -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
     mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
     filter: drop-shadow(0 0 8px rgba(var(--fw-signal-rgb), 0.5));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht {
+    position: relative;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf {
+    position: absolute;
+    top: 14px;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    border-radius: 17px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: #3DDC84;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf[data-status="krank"]::before {
+    background: #F5B544;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf[data-status="urlaub"]::before {
+    background: #5AC8FA;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf::after {
+    content: "⌄";
+    margin: -6px 0 0 6px;
+    color: var(--text-leise);
   }
 
 }

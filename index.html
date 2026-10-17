@@ -181,6 +181,8 @@
 
     <!-- Ansicht: Übersicht mit Wochenplan, Routinen und Vorlagen -->
     <div id="ansicht-uebersicht" class="ansicht">
+      <!-- Look Korund (seit Version 140): der Status (Aktiv, Krank, Urlaub) oben rechts. Die app.js setzt den Text. -->
+      <button id="status-knopf" class="status-knopf" onclick="statusWaehlen()"></button>
       <h1 data-t="nav.training">Training</h1>
       <!-- Im Reiter "Übungen" setzt die app.js hier einen anderen Text ein -->
       <p id="training-unterzeile" class="unterzeile" data-t="training.unterzeile">Deine Trainingspläne</p>

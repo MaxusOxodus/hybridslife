@@ -34,7 +34,7 @@ function konstanteHolen(name) {
 }
 
 // Diese Funktionen laufen so, wie sie in der app.js stehen
-const ECHT = ["gespeichertLesen", "sicherSpeichern", "speicherFehlerMelden", "nameSaeubern", "nameSchluessel", "istFesteId",
+const ECHT = ["notizenBereinigen", "gespeichertLesen", "sicherSpeichern", "speicherFehlerMelden", "nameSaeubern", "nameSchluessel", "istFesteId",
   "eigeneUebungBereinigen", "eigeneUebungenAufnehmen", "eigeneUebungenEintragen", "eigeneUebungenSpeichern",
   "uebungMitNamen", "bereichName", "jedeGespeicherteUebung", "gespeicherteUebungenSichern", "eigeneUebungZuweisen",
   "selbstNameUebertragen", "selbstLoeschenFragen", "gleicheUebung", "tagSchluessel", "saetzeVon", "hatDatum",
@@ -86,6 +86,8 @@ function umgebung(inhalt) {
     + "let importEintraege = []; let importRoutinen = null; let importWochenplan = null; let importTrainings = null;"
     + "let importGewichte = null; let importEinstellungen = null; let importProfil = null; let importEigene = null;"
     + "let importGeloeschte = null;"
+    // Seit Version 140: Notizen je Übung im Backup, Auszeiten in den Einstellungen
+    + "let notizen = {}; let importNotizen = null;" + konstanteHolen("AUSZEIT_ARTEN")
     // Eine Rückfrage gilt sofort als bestätigt: Der erste Knopf wird gedrückt
     + "function frageZeigen(titel, text, knoepfe) { if (knoepfe[0].aktion) { knoepfe[0].aktion(); } }"
     + "function rirLesen() { return null; }"

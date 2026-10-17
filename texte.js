@@ -395,6 +395,8 @@ const TEXTE = {
   "ziel.saetzeSeiten": { de: "Ziel: {saetze} Sätze je Seite", en: "Target sets: {saetze} per side" },
   "chip.saetze": { de: "{n} Sätze", en: "{n} sets" },
   "home.steigerung": { de: "Steigerung möglich", en: "Time to add weight" },
+  "notiz.titel": { de: "Notizen", en: "Notes" },
+  "notiz.platzhalter": { de: "z. B. Sitzhöhe 4, Griff eng", en: "e.g. seat height 4, narrow grip" },
   "status.titel": { de: "Dein Status", en: "Your status" },
   "status.text": { de: "Bei Krankheit oder Urlaub pausieren Wochenziel und Serie. Es wird keine Pausenwoche verbraucht.", en: "When you are sick or on vacation, your weekly goal and streak pause. No rest week is used up." },
   "status.aktiv": { de: "Aktiv", en: "Active" },

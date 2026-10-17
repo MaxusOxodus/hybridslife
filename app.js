@@ -295,6 +295,12 @@
   // Die ids gelöschter eigener Eigengewicht-Übungen (seit Version 105). Ihre alten Einträge rechnen damit
   // weiter mit dem Körpergewicht, siehe istEigengewicht. Im Backup stehen sie ab Backup-Version 11.
   let geloeschteEigengewicht = [];
+
+  // Notizen je Übung (seit Version 140): { schluessel: text }. Schlüssel ist die ID der Übung, bei Übungen ohne ID "name:" und der Name.
+  let notizen = gespeichertLesen("notizen", {});
+  if (!notizen || typeof notizen !== "object" || Array.isArray(notizen)) {
+    notizen = {};
+  }
   geloeschteEigengewichtAufnehmen(gespeichertLesen("geloeschteEigengewicht", []));
 
   // Gespeicherte Daten aus älteren Versionen kennen nur Übungsnamen: einmal die feste ID ergänzen
@@ -4281,6 +4287,7 @@
     document.getElementById("modus-ziel").textContent = zielText(u);
     document.getElementById("modus-hinweis").textContent = steigerungText(u);
     modusChipsAnzeigen(u);
+    document.getElementById("modus-notiz-feld").value = notizen[notizSchluessel(u)] || "";
 
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
@@ -4498,6 +4505,45 @@
       return txt("modus.eigengewicht");
     }
     return txt("modus.halten", { wdh: v.ziel });
+  }
+
+  // ---------- Notizen je Übung (seit Version 140) ----------
+
+  // Der Schlüssel einer Übung für die Notizen: ihre ID, ohne ID der Name (kleingeschrieben, ohne Leerzeichen am Rand)
+  function notizSchluessel(u) {
+    if (u.uebungId) {
+      return u.uebungId;
+    }
+    return "name:" + nameSaeubern(u.name).toLowerCase();
+  }
+
+  // Speichert die Notiz der Übung, die im Trainingsmodus offen ist. Eine leere Notiz wird entfernt.
+  function notizSpeichern() {
+    const t = laufendesTraining;
+    if (!t || !t.uebungen[t.index]) {
+      return;
+    }
+    const schluessel = notizSchluessel(t.uebungen[t.index]);
+    const text = document.getElementById("modus-notiz-feld").value.trim();
+    if (text === "") {
+      delete notizen[schluessel];
+    } else {
+      notizen[schluessel] = text.slice(0, 300);
+    }
+    sicherSpeichern("notizen", notizen);
+  }
+
+  // Prüft Notizen aus einem Backup: nur Texte bis 300 Zeichen
+  function notizenBereinigen(roh) {
+    const sauber = {};
+    if (roh && typeof roh === "object" && !Array.isArray(roh)) {
+      Object.keys(roh).forEach(function (schluessel) {
+        if (typeof roh[schluessel] === "string" && roh[schluessel].trim() !== "") {
+          sauber[schluessel] = roh[schluessel].trim().slice(0, 300);
+        }
+      });
+    }
+    return sauber;
   }
 
   // Look Korund (seit Version 140): Ziel und Vorschlag der Übung als Chips über "Satz 2 von 3".
@@ -9350,6 +9396,7 @@
 
   // Die ids gelöschter Eigengewicht-Übungen aus der Datei. null heißt: Das Backup enthält keine (Backup vor Version 11).
   let importGeloeschte = null;
+  let importNotizen = null;
 
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
@@ -9559,6 +9606,14 @@
     if (e.rangMerker && typeof e.rangMerker === "object") {
       sauber.rangMerker = rangMerkerBereinigen(e.rangMerker);
     }
+    // Die Auszeiten (Krank, Urlaub) gibt es seit Version 140. Sie gehören zur Serie und kommen deshalb mit.
+    if (Array.isArray(e.auszeiten)) {
+      sauber.auszeiten = e.auszeiten.filter(function (a) {
+        return a && AUSZEIT_ARTEN.indexOf(a.art) !== -1 && typeof a.von === "number" && (a.bis === null || typeof a.bis === "number");
+      }).map(function (a) {
+        return { art: a.art, von: a.von, bis: a.bis };
+      });
+    }
     return sauber;
   }
 
@@ -9575,6 +9630,10 @@
     }
     if (neu.kraftUebung) {
       einstellungen.kraftUebung = neu.kraftUebung;
+    }
+    if (neu.auszeiten) {
+      einstellungen.auszeiten = neu.auszeiten;
+      statusAnzeigen();
     }
     einstellungenSpeichern();
     designAnwenden();
@@ -9604,6 +9663,7 @@
       eintraege: eintraege,
       eigeneUebungen: eigeneUebungen,
       geloeschteEigengewicht: geloeschteEigengewicht,
+      notizen: notizen,
       routinen: routinen,
       wochenplan: wochenplan,
       trainings: trainings,
@@ -9735,6 +9795,12 @@
       importGeloeschte = daten.geloeschteEigengewicht;
     }
 
+    // Notizen je Übung gibt es seit Version 140 (Backup-Version bleibt 12, ältere Versionen lassen das Feld liegen)
+    importNotizen = null;
+    if (daten && !Array.isArray(daten) && daten.notizen && typeof daten.notizen === "object") {
+      importNotizen = notizenBereinigen(daten.notizen);
+    }
+
     // Einstellungen gibt es erst in neueren Backups
     importEinstellungen = null;
     if (daten && !Array.isArray(daten) && daten.einstellungen && typeof daten.einstellungen === "object") {
@@ -9842,6 +9908,20 @@
     if (importGeloeschte !== null) {
       geloeschteEigengewichtAufnehmen(importGeloeschte);
       sicherSpeichern("geloeschteEigengewicht", geloeschteEigengewicht);
+    }
+
+    // Notizen: Beim Ersetzen gelten die aus dem Backup, beim Hinzufügen kommen nur fehlende dazu
+    if (importNotizen !== null) {
+      if (art === "ersetzen") {
+        notizen = importNotizen;
+      } else {
+        Object.keys(importNotizen).forEach(function (schluessel) {
+          if (!notizen[schluessel]) {
+            notizen[schluessel] = importNotizen[schluessel];
+          }
+        });
+      }
+      sicherSpeichern("notizen", notizen);
     }
 
     let meldung;

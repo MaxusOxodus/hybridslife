@@ -354,6 +354,11 @@
       <p id="modus-hinweis" class="modus-hinweis"></p>
       <!-- Das letzte Training dieser Übung als kleine Tabelle. Die Zeilen baut die app.js. -->
       <div id="modus-letztes"></div>
+      <!-- Notizen je Übung (seit Version 140): z. B. Sitzhöhe oder Griff. Gespeichert beim Tippen, gilt für die Übung in jedem Training. -->
+      <div class="karte modus-notiz">
+        <label for="modus-notiz-feld" class="rad-titel" data-t="notiz.titel">Notizen</label>
+        <textarea id="modus-notiz-feld" rows="2" maxlength="300" placeholder="z. B. Sitzhöhe 4, Griff eng" data-t-platzhalter="notiz.platzhalter" oninput="notizSpeichern()"></textarea>
+      </div>
     </div>
 
     <!-- Ansicht: Zusammenfassung nach dem Training -->

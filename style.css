@@ -6033,3 +6033,32 @@ body.tour-zeigt-pause #modus-wahl {
   line-height: 1.35;
   text-align: center;
 }
+
+/* ---------- Trainingsmodus: Notizen je Übung (seit Version 140) ---------- */
+
+.modus-notiz {
+  margin-top: 20px;
+  padding: 14px 16px;
+}
+
+.modus-notiz .rad-titel {
+  display: block;
+  margin: 0;
+  text-align: left;
+}
+
+/* 16 px, sonst zoomt Safari beim Antippen hinein */
+.modus-notiz textarea {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.35;
+  resize: vertical;
+}

@@ -564,7 +564,7 @@
 
 /* Für Graphit und Mockup: An diesen Elementen sind die Akzent-Variablen die Signalfarbe. So rechnen alle vorhandenen
    Regeln mit ihr, ohne dass eine davon hier stehen muss. */
-:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"])[data-design="dunkel"] :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie, .wochen-ringe) {
+:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie, .wochen-ringe) {
   --akzent: var(--akzent-signal);
   --akzent-rgb: var(--akzent-signal-rgb);
   --akzent-schrift: var(--akzent-signal);
@@ -575,18 +575,18 @@
 
 /* Der Hauptknopf ist hell (die Schriftfarbe als Fläche) mit dunkler Schrift, sein Schein ist nur ein zarter heller Hauch.
    "Beenden" im Trainingsmodus ist ein reiner Text-Knopf und bekommt die helle Schrift. */
-:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"])[data-design="dunkel"] :is(.speichern-btn:not(:disabled), .knopf.haupt) {
+:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] :is(.speichern-btn:not(:disabled), .knopf.haupt) {
   --akzent: #F0F0F0;
   --akzent-rgb: 240, 240, 240;
   --akzent-leicht: rgba(240, 240, 240, 0.14);
 }
 
-:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"])[data-design="dunkel"] .modus-kopf .text-btn {
+:root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] .modus-kopf .text-btn {
   --akzent-text: #F0F0F0;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"]):not([data-design="hell"]) :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie, .wochen-ringe) {
+  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) :is(.home-tag.heute, .tag-btn.heute, .plan-zeile.heute .plan-tag, .nav-btn.aktiv, .tag-punkt, .rang-balken, #modus-fortschritt, .legende-linie, .diagramm, .mini-diagramm, .raster-feld, .satz-haken, .wahl-haken, .tour-rahmen, .tour-linie, .wochen-ringe) {
     --akzent: var(--akzent-signal);
     --akzent-rgb: var(--akzent-signal-rgb);
     --akzent-schrift: var(--akzent-signal);
@@ -595,18 +595,20 @@
     --akzent-hauch: rgba(var(--akzent-signal-rgb), 0.15);
   }
 
-  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"]):not([data-design="hell"]) :is(.speichern-btn:not(:disabled), .knopf.haupt) {
+  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) :is(.speichern-btn:not(:disabled), .knopf.haupt) {
     --akzent: #F0F0F0;
     --akzent-rgb: 240, 240, 240;
     --akzent-leicht: rgba(240, 240, 240, 0.14);
   }
 
-  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"]):not([data-design="hell"]) .modus-kopf .text-btn {
+  :root[data-stil="glass"]:is([data-palette="graphit"], [data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) .modus-kopf .text-btn {
     --akzent-text: #F0F0F0;
   }
 }
 
 /* ---------- Look "Mockup" (seit Version 121) ----------
+   Seit Version 140 gelten alle Regeln dieses Blocks auch für den Look "Korund" (data-palette="korund").
+   Was Korund anders macht (schwarzer Grund, Farbwelten, neue Bausteine), steht in der korund.css.
 
    Wie Graphit (data-palette="mockup", nur Glass im dunklen Design, Signal-Elemente, heller Hauptknopf und "Beenden"
    über die gemeinsamen Regeln oben). Dazu: fast schwarzer Grund mit kühlem Stahlblau-Schimmer oben, Glas-Karten mit
@@ -615,7 +617,7 @@
    --glas-grund endet mit einem Verlauf aus einer Farbe, nie mit einer nackten Farbe: Die Einstellungen zeichnen
    "background: var(--glas-grund), var(--hintergrund)", und eine Farbe darf nur in der letzten Ebene stehen.
    Sonst ist die Angabe ungültig und die Einstellungen werden durchsichtig. */
-:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] {
+:root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] {
   --hintergrund: #07090C;
   --karte: #161B22;
   --text: #EEF2F7;
@@ -638,25 +640,25 @@
   --glas-grund: radial-gradient(110% 55% at 50% -8%, rgba(96, 128, 168, 0.38), transparent 62%), linear-gradient(#07090C, #07090C);
 }
 
-:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] :is(.karte, .modus-karte, #ansicht-modus .eingaben.zwei > div, #ansicht-modus .rir, #modus-pause) {
+:root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] :is(.karte, .modus-karte, #ansicht-modus .eingaben.zwei > div, #ansicht-modus .rir, #modus-pause) {
   background: linear-gradient(180deg, rgba(225, 235, 250, 0.12), rgba(225, 235, 250, 0) 16%), var(--glas);
 }
 
-:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] .nav-btn.aktiv .nav-icon {
+:root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] .nav-btn.aktiv .nav-icon {
   box-shadow: 0 0 16px rgba(var(--akzent-signal-rgb), 0.55);
 }
 
-:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] .koerper .muskel.aktiv {
+:root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] .koerper .muskel.aktiv {
   --akzent: var(--akzent-signal);
   filter: drop-shadow(0 0 4px rgba(var(--akzent-signal-rgb), 0.75));
 }
 
-:root[data-stil="glass"][data-palette="mockup"][data-design="dunkel"] :is(.diagramm, .mini-diagramm) .linie-haupt {
+:root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"])[data-design="dunkel"] :is(.diagramm, .mini-diagramm) .linie-haupt {
   filter: drop-shadow(0 0 4px rgba(var(--akzent-signal-rgb), 0.8));
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) {
+  :root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) {
     --hintergrund: #07090C;
     --karte: #161B22;
     --text: #EEF2F7;
@@ -679,20 +681,20 @@
     --glas-grund: radial-gradient(110% 55% at 50% -8%, rgba(96, 128, 168, 0.38), transparent 62%), linear-gradient(#07090C, #07090C);
   }
 
-  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) :is(.karte, .modus-karte, #ansicht-modus .eingaben.zwei > div, #ansicht-modus .rir, #modus-pause) {
+  :root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) :is(.karte, .modus-karte, #ansicht-modus .eingaben.zwei > div, #ansicht-modus .rir, #modus-pause) {
     background: linear-gradient(180deg, rgba(225, 235, 250, 0.12), rgba(225, 235, 250, 0) 16%), var(--glas);
   }
 
-  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) .nav-btn.aktiv .nav-icon {
+  :root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) .nav-btn.aktiv .nav-icon {
     box-shadow: 0 0 16px rgba(var(--akzent-signal-rgb), 0.55);
   }
 
-  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) .koerper .muskel.aktiv {
+  :root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) .koerper .muskel.aktiv {
     --akzent: var(--akzent-signal);
     filter: drop-shadow(0 0 4px rgba(var(--akzent-signal-rgb), 0.75));
   }
 
-  :root[data-stil="glass"][data-palette="mockup"]:not([data-design="hell"]) :is(.diagramm, .mini-diagramm) .linie-haupt {
+  :root[data-stil="glass"]:is([data-palette="mockup"], [data-palette="korund"]):not([data-design="hell"]) :is(.diagramm, .mini-diagramm) .linie-haupt {
     filter: drop-shadow(0 0 4px rgba(var(--akzent-signal-rgb), 0.8));
   }
 }

@@ -920,6 +920,7 @@
     stilAnzeigen();
     akzentAnzeigen();
     paletteAnzeigen();
+    farbweltAnzeigen();
     einstTitelAnzeigen();
     einstWerteAnzeigen();
     einheitenAnwenden();
@@ -9827,6 +9828,7 @@
     stilAnwenden();
     stilAnzeigen();
     paletteAnzeigen();
+    farbweltAnzeigen();
   }
 
   // ---------- Akzentfarbe ----------
@@ -9892,16 +9894,21 @@
     akzentAnzeigen();
   }
 
-  // ---------- Look: Schwarz, Graphit oder Mockup ----------
+  // ---------- Look: Korund, Schwarz, Graphit oder Mockup ----------
 
+  // "korund" ist seit Version 140 der Standard. Die alten Looks bleiben wählbar (das Design bis Version 139 ist "Schwarz").
   const PALETTE_AUSWAHL = [
+    { id: "korund", schluessel: "palette.korund" },
     { id: "schwarz", schluessel: "palette.schwarz" },
     { id: "graphit", schluessel: "palette.graphit" },
     { id: "mockup", schluessel: "palette.mockup" }
   ];
 
-  // Der gewählte Look. Ohne Eintrag oder bei einem unbekannten Wert gilt "schwarz".
+  // Der gewählte Look. Ohne Eintrag gilt seit Version 140 "korund", bei einem unbekannten Wert "schwarz".
   function palette() {
+    if (einstellungen.palette === undefined || einstellungen.palette === "korund") {
+      return "korund";
+    }
     if (einstellungen.palette === "graphit" || einstellungen.palette === "mockup") {
       return einstellungen.palette;
     }
@@ -9931,6 +9938,139 @@
     einstellungenSpeichern();
     paletteAnwenden();
     paletteAnzeigen();
+    farbweltAnzeigen();
+  }
+
+  // ---------- Farbwelt (seit Version 140, nur im Look Korund) ----------
+
+  // Die fünf Farbwelten. "farben" sind die drei Töne des K (Volumen, Workouts, Wdh.) für die Punkte in der Auswahl.
+  const FARBWELT_AUSWAHL = [
+    { id: "blau", schluessel: "farbwelt.blau", farben: ["#71B5FF", "#6FD8E0", "#8E9BFF"] },
+    { id: "aurora", schluessel: "farbwelt.aurora", farben: ["#5B8CFF", "#8F7CFF", "#B57BFF"] },
+    { id: "volt", schluessel: "farbwelt.volt", farben: ["#C6F135", "#45E09A", "#F2E04A"] },
+    { id: "gold", schluessel: "farbwelt.gold", farben: ["#E3B866", "#D99A5B", "#E6D3AE"] },
+    { id: "puls", schluessel: "farbwelt.puls", farben: ["#FF4D5E", "#FF7A45", "#FF5FA8"] }
+  ];
+
+  // Die gewählte Farbwelt. Ohne Eintrag oder bei einem unbekannten Wert gilt "blau".
+  function farbwelt() {
+    for (let i = 0; i < FARBWELT_AUSWAHL.length; i++) {
+      if (FARBWELT_AUSWAHL[i].id === einstellungen.farbwelt) {
+        return einstellungen.farbwelt;
+      }
+    }
+    return "blau";
+  }
+
+  // Das Attribut data-farbwelt am <html> wertet die korund.css aus. Es steht immer da, wirkt aber nur im Look Korund.
+  function farbweltAnwenden() {
+    document.documentElement.setAttribute("data-farbwelt", farbwelt());
+  }
+
+  // Einstellungen: je Farbwelt eine Zeile mit kleinem K, Name und drei Farbpunkten. Gesperrt, wenn der Look nicht Korund ist.
+  function farbweltAnzeigen() {
+    const behaelter = document.getElementById("farbwelt-auswahl");
+    behaelter.innerHTML = "";
+    const aus = stil() === "klassisch" || palette() !== "korund";
+    for (let i = 0; i < FARBWELT_AUSWAHL.length; i++) {
+      const welt = FARBWELT_AUSWAHL[i];
+      const zeile = element("button", "einst-zeile farbwelt-zeile");
+      zeile.setAttribute("data-farbwelt-zeile", welt.id);
+      zeile.setAttribute("aria-pressed", String(welt.id === farbwelt()));
+      zeile.disabled = aus;
+      const k = element("span", "farbwelt-k");
+      k.innerHTML = kSvg({ stamm: 1, oben: 1, unten: 1 }, welt.farben);
+      zeile.appendChild(k);
+      zeile.appendChild(element("span", "einst-titel", txt(welt.schluessel)));
+      const punkte = element("span", "farbwelt-punkte");
+      for (let j = 0; j < 3; j++) {
+        const punkt = element("i", "");
+        punkt.style.background = welt.farben[j];
+        punkte.appendChild(punkt);
+      }
+      zeile.appendChild(punkte);
+      zeile.onclick = function () {
+        farbweltSetzen(welt.id);
+      };
+      behaelter.appendChild(zeile);
+    }
+  }
+
+  function farbweltSetzen(neu) {
+    einstellungen.farbwelt = neu;
+    einstellungenSpeichern();
+    farbweltAnwenden();
+    farbweltAnzeigen();
+  }
+
+  // ---------- Das Korund-K als Fortschritt (seit Version 140) ----------
+
+  // Die drei Teile des Logos (viewBox 0 0 130 131, wie icons/korund-mark-mono-weiss.svg). Jeder Teil füllt sich entlang
+  // seiner Achse von a nach b: der Stamm (Volumen) von unten nach oben, die Arme (Workouts oben, Wdh. unten) vom Stamm nach außen.
+  const K_TEILE = [
+    { art: "stamm", d: "M0 3L32 3L32 97L0 129Z", a: [16, 131], b: [16, 2] },
+    { art: "oben", d: "M90 0L130 0L41 89L41 49Z", a: [38, 72], b: [118, -8] },
+    { art: "unten", d: "M77.62 69.38L130 131L91 131L56.54 90.46Z", a: [60, 72], b: [118, 140] }
+  ];
+  let kZaehler = 0;
+
+  // Die Ecken des Bands, das einen Teil bis zum Anteil (0 bis 1) füllt: ein breites Rechteck quer zur Achse von a nach b
+  function kBand(t, anteil) {
+    const dx = t.b[0] - t.a[0];
+    const dy = t.b[1] - t.a[1];
+    const laenge = Math.sqrt(dx * dx + dy * dy);
+    const ux = dx / laenge;
+    const uy = dy / laenge;
+    const weit = 300;
+    const px = t.a[0] + dx * anteil;
+    const py = t.a[1] + dy * anteil;
+    const sx = t.a[0] - ux * weit;
+    const sy = t.a[1] - uy * weit;
+    return [[sx - uy * weit, sy + ux * weit], [px - uy * weit, py + ux * weit], [px + uy * weit, py - ux * weit], [sx + uy * weit, sy - ux * weit]].map(function (p) {
+      return p[0].toFixed(1) + "," + p[1].toFixed(1);
+    }).join(" ");
+  }
+
+  // Baut das K als SVG. anteile: { stamm, oben, unten } je 0 bis 1. farben: optional drei feste Töne (für die Auswahl),
+  // sonst nehmen die Teile die Farben der Farbwelt aus der korund.css (Klassen k-stamm, k-oben, k-unten).
+  // Jedes Band trägt seinen Ziel-Anteil in data-anteil, damit kFuellen es von 0 aus füllen kann.
+  function kSvg(anteile, farben) {
+    const id = "k" + (++kZaehler);
+    let svg = '<svg class="korund-k" viewBox="-4 -4 138 139" aria-hidden="true"><defs>';
+    let flaechen = "";
+    let spuren = "";
+    for (let i = 0; i < K_TEILE.length; i++) {
+      const t = K_TEILE[i];
+      const anteil = Math.max(0, Math.min(1, anteile[t.art] || 0));
+      svg += '<clipPath id="' + id + t.art + '"><polygon data-teil="' + i + '" data-anteil="' + anteil + '" points="' + kBand(t, anteil) + '"/></clipPath>';
+      const fuellung = farben ? ' style="fill:' + farben[i] + '"' : "";
+      spuren += '<path class="k-spur" d="' + t.d + '"/>';
+      flaechen += '<g clip-path="url(#' + id + t.art + ')"><path class="k-teil k-' + t.art + '" d="' + t.d + '"' + fuellung + '/></g>';
+    }
+    return svg + "</defs>" + spuren + flaechen + "</svg>";
+  }
+
+  // Lässt die Teile eines K in 0,8 s von leer auf ihren Anteil wachsen (ease-out). Mit "Bewegung reduzieren" sofort.
+  function kFuellen(behaelter) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    const baender = behaelter.querySelectorAll("polygon[data-anteil]");
+    const start = performance.now();
+    function schritt(jetzt) {
+      const zeit = Math.min(1, (jetzt - start) / 800);
+      const weg = 1 - Math.pow(1 - zeit, 3);
+      baender.forEach(function (band) {
+        band.setAttribute("points", kBand(K_TEILE[Number(band.getAttribute("data-teil"))], Number(band.getAttribute("data-anteil")) * weg));
+      });
+      if (zeit < 1) {
+        requestAnimationFrame(schritt);
+      }
+    }
+    baender.forEach(function (band) {
+      band.setAttribute("points", kBand(K_TEILE[Number(band.getAttribute("data-teil"))], 0));
+    });
+    requestAnimationFrame(schritt);
   }
 
   // ---------- Profil: Name und Benutzername ----------
@@ -10348,6 +10488,41 @@
     rechts.appendChild(klein);
     inhalt.appendChild(rechts);
     feld.appendChild(inhalt);
+    feld.appendChild(wochenKFeld(daten));
+    return feld;
+  }
+
+  // Look Korund (seit Version 140): statt der Ringe das Korund-K. Der Stamm zeigt das Volumen, der obere Arm die Workouts,
+  // der untere Arm die Wiederholungen. Rechts die drei Zahlen, je mit einem kleinen K, in dem nur der passende Teil leuchtet.
+  // Die korund.css zeigt diesen Teil nur im Look Korund und blendet dort die Ringe aus.
+  function wochenKFeld(daten) {
+    const feld = element("div", "wochen-k");
+    const gross = element("div", "wochen-k-bild");
+    gross.innerHTML = kSvg({ stamm: daten.volumen.wert / daten.volumen.ziel, oben: daten.workouts.wert / daten.workouts.ziel, unten: daten.wdh.wert / daten.wdh.ziel });
+    feld.appendChild(gross);
+    const liste = element("div", "wochen-k-zahlen");
+    const teile = { volumen: "stamm", workouts: "oben", wdh: "unten" };
+    ["volumen", "workouts", "wdh"].forEach(function (art) {
+      const d = daten[art];
+      const zeile = element("div", "wochen-k-zeile");
+      const name = element("div", "wochen-k-name");
+      const klein = element("span", "wochen-k-mini");
+      const nur = {};
+      nur[teile[art]] = 1;
+      klein.innerHTML = kSvg(nur);
+      name.appendChild(klein);
+      name.appendChild(element("span", "", d.langName));
+      zeile.appendChild(name);
+      const wert = element("div", "wochen-k-wert", d.wertText);
+      const ziel = element("small", "", " / " + d.ziel.toLocaleString(gebiet()) + (art === "volumen" ? " " + d.einheit : ""));
+      wert.appendChild(ziel);
+      zeile.appendChild(wert);
+      liste.appendChild(zeile);
+    });
+    feld.appendChild(liste);
+    requestAnimationFrame(function () {
+      kFuellen(gross);
+    });
     return feld;
   }
 
@@ -12303,9 +12478,11 @@ akzentUebernehmen();
 akzentAnwenden();
 akzentAnzeigen();
 
-// Der gewählte Look und sein Umschalter
+// Der gewählte Look und sein Umschalter, dazu die Farbwelt des Looks Korund
 paletteAnwenden();
 paletteAnzeigen();
+farbweltAnwenden();
+farbweltAnzeigen();
 
 // Beschriftungen und Schnellbuttons in der gewählten Einheit, dazu das Rad für das Körpergewicht
 // (30 bis 200 kg oder 66 bis 440 lbs)

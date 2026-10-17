@@ -729,9 +729,17 @@ const TEXTE = {
   "palette.schwarz": { de: "Schwarz", en: "Black" },
   "palette.graphit": { de: "Graphit", en: "Graphite" },
   "palette.mockup": { de: "Mockup", en: "Mockup" },
+  "palette.korund": { de: "Korund", en: "Korund" },
+  "farbwelt": { de: "Farbwelt", en: "Color world" },
+  "farbwelt.hinweis": { de: "Die Farbwelt gilt im Look „Korund“. Sie färbt Fortschritt, Knöpfe und das K auf Home.", en: "The color world applies to the “Korund” look. It colors progress, buttons and the K on Home." },
+  "farbwelt.blau": { de: "Stahlblau", en: "Steel Blue" },
+  "farbwelt.aurora": { de: "Aurora", en: "Aurora" },
+  "farbwelt.volt": { de: "Volt", en: "Volt" },
+  "farbwelt.gold": { de: "Champagner", en: "Champagne" },
+  "farbwelt.puls": { de: "Puls", en: "Pulse" },
   "palette.hinweis": {
-    de: "Der Look gilt nur mit „Glass“ im dunklen Design. Bei „Graphit“ und „Mockup“ zeigt die gewählte Farbe „Heute“ und deinen Fortschritt.",
-    en: "The look only applies with “Glass” in the dark design. With “Graphite” and “Mockup”, your chosen color shows “Today” and your progress."
+    de: "Der Look gilt nur mit „Glass“ im dunklen Design. „Korund“ ist das neue Design, „Schwarz“ das bisherige. Bei „Graphit“ und „Mockup“ zeigt die gewählte Farbe „Heute“ und deinen Fortschritt.",
+    en: "The look only applies with “Glass” in the dark design. “Korund” is the new design, “Black” the previous one. With “Graphite” and “Mockup”, your chosen color shows “Today” and your progress."
   },
   "ueber.app": { de: "App", en: "App" },
   "ueber.version": { de: "Version", en: "Version" },

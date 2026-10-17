@@ -76,8 +76,8 @@ const EINFUEHRUNG_SCHRITTE = [
       en: "Your week in numbers"
     },
     text: {
-      de: "Hier zählt die App, wie viel du diese Woche trainiert hast. Sobald Ringe da sind, tippe auf einen kleinen, um ihn groß zu sehen.",
-      en: "Here the app counts how much you trained this week. Once rings appear, tap a small one to see it large."
+      de: "Hier zählt die App, wie viel du diese Woche trainiert hast: Volumen, Workouts und Wiederholungen, gemessen an deinem Wochenziel.",
+      en: "Here the app counts how much you trained this week: volume, workouts and reps, measured against your weekly goal."
     }
   },
   {

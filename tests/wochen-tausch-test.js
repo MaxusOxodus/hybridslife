@@ -59,6 +59,8 @@ function bauen(sprache, einheitWahl) {
     + "function iconSvg(n) { return '<svg data-icon=\"' + n + '\"></svg>'; }"
     + "function seiteZeigen(s) { protokoll.seiten.push(s); }"
     + "function wochenTauschen(feld, index) { protokoll.tausch.push(index); wochenReihe = wochenReiheTauschen(wochenReihe, index); }"
+    // Seit Version 140 hängt wochenRingeFeld die K-Karte des Looks Korund an. Sie hat ihren eigenen Test (korund-k-test.js).
+    + "function wochenKFeld() { return element('div', 'wochen-k'); }"
     + funktionHolen("ringSvg")
     + /\n {2}let wochenReihe = [^\n]*\n/.exec(quelle)[0]
     + funktionHolen("wochenReiheTauschen") + funktionHolen("wochenRingDaten") + funktionHolen("wochenKreis") + funktionHolen("wochenRingeFeld")
@@ -171,9 +173,10 @@ function pruefe(name, ok, info) {
   pruefe("Bewegung reduzieren: kein Gleiten", funktionHolen("wochenTauschen").indexOf('matchMedia("(prefers-reduced-motion: reduce)")') !== -1);
 }
 {
-  // Einführung: Hinweis auf den Tausch, auch richtig ohne Ringe
-  pruefe("Einführung: Hinweis DE", einfuehrung.indexOf("Sobald Ringe da sind, tippe auf einen kleinen, um ihn groß zu sehen.") !== -1);
-  pruefe("Einführung: Hinweis EN", einfuehrung.indexOf("Once rings appear, tap a small one to see it large.") !== -1);
+  // Einführung: seit Version 140 ohne Hinweis auf den Tausch, weil der Look Korund statt Ringen das K zeigt.
+  // Der Text stimmt in jedem Look und auch ohne Daten.
+  pruefe("Einführung: Text DE", einfuehrung.indexOf("Volumen, Workouts und Wiederholungen, gemessen an deinem Wochenziel.") !== -1);
+  pruefe("Einführung: Text EN", einfuehrung.indexOf("volume, workouts and reps, measured against your weekly goal.") !== -1);
   pruefe("Texte in Deutsch und Englisch", ["home.ringGross", "home.zurStatistik", "home.ziel", "home.zielErreichtKurz"].every(k => TEXTE[k] && TEXTE[k].de && TEXTE[k].en));
 }
 

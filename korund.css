@@ -121,6 +121,8 @@
   font-weight: 500;
 }
 
+/* ===== Etappe 4 (seit Version 142): Trainingsmodus genau wie im Entwurf ===== */
+
 /* ===== Dunkel gewählt ===== */
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] {
@@ -851,6 +853,461 @@
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.seiten-chip.gesperrt {
   opacity: 0.55;
+}
+
+/* Ohne Tab-Leiste: Unten stehen nur der Optionen-Knopf und „Satz fertig“ bzw. „Pause überspringen“ */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] body:has(#seite-training.aktiv #ansicht-modus:not(.versteckt)) #navigation {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus {
+  padding-bottom: 96px;
+}
+
+/* Kopf: ‹ links, Name der Routine in der Mitte, … rechts. Uhr und „Beenden“ wandern woanders hin */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-kopf {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-kopf #modus-uhr,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-kopf .text-btn {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-routine {
+  grid-column: 2;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-kopf-knopf {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(238, 242, 247, 0.12);
+  border-radius: 12px;
+  background: rgba(var(--fw-glas-rgb), 0.7);
+  color: var(--text);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-kopf-zurueck {
+  grid-column: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-kopf-menue {
+  grid-column: 3;
+  justify-self: end;
+  letter-spacing: 0.04em;
+}
+
+/* Fortschritt als Segmente: der Balken bleibt, nur dünner und mit Abstand */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-balken {
+  height: 4px;
+  margin-top: 12px;
+}
+
+/* Übungskarte ohne Rahmen: oben „ZEIT 23:41“ und „‹ Übung 2 von 4 ⌄ ›“, darunter Figur, Gruppe, Name und Tauschen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-karte {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "zeit wechsel" "uebung uebung";
+  align-items: center;
+  margin-top: 14px;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-zeit {
+  display: block;
+  grid-area: zeit;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-zeit::before {
+  content: attr(data-label);
+  margin-right: 6px;
+  color: var(--text-leise);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-wechsel {
+  grid-area: wechsel;
+  justify-self: end;
+  gap: 2px;
+  margin-top: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-wechsel button {
+  width: 28px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font-size: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-wechsel .modus-schritt {
+  flex: none;
+  width: auto;
+  padding: 0 4px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-uebung-zeile {
+  grid-area: uebung;
+  margin-top: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-bild {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-figur {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(238, 242, 247, 0.1);
+  border-radius: 16px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  overflow: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-figur .koerper {
+  width: auto;
+  height: 88%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-uebung-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus #modus-geraet {
+  order: -1;
+  margin: 0 0 2px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-name-zeile .ansicht-titel {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-name-zeile .verlauf-icon {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-tausch-symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 20px;
+}
+
+/* „Satz 2 von 3“ links, „Letztes Mal 30 × 8“ rechts */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-satz-zeile {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-satz-zeile #modus-satz {
+  margin: 0;
+  font-size: 26px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-letztmal {
+  display: block;
+  flex: none;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Zahlenfelder: oben klein „KG“ und „WDH.“, ohne Symbol */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .eingaben .feld-icon {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .eingaben .rad-titel {
+  color: var(--text-leise);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .eingaben .gewicht-titel {
+  font-size: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .eingaben .gewicht-titel::before {
+  content: attr(data-kurz);
+  font-size: 12px;
+}
+
+/* Satz-Tabelle: Spalten SATZ, KG, WDH., RIR und Haken, ohne Überschrift „Deine Sätze“ */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze > .abschnitt {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-tabelle {
+  margin-top: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-reihe {
+  grid-template-columns: 34px repeat(3, minmax(0, 1fr)) 20px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-kg-text,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-rir {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-kg-zahl,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-rir-spalte {
+  display: block;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-reihe.kopf {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Unten am Rand: links der Optionen-Knopf, rechts „Satz fertig“ bzw. „Pause überspringen“ */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-neben {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus:has(#modus-eingabe:not(.versteckt)) .modus-optionen-knopf,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus:has(#modus-pause:not(.versteckt)) .modus-optionen-knopf {
+  display: grid;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-optionen-knopf {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  border-radius: 16px;
+  background: rgba(var(--fw-glas-rgb), 0.92);
+  color: var(--text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-optionen-knopf svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe > .speichern-btn.gross,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .modus-pause-weiter {
+  position: fixed;
+  left: calc(max(16px, env(safe-area-inset-left, 0px)) + 64px);
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  width: auto;
+  height: 54px;
+  min-height: 0;
+  margin: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .modus-pause-weiter {
+  display: block;
+}
+
+/* Pause: ohne Übungszeile, Chips, Tabelle und Hinweise. Der Ring zeigt „von 2:00“, darunter der gespeicherte Satz */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus:has(#modus-pause:not(.versteckt)) :is(.modus-uebung-zeile, #modus-chips, .modus-satz-zeile, #modus-saetze, #modus-hinweis, #modus-letztes, .modus-notiz, #modus-naechstes) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause {
+  margin-top: 22px;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  text-align: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause > .heute-label {
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-countdown {
+  width: 230px;
+  height: 230px;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-countdown::after {
+  content: attr(data-von);
+  position: absolute;
+  top: calc(50% + 36px);
+  left: 0;
+  right: 0;
+  color: var(--text-leise);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-gespeichert {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--fw-erfolg);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-gespeichert:empty {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-gespeichert::before {
+  content: "✓ ";
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .karten-knoepfe {
+  justify-content: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .karten-knoepfe .knopf:nth-child(3) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-als-naechstes {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 26px;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-figur {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  overflow: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-figur .koerper {
+  width: auto;
+  height: 88%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-label {
+  color: var(--text-leise);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-name {
+  margin-top: 2px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-ziel {
+  margin-top: 2px;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-titel {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause .karten-knoepfe .knopf {
+  flex: none;
+  width: auto;
+  min-width: 76px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  font-size: 16px;
+}
+
+/* Der Hinweis steht im Look Korund als grüner Chip „↑ 32 kg“ oben und als Karte auf Home */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus #modus-hinweis {
+  display: none;
+}
+
+/* Hinter den Knöpfen unten verläuft die Seite ins Dunkle, damit nichts darunter durchscheint */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 29;
+  height: calc(100px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(rgba(7, 9, 12, 0), #07090C 55%);
+  pointer-events: none;
 }
 
 
@@ -1584,6 +2041,461 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.seiten-chip.gesperrt {
     opacity: 0.55;
+  }
+
+  /* Ohne Tab-Leiste: Unten stehen nur der Optionen-Knopf und „Satz fertig“ bzw. „Pause überspringen“ */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) body:has(#seite-training.aktiv #ansicht-modus:not(.versteckt)) #navigation {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus {
+    padding-bottom: 96px;
+  }
+
+  /* Kopf: ‹ links, Name der Routine in der Mitte, … rechts. Uhr und „Beenden“ wandern woanders hin */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-kopf {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-kopf #modus-uhr,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-kopf .text-btn {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-routine {
+    grid-column: 2;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-kopf-knopf {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid rgba(238, 242, 247, 0.12);
+    border-radius: 12px;
+    background: rgba(var(--fw-glas-rgb), 0.7);
+    color: var(--text);
+    font: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-kopf-zurueck {
+    grid-column: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-kopf-menue {
+    grid-column: 3;
+    justify-self: end;
+    letter-spacing: 0.04em;
+  }
+
+  /* Fortschritt als Segmente: der Balken bleibt, nur dünner und mit Abstand */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-balken {
+    height: 4px;
+    margin-top: 12px;
+  }
+
+  /* Übungskarte ohne Rahmen: oben „ZEIT 23:41“ und „‹ Übung 2 von 4 ⌄ ›“, darunter Figur, Gruppe, Name und Tauschen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-karte {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "zeit wechsel" "uebung uebung";
+    align-items: center;
+    margin-top: 14px;
+    padding: 0 !important;
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-zeit {
+    display: block;
+    grid-area: zeit;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-zeit::before {
+    content: attr(data-label);
+    margin-right: 6px;
+    color: var(--text-leise);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-wechsel {
+    grid-area: wechsel;
+    justify-self: end;
+    gap: 2px;
+    margin-top: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-wechsel button {
+    width: 28px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: var(--text-leise);
+    font-size: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-wechsel .modus-schritt {
+    flex: none;
+    width: auto;
+    padding: 0 4px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-uebung-zeile {
+    grid-area: uebung;
+    margin-top: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-bild {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-figur {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border: 1px solid rgba(238, 242, 247, 0.1);
+    border-radius: 16px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    overflow: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-figur .koerper {
+    width: auto;
+    height: 88%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-uebung-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus #modus-geraet {
+    order: -1;
+    margin: 0 0 2px;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-name-zeile .ansicht-titel {
+    font-size: 22px;
+    line-height: 1.2;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-name-zeile .verlauf-icon {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-tausch-symbol {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-leise);
+    font: inherit;
+    font-size: 20px;
+  }
+
+  /* „Satz 2 von 3“ links, „Letztes Mal 30 × 8“ rechts */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-satz-zeile {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-satz-zeile #modus-satz {
+    margin: 0;
+    font-size: 26px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-letztmal {
+    display: block;
+    flex: none;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  /* Zahlenfelder: oben klein „KG“ und „WDH.“, ohne Symbol */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .eingaben .feld-icon {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .eingaben .rad-titel {
+    color: var(--text-leise);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .eingaben .gewicht-titel {
+    font-size: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .eingaben .gewicht-titel::before {
+    content: attr(data-kurz);
+    font-size: 12px;
+  }
+
+  /* Satz-Tabelle: Spalten SATZ, KG, WDH., RIR und Haken, ohne Überschrift „Deine Sätze“ */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze > .abschnitt {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-tabelle {
+    margin-top: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-reihe {
+    grid-template-columns: 34px repeat(3, minmax(0, 1fr)) 20px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-kg-text,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-rir {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-kg-zahl,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-rir-spalte {
+    display: block;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-reihe.kopf {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Unten am Rand: links der Optionen-Knopf, rechts „Satz fertig“ bzw. „Pause überspringen“ */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-neben {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus:has(#modus-eingabe:not(.versteckt)) .modus-optionen-knopf,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus:has(#modus-pause:not(.versteckt)) .modus-optionen-knopf {
+    display: grid;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-optionen-knopf {
+    position: fixed;
+    left: max(16px, env(safe-area-inset-left, 0px));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 30;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    padding: 0;
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    border-radius: 16px;
+    background: rgba(var(--fw-glas-rgb), 0.92);
+    color: var(--text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-optionen-knopf svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe > .speichern-btn.gross,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .modus-pause-weiter {
+    position: fixed;
+    left: calc(max(16px, env(safe-area-inset-left, 0px)) + 64px);
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 30;
+    width: auto;
+    height: 54px;
+    min-height: 0;
+    margin: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .modus-pause-weiter {
+    display: block;
+  }
+
+  /* Pause: ohne Übungszeile, Chips, Tabelle und Hinweise. Der Ring zeigt „von 2:00“, darunter der gespeicherte Satz */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus:has(#modus-pause:not(.versteckt)) :is(.modus-uebung-zeile, #modus-chips, .modus-satz-zeile, #modus-saetze, #modus-hinweis, #modus-letztes, .modus-notiz, #modus-naechstes) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause {
+    margin-top: 22px;
+    padding: 0 !important;
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    text-align: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause > .heute-label {
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-countdown {
+    width: 230px;
+    height: 230px;
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-countdown::after {
+    content: attr(data-von);
+    position: absolute;
+    top: calc(50% + 36px);
+    left: 0;
+    right: 0;
+    color: var(--text-leise);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-gespeichert {
+    display: block;
+    margin-bottom: 14px;
+    color: var(--fw-erfolg);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-gespeichert:empty {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-gespeichert::before {
+    content: "✓ ";
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .karten-knoepfe {
+    justify-content: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .karten-knoepfe .knopf:nth-child(3) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-als-naechstes {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 26px;
+    padding: 14px 16px;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-figur {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    overflow: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-figur .koerper {
+    width: auto;
+    height: 88%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-label {
+    color: var(--text-leise);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-name {
+    margin-top: 2px;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-ziel {
+    margin-top: 2px;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-titel {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause .karten-knoepfe .knopf {
+    flex: none;
+    width: auto;
+    min-width: 76px;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+
+  /* Der Hinweis steht im Look Korund als grüner Chip „↑ 32 kg“ oben und als Karte auf Home */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus #modus-hinweis {
+    display: none;
+  }
+
+  /* Hinter den Knöpfen unten verläuft die Seite ins Dunkle, damit nichts darunter durchscheint */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 29;
+    height: calc(100px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(rgba(7, 9, 12, 0), #07090C 55%);
+    pointer-events: none;
   }
 
 }

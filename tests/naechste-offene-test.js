@@ -32,7 +32,7 @@ funktionHolen = function (name) {
 };
 
 // Die zeichnen nur oder gehören zu anderen Teilen der App: Hier tun sie nichts
-const LEER = ["anzeigen", "letztesMalAnzeigen", "modusFortschrittAnzeigen", "modusSaetzeAnzeigen", "modusLetztesAnzeigen",
+const LEER = ["modusKorundAnzeigen", "satzHinweisMerken", "anzeigen", "letztesMalAnzeigen", "modusFortschrittAnzeigen", "modusSaetzeAnzeigen", "modusLetztesAnzeigen",
   "bestwertPruefen", "modusAnzeigen", "sicherSpeichern", "modusFelderSetzen"];
 
 // Ein kleiner Ersatz für die Seite: Jedes Element merkt sich seinen Text und seine Klassen

@@ -6082,3 +6082,24 @@ body.tour-zeigt-pause #modus-wahl {
 .satz-nummer.satz-w {
   color: var(--text-leise);
 }
+
+/* Trainingsmodus im Look Korund (seit Version 142): Diese Teile gibt es nur dort (korund.css), sonst sind sie ausgeblendet */
+.modus-kopf-knopf,
+.modus-zeit,
+.modus-figur,
+.modus-tausch-symbol,
+.modus-letztmal,
+.modus-gespeichert,
+.modus-als-naechstes,
+.modus-optionen-knopf,
+.modus-pause .modus-pause-weiter,
+#modus-pause .modus-pause-weiter,
+.satz-kg-zahl,
+.satz-rir-spalte {
+  display: none;
+}
+
+/* Rahmen um "Satz 2 von 3": wirkt nur im Look Korund, sonst stehen die Teile wie vorher direkt in der Seite */
+.modus-satz-zeile {
+  display: contents;
+}

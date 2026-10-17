@@ -1106,6 +1106,8 @@
       schluessel = "gewicht.titelHantel";
     }
     document.getElementById(feldId).previousElementSibling.textContent = txt(schluessel, { einheit: einheit() });
+    // Look Korund (seit Version 142): Über dem Feld steht dort nur die Einheit, z. B. "KG"
+    document.getElementById(feldId).previousElementSibling.setAttribute("data-kurz", einheit().toUpperCase());
   }
 
   // Die Titel aller drei Gewichtsfelder passend zu ihrer Übung: im Log, im Trainingsmodus und im Sheet "Satz bearbeiten"
@@ -4387,6 +4389,8 @@
     document.getElementById("modus-uebung").textContent = anzeigeName(u.name, u.uebungId);
     // Das Bild der Übung aus der bilder.js und darunter die Geräte-Zeile, z. B. "Maschine · Brust"
     document.getElementById("modus-bild").innerHTML = uebungsBild(u.uebungId);
+    // Look Korund (seit Version 142): die Muskelfigur statt des Bilds (sonst ausgeblendet)
+    document.getElementById("modus-figur").innerHTML = uebungFigurSvg(u);
     document.getElementById("modus-erklaerung").classList.toggle("versteckt", erklaerungId(u.uebungId, u.name) === "");
     const bekannt = UEBUNG_NACH_ID[u.uebungId];
     let geraet = "";
@@ -4804,6 +4808,109 @@
     if (zeigen && (warVersteckt || felderNeu)) {
       modusFelderSetzen();
     }
+    modusKorundAnzeigen(u, gemacht, zielErreicht, naechsteIndex, pauseLaeuft);
+  }
+
+  // ---------- Trainingsmodus im Look Korund (seit Version 142) ----------
+  // Alles hier füllt Elemente, die die style.css ausblendet und nur die korund.css zeigt. Gespeichert wird nichts.
+
+  // Der zuletzt fertige Satz für "Satz 2 gespeichert · 32 kg × 8" in der Pause. Nur im Speicher der Seite.
+  let letzterSatzHinweis = null;
+
+  // Merkt den gerade fertigen Satz als Text für die Pause, z. B. "Satz 2 gespeichert · 32 kg × 8"
+  function satzHinweisMerken(u) {
+    const satz = u.saetze[u.saetze.length - 1];
+    letzterSatzHinweis = txt("pause.gespeichert", { n: satzKennung(u.saetze, u.saetze.length - 1, zaehltSeiten(u)), satz: gewichtText(satz.gewicht) + " × " + satz.wdh });
+  }
+
+  function modusKorundAnzeigen(u, gemacht, zielErreicht, naechsteIndex, pauseLaeuft) {
+    const t = laufendesTraining;
+    // "Letztes Mal 30 × 8": derselbe Arbeitssatz im letzten Training dieser Übung
+    let letztmal = "";
+    const daten = letztesTrainingDaten(u.name, u.uebungId, u.eintragId);
+    if (daten && !zielErreicht) {
+      const arbeit = daten.saetze.filter(function (satz) {
+        return !istAufwaermen(satz);
+      });
+      const satz = arbeit[Math.min(gemacht, arbeit.length - 1)];
+      if (satz) {
+        letztmal = txt("modus.letztmal", { satz: zahlKurz(gewichtAnzeige(satz.gewicht)) + " × " + satz.wdh });
+      }
+    }
+    document.getElementById("modus-letztmal").textContent = letztmal;
+
+    // Pause: "von 2:00" im Ring, der gespeicherte Satz und die Karte "Als Nächstes"
+    const countdown = document.getElementById("modus-countdown");
+    countdown.setAttribute("data-von", txt("pause.von", { zeit: pauseText(pauseDauer(u)) }));
+    const gespeichert = document.getElementById("modus-gespeichert");
+    gespeichert.textContent = letzterSatzHinweis ? letzterSatzHinweis : "";
+    if (!pauseLaeuft) {
+      return;
+    }
+    const karte = document.getElementById("modus-als-naechstes");
+    let naechste = u;
+    if (zielErreicht) {
+      naechste = naechsteIndex >= 0 ? t.uebungen[naechsteIndex] : null;
+    }
+    const schluessel = naechste ? naechste.name + "|" + naechste.saetze.length + "|" + zaehltSeiten(naechste) : "fertig";
+    if (karte.getAttribute("data-schluessel") === schluessel) {
+      return;
+    }
+    karte.setAttribute("data-schluessel", schluessel);
+    karte.innerHTML = "";
+    if (!naechste) {
+      karte.appendChild(element("div", "naechstes-titel", txt("modus.alleErledigt")));
+      return;
+    }
+    const figur = element("div", "naechstes-figur");
+    figur.innerHTML = uebungFigurSvg(naechste);
+    karte.appendChild(figur);
+    const text = element("div", "naechstes-text");
+    const nummer = satzNummer(arbeitsAnzahl(naechste.saetze), zaehltSeiten(naechste));
+    text.appendChild(element("div", "naechstes-label", txt("pause.alsNaechstes", { n: nummer })));
+    text.appendChild(element("div", "naechstes-name", anzeigeName(naechste.name, naechste.uebungId)));
+    // Gewicht: der letzte Satz von heute, sonst der Vorschlag oder das letzte Mal. Wdh.: das Ziel, sonst die vom Satz.
+    let gewicht = null;
+    let wdh = "";
+    if (naechste.saetze.length > 0) {
+      const davor = naechste.saetze[naechste.saetze.length - 1];
+      gewicht = davor.gewicht;
+      wdh = davor.wdh;
+    } else {
+      const vorschlag = steigernAn() ? steigerungVorschlag(naechste) : null;
+      if (vorschlag) {
+        gewicht = vorschlag.gewicht;
+        wdh = vorschlag.wdh;
+      }
+    }
+    if (naechste.zielWdh) {
+      wdh = naechste.zielWdh + (wdhBis(naechste) ? "–" + wdhBis(naechste) : "");
+    }
+    const teile = [];
+    if (gewicht !== null) {
+      teile.push(gewichtText(gewicht));
+    }
+    if (wdh !== "") {
+      teile.push(txt("chip.wdh", { wdh: wdh }));
+    }
+    text.appendChild(element("div", "naechstes-ziel", teile.join(" × ")));
+    karte.appendChild(text);
+  }
+
+  // "‹" oben links im Trainingsmodus (Look Korund): zurück zu Home, das Training läuft weiter
+  function modusVerlassen() {
+    seiteZeigen("home");
+  }
+
+  // "…" oben rechts und der Knopf unten links (Look Korund): die Aktionen, die dort sonst als Knöpfe stehen
+  function modusOptionenOeffnen() {
+    const knoepfe = [
+      { text: txt("tausch.knopf"), aktion: tauschOeffnen },
+      { text: txt("modus.uebungUeberspringen"), aktion: uebungBeenden },
+      { text: txt("modus.beenden"), art: "gefahr", aktion: function () { trainingBeendenFragen(); } },
+      { text: txt("abbrechen"), art: "leise" }
+    ];
+    frageZeigen(txt("modus.optionen"), "", knoepfe);
   }
 
   // Die Werte, mit denen die Zahlenfelder für den nächsten Satz starten: die des Satzes davor,
@@ -4914,6 +5021,7 @@
     if (!satz.aufwaermen) {
       u.extraSatz = false;
     }
+    satzHinweisMerken(u);
 
     let eintrag = eintragFinden(u.eintragId);
     if (!eintrag) {
@@ -5228,8 +5336,11 @@
     const karte = element("div", "karte satz-tabelle");
     const kopf = element("div", "satz-reihe kopf");
     kopf.appendChild(element("span", "", txt("satz.spalte")));
-    kopf.appendChild(element("span", "", txt("gewicht")));
+    kopf.appendChild(element("span", "satz-kg-text", txt("gewicht")));
+    // Look Korund (seit Version 142): Spalten KG, WDH., RIR wie im Entwurf (sonst ausgeblendet)
+    kopf.appendChild(element("span", "satz-kg-zahl", einheit()));
     kopf.appendChild(element("span", "", txt("wdh")));
+    kopf.appendChild(element("span", "satz-rir-spalte", "RIR"));
     kopf.appendChild(element("span", ""));
     karte.appendChild(kopf);
 
@@ -5240,12 +5351,14 @@
         zeile = element("button", "satz-reihe erledigt");
         zeile.appendChild(satzKennungElement(saetze, i, seiten));
         seiteLMarkieren(zeile, seiten && !istAufwaermen(satz) ? arbeitsIndex(saetze, i) : -1);
-        zeile.appendChild(element("span", "", gewichtText(satz.gewicht)));
+        zeile.appendChild(element("span", "satz-kg-text", gewichtText(satz.gewicht)));
+        zeile.appendChild(element("span", "satz-kg-zahl", zahlKurz(gewichtAnzeige(satz.gewicht))));
         const wdh = element("span", "", satz.wdh);
         if (rirLesen(satz.rir) !== null) {
           wdh.appendChild(element("span", "satz-rir", rirText(satz.rir)));
         }
         zeile.appendChild(wdh);
+        zeile.appendChild(element("span", "satz-rir-spalte", rirLesen(satz.rir) !== null ? rirText(satz.rir).replace("RIR ", "") : "–"));
         const haken = element("span", "satz-haken", "✓");
         haken.setAttribute("aria-hidden", "true");
         zeile.appendChild(haken);
@@ -5262,6 +5375,7 @@
         seiteLMarkieren(zeile, seiten ? i - aufwaermen : -1);
         zeile.appendChild(element("span", "", "–"));
         zeile.appendChild(element("span", "", zielWdh));
+        zeile.appendChild(element("span", "satz-rir-spalte", "–"));
         zeile.appendChild(element("span", ""));
       }
       karte.appendChild(zeile);
@@ -6538,6 +6652,12 @@
     return ids;
   }
 
+  // Look Korund (seit Version 142): die Muskelfigur einer einzelnen Übung als SVG, ohne Gruppe die leere Figur
+  function uebungFigurSvg(u) {
+    const ids = routineGruppenIds({ uebungen: [u] }, 1);
+    return koerperSvg(GRUPPE_NACH_ID[ids[0]] || { id: "", ansicht: "vorn" });
+  }
+
   // Look Korund: die Muskelfiguren einer Routine als kleine Kacheln (Klasse heute-figuren, nur im Look Korund zu sehen)
   function routineFiguren(routine) {
     const reihe = element("div", "heute-figuren");
@@ -7466,8 +7586,13 @@
     if (laufendesTraining) {
       start = new Date(laufendesTraining.gestartet).getTime();
     }
+    // Look Korund (seit Version 142): dieselbe Zeit noch einmal als "ZEIT 23:41" über der Übung
+    const zeit = document.getElementById("modus-zeit");
     if (isNaN(start)) {
       uhr.textContent = "";
+      if (zeit) {
+        zeit.textContent = "";
+      }
       return;
     }
     const sekunden = Math.max(0, Math.floor((Date.now() - start) / 1000));
@@ -7477,6 +7602,10 @@
       text = stunden + ":" + text;
     }
     uhr.textContent = text;
+    if (zeit) {
+      zeit.textContent = text;
+      zeit.setAttribute("data-label", txt("modus.zeit"));
+    }
   }
 
   // Beim Zurückkehren zur App: Restzeit der Pause neu berechnen, das Display wieder anlassen und die Uhr auffrischen

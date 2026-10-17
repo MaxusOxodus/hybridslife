@@ -68,11 +68,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=141">
+  <link rel="stylesheet" href="style.css?v=142">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=141">
+  <link rel="stylesheet" href="glass.css?v=142">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=141">
+  <link rel="stylesheet" href="korund.css?v=142">
 </head>
 <body>
 
@@ -255,14 +255,19 @@
     <div id="ansicht-modus" class="ansicht versteckt">
       <div class="modus-kopf">
         <!-- Die Trainingsuhr: wie lange das Training schon läuft (app.js, uhrAnzeigen) -->
+        <!-- Look Korund (seit Version 142): links "‹" zurück, rechts "…" mit den Optionen. Sonst ausgeblendet. -->
+        <button id="modus-kopf-zurueck" class="modus-kopf-knopf" type="button" onclick="modusVerlassen()" aria-label="Zurück" data-t-aria="zurueck">‹</button>
         <span id="modus-uhr" role="timer" aria-label="Trainingsdauer" data-t-aria="modus.uhr"></span>
         <span id="modus-routine"></span>
         <button class="text-btn" onclick="trainingBeendenFragen()" data-t="modus.beenden" data-tour="modus-beenden">Beenden</button>
+        <button id="modus-kopf-menue" class="modus-kopf-knopf" type="button" onclick="modusOptionenOeffnen()" aria-label="Optionen" data-t-aria="modus.optionen">…</button>
       </div>
       <div class="modus-balken"><div id="modus-fortschritt"></div></div>
 
       <!-- Die Übungskarte: oben das Wechseln, darunter Bild, Name und Geräte-Zeile -->
       <div class="modus-karte">
+        <!-- Look Korund (seit Version 142): "ZEIT 23:41" links neben dem Wechseln. Sonst ausgeblendet. -->
+        <div id="modus-zeit" class="modus-zeit"></div>
         <!-- Übung wechseln: Pfeile für vorherige und nächste, die Mitte öffnet die Übersicht aller Übungen -->
         <div class="modus-wechsel" data-tour="modus-wechsel">
           <button id="modus-zurueck" onclick="uebungWechseln(-1)" aria-label="Vorherige Übung" data-t-aria="modus.vorherige">‹</button>
@@ -272,6 +277,8 @@
         <div class="modus-uebung-zeile">
           <!-- Das Bild der Übung aus der bilder.js. Es ist nur Schmuck, deshalb aria-hidden. -->
           <div id="modus-bild" class="modus-bild" aria-hidden="true"></div>
+          <!-- Look Korund (seit Version 142): die Muskelfigur statt des Übungsbilds. Sonst ausgeblendet. -->
+          <div id="modus-figur" class="modus-figur" aria-hidden="true"></div>
           <div class="modus-uebung-text">
             <div class="modus-name-zeile">
               <!-- Der Name der Übung: Antippen zeigt ihren Verlauf als Diagramm -->
@@ -285,12 +292,18 @@
             <!-- Geräte-Zeile: Bereich und Muskelgruppe, z. B. "Maschine · Brust" -->
             <div id="modus-geraet" class="modus-geraet"></div>
           </div>
+          <!-- Look Korund (seit Version 142): Übung tauschen als Symbol rechts. Sonst ausgeblendet. -->
+          <button id="modus-tausch-symbol" class="modus-tausch-symbol" type="button" onclick="tauschOeffnen()" aria-label="Übung tauschen" data-t-aria="tausch.knopf">⇄</button>
         </div>
       </div>
       <!-- Look Korund (seit Version 141): das Ziel der Übung als Chips, z. B. "3 Sätze", "8–12 Wdh." und der Vorschlag "↑ 92,5 kg".
            Die app.js füllt sie immer, die korund.css zeigt sie nur im Look Korund und blendet dort #modus-ziel aus. -->
       <div id="modus-chips" class="modus-chips"></div>
-      <div id="modus-satz" class="modus-satz"></div>
+      <!-- Die Zeile "Satz 2 von 3". Im Look Korund steht rechts daneben "Letztes Mal 30 × 8" (seit Version 142), sonst wirkt der Rahmen nicht (display: contents). -->
+      <div class="modus-satz-zeile">
+        <div id="modus-satz" class="modus-satz"></div>
+        <span id="modus-letztmal" class="modus-letztmal"></span>
+      </div>
 
       <!-- Eingabe: die Werte des nächsten Satzes als große Zahlenfelder, darunter Buttons zum Anpassen -->
       <div id="modus-eingabe">
@@ -329,13 +342,21 @@
       <div id="modus-pause" class="versteckt" data-tour="modus-pause">
         <div class="heute-label" data-t="pause">Pause</div>
         <div id="modus-countdown" class="modus-countdown"></div>
+        <!-- Look Korund (seit Version 142): welcher Satz gerade gespeichert wurde. Sonst ausgeblendet. -->
+        <div id="modus-gespeichert" class="modus-gespeichert"></div>
         <div class="karten-knoepfe">
           <button class="knopf" onclick="pauseAendern(-15)">−15 s</button>
           <button class="knopf" onclick="pauseAendern(15)">+15 s</button>
           <button class="knopf" onclick="pauseUeberspringen()" data-t="ueberspringen">Überspringen</button>
         </div>
+        <!-- Look Korund (seit Version 142): "Pause überspringen" unten am Rand. Sonst ausgeblendet. -->
+        <button id="modus-pause-weiter" class="speichern-btn gross modus-pause-weiter" type="button" onclick="pauseUeberspringen()" data-t="pause.ueberspringen">Pause überspringen</button>
         <p id="modus-naechstes" class="modus-ziel"></p>
+        <!-- Look Korund (seit Version 142): die Karte "Als Nächstes" mit Figur, Name und Ziel. Sonst ausgeblendet. -->
+        <div id="modus-als-naechstes" class="karte modus-als-naechstes"></div>
       </div>
+      <!-- Look Korund (seit Version 142): unten links der Knopf für die Optionen neben "Satz fertig" bzw. "Pause überspringen". Sonst ausgeblendet. -->
+      <button id="modus-optionen-knopf" class="modus-optionen-knopf" type="button" onclick="modusOptionenOeffnen()" aria-label="Optionen" data-t-aria="modus.optionen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg></button>
 
       <!-- Nach dem letzten Ziel-Satz: weiter zur nächsten Übung oder noch ein Satz -->
       <div id="modus-wahl" class="versteckt">
@@ -1114,9 +1135,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=141"></script>
-<script src="uebungen.js?v=141"></script>
-<script src="erklaerungen.js?v=141"></script>
+<script src="texte.js?v=142"></script>
+<script src="uebungen.js?v=142"></script>
+<script src="erklaerungen.js?v=142"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1138,13 +1159,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=141"></script>
-<script src="bilder.js?v=141"></script>
-<script src="vorlagen.js?v=141"></script>
-<script src="figuren.js?v=141"></script>
+<script src="raenge.js?v=142"></script>
+<script src="bilder.js?v=142"></script>
+<script src="vorlagen.js?v=142"></script>
+<script src="figuren.js?v=142"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=141"></script>
+<script src="app.js?v=142"></script>
 
 </body>
 </html>

@@ -2149,6 +2149,20 @@
   font-weight: 700;
 }
 
+/* Abstände unter dem Titel (Version 142): Home-Karte und Umschalter „Pläne | Übungen“ kleben nicht mehr am Titel bzw. am Status-Knopf.
+   Auf Home steht über „Nichts geplant“ und „Ruhetag“ kein zweites „Heute“, der Titel sagt es schon. */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-heute {
+  margin-top: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-heute .heute-label-tag {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #training-reiter {
+  margin-top: 20px;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -4170,6 +4184,20 @@
     fill: var(--text);
     font-size: 14px;
     font-weight: 700;
+  }
+
+  /* Abstände unter dem Titel (Version 142): Home-Karte und Umschalter „Pläne | Übungen“ kleben nicht mehr am Titel bzw. am Status-Knopf.
+     Auf Home steht über „Nichts geplant“ und „Ruhetag“ kein zweites „Heute“, der Titel sagt es schon. */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-heute {
+    margin-top: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-heute .heute-label-tag {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #training-reiter {
+    margin-top: 20px;
   }
 
 }

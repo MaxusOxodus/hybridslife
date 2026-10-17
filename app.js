@@ -7073,13 +7073,13 @@
     }
 
     if (plan === "ruhe") {
-      karte.appendChild(element("div", "heute-label", txt("heute")));
+      karte.appendChild(element("div", "heute-label heute-label-tag", txt("heute")));
       karte.appendChild(element("div", "ansicht-titel", txt("ruhetag")));
       karte.appendChild(element("div", "routine-info", txt("home.ruheText")));
       return;
     }
 
-    karte.appendChild(element("div", "heute-label", txt("heute")));
+    karte.appendChild(element("div", "heute-label heute-label-tag", txt("heute")));
     karte.appendChild(element("div", "ansicht-titel", txt("home.nichtsGeplant")));
     karte.appendChild(element("div", "routine-info", txt("home.nichtsText")));
     const zumPlan = element("button", "knopf heute-knopf", txt("home.zumPlan"));

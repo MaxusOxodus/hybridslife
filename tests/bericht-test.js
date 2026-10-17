@@ -22,6 +22,13 @@ function funktionHolen(name) {
 const ECHT = ["einheitMinuten", "verlaufPunkte", "berichtRekorde", "gleicheUebung", "hatDatum", "saetzeVon", "rirLesen",
   "tagSchluessel", "koerperZusatz", "istEigengewicht", "anzeigeName", "uebungName"];
 
+// Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+const funktionHolenOhneW = funktionHolen;
+funktionHolen = function (name) {
+  return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
+};
+
 // eintraege: die Einträge im Speicher. Körpergewicht gibt es im Test nicht.
 function umgebung(eintraege) {
   let code = raenge

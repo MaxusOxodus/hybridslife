@@ -25,6 +25,13 @@ const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "pa
   "uebungenKopieren", "wdhBis", "zielLesen", "wdhZielBereinigen", "routineBereinigen", "neueId", "trainingBeginnen",
   "rirLesen", "eintragSaetzeSchreiben", "eintragFinden", "satzFertig", "uebungZeigen", "uebungErledigt", "naechsteOffene"];
 
+// Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+const funktionHolenOhneW = funktionHolen;
+funktionHolen = function (name) {
+  return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
+};
+
 // Die zeichnen nur oder gehören zu anderen Teilen der App: Hier tun sie nichts
 const LEER = ["anzeigen", "letztesMalAnzeigen", "modusFortschrittAnzeigen", "modusSaetzeAnzeigen", "modusLetztesAnzeigen",
   "bestwertPruefen", "modusAnzeigen", "sicherSpeichern", "idErgaenzen", "verworfenHinweisSchliessen", "routineHinweisSchliessen",
@@ -47,10 +54,13 @@ function auswahlBauen() {
     appendChild: function (gruppe) { for (const o of gruppe.kinder) { optionen.push(o); } },
     get value() { return wert; },
     set value(w) { const s = String(w); wert = optionen.some(o => o.value === s) ? s : ""; },
+    style: { setProperty: function () {} },
     classList: { contains: k => klassen.has(k), toggle: function (k, an) { if (an) { klassen.add(k); } else { klassen.delete(k); } } }
   };
 }
 const dokument = {
+  // Seit Version 141 zeigt satzFertig den Knopf "W" wieder aus: hier gibt es ihn nicht
+  getElementById: function () { return null; },
   createElement: function (art) {
     if (art === "optgroup") {
       return { kinder: [], appendChild: function (o) { this.kinder.push(o); } };

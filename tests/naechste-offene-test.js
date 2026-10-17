@@ -24,6 +24,13 @@ function funktionHolen(name) {
 const ECHT = ["satzNummer", "satzSeite", "satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "rirLesen", "eintragSaetzeSchreiben", "eintragFinden", "neueId", "satzFertig", "uebungZeigen", "uebungBeenden",
   "uebungErledigt", "naechsteOffene", "extraSatzStarten", "modusZustandAnzeigen"];
 
+// Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
+ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+const funktionHolenOhneW = funktionHolen;
+funktionHolen = function (name) {
+  return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
+};
+
 // Die zeichnen nur oder gehören zu anderen Teilen der App: Hier tun sie nichts
 const LEER = ["anzeigen", "letztesMalAnzeigen", "modusFortschrittAnzeigen", "modusSaetzeAnzeigen", "modusLetztesAnzeigen",
   "bestwertPruefen", "modusAnzeigen", "sicherSpeichern", "modusFelderSetzen"];
@@ -35,6 +42,8 @@ function elementHolen(id) {
     const klassen = new Set();
     elemente[id] = {
       textContent: "",
+      // Seit Version 141 setzt die Pause eine Variable für den Ring des Looks Korund
+      style: { setProperty: function () {} },
       classList: {
         contains: function (k) { return klassen.has(k); },
         toggle: function (k, an) { if (an) { klassen.add(k); } else { klassen.delete(k); } }

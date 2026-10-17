@@ -295,6 +295,12 @@
   // Die ids gelöschter eigener Eigengewicht-Übungen (seit Version 105). Ihre alten Einträge rechnen damit
   // weiter mit dem Körpergewicht, siehe istEigengewicht. Im Backup stehen sie ab Backup-Version 11.
   let geloeschteEigengewicht = [];
+
+  // Notizen je Übung (seit Version 141): { schluessel: text }. Schlüssel ist die ID der Übung, bei Übungen ohne ID "name:" und der Name.
+  let notizen = gespeichertLesen("notizen", {});
+  if (!notizen || typeof notizen !== "object" || Array.isArray(notizen)) {
+    notizen = {};
+  }
   geloeschteEigengewichtAufnehmen(gespeichertLesen("geloeschteEigengewicht", []));
 
   // Gespeicherte Daten aus älteren Versionen kennen nur Übungsnamen: einmal die feste ID ergänzen
@@ -920,6 +926,7 @@
     stilAnzeigen();
     akzentAnzeigen();
     paletteAnzeigen();
+    farbweltAnzeigen();
     einstTitelAnzeigen();
     einstWerteAnzeigen();
     einheitenAnwenden();
@@ -1751,7 +1758,7 @@
     btn.appendChild(zweit);
 
     // Beim Tauschen: Eine Übung, die schon an einem anderen Platz des Trainings steht, lässt sich nicht wählen
-    if (sheetZiel === "tausch" && tauschVergeben(u.de, u.id)) {
+    if ((sheetZiel === "tausch" && tauschVergeben(u.de, u.id)) || (sheetZiel === "hinzu" && hinzuVergeben(u.de, u.id))) {
       btn.disabled = true;
       btn.appendChild(element("span", "sheet-zeile-zweit", txt("tausch.vergeben")));
     }
@@ -2259,6 +2266,11 @@
       routineUebungHinzufuegen(name, gruppe, id);
       return;
     }
+    // Aus der Übersicht im Trainingsmodus geöffnet (seit Version 141): Die Übung kommt ans Ende des Trainings
+    if (sheetZiel === "hinzu") {
+      trainingUebungHinzufuegen(name, gruppe, id);
+      return;
+    }
     // Aus dem Trainingsmodus geöffnet: Die Übung ersetzt die aktuelle Übung des Trainings
     if (sheetZiel === "tausch") {
       uebungTauschen(name, gruppe, id);
@@ -2377,7 +2389,7 @@
     let saetze = 0;
     let volumen = 0;
     for (let i = 0; i < block.eintraege.length; i++) {
-      saetze += saetzeVon(block.eintraege[i]).length;
+      saetze += arbeitsSaetzeVon(block.eintraege[i]).length;
       volumen += eintragVolumen(block.eintraege[i], 0);
     }
 
@@ -2569,6 +2581,9 @@
             if (typeof s.zeit === "string") {
               satz.zeit = s.zeit;
             }
+            if (s.aufwaermen === true) {
+              satz.aufwaermen = true;
+            }
             liste.push(satz);
           }
         }
@@ -2590,8 +2605,32 @@
 
   // Das bewegte Gewicht eines Eintrags: Wdh. × Gewicht, über alle Sätze zusammengezählt.
   // zusatz kommt bei jedem Satz zum Gewicht dazu (das Körpergewicht bei Eigengewicht-Übungen, sonst 0).
+  // Aufwärmsätze (seit Version 141, Feld aufwaermen: true am Satz) zählen nicht mit: nicht beim Volumen,
+  // nicht bei der Zahl der Sätze, nicht beim Satz-Ziel und nicht beim 1RM. Ohne das Feld ist jeder Satz ein Arbeitssatz.
+  function istAufwaermen(satz) {
+    return !!satz && satz.aufwaermen === true;
+  }
+
+  // Wie viele Sätze einer Liste keine Aufwärmsätze sind
+  function arbeitsAnzahl(saetze) {
+    let n = 0;
+    for (let i = 0; i < saetze.length; i++) {
+      if (!istAufwaermen(saetze[i])) {
+        n++;
+      }
+    }
+    return n;
+  }
+
+  // Die Sätze eines Eintrags ohne Aufwärmsätze
+  function arbeitsSaetzeVon(e) {
+    return saetzeVon(e).filter(function (satz) {
+      return !istAufwaermen(satz);
+    });
+  }
+
   function eintragVolumen(e, zusatz) {
-    const saetze = saetzeVon(e);
+    const saetze = arbeitsSaetzeVon(e);
     let summe = 0;
     for (let i = 0; i < saetze.length; i++) {
       summe += saetze[i].wdh * (saetze[i].gewicht + zusatz);
@@ -2691,7 +2730,7 @@
 
     // Serie: Wochen in Folge mit genug Trainingstagen, mit Pausenwochen (serieBerechnen in der raenge.js).
     // Die laufende Woche zählt erst, wenn sie vorbei ist. Sie unterbricht die Serie aber nicht.
-    const serie = serieBerechnen(tageProWoche, montagDerWoche(new Date()).getTime(), SERIE_TAGE_PRO_WOCHE);
+    const serie = serieBerechnen(tageProWoche, montagDerWoche(new Date()).getTime(), SERIE_TAGE_PRO_WOCHE, auszeitMontage());
 
     return {
       workouts: anzahlTage, uebungen: anzahlUebungen, gewicht: gesamtgewicht,
@@ -2707,8 +2746,87 @@
     document.getElementById("stat-serie").textContent = zahlen.serie;
     document.getElementById("stat-serie-titel").textContent = txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE });
 
+    konstanzAnzeigen();
     koerpergewichtAnzeigen();
     fortschrittUebungenAnzeigen();
+  }
+
+  // ---------- Fortschritt: Konstanz (nur im Look Korund zu sehen) ----------
+
+  // So viele Wochen zeigt das Raster, die laufende Woche ist die letzte Zeile
+  const KONSTANZ_WOCHEN = 12;
+
+  // Die Trainingstage der letzten Wochen als Raster: eine Zeile je Woche, Montag bis Sonntag.
+  // stufe: 0 = kein Training, 1 = ein Workout, 2 = mehr als ein Workout an dem Tag. Tage nach heute sind "spaeter".
+  function konstanzDaten(liste, heute, wochen) {
+    const jeTag = {};
+    for (let i = 0; i < liste.length; i++) {
+      const e = liste[i];
+      if (!e || !e.datum || isNaN(new Date(e.datum))) {
+        continue;
+      }
+      const tag = tagSchluessel(new Date(e.datum));
+      // Mehrere Einträge eines Trainings zählen als ein Workout: unterschieden wird nach Routine bzw. Stunde
+      const training = (e.routineName || "") + "|" + (e.trainingId || new Date(e.datum).getHours());
+      if (!jeTag[tag]) {
+        jeTag[tag] = {};
+      }
+      jeTag[tag][training] = true;
+    }
+    const heuteTag = tagSchluessel(heute);
+    const start = montagDerWoche(heute);
+    start.setDate(start.getDate() - (wochen - 1) * 7);
+    const zeilen = [];
+    let tage = 0;
+    for (let w = 0; w < wochen; w++) {
+      const zeile = [];
+      for (let d = 0; d < 7; d++) {
+        const datum = new Date(start.getFullYear(), start.getMonth(), start.getDate() + w * 7 + d);
+        const tag = tagSchluessel(datum);
+        const anzahl = jeTag[tag] ? Object.keys(jeTag[tag]).length : 0;
+        zeile.push({ tag: tag, stufe: Math.min(anzahl, 2), heute: tag === heuteTag, spaeter: tag > heuteTag });
+        if (anzahl > 0 && tag <= heuteTag) {
+          tage++;
+        }
+      }
+      zeilen.push(zeile);
+    }
+    return { zeilen: zeilen, tage: tage };
+  }
+
+  function konstanzAnzeigen() {
+    const bereich = document.getElementById("konstanz");
+    if (!bereich) {
+      return;
+    }
+    const daten = konstanzDaten(eintraege, new Date(), KONSTANZ_WOCHEN);
+    bereich.innerHTML = "";
+    const kopf = element("div", "konstanz-kopf");
+    kopf.appendChild(element("span", "konstanz-titel", txt("konstanz.titel")));
+    kopf.appendChild(element("span", "konstanz-zahl", txt("konstanz.tage", { n: daten.tage, w: KONSTANZ_WOCHEN })));
+    bereich.appendChild(kopf);
+
+    const raster = element("div", "konstanz-raster");
+    raster.setAttribute("role", "img");
+    raster.setAttribute("aria-label", txt("konstanz.tage", { n: daten.tage, w: KONSTANZ_WOCHEN }));
+    // Erste Spalte: die Wochentage (Mo, Mi, Fr beschriftet). Danach eine Spalte je Woche, die laufende rechts.
+    for (let d = 0; d < 7; d++) {
+      raster.appendChild(element("span", "konstanz-wt", d % 2 === 0 && d < 6 ? wochentag(d).slice(0, 2) : ""));
+    }
+    for (let w = 0; w < daten.zeilen.length; w++) {
+      for (let d = 0; d < 7; d++) {
+        const f = daten.zeilen[w][d];
+        let klasse = "konstanz-feld stufe-" + f.stufe;
+        if (f.heute) {
+          klasse += " heute";
+        }
+        if (f.spaeter) {
+          klasse += " spaeter";
+        }
+        raster.appendChild(element("span", klasse));
+      }
+    }
+    bereich.appendChild(raster);
   }
 
   // ---------- Training: Helfer ----------
@@ -3085,11 +3203,23 @@
         auswahl.appendChild(new Option(routinen[j].name, routinen[j].id));
       }
       auswahl.value = wochenplan[i];
+      // Look Korund (seit Version 141): Der Plan steht als sieben schmale Tages-Kacheln nebeneinander. Die Auswahl liegt
+      // unsichtbar über der Kachel, sichtbar ist nur der kurze Text darunter ("Push", "Ruhe" oder "–"). Nur dort zu sehen.
+      const kurz = element("span", "plan-kurz");
+      kurz.setAttribute("aria-hidden", "true");
+      function kurzSetzen() {
+        const routine = routineFinden(auswahl.value);
+        kurz.textContent = routine ? routine.name : (auswahl.value === "ruhe" ? txt("ruhetag") : "–");
+        zeile.classList.toggle("geplant", Boolean(routine));
+      }
+      kurzSetzen();
       auswahl.onchange = function () {
         wochenplan[i] = auswahl.value;
         routinenSpeichern();
+        kurzSetzen();
       };
       zeile.appendChild(auswahl);
+      zeile.appendChild(kurz);
       plan.appendChild(zeile);
     }
   }
@@ -4083,7 +4213,7 @@
         continue;
       }
       stand.eintraege.push(eintrag);
-      stand.saetze += saetzeVon(eintrag).length;
+      stand.saetze += arbeitsSaetzeVon(eintrag).length;
       stand.bewegt += eintragVolumen(eintrag, 0);
     }
     return stand;
@@ -4267,6 +4397,8 @@
     gewichtTitelSetzen("t-feld-gewicht", u.uebungId);
     document.getElementById("modus-ziel").textContent = zielText(u);
     document.getElementById("modus-hinweis").textContent = steigerungText(u);
+    modusChipsAnzeigen(u);
+    document.getElementById("modus-notiz-feld").value = notizen[notizSchluessel(u)] || "";
 
     modusFortschrittAnzeigen();
     modusZustandAnzeigen(true);
@@ -4300,6 +4432,9 @@
     let hoechstes = -Infinity;
     let niedrigstes = Infinity;
     for (let i = 0; i < saetze.length; i++) {
+      if (istAufwaermen(saetze[i])) {
+        continue;
+      }
       const wert = epley1RM(saetze[i].gewicht + zusatz, saetze[i].wdh);
       if (wert > hoechstes) {
         hoechstes = wert;
@@ -4342,7 +4477,7 @@
     const eintrag = eintragFinden(u.eintragId);
     let dran = 0;
     if (eintrag) {
-      dran = saetzeVon(eintrag).length;
+      dran = arbeitsAnzahl(saetzeVon(eintrag));
     }
     const ziel = satzZiel(u);
     if (ziel > 0 && dran >= ziel && !u.extraSatz) {
@@ -4353,10 +4488,13 @@
     for (let i = 0; i < daten.saetze.length; i++) {
       const satz = daten.saetze[i];
       const zeile = element("div", "letztes-zeile");
-      if (i === dran) {
+      // Aufwärmsätze stehen mit "W" da und zählen beim Vergleich mit heute nicht mit (seit Version 141)
+      const platz = istAufwaermen(satz) ? -1 : arbeitsIndex(daten.saetze, i);
+      if (platz >= 0 && platz === dran) {
         zeile.classList.add("aktuell");
       }
-      zeile.appendChild(satzNummerElement(i, zaehltSeiten(u)));
+      zeile.appendChild(satzKennungElement(daten.saetze, i, zaehltSeiten(u)));
+      seiteLMarkieren(zeile, zaehltSeiten(u) ? platz : -1);
 
       // Drei Spalten, jede mit kleinem Titel und dem Wert darunter. Ohne RIR-Angabe steht ein Strich.
       let rir = "–";
@@ -4429,7 +4567,7 @@
     if (!letzter) {
       return null;
     }
-    const saetze = saetzeVon(letzter);
+    const saetze = arbeitsSaetzeVon(letzter);
     if (saetze.length === 0) {
       return null;
     }
@@ -4486,6 +4624,111 @@
     return txt("modus.halten", { wdh: v.ziel });
   }
 
+  // ---------- Notizen je Übung (seit Version 141) ----------
+
+  // Der Schlüssel einer Übung für die Notizen: ihre ID, ohne ID der Name (kleingeschrieben, ohne Leerzeichen am Rand)
+  function notizSchluessel(u) {
+    if (u.uebungId) {
+      return u.uebungId;
+    }
+    return "name:" + nameSaeubern(u.name).toLowerCase();
+  }
+
+  // Speichert die Notiz der Übung, die im Trainingsmodus offen ist. Eine leere Notiz wird entfernt.
+  function notizSpeichern() {
+    const t = laufendesTraining;
+    if (!t || !t.uebungen[t.index]) {
+      return;
+    }
+    const schluessel = notizSchluessel(t.uebungen[t.index]);
+    const text = document.getElementById("modus-notiz-feld").value.trim();
+    if (text === "") {
+      delete notizen[schluessel];
+    } else {
+      notizen[schluessel] = text.slice(0, 300);
+    }
+    sicherSpeichern("notizen", notizen);
+  }
+
+  // Prüft Notizen aus einem Backup: nur Texte bis 300 Zeichen
+  function notizenBereinigen(roh) {
+    const sauber = {};
+    if (roh && typeof roh === "object" && !Array.isArray(roh)) {
+      Object.keys(roh).forEach(function (schluessel) {
+        if (typeof roh[schluessel] === "string" && roh[schluessel].trim() !== "") {
+          sauber[schluessel] = roh[schluessel].trim().slice(0, 300);
+        }
+      });
+    }
+    return sauber;
+  }
+
+  // Look Korund (seit Version 141): Ziel und Vorschlag der Übung als Chips über "Satz 2 von 3".
+  // Dieselben Werte wie zielText und steigerungVorschlag, nur kurz: "3 Sätze", "8–12 Wdh." und das Gewicht des Vorschlags.
+  // Steigt der Vorschlag, steht ein Pfeil davor und der Chip ist grün (Klasse "steigt"). Ohne Ziel und Vorschlag bleibt die Zeile leer.
+  function modusChipsAnzeigen(u) {
+    const behaelter = document.getElementById("modus-chips");
+    behaelter.innerHTML = "";
+    if (u.zielSaetze) {
+      behaelter.appendChild(element("span", "modus-chip", txt(zaehltSeiten(u) ? "chip.saetzeSeiten" : "chip.saetze", { n: u.zielSaetze })));
+    }
+    if (u.zielWdh) {
+      let wdh = String(u.zielWdh);
+      if (wdhBis(u)) {
+        wdh += "–" + wdhBis(u);
+      }
+      behaelter.appendChild(element("span", "modus-chip", txt("chip.wdh", { wdh: wdh })));
+    }
+    // Einseitige Übung (seit Version 141): Ein Tipp schaltet für dieses Training zwischen "Beide" und "Einzeln" (R/L) um
+    if (einseitig(u.uebungId, u.name)) {
+      const seiten = element("button", "modus-chip seiten-chip", txt(zaehltSeiten(u) ? "chip.seitenEinzeln" : "chip.seitenBeide"));
+      seiten.type = "button";
+      seiten.setAttribute("aria-pressed", zaehltSeiten(u) ? "true" : "false");
+      seiten.setAttribute("aria-label", txt("chip.seitenAria"));
+      // Nach dem ersten Satz ist die Wahl fest: Ein Satz mit "Beide" lässt sich nicht sinnvoll in R und L aufteilen
+      if (u.saetze.length > 0) {
+        seiten.classList.add("gesperrt");
+      }
+      seiten.onclick = function () {
+        seitenUmschalten(u);
+      };
+      behaelter.appendChild(seiten);
+    }
+    const v = steigernAn() ? steigerungVorschlag(u) : null;
+    if (v && v.art !== "ohneZiel" && v.gewicht > 0) {
+      const chip = element("span", "modus-chip vorschlag", gewichtText(v.gewicht));
+      chip.setAttribute("aria-label", txt("chip.vorschlag", { gewicht: gewichtText(v.gewicht) }));
+      if (v.art === "steigern") {
+        chip.classList.add("steigt");
+        chip.textContent = "↑ " + chip.textContent;
+      }
+      behaelter.appendChild(chip);
+    }
+  }
+
+  // Schaltet bei einer einseitigen Übung im laufenden Training um: "Beide" (ein Satz sind beide Seiten) oder "Einzeln"
+  // (jede Seite ein eigener Satz, R und L). Es gilt nur für dieses Training, die Routine bleibt, wie sie ist.
+  // Nur vor dem ersten Satz der Übung: Danach bleibt die Wahl, damit kein Satz falsch als R oder L dasteht.
+  function seitenUmschalten(u) {
+    // Umstellen geht nur, solange die Übung in diesem Training noch keinen Satz hat (auch keinen Aufwärmsatz)
+    if (u.saetze.length > 0) {
+      frageZeigen(txt("seiten.festTitel"), txt("seiten.festText"), [{ text: txt("ok"), art: "haupt" }]);
+      return;
+    }
+    if (zaehltSeiten(u)) {
+      delete u.zaehlweise;
+    } else {
+      u.zaehlweise = "seiten";
+    }
+    trainingMerken();
+    document.getElementById("modus-ziel").textContent = zielText(u);
+    modusChipsAnzeigen(u);
+    modusFortschrittAnzeigen();
+    modusZustandAnzeigen(false);
+    modusSaetzeAnzeigen();
+    modusLetztesAnzeigen();
+  }
+
   // Zeigt im Trainingsmodus den passenden Teil: die Eingabe für den nächsten Satz, den Countdown
   // der Pause oder nach dem letzten Ziel-Satz die Wahl zwischen "Nächste Übung" und "+ Satz".
   // Läuft jede Viertelsekunde, solange eine Pause läuft. felderNeu = true stellt die Zahlenfelder in jedem Fall neu ein.
@@ -4496,7 +4739,8 @@
     }
     const u = t.uebungen[t.index];
     const ziel = satzZiel(u);
-    const gemacht = u.saetze.length;
+    // Aufwärmsätze zählen nicht zum Ziel
+    const gemacht = arbeitsAnzahl(u.saetze);
     // Weiter geht es zur nächsten offenen Übung. Ist keine mehr offen, wird das Training abgeschlossen.
     const naechsteIndex = naechsteOffene();
     const keineOffene = naechsteIndex < 0;
@@ -4536,6 +4780,10 @@
     // Pause: Countdown und was danach kommt
     document.getElementById("modus-pause").classList.toggle("versteckt", !pauseLaeuft);
     document.getElementById("modus-countdown").textContent = pauseText(Math.ceil(pauseRest() / 1000));
+    // Look Korund (seit Version 141): Der Ring um den Countdown zeigt den Rest der Pause, gemessen an der Pause dieser Übung.
+    // Nur eine Variable für die korund.css, gespeichert wird nichts. Nach "+15 s" bleibt der Ring höchstens voll.
+    const dauer = pauseDauer(u) * 1000;
+    document.getElementById("modus-pause").style.setProperty("--pause-anteil", dauer > 0 ? Math.min(1, pauseRest() / dauer).toFixed(3) : "1");
     let danach = txt("modus.alsNaechstes", { text: satzText });
     if (zielErreicht && keineOffene) {
       danach = txt("modus.alleErledigt");
@@ -4577,7 +4825,7 @@
       }
     } else {
       const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
-      const saetze = letzter ? saetzeVon(letzter) : [];
+      const saetze = letzter ? arbeitsSaetzeVon(letzter) : [];
       if (saetze.length > 0) {
         return [saetze[0].gewicht, saetze[0].wdh];
       }
@@ -4616,6 +4864,9 @@
       gewaehlterRir = rirLesen(gemerkteTrainingWerte[2]);
     }
     rirAnzeigen();
+    // Jeder neue Satz ist erst einmal ein Arbeitssatz
+    aufwaermenGewaehlt = false;
+    wKnopfAnzeigen("modus-w", false);
   }
 
   // Die Auswahl der Reps in Reserve
@@ -4653,8 +4904,16 @@
       satz.rir = gewaehlterRir;
     }
     satz.zeit = new Date().toISOString();
+    // Aufwärmsatz (seit Version 141): nur, wenn "W" gewählt ist. Danach ist "W" wieder aus.
+    if (aufwaermenGewaehlt) {
+      satz.aufwaermen = true;
+    }
+    aufwaermenGewaehlt = false;
+    wKnopfAnzeigen("modus-w", false);
     u.saetze.push(satz);
-    u.extraSatz = false;
+    if (!satz.aufwaermen) {
+      u.extraSatz = false;
+    }
 
     let eintrag = eintragFinden(u.eintragId);
     if (!eintrag) {
@@ -4688,7 +4947,7 @@
     // Mit dem letzten Ziel-Satz geht es gleich zur nächsten offenen Übung, die Pause läuft dort weiter.
     // Ohne Satz-Ziel ist nicht klar, welcher Satz der letzte ist, und ohne offene Übung bleibt die App hier.
     const naechste = naechsteOffene();
-    if (satzZiel(u) > 0 && u.saetze.length === satzZiel(u) && naechste >= 0) {
+    if (!satz.aufwaermen && satzZiel(u) > 0 && arbeitsAnzahl(u.saetze) === satzZiel(u) && naechste >= 0) {
       uebungZeigen(naechste);
     } else {
       modusFortschrittAnzeigen();
@@ -4716,6 +4975,9 @@
       if (typeof s.zeit === "string") {
         einzeln.zeit = s.zeit;
       }
+      if (s.aufwaermen === true) {
+        einzeln.aufwaermen = true;
+      }
       eintrag.einzelsaetze.push(einzeln);
       if (s.gewicht > schwerster.gewicht || (s.gewicht === schwerster.gewicht && s.wdh > schwerster.wdh)) {
         schwerster = s;
@@ -4733,7 +4995,7 @@
   function bestwertPruefen(eintrag, index) {
     const saetze = saetzeVon(eintrag);
     const satz = saetze[index];
-    if (!satz || !hatDatum(eintrag)) {
+    if (!satz || istAufwaermen(satz) || !hatDatum(eintrag)) {
       return;
     }
     const datum = new Date(eintrag.datum);
@@ -4743,7 +5005,7 @@
     }
     const neu = epley1RM(satz.gewicht + koerper, satz.wdh);
     for (let i = 0; i < index; i++) {
-      if (epley1RM(saetze[i].gewicht + koerper, saetze[i].wdh) >= neu) {
+      if (!istAufwaermen(saetze[i]) && epley1RM(saetze[i].gewicht + koerper, saetze[i].wdh) >= neu) {
         return;
       }
     }
@@ -4773,6 +5035,69 @@
   let satzEintragId = "";
   let satzIndex = -1;
   let satzRir = null;
+  // Ist der bearbeitete Satz ein Aufwärmsatz? Umschalten mit "W" im Sheet (nur im Look Korund zu sehen).
+  let satzW = false;
+
+  // Ist "W" für den nächsten Satz im Trainingsmodus gewählt? Nur im Speicher der Seite, nach "Satz fertig" wieder aus.
+  let aufwaermenGewaehlt = false;
+
+  // Zeigt einen der zwei Knöpfe "W" (Trainingsmodus "modus-w", Sheet "satz-w") an oder aus
+  function wKnopfAnzeigen(id, an) {
+    const knopf = document.getElementById(id);
+    if (knopf && knopf.setAttribute) {
+      knopf.setAttribute("aria-pressed", an ? "true" : "false");
+      // Zusätzlich als Klasse: Daran hängt die Farbe in der korund.css
+      knopf.classList.toggle("an", an);
+    }
+  }
+
+  // Ein Tipp auf "W" im Trainingsmodus: Der nächste Satz wird ein Aufwärmsatz (noch ein Tipp nimmt es zurück)
+  function aufwaermenUmschalten() {
+    aufwaermenGewaehlt = !aufwaermenGewaehlt;
+    wKnopfAnzeigen("modus-w", aufwaermenGewaehlt);
+    // Die Überschrift sagt, was als Nächstes kommt: "Aufwärmsatz" oder wieder "Satz 1 von 3"
+    if (aufwaermenGewaehlt) {
+      document.getElementById("modus-satz").textContent = txt("w.satz");
+    } else {
+      modusZustandAnzeigen(false);
+    }
+  }
+
+  // Ein Tipp auf "W" im Sheet "Satz bearbeiten"
+  function satzWUmschalten() {
+    satzW = !satzW;
+    wKnopfAnzeigen("satz-w", satzW);
+  }
+
+  // Bei "Seiten: Einzeln" bekommt die linke Seite eines Paars die Klasse "seite-l". Der Look Korund zeigt R und L
+  // damit als zusammengehörigen Block (korund.css), sonst ändert die Klasse nichts. platz < 0: keine Seite.
+  function seiteLMarkieren(zeile, platz) {
+    if (platz >= 0 && platz % 2 === 1) {
+      zeile.classList.add("seite-l");
+    }
+  }
+
+  // Der Platz eines Satzes unter den Arbeitssätzen davor (ohne Aufwärmsätze), ab 0
+  function arbeitsIndex(saetze, index) {
+    return arbeitsAnzahl(saetze.slice(0, index));
+  }
+
+  // Die Kennung eines Satzes als Text: "W" für einen Aufwärmsatz, sonst die Nummer unter den Arbeitssätzen
+  function satzKennung(saetze, index, seiten) {
+    if (istAufwaermen(saetze[index])) {
+      return "W";
+    }
+    return satzNummer(arbeitsIndex(saetze, index), seiten);
+  }
+
+  // Dasselbe als Element für die Tabellen. Ohne Aufwärmsätze genau das Element von früher.
+  function satzKennungElement(saetze, index, seiten) {
+    if (istAufwaermen(saetze[index])) {
+      const w = element("span", "satz-nummer satz-w", "W");
+      return w;
+    }
+    return satzNummerElement(arbeitsIndex(saetze, index), seiten);
+  }
 
   // "80 kg × 10", mit Reps in Reserve "80 kg × 10 · RIR 2"
   function satzText(satz) {
@@ -4795,6 +5120,10 @@
     let hoechstes = -Infinity;
     let niedrigstes = Infinity;
     for (let i = 0; i < saetze.length; i++) {
+      // Aufwärmsätze (seit Version 141) können nicht der beste Satz sein
+      if (istAufwaermen(saetze[i])) {
+        continue;
+      }
       const wert = epley1RM(saetze[i].gewicht + zusatz, saetze[i].wdh);
       if (wert > hoechstes) {
         hoechstes = wert;
@@ -4824,7 +5153,8 @@
 
     for (let i = 0; i < saetze.length; i++) {
       const zeile = element("button", "tag-reihe");
-      zeile.appendChild(satzNummerElement(i, seiten));
+      zeile.appendChild(satzKennungElement(saetze, i, seiten));
+      seiteLMarkieren(zeile, seiten && !istAufwaermen(saetze[i]) ? arbeitsIndex(saetze, i) : -1);
 
       const werte = element("span", "tag-werte");
       werte.appendChild(element("span", "", gewichtText(saetze[i].gewicht) + " × " + saetze[i].wdh));
@@ -4844,7 +5174,7 @@
       const pfeil = element("span", "einst-pfeil", "›");
       pfeil.setAttribute("aria-hidden", "true");
       zeile.appendChild(pfeil);
-      zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzNummer(i, seiten) }) + ": " + satzText(saetze[i]));
+      zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzKennung(saetze, i, seiten) }) + ": " + satzText(saetze[i]));
       zeile.onclick = function () {
         satzSheetOeffnen(eintrag.id, i);
       };
@@ -4870,13 +5200,20 @@
     }
     // Bei "Einzeln" tragen die Nummern die Seite (seit Version 135)
     const seiten = zaehltSeiten(u);
+    // Der Chip "Seiten" (Look Korund) ist gesperrt, sobald die Übung einen Satz hat, und wieder frei ohne Satz
+    const seitenChip = document.querySelector ? document.querySelector("#modus-chips .seiten-chip") : null;
+    if (seitenChip) {
+      seitenChip.classList.toggle("gesperrt", u.saetze.length > 0);
+    }
 
     // Nach dem letzten Ziel-Satz gibt es keinen aktuellen Satz, bis "+ Satz" einen weiteren startet
+    // Aufwärmsätze stehen mit "W" in der Tabelle, zählen aber nicht zum Ziel
     const ziel = satzZiel(u);
-    const zielErreicht = ziel > 0 && saetze.length >= ziel && !u.extraSatz;
-    let zeilen = Math.max(saetze.length, ziel);
+    const aufwaermen = saetze.length - arbeitsAnzahl(saetze);
+    const zielErreicht = ziel > 0 && saetze.length - aufwaermen >= ziel && !u.extraSatz;
+    let zeilen = Math.max(saetze.length, ziel + aufwaermen);
     if (!zielErreicht) {
-      zeilen = Math.max(saetze.length + 1, ziel);
+      zeilen = Math.max(saetze.length + 1, ziel + aufwaermen);
     }
 
     let zielWdh = "–";
@@ -4901,7 +5238,8 @@
       if (i < saetze.length) {
         const satz = saetze[i];
         zeile = element("button", "satz-reihe erledigt");
-        zeile.appendChild(satzNummerElement(i, seiten));
+        zeile.appendChild(satzKennungElement(saetze, i, seiten));
+        seiteLMarkieren(zeile, seiten && !istAufwaermen(satz) ? arbeitsIndex(saetze, i) : -1);
         zeile.appendChild(element("span", "", gewichtText(satz.gewicht)));
         const wdh = element("span", "", satz.wdh);
         if (rirLesen(satz.rir) !== null) {
@@ -4911,7 +5249,7 @@
         const haken = element("span", "satz-haken", "✓");
         haken.setAttribute("aria-hidden", "true");
         zeile.appendChild(haken);
-        zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzNummer(i, seiten) }) + ": " + satzText(satz));
+        zeile.setAttribute("aria-label", txt("satz.bearbeiten", { n: satzKennung(saetze, i, seiten) }) + ": " + satzText(satz));
         zeile.onclick = function () {
           satzSheetOeffnen(eintrag.id, i);
         };
@@ -4920,7 +5258,8 @@
         if (i === saetze.length && !zielErreicht) {
           zeile.className = "satz-reihe aktuell";
         }
-        zeile.appendChild(satzNummerElement(i, seiten));
+        zeile.appendChild(satzNummerElement(i - aufwaermen, seiten));
+        seiteLMarkieren(zeile, seiten ? i - aufwaermen : -1);
         zeile.appendChild(element("span", "", "–"));
         zeile.appendChild(element("span", "", zielWdh));
         zeile.appendChild(element("span", ""));
@@ -4943,8 +5282,10 @@
     satzEintragId = eintragId;
     satzIndex = index;
     satzRir = satz.rir;
+    satzW = istAufwaermen(satz);
+    wKnopfAnzeigen("satz-w", satzW);
 
-    document.getElementById("satz-sheet-titel").textContent = txt("satz.bearbeiten", { n: satzNummer(index, eintragSeiten(eintrag)) });
+    document.getElementById("satz-sheet-titel").textContent = txt("satz.bearbeiten", { n: satzKennung(saetzeVon(eintrag), index, eintragSeiten(eintrag)) });
     document.getElementById("satz-sheet-uebung").textContent = anzeigeName(eintrag.uebung, eintrag.uebungId);
     gewichtTitelSetzen("s-feld-gewicht", eintrag.uebungId);
     gewichtFeldSetzen("s-feld-gewicht", startGewicht());
@@ -5002,6 +5343,9 @@
     if (alt.zeit) {
       saetze[satzIndex].zeit = alt.zeit;
     }
+    if (satzW) {
+      saetze[satzIndex].aufwaermen = true;
+    }
     const geaendert = gewicht !== alt.gewicht || saetze[satzIndex].wdh !== alt.wdh;
     const index = satzIndex;
 
@@ -5028,7 +5372,7 @@
 
     let text = txt("satz.loeschenText", {
       name: anzeigeName(eintrag.uebung, eintrag.uebungId),
-      n: satzNummer(satzIndex, eintragSeiten(eintrag)),
+      n: satzKennung(saetze, satzIndex, eintragSeiten(eintrag)),
       satz: satzText(saetze[satzIndex])
     });
     if (saetze.length === 1) {
@@ -5093,6 +5437,9 @@
             }
             if (saetze[j].zeit) {
               satz.zeit = saetze[j].zeit;
+            }
+            if (saetze[j].aufwaermen === true) {
+              satz.aufwaermen = true;
             }
             u.saetze.push(satz);
           }
@@ -5164,9 +5511,9 @@
   // Eine angefangene Übung (2 von 3 Sätzen) ist noch offen.
   function uebungErledigt(u) {
     if (satzZiel(u) > 0) {
-      return u.saetze.length >= satzZiel(u);
+      return arbeitsAnzahl(u.saetze) >= satzZiel(u);
     }
-    return u.saetze.length > 0;
+    return arbeitsAnzahl(u.saetze) > 0;
   }
 
   // Der Platz der nächsten offenen Übung: zuerst die hinter der aktuellen, dann wieder von vorn.
@@ -5240,6 +5587,65 @@
   }
 
   // Steht die Übung schon an einem anderen Platz des laufenden Trainings, als aktuelle oder als getauschte Übung?
+  // Übung hinzufügen (seit Version 141): Steht die Übung schon irgendwo im Training, auch an der aktuellen Stelle?
+  function hinzuVergeben(name, id) {
+    const t = laufendesTraining;
+    if (!t) {
+      return false;
+    }
+    for (let i = 0; i < t.uebungen.length; i++) {
+      if (stelleIst(t.uebungen[i], name, id)) {
+        return true;
+      }
+      for (let j = 0; j < t.uebungen[i].getauscht.length; j++) {
+        if (stelleIst(t.uebungen[i].getauscht[j], name, id)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Satz-Ziel einer Übung, die erst im Training dazukommt: drei Sätze, ohne Wdh.-Ziel, Standard-Pause
+  const HINZU_ZIEL_SAETZE = 3;
+
+  // Hängt eine Übung ans Ende des laufenden Trainings und springt zu ihr. Die Routine bleibt, wie sie ist.
+  function trainingUebungHinzufuegen(name, gruppe, id) {
+    const t = laufendesTraining;
+    if (!t) {
+      sheetSchliessen();
+      return;
+    }
+    if (hinzuVergeben(name, id)) {
+      return;
+    }
+    t.uebungen.push({
+      name: name,
+      uebungId: id || "",
+      muskelgruppe: gruppe || "",
+      zielSaetze: HINZU_ZIEL_SAETZE,
+      zielWdh: null,
+      zielWdhMax: null,
+      pause: null,
+      saetze: [],
+      eintragId: "",
+      extraSatz: false,
+      getauscht: [],
+      hinzugefuegt: true
+    });
+    gemerkteTrainingWerte = null;
+    trainingMerken();
+    sheetSchliessen();
+    uebungZeigen(t.uebungen.length - 1);
+    window.scrollTo(0, 0);
+  }
+
+  // Der Knopf unter der Übersicht der Übungen: schließt die Übersicht und öffnet die Auswahl
+  function uebungHinzufuegenOeffnen() {
+    zusatzSheetsSchliessen();
+    sheetOeffnen("hinzu");
+  }
+
   function tauschVergeben(name, id) {
     const t = laufendesTraining;
     if (!t) {
@@ -5495,7 +5901,7 @@
 
   // Wie weit eine Übung im laufenden Training ist: "offen", "2 von 3 Sätzen" oder "fertig · 3 Sätze"
   function uebungStandText(u) {
-    const gemacht = u.saetze.length;
+    const gemacht = arbeitsAnzahl(u.saetze);
     if (gemacht === 0) {
       return txt("stand.offen");
     }
@@ -5546,6 +5952,10 @@
       };
       liste.appendChild(zeile);
     }
+    // Übung hinzufügen (seit Version 141): nur im Look Korund zu sehen (korund.css)
+    const hinzu = element("button", "sheet-neu uebung-hinzu", txt("hinzu.knopf"));
+    hinzu.onclick = uebungHinzufuegenOeffnen;
+    liste.appendChild(hinzu);
     zusatzSheetOeffnen("uebungen-sheet");
   }
 
@@ -5587,7 +5997,7 @@
     for (let i = 0; i < t.erledigt.length; i++) {
       // Gezählt wird, was im Eintrag steht. Gibt es ihn nicht mehr, gelten die gemerkten Werte.
       const eintrag = eintragFinden(t.erledigt[i].id) || t.erledigt[i];
-      anzahlSaetze += saetzeVon(eintrag).length;
+      anzahlSaetze += arbeitsSaetzeVon(eintrag).length;
       bewegt += eintragVolumen(eintrag, 0);
     }
 
@@ -5940,6 +6350,7 @@
   // Baut die ganze Übersicht neu auf
   function homeAnzeigen() {
     document.getElementById("home-datum").textContent = new Date().toLocaleDateString(gebiet(), { weekday: "long", day: "numeric", month: "long" });
+    homeSerieAnzeigen();
     homeHeuteAnzeigen();
     homeWocheAnzeigen();
     homeLetztesAnzeigen();
@@ -6007,6 +6418,163 @@
     return Boolean(e && e.datum) && !isNaN(new Date(e.datum));
   }
 
+  // ---------- Status: Aktiv, Krank oder Urlaub (seit Version 141) ----------
+
+  // Krank und Urlaub sind Auszeiten. Gespeichert in einstellungen.auszeiten als Liste von { art, von, bis }
+  // (Zeiten in Millisekunden, bis ist null, solange die Auszeit läuft). Ohne Eintrag ist man aktiv.
+  // Eine Woche mit Auszeit ohne genug Trainingstage bricht die Serie nicht und verbraucht keine Pausenwoche (serieBerechnen).
+  const AUSZEIT_ARTEN = ["krank", "urlaub"];
+
+  // Die gespeicherten Auszeiten, nur gültige Einträge
+  function auszeiten() {
+    if (!Array.isArray(einstellungen.auszeiten)) {
+      return [];
+    }
+    return einstellungen.auszeiten.filter(function (a) {
+      return a && AUSZEIT_ARTEN.indexOf(a.art) !== -1 && typeof a.von === "number" && (a.bis === null || typeof a.bis === "number");
+    });
+  }
+
+  // Die laufende Auszeit oder null
+  function auszeitAktuell() {
+    const liste = auszeiten();
+    for (let i = liste.length - 1; i >= 0; i--) {
+      if (liste[i].bis === null) {
+        return liste[i];
+      }
+    }
+    return null;
+  }
+
+  // Die Montage aller Wochen, die eine Auszeit berühren, als { montag: true } für serieBerechnen
+  function auszeitMontage() {
+    const montage = {};
+    const liste = auszeiten();
+    for (let i = 0; i < liste.length; i++) {
+      const ende = liste[i].bis === null ? Date.now() : liste[i].bis;
+      let montag = montagDerWoche(new Date(liste[i].von));
+      while (montag.getTime() <= ende) {
+        montage[montag.getTime()] = true;
+        montag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 7);
+      }
+    }
+    return montage;
+  }
+
+  // Setzt den Status: "aktiv" beendet die laufende Auszeit, "krank" oder "urlaub" beginnt eine (eine andere laufende endet dabei)
+  function statusSetzen(art) {
+    const liste = auszeiten();
+    const jetzt = Date.now();
+    const laufend = auszeitAktuell();
+    if (laufend && laufend.art === art) {
+      return;
+    }
+    if (laufend) {
+      laufend.bis = jetzt;
+    }
+    if (AUSZEIT_ARTEN.indexOf(art) !== -1) {
+      liste.push({ art: art, von: jetzt, bis: null });
+    }
+    einstellungen.auszeiten = liste;
+    einstellungenSpeichern();
+    statusAnzeigen();
+    homeAnzeigen();
+  }
+
+  // Training-Tab (Look Korund): der Knopf oben rechts mit dem Status. Ein Tipp öffnet die Auswahl.
+  function statusAnzeigen() {
+    const knopf = document.getElementById("status-knopf");
+    const laufend = auszeitAktuell();
+    const art = laufend ? laufend.art : "aktiv";
+    knopf.textContent = txt("status." + art);
+    knopf.setAttribute("data-status", art);
+    knopf.setAttribute("aria-label", txt("status.titel") + ": " + txt("status." + art));
+  }
+
+  function statusWaehlen() {
+    const laufend = auszeitAktuell();
+    const jetzt = laufend ? laufend.art : "aktiv";
+    const knoepfe = ["aktiv", "krank", "urlaub"].map(function (art) {
+      return {
+        text: (art === jetzt ? "✓ " : "") + txt("status." + art),
+        art: art === jetzt ? "haupt" : "",
+        aktion: function () {
+          statusSetzen(art);
+        }
+      };
+    });
+    knoepfe.push({ text: txt("abbrechen"), art: "leise" });
+    frageZeigen(txt("status.titel"), txt("status.text"), knoepfe);
+  }
+
+  // Look Korund (seit Version 141): die Serie oben rechts neben dem Titel, z. B. "Serie: 6 Wochen". Ohne Serie leer.
+  // Dieselbe Zahl wie im Profil (gesamtZahlen). Die korund.css zeigt sie nur im Look Korund.
+  function homeSerieAnzeigen() {
+    const feld = document.getElementById("home-serie");
+    const serie = gesamtZahlen().serie;
+    feld.textContent = serie > 0 ? txtAnzahl("profil.serieText", serie) : "";
+  }
+
+  // Die IDs der Muskelgruppen einer Routine in ihrer Reihenfolge, jede einmal, höchstens max.
+  // Feste Übungen über ihren Hauptmuskel, eigene über den gespeicherten Namen der Gruppe.
+  function routineGruppenIds(routine, max) {
+    const ids = [];
+    for (let i = 0; i < routine.uebungen.length && ids.length < max; i++) {
+      const u = routine.uebungen[i];
+      let id = "";
+      if (UEBUNG_NACH_ID[u.uebungId]) {
+        id = uebungGruppe(UEBUNG_NACH_ID[u.uebungId]);
+      } else {
+        for (let j = 0; j < MUSKELGRUPPEN.length; j++) {
+          if (MUSKELGRUPPEN[j].de === u.muskelgruppe || MUSKELGRUPPEN[j].en === u.muskelgruppe) {
+            id = MUSKELGRUPPEN[j].id;
+          }
+        }
+      }
+      if (id && GRUPPE_NACH_ID[id] && ids.indexOf(id) === -1) {
+        ids.push(id);
+      }
+    }
+    return ids;
+  }
+
+  // Look Korund: die Muskelfiguren einer Routine als kleine Kacheln (Klasse heute-figuren, nur im Look Korund zu sehen)
+  function routineFiguren(routine) {
+    const reihe = element("div", "heute-figuren");
+    const ids = routineGruppenIds(routine, 4);
+    for (let i = 0; i < ids.length; i++) {
+      const kachel = element("span", "heute-figur");
+      kachel.innerHTML = koerperSvg(GRUPPE_NACH_ID[ids[i]]);
+      reihe.appendChild(kachel);
+    }
+    return reihe;
+  }
+
+  // Look Korund: der Hinweis über der Heute-Karte, wenn bei einer Übung der geplanten Routine die Steigerung dran ist,
+  // z. B. "Steigerung möglich · Bankdrücken: heute 92,5 kg". Dieselbe Rechnung wie im Trainingsmodus (steigerungVorschlag).
+  // Ohne Steigerung oder mit ausgeschaltetem Schalter gibt es keinen Hinweis. Die korund.css zeigt ihn nur im Look Korund.
+  function homeHinweis(routine) {
+    if (!steigernAn()) {
+      return null;
+    }
+    for (let i = 0; i < routine.uebungen.length; i++) {
+      const u = routine.uebungen[i];
+      const v = steigerungVorschlag(u);
+      if (v && v.art === "steigern") {
+        const karte = element("div", "karte home-hinweis");
+        const symbol = element("span", "home-hinweis-symbol", "↑");
+        symbol.setAttribute("aria-hidden", "true");
+        karte.appendChild(symbol);
+        const text = element("div", "home-hinweis-text");
+        text.appendChild(element("div", "home-hinweis-titel", txt("home.steigerung")));
+        text.appendChild(element("div", "routine-info", txt("home.steigerungText", { name: anzeigeName(u.name, u.uebungId), gewicht: gewichtText(v.gewicht) })));
+        karte.appendChild(text);
+        return karte;
+      }
+    }
+    return null;
+  }
+
   // Die Karte ganz oben: das laufende Training, sonst das, was laut Wochenplan heute dran ist
   function homeHeuteAnzeigen() {
     const bereich = document.getElementById("home-heute");
@@ -6021,6 +6589,20 @@
       const weiter = element("button", "speichern-btn", txt("training.fortsetzen"));
       weiter.onclick = trainingFortsetzen;
       karte.appendChild(weiter);
+      return;
+    }
+
+    // Läuft eine Auszeit (Krank oder Urlaub), steht sie oben, mit dem Knopf zurück zu "Aktiv"
+    const auszeit = auszeitAktuell();
+    if (auszeit) {
+      karte.appendChild(element("div", "heute-label", txt("status.titel")));
+      karte.appendChild(element("div", "ansicht-titel", txt("status." + auszeit.art)));
+      karte.appendChild(element("div", "routine-info", txt("home.status." + auszeit.art)));
+      const aktiv = element("button", "knopf heute-knopf", txt("status.wiederAktiv"));
+      aktiv.onclick = function () {
+        statusSetzen("aktiv");
+      };
+      karte.appendChild(aktiv);
       return;
     }
 
@@ -6042,9 +6624,14 @@
         karte.appendChild(element("div", "heute-label", txt("home.erledigt")));
       } else {
         karte.appendChild(element("div", "heute-label", txt("home.geplant")));
+        const hinweis = homeHinweis(routine);
+        if (hinweis) {
+          bereich.insertBefore(hinweis, karte);
+        }
       }
       karte.appendChild(element("div", "ansicht-titel", routine.name));
       karte.appendChild(element("div", "routine-info", routineInfo(routine)));
+      karte.appendChild(routineFiguren(routine));
 
       let start;
       if (erledigt) {
@@ -6542,7 +7129,7 @@
         anzahlUebungen++;
       }
       // Einträge, bei denen keine Zahl steht, werden wie auf der Fortschritt-Seite übersprungen
-      anzahlSaetze += saetzeVon(e).length;
+      anzahlSaetze += arbeitsSaetzeVon(e).length;
       bewegt += eintragVolumen(e, 0);
     }
 
@@ -7723,7 +8310,7 @@
       if (ohneEintragId && (e.id === ohneEintragId || (Array.isArray(ohneEintragId) && ohneEintragId.indexOf(e.id) !== -1))) {
         continue;
       }
-      const saetze = saetzeVon(e);
+      const saetze = arbeitsSaetzeVon(e);
       if (saetze.length === 0) {
         continue;
       }
@@ -8041,6 +8628,9 @@
 
   // Ebene 1: die Muskelgruppen als Zeilen. Unter dem Namen stehen die Zahl der trainierten Übungen und die beste
   // Steigerung der Gruppe im gewählten Zeitraum. Gruppen ohne Übung stehen ausgegraut am Ende.
+  // Sind im Look Korund die Gruppen ohne Einträge aufgeklappt?
+  let gruppenOffenAuf = false;
+
   function gruppenListeAnzeigen(bereich, gruppen) {
     fortschrittZeitraumBauen(bereich);
     let titelGesetzt = false;
@@ -8050,6 +8640,25 @@
       const trainiert = g.uebungen.length > 0;
       if (!trainiert && !titelGesetzt) {
         bereich.appendChild(element("div", "sheet-abschnitt gruppen-offen", txt("gruppen.offen")));
+        // Im Look Korund sind die Gruppen ohne Einträge eingeklappt. Dieser Knopf ist nur dort zu sehen (korund.css).
+        let ohne = 0;
+        for (let j = i; j < gruppen.length; j++) {
+          if (gruppen[j].uebungen.length === 0) {
+            ohne++;
+          }
+        }
+        const knopf = element("button", "gruppen-offen-knopf", txt("gruppen.offenKnopf", { n: ohne }));
+        knopf.setAttribute("aria-expanded", gruppenOffenAuf ? "true" : "false");
+        knopf.onclick = function () {
+          gruppenOffenAuf = !gruppenOffenAuf;
+          fortschrittUebungenAnzeigen();
+        };
+        bereich.appendChild(knopf);
+        if (gruppenOffenAuf) {
+          bereich.classList.add("gruppen-offen-auf");
+        } else {
+          bereich.classList.remove("gruppen-offen-auf");
+        }
         titelGesetzt = true;
       }
 
@@ -8069,7 +8678,9 @@
         if (g.beste !== null) {
           steigerung = txt("gruppen.in." + fortschrittZeitraum, { wert: prozentText(g.beste) });
         }
-        text.appendChild(element("span", "routine-info", txtAnzahl("anzahl.uebungen", g.uebungen.length) + " · " + steigerung));
+        text.appendChild(element("span", "routine-info gruppen-info", txtAnzahl("anzahl.uebungen", g.uebungen.length) + " · " + steigerung));
+        // Nur im Look Korund zu sehen: die Zahl der Übungen allein, die Steigerung steht dort als Plakette rechts
+        text.appendChild(element("span", "routine-info gruppen-anzahl", txtAnzahl("anzahl.uebungen", g.uebungen.length)));
       } else {
         zeile.classList.add("aus");
         text.appendChild(element("span", "routine-info", txt("gruppen.keine")));
@@ -8077,6 +8688,11 @@
       zeile.appendChild(text);
 
       if (trainiert) {
+        if (g.beste !== null) {
+          const plakette = element("span", "gruppen-plakette " + (g.beste > 0 ? "plus" : g.beste < 0 ? "minus" : "gleich"), prozentText(g.beste));
+          plakette.setAttribute("aria-hidden", "true");
+          zeile.appendChild(plakette);
+        }
         const pfeil = element("span", "einst-pfeil", "›");
         pfeil.setAttribute("aria-hidden", "true");
         zeile.appendChild(pfeil);
@@ -9143,6 +9759,13 @@
     messBereichAnzeigen("kg");
     messBereichAnzeigen("fett");
 
+    // Ohne Messungen blendet der Look Korund Zeitraum, Legende, Kalender und Kacheln aus (korund.css)
+    const seite = document.getElementById("seite-fortschritt");
+    if (seite && seite.setAttribute) {
+      seite.setAttribute("data-kg-leer", liste.length === 0 ? "ja" : "nein");
+      seite.setAttribute("data-fett-leer", messArt("fett").messungen().length === 0 ? "ja" : "nein");
+    }
+
     // Kacheln: Schnitt am Tag der letzten Messung minus Schnitt so viele Tage davor
     const kacheln = document.getElementById("kg-kacheln");
     kacheln.innerHTML = "";
@@ -9187,6 +9810,7 @@
 
   // Die ids gelöschter Eigengewicht-Übungen aus der Datei. null heißt: Das Backup enthält keine (Backup vor Version 11).
   let importGeloeschte = null;
+  let importNotizen = null;
 
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
@@ -9396,6 +10020,14 @@
     if (e.rangMerker && typeof e.rangMerker === "object") {
       sauber.rangMerker = rangMerkerBereinigen(e.rangMerker);
     }
+    // Die Auszeiten (Krank, Urlaub) gibt es seit Version 141. Sie gehören zur Serie und kommen deshalb mit.
+    if (Array.isArray(e.auszeiten)) {
+      sauber.auszeiten = e.auszeiten.filter(function (a) {
+        return a && AUSZEIT_ARTEN.indexOf(a.art) !== -1 && typeof a.von === "number" && (a.bis === null || typeof a.bis === "number");
+      }).map(function (a) {
+        return { art: a.art, von: a.von, bis: a.bis };
+      });
+    }
     return sauber;
   }
 
@@ -9412,6 +10044,10 @@
     }
     if (neu.kraftUebung) {
       einstellungen.kraftUebung = neu.kraftUebung;
+    }
+    if (neu.auszeiten) {
+      einstellungen.auszeiten = neu.auszeiten;
+      statusAnzeigen();
     }
     einstellungenSpeichern();
     designAnwenden();
@@ -9441,6 +10077,7 @@
       eintraege: eintraege,
       eigeneUebungen: eigeneUebungen,
       geloeschteEigengewicht: geloeschteEigengewicht,
+      notizen: notizen,
       routinen: routinen,
       wochenplan: wochenplan,
       trainings: trainings,
@@ -9572,6 +10209,12 @@
       importGeloeschte = daten.geloeschteEigengewicht;
     }
 
+    // Notizen je Übung gibt es seit Version 141 (Backup-Version bleibt 12, ältere Versionen lassen das Feld liegen)
+    importNotizen = null;
+    if (daten && !Array.isArray(daten) && daten.notizen && typeof daten.notizen === "object") {
+      importNotizen = notizenBereinigen(daten.notizen);
+    }
+
     // Einstellungen gibt es erst in neueren Backups
     importEinstellungen = null;
     if (daten && !Array.isArray(daten) && daten.einstellungen && typeof daten.einstellungen === "object") {
@@ -9679,6 +10322,20 @@
     if (importGeloeschte !== null) {
       geloeschteEigengewichtAufnehmen(importGeloeschte);
       sicherSpeichern("geloeschteEigengewicht", geloeschteEigengewicht);
+    }
+
+    // Notizen: Beim Ersetzen gelten die aus dem Backup, beim Hinzufügen kommen nur fehlende dazu
+    if (importNotizen !== null) {
+      if (art === "ersetzen") {
+        notizen = importNotizen;
+      } else {
+        Object.keys(importNotizen).forEach(function (schluessel) {
+          if (!notizen[schluessel]) {
+            notizen[schluessel] = importNotizen[schluessel];
+          }
+        });
+      }
+      sicherSpeichern("notizen", notizen);
     }
 
     let meldung;
@@ -9887,6 +10544,7 @@
     stilAnwenden();
     stilAnzeigen();
     paletteAnzeigen();
+    farbweltAnzeigen();
   }
 
   // ---------- Akzentfarbe ----------
@@ -9952,16 +10610,21 @@
     akzentAnzeigen();
   }
 
-  // ---------- Look: Schwarz, Graphit oder Mockup ----------
+  // ---------- Look: Korund, Schwarz, Graphit oder Mockup ----------
 
+  // "korund" ist seit Version 141 der Standard. Die alten Looks bleiben wählbar (das Design bis Version 140 ist "Schwarz").
   const PALETTE_AUSWAHL = [
+    { id: "korund", schluessel: "palette.korund" },
     { id: "schwarz", schluessel: "palette.schwarz" },
     { id: "graphit", schluessel: "palette.graphit" },
     { id: "mockup", schluessel: "palette.mockup" }
   ];
 
-  // Der gewählte Look. Ohne Eintrag oder bei einem unbekannten Wert gilt "schwarz".
+  // Der gewählte Look. Ohne Eintrag gilt seit Version 141 "korund", bei einem unbekannten Wert "schwarz".
   function palette() {
+    if (einstellungen.palette === undefined || einstellungen.palette === "korund") {
+      return "korund";
+    }
     if (einstellungen.palette === "graphit" || einstellungen.palette === "mockup") {
       return einstellungen.palette;
     }
@@ -9991,6 +10654,158 @@
     einstellungenSpeichern();
     paletteAnwenden();
     paletteAnzeigen();
+    farbweltAnzeigen();
+  }
+
+  // ---------- Farbwelt (seit Version 141, nur im Look Korund) ----------
+
+  // Die fünf Farbwelten. "farben" sind die drei Töne des K (Volumen, Workouts, Wdh.) für die Punkte in der Auswahl.
+  // "rang" ist der Kraft-Rang (1 Starter bis 6 Legende), ab dem die Farbwelt frei ist, wenn FARBWELTEN_PER_RANG an ist.
+  const FARBWELT_AUSWAHL = [
+    { id: "blau", schluessel: "farbwelt.blau", farben: ["#71B5FF", "#6FD8E0", "#8E9BFF"], rang: 0 },
+    { id: "volt", schluessel: "farbwelt.volt", farben: ["#C6F135", "#45E09A", "#F2E04A"], rang: 2 },
+    { id: "puls", schluessel: "farbwelt.puls", farben: ["#FF4D5E", "#FF7A45", "#FF5FA8"], rang: 3 },
+    { id: "aurora", schluessel: "farbwelt.aurora", farben: ["#5B8CFF", "#8F7CFF", "#B57BFF"], rang: 4 },
+    { id: "gold", schluessel: "farbwelt.gold", farben: ["#E3B866", "#D99A5B", "#E6D3AE"], rang: 5 }
+  ];
+
+  // Schalter: Schaltet der Kraft-Rang die Farbwelten frei? Aus (false) sind alle fünf sofort wählbar.
+  // An (true) zählt der höchste je erreichte Gesamt-Kraftrang (hoechsterGesamtRP im Merker der Ränge): Einmal frei bleibt frei.
+  const FARBWELTEN_PER_RANG = false;
+
+  // Ist eine Farbwelt wählbar?
+  function farbweltFrei(welt) {
+    if (!FARBWELTEN_PER_RANG || welt.rang <= 1) {
+      return true;
+    }
+    const hoechster = rangMerkerBereinigen(einstellungen.rangMerker).hoechsterGesamtRP;
+    return Math.floor(hoechster / RP_JE_RANG) + 1 >= welt.rang;
+  }
+
+  // Die gewählte Farbwelt. Ohne Eintrag, bei einem unbekannten Wert oder einer (noch) gesperrten gilt "blau".
+  function farbwelt() {
+    for (let i = 0; i < FARBWELT_AUSWAHL.length; i++) {
+      if (FARBWELT_AUSWAHL[i].id === einstellungen.farbwelt && farbweltFrei(FARBWELT_AUSWAHL[i])) {
+        return einstellungen.farbwelt;
+      }
+    }
+    return "blau";
+  }
+
+  // Das Attribut data-farbwelt am <html> wertet die korund.css aus. Es steht immer da, wirkt aber nur im Look Korund.
+  function farbweltAnwenden() {
+    document.documentElement.setAttribute("data-farbwelt", farbwelt());
+  }
+
+  // Einstellungen: je Farbwelt eine Zeile mit kleinem K, Name und drei Farbpunkten. Gesperrt, wenn der Look nicht Korund ist.
+  function farbweltAnzeigen() {
+    const behaelter = document.getElementById("farbwelt-auswahl");
+    behaelter.innerHTML = "";
+    const aus = stil() === "klassisch" || palette() !== "korund";
+    for (let i = 0; i < FARBWELT_AUSWAHL.length; i++) {
+      const welt = FARBWELT_AUSWAHL[i];
+      const zeile = element("button", "einst-zeile farbwelt-zeile");
+      zeile.setAttribute("data-farbwelt-zeile", welt.id);
+      zeile.setAttribute("aria-pressed", String(welt.id === farbwelt()));
+      const frei = farbweltFrei(welt);
+      zeile.disabled = aus || !frei;
+      const k = element("span", "farbwelt-k");
+      k.innerHTML = kSvg({ stamm: 1, oben: 1, unten: 1 }, welt.farben);
+      zeile.appendChild(k);
+      const name = element("span", "einst-titel", txt(welt.schluessel));
+      if (!frei) {
+        name.appendChild(element("small", "farbwelt-sperre", txt("farbwelt.abRang", { rang: txt("rang.name." + welt.rang) })));
+      }
+      zeile.appendChild(name);
+      const punkte = element("span", "farbwelt-punkte");
+      for (let j = 0; j < 3; j++) {
+        const punkt = element("i", "");
+        punkt.style.background = welt.farben[j];
+        punkte.appendChild(punkt);
+      }
+      zeile.appendChild(punkte);
+      zeile.onclick = function () {
+        farbweltSetzen(welt.id);
+      };
+      behaelter.appendChild(zeile);
+    }
+  }
+
+  function farbweltSetzen(neu) {
+    einstellungen.farbwelt = neu;
+    einstellungenSpeichern();
+    farbweltAnwenden();
+    farbweltAnzeigen();
+  }
+
+  // ---------- Das Korund-K als Fortschritt (seit Version 141) ----------
+
+  // Die drei Teile des Logos (viewBox 0 0 130 131, wie icons/korund-mark-mono-weiss.svg). Jeder Teil füllt sich entlang
+  // seiner Achse von a nach b: der Stamm (Volumen) von unten nach oben, die Arme (Workouts oben, Wdh. unten) vom Stamm nach außen.
+  const K_TEILE = [
+    { art: "stamm", d: "M0 3L32 3L32 97L0 129Z", a: [16, 131], b: [16, 2] },
+    { art: "oben", d: "M90 0L130 0L41 89L41 49Z", a: [38, 72], b: [118, -8] },
+    { art: "unten", d: "M77.62 69.38L130 131L91 131L56.54 90.46Z", a: [60, 72], b: [118, 140] }
+  ];
+  let kZaehler = 0;
+
+  // Die Ecken des Bands, das einen Teil bis zum Anteil (0 bis 1) füllt: ein breites Rechteck quer zur Achse von a nach b
+  function kBand(t, anteil) {
+    const dx = t.b[0] - t.a[0];
+    const dy = t.b[1] - t.a[1];
+    const laenge = Math.sqrt(dx * dx + dy * dy);
+    const ux = dx / laenge;
+    const uy = dy / laenge;
+    const weit = 300;
+    const px = t.a[0] + dx * anteil;
+    const py = t.a[1] + dy * anteil;
+    const sx = t.a[0] - ux * weit;
+    const sy = t.a[1] - uy * weit;
+    return [[sx - uy * weit, sy + ux * weit], [px - uy * weit, py + ux * weit], [px + uy * weit, py - ux * weit], [sx + uy * weit, sy - ux * weit]].map(function (p) {
+      return p[0].toFixed(1) + "," + p[1].toFixed(1);
+    }).join(" ");
+  }
+
+  // Baut das K als SVG. anteile: { stamm, oben, unten } je 0 bis 1. farben: optional drei feste Töne (für die Auswahl),
+  // sonst nehmen die Teile die Farben der Farbwelt aus der korund.css (Klassen k-stamm, k-oben, k-unten).
+  // Jedes Band trägt seinen Ziel-Anteil in data-anteil, damit kFuellen es von 0 aus füllen kann.
+  function kSvg(anteile, farben) {
+    const id = "k" + (++kZaehler);
+    let svg = '<svg class="korund-k" viewBox="-4 -4 138 139" aria-hidden="true"><defs>';
+    let flaechen = "";
+    let spuren = "";
+    for (let i = 0; i < K_TEILE.length; i++) {
+      const t = K_TEILE[i];
+      const anteil = Math.max(0, Math.min(1, anteile[t.art] || 0));
+      svg += '<clipPath id="' + id + t.art + '"><polygon data-teil="' + i + '" data-anteil="' + anteil + '" points="' + kBand(t, anteil) + '"/></clipPath>';
+      const fuellung = farben ? ' style="fill:' + farben[i] + '"' : "";
+      spuren += '<path class="k-spur" d="' + t.d + '"/>';
+      flaechen += '<g clip-path="url(#' + id + t.art + ')"><path class="k-teil k-' + t.art + '" d="' + t.d + '"' + fuellung + '/></g>';
+    }
+    return svg + "</defs>" + spuren + flaechen + "</svg>";
+  }
+
+  // Lässt die Teile eines K in 0,8 s von leer auf ihren Anteil wachsen (ease-out). Mit "Bewegung reduzieren" sofort.
+  function kFuellen(behaelter) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    const baender = behaelter.querySelectorAll("polygon[data-anteil]");
+    const start = performance.now();
+    function schritt(jetzt) {
+      const zeit = Math.min(1, (jetzt - start) / 800);
+      const weg = 1 - Math.pow(1 - zeit, 3);
+      baender.forEach(function (band) {
+        band.setAttribute("points", kBand(K_TEILE[Number(band.getAttribute("data-teil"))], Number(band.getAttribute("data-anteil")) * weg));
+      });
+      if (zeit < 1) {
+        requestAnimationFrame(schritt);
+      }
+    }
+    baender.forEach(function (band) {
+      band.setAttribute("points", kBand(K_TEILE[Number(band.getAttribute("data-teil"))], 0));
+    });
+    requestAnimationFrame(schritt);
   }
 
   // ---------- Profil: Name und Benutzername ----------
@@ -10231,7 +11046,7 @@
         };
       }
       const tag = tage[schluessel];
-      const saetze = saetzeVon(e);
+      const saetze = arbeitsSaetzeVon(e);
       tag.eintraege.push(e);
       tag.saetze += saetze.length;
       for (let j = 0; j < saetze.length; j++) {
@@ -10408,6 +11223,41 @@
     rechts.appendChild(klein);
     inhalt.appendChild(rechts);
     feld.appendChild(inhalt);
+    feld.appendChild(wochenKFeld(daten));
+    return feld;
+  }
+
+  // Look Korund (seit Version 141): statt der Ringe das Korund-K. Der Stamm zeigt das Volumen, der obere Arm die Workouts,
+  // der untere Arm die Wiederholungen. Rechts die drei Zahlen, je mit einem kleinen K, in dem nur der passende Teil leuchtet.
+  // Die korund.css zeigt diesen Teil nur im Look Korund und blendet dort die Ringe aus.
+  function wochenKFeld(daten) {
+    const feld = element("div", "wochen-k");
+    const gross = element("div", "wochen-k-bild");
+    gross.innerHTML = kSvg({ stamm: daten.volumen.wert / daten.volumen.ziel, oben: daten.workouts.wert / daten.workouts.ziel, unten: daten.wdh.wert / daten.wdh.ziel });
+    feld.appendChild(gross);
+    const liste = element("div", "wochen-k-zahlen");
+    const teile = { volumen: "stamm", workouts: "oben", wdh: "unten" };
+    ["volumen", "workouts", "wdh"].forEach(function (art) {
+      const d = daten[art];
+      const zeile = element("div", "wochen-k-zeile");
+      const name = element("div", "wochen-k-name");
+      const klein = element("span", "wochen-k-mini");
+      const nur = {};
+      nur[teile[art]] = 1;
+      klein.innerHTML = kSvg(nur);
+      name.appendChild(klein);
+      name.appendChild(element("span", "", d.langName));
+      zeile.appendChild(name);
+      const wert = element("div", "wochen-k-wert", d.wertText);
+      const ziel = element("small", "", " / " + d.ziel.toLocaleString(gebiet()) + (art === "volumen" ? " " + d.einheit : ""));
+      wert.appendChild(ziel);
+      zeile.appendChild(wert);
+      liste.appendChild(zeile);
+    });
+    feld.appendChild(liste);
+    requestAnimationFrame(function () {
+      kFuellen(gross);
+    });
     return feld;
   }
 
@@ -11316,7 +12166,7 @@
       if (zeit <= jetzt - BESTWERT_TAGE * TAG_MS || zeit > jetzt) {
         continue;
       }
-      const saetze = saetzeVon(e);
+      const saetze = arbeitsSaetzeVon(e);
       for (let j = 0; j < saetze.length; j++) {
         stand.saetze = true;
         if (saetze[j].wdh >= RANG_WDH_MIN && saetze[j].wdh <= RANG_WDH_MAX) {
@@ -12364,9 +13214,14 @@ akzentUebernehmen();
 akzentAnwenden();
 akzentAnzeigen();
 
-// Der gewählte Look und sein Umschalter
+// Der gewählte Look und sein Umschalter, dazu die Farbwelt des Looks Korund
 paletteAnwenden();
 paletteAnzeigen();
+farbweltAnwenden();
+farbweltAnzeigen();
+
+// Der Status (Aktiv, Krank, Urlaub) im Training-Tab
+statusAnzeigen();
 
 // Beschriftungen und Schnellbuttons in der gewählten Einheit, dazu das Rad für das Körpergewicht
 // (30 bis 200 kg oder 66 bis 440 lbs)

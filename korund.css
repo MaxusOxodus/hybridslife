@@ -1,0 +1,1589 @@
+/* ---------- Look "Korund" (seit Version 141) ----------
+
+   Der neue Standard-Look: schwarzer Grund mit farbigem Schimmer oben, Glas-Karten mit heller Kante (wie "Mockup"),
+   dazu fünf Farbwelten (data-farbwelt am <html>): blau (Standard), aurora, volt, gold, puls.
+   Alle Regeln von "Mockup" in der glass.css gelten für Korund mit (data-palette="korund"), hier steht nur, was Korund anders macht.
+   Wie Graphit und Mockup gilt Korund nur mit "Glass" im dunklen Design. Deshalb steht jede Regel zweimal da:
+   oben für "Dunkel" gewählt ([data-design="dunkel"]), unten im @media-Block für "System" mit dunklem Gerät.
+   Wer etwas ändert, ändert beide Stellen.
+
+   Farbwelt-Variablen (--fw-...):
+   --fw-signal / --fw-signal-rgb: Fortschritt, Heute, aktiver Tab, Diagramme, Muskelfiguren
+   --fw-hell / --fw-dunkel: hellerer und dunklerer Ton des Signals (Verläufe)
+   --fw-k1-a/b/c, --fw-k2-..., --fw-k3-...: die drei Teile des K (Stamm = Volumen, oberer Arm = Workouts, unterer Arm = Wdh.), je hell/mittel/dunkel
+   --fw-knopf, --fw-knopf-text, --fw-knopf-schein: der Hauptknopf
+   --fw-schimmer: der farbige Schein oben am Bildschirm, --fw-glas-rgb: der Ton der Glasflächen */
+
+/* Was es nur im Look Korund gibt, ist in allen anderen Looks und in Klassisch ausgeblendet */
+.nur-korund {
+  display: none !important;
+}
+
+/* Das Korund-K (Home, Farbwelt-Auswahl): leere Teile als dunkle Spur mit feiner Kante, gefüllte in den Farben der Farbwelt */
+.korund-k {
+  display: block;
+  overflow: visible;
+}
+
+.korund-k .k-spur {
+  fill: rgba(255, 255, 255, 0.07);
+  stroke: rgba(238, 242, 247, 0.22);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.korund-k .k-stamm {
+  fill: var(--fw-k1-b, #71B5FF);
+}
+
+.korund-k .k-oben {
+  fill: var(--fw-k2-b, #6FD8E0);
+}
+
+.korund-k .k-unten {
+  fill: var(--fw-k3-b, #8E9BFF);
+}
+
+/* Home: Die K-Karte gibt es nur im Look Korund, dort ersetzt sie die Ringe */
+.wochen-k {
+  display: none;
+}
+
+/* Einstellungen: die Zeilen der Farbwelt-Auswahl */
+.farbwelt-zeile {
+  width: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.farbwelt-zeile:disabled {
+  opacity: 0.45;
+}
+
+.farbwelt-k {
+  flex: none;
+  width: 22px;
+  margin-right: 12px;
+}
+
+.farbwelt-punkte {
+  display: flex;
+  gap: 5px;
+  margin-left: auto;
+}
+
+.farbwelt-punkte i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.farbwelt-zeile[aria-pressed="true"] .einst-titel {
+  font-weight: 700;
+}
+
+.farbwelt-zeile[aria-pressed="true"]::after {
+  content: "✓";
+  margin-left: 12px;
+  color: var(--akzent-text);
+  font-weight: 700;
+}
+
+/* Trainingsmodus: Ziel und Vorschlag als Chips (nur im Look Korund, dort ersetzen sie "Ziel: 3 Sätze × 8–12 Wdh.") */
+.modus-chips {
+  display: none;
+}
+
+/* Home: Serie oben rechts, Muskelfiguren in der Heute-Karte und der Hinweis "Steigerung möglich" (nur im Look Korund) */
+.home-serie,
+.heute-figuren,
+.home-hinweis {
+  display: none;
+}
+
+/* Training: der Wochenplan als sieben schmale Tages-Kacheln (nur im Look Korund). Die Auswahl liegt unsichtbar darüber. */
+.plan-kurz {
+  display: none;
+}
+
+/* Training: der Status oben rechts (nur im Look Korund) */
+.status-knopf {
+  display: none;
+}
+
+.farbwelt-sperre {
+  display: block;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ===== Dunkel gewählt ===== */
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] {
+  --fw-signal: #71B5FF;
+  --fw-signal-rgb: 113, 181, 255;
+  --fw-hell: #A8D3FF;
+  --fw-dunkel: #3F8FE6;
+  --fw-auf-signal: #04111F;
+  --fw-k1-a: #A8D3FF; --fw-k1-b: #71B5FF; --fw-k1-c: #3F8FE6;
+  --fw-k2-a: #A9EEF2; --fw-k2-b: #6FD8E0; --fw-k2-c: #3CB5C0;
+  --fw-k3-a: #BCC5FF; --fw-k3-b: #8E9BFF; --fw-k3-c: #6573E6;
+  --fw-knopf: #F0F0F0;
+  --fw-knopf-text: #07090C;
+  --fw-knopf-schein: 0 0 22px rgba(240, 240, 240, 0.14);
+  --fw-schimmer: radial-gradient(110% 50% at 50% -10%, rgba(96, 128, 168, 0.36), transparent 62%);
+  --fw-glas-rgb: 22, 27, 34;
+  --fw-erfolg: #3DDC84;
+  --fw-erfolg-rgb: 61, 220, 132;
+  --hintergrund: #000000;
+  --karte: rgb(var(--fw-glas-rgb));
+  --akzent-signal: var(--fw-signal);
+  --akzent-signal-rgb: var(--fw-signal-rgb);
+  --glas: rgba(var(--fw-glas-rgb), 0.72);
+  --glas-sheet: rgba(var(--fw-glas-rgb), 0.86);
+  --glas-fest: rgba(var(--fw-glas-rgb), 0.94);
+  --glas-schimmer: rgba(var(--fw-signal-rgb), 0.12);
+  --glas-grund: var(--fw-schimmer), linear-gradient(#000000, #000000);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-farbwelt="aurora"][data-design="dunkel"] {
+  --fw-signal: #8A9BFF;
+  --fw-signal-rgb: 138, 155, 255;
+  --fw-hell: #C3B2FF;
+  --fw-dunkel: #5C6BE8;
+  --fw-auf-signal: #0A0820;
+  --fw-k1-a: #9CC2FF; --fw-k1-b: #5B8CFF; --fw-k1-c: #3B66E0;
+  --fw-k2-a: #C5B5FF; --fw-k2-b: #8F7CFF; --fw-k2-c: #6A55E8;
+  --fw-k3-a: #E2B5FF; --fw-k3-b: #B57BFF; --fw-k3-c: #8F4FE6;
+  --fw-knopf: linear-gradient(100deg, #5B8CFF, #A66BFF);
+  --fw-knopf-text: #FFFFFF;
+  --fw-knopf-schein: 0 8px 26px rgba(130, 110, 255, 0.45);
+  --fw-schimmer: radial-gradient(70% 45% at 15% -8%, rgba(80, 130, 255, 0.38), transparent 65%), radial-gradient(70% 45% at 90% -5%, rgba(170, 100, 255, 0.34), transparent 65%);
+  --fw-glas-rgb: 24, 24, 38;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-farbwelt="volt"][data-design="dunkel"] {
+  --fw-signal: #C6F135;
+  --fw-signal-rgb: 198, 241, 53;
+  --fw-hell: #E3FF8C;
+  --fw-dunkel: #93BD12;
+  --fw-auf-signal: #0B0F02;
+  --fw-k1-a: #E8FF9A; --fw-k1-b: #C6F135; --fw-k1-c: #93BD12;
+  --fw-k2-a: #9AF5C8; --fw-k2-b: #45E09A; --fw-k2-c: #21B072;
+  --fw-k3-a: #FFF3A0; --fw-k3-b: #F2E04A; --fw-k3-c: #C9B21C;
+  --fw-knopf: #C6F135;
+  --fw-knopf-text: #0B0F02;
+  --fw-knopf-schein: 0 8px 26px rgba(198, 241, 53, 0.3);
+  --fw-schimmer: radial-gradient(110% 45% at 50% -10%, rgba(150, 190, 40, 0.2), transparent 62%);
+  --fw-glas-rgb: 22, 24, 20;
+  --fw-erfolg: #C6F135;
+  --fw-erfolg-rgb: 198, 241, 53;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-farbwelt="gold"][data-design="dunkel"] {
+  --fw-signal: #E3B866;
+  --fw-signal-rgb: 227, 184, 102;
+  --fw-hell: #F3DAA6;
+  --fw-dunkel: #B98A3A;
+  --fw-auf-signal: #1A1206;
+  --fw-k1-a: #F7DFA6; --fw-k1-b: #E3B866; --fw-k1-c: #B98A3A;
+  --fw-k2-a: #F0C79A; --fw-k2-b: #D99A5B; --fw-k2-c: #A96B33;
+  --fw-k3-a: #FBF1DC; --fw-k3-b: #E6D3AE; --fw-k3-c: #B8A47E;
+  --fw-knopf: linear-gradient(180deg, #F7E6BC, #E0BA70 55%, #C99A4B);
+  --fw-knopf-text: #1A1206;
+  --fw-knopf-schein: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 8px 24px rgba(227, 184, 102, 0.22);
+  --fw-schimmer: radial-gradient(110% 50% at 50% -10%, rgba(170, 140, 80, 0.26), transparent 62%);
+  --fw-glas-rgb: 28, 25, 20;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-farbwelt="puls"][data-design="dunkel"] {
+  --fw-signal: #FF4D5E;
+  --fw-signal-rgb: 255, 77, 94;
+  --fw-hell: #FF8C97;
+  --fw-dunkel: #D62A3D;
+  --fw-auf-signal: #1A0306;
+  --fw-k1-a: #FF8C97; --fw-k1-b: #FF4D5E; --fw-k1-c: #D62A3D;
+  --fw-k2-a: #FFB38F; --fw-k2-b: #FF7A45; --fw-k2-c: #D9551F;
+  --fw-k3-a: #FF9CCB; --fw-k3-b: #FF5FA8; --fw-k3-c: #D6337F;
+  --fw-knopf: #F0F0F0;
+  --fw-knopf-text: #14080A;
+  --fw-knopf-schein: 0 0 24px rgba(255, 77, 94, 0.25);
+  --fw-schimmer: radial-gradient(110% 48% at 50% -10%, rgba(170, 45, 60, 0.3), transparent 62%);
+  --fw-glas-rgb: 30, 21, 23;
+}
+
+/* Der Hauptknopf in der Farbe der Farbwelt */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.speichern-btn:not(:disabled), .knopf.haupt) {
+  background: var(--fw-knopf);
+  color: var(--fw-knopf-text);
+  box-shadow: var(--fw-knopf-schein);
+}
+
+/* Große Titel mit leichtem Silber-Verlauf */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] h1 {
+  background: linear-gradient(180deg, #FFFFFF 30%, #C9D3DF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Abschnitts-Überschriften leiser: normale Schreibweise statt Großbuchstaben */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.abschnitt, #liste h2) {
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Die Tab-Leiste schwebt als Glas-Pille über dem Inhalt */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #navigation {
+  left: 12px;
+  right: 12px;
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  max-width: 456px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(225, 235, 250, 0.1), rgba(225, 235, 250, 0) 30%), rgba(var(--fw-glas-rgb), 0.9);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .nav-btn.aktiv {
+  color: var(--text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .nav-btn.aktiv .nav-icon {
+  background: none;
+  box-shadow: none;
+  color: var(--fw-signal);
+  filter: drop-shadow(0 0 6px rgba(var(--fw-signal-rgb), 0.8));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-ringe > .wochen-inhalt {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 6px 2px 2px 6px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-bild {
+  flex: none;
+  width: 104px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-bild .korund-k .k-teil {
+  filter: drop-shadow(0 0 6px rgba(var(--fw-signal-rgb), 0.45));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-zahlen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-mini {
+  flex: none;
+  width: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-mini .k-spur {
+  stroke-width: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-wert {
+  margin-top: 1px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-wert small {
+  white-space: nowrap;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (max-width: 359px) {
+  :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k {
+    gap: 14px;
+  }
+  :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochen-k-bild {
+    width: 78px;
+  }
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 -4px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chips:empty {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(238, 242, 247, 0.1);
+  border-radius: 11px;
+  background: rgba(238, 242, 247, 0.06);
+  color: #D6DADF;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.steigt {
+  border-color: rgba(var(--fw-erfolg-rgb), 0.35);
+  background: rgba(var(--fw-erfolg-rgb), 0.12);
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-ziel {
+  display: none;
+}
+
+/* "Reps in Reserve (optional)" heißt im Look Korund kurz "RIR" (für Screenreader bleibt der lange Text) */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .rir .rad-titel {
+  flex: 0 0 auto;
+  font-size: 0;
+  line-height: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .rir .rad-titel::before {
+  content: "RIR";
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-home {
+  position: relative;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-serie:not(:empty) {
+  position: absolute;
+  top: 14px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  border-radius: 16px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-serie:not(:empty)::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--fw-signal);
+  box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.9);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .heute-figuren {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .heute-figur {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border: 1px solid rgba(238, 242, 247, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .heute-figur .koerper {
+  width: auto;
+  height: 88%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-hinweis {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-hinweis-symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(var(--fw-erfolg-rgb), 0.13);
+  color: var(--fw-erfolg);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-hinweis-titel {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-hinweis .routine-info {
+  margin: 1px 0 0;
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .rir .umschalter {
+  flex: 1 1 0;
+  max-width: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochenplan {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile {
+  position: relative;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: 10px 2px 9px;
+  border: 1px solid rgba(238, 242, 247, 0.1);
+  border-radius: 14px;
+  background: rgba(var(--fw-glas-rgb), 0.72);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile:last-child {
+  border-bottom: 1px solid rgba(238, 242, 247, 0.1);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile.heute {
+  border-color: var(--fw-signal);
+  background: rgba(var(--fw-signal-rgb), 0.1);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile:focus-within {
+  outline: 2px solid var(--fw-signal);
+  outline-offset: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-tag {
+  width: auto;
+  color: var(--text-leise);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-kurz {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text-aus);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .plan-zeile.geplant .plan-kurz {
+  color: var(--text);
+}
+
+/* Trainingsmodus, Pause: großer Countdown in einem Ring, der mit der Pause schrumpft (nur im Look Korund) */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-countdown {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 210px;
+  height: 210px;
+  margin: 10px auto 14px;
+  border-radius: 50%;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-countdown::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--fw-signal) calc(var(--pause-anteil, 1) * 360deg), rgba(255, 255, 255, 0.08) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+  filter: drop-shadow(0 0 8px rgba(var(--fw-signal-rgb), 0.5));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-uebersicht {
+  position: relative;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf {
+  position: absolute;
+  top: 14px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  border-radius: 17px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #3DDC84;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf[data-status="krank"]::before {
+  background: #F5B544;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf[data-status="urlaub"]::before {
+  background: #5AC8FA;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-knopf::after {
+  content: "⌄";
+  margin: -6px 0 0 6px;
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell {
+  margin: 4px 0;
+  padding-left: 14px;
+  padding-right: 32px;
+  border-bottom-color: transparent;
+  border-radius: 14px;
+  background: rgba(var(--fw-signal-rgb), 0.10);
+  box-shadow: inset 3px 0 0 var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile.aktuell .sheet-zeile-name {
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .sheet-zeile-haken {
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz {
+  display: block;
+  margin-top: 10px;
+  padding: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-titel {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-zahl {
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-raster {
+  display: grid;
+  grid-template-columns: 24px repeat(12, 1fr);
+  grid-template-rows: repeat(7, 13px);
+  grid-auto-flow: column;
+  gap: 4px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-wt {
+  color: var(--text-leise);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld {
+  height: 13px;
+  border-radius: 4px;
+  background: rgba(238, 242, 247, 0.06);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.stufe-1 {
+  background: rgba(var(--fw-signal-rgb), 0.55);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.stufe-2 {
+  background: var(--fw-signal);
+  box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.45);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.heute {
+  outline: 1.5px solid rgba(238, 242, 247, 0.7);
+  outline-offset: 1px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.spaeter {
+  background: transparent;
+  border: 1px dashed rgba(238, 242, 247, 0.08);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-kg-leer="ja"] :is(#kg-kopf, #kg-zeitraum, #kg-legende, #kg-klapp-btn, #kg-klapp, #kg-kacheln),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-kg-leer="ja"] h2:has(+ #kg-kacheln),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-fett-leer="ja"] :is(#fett-kopf, #fett-zeitraum, #fett-legende, #fett-klapp-btn, #fett-klapp) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-info,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-offen {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-anzahl {
+  display: block;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-plakette {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 26px;
+  margin-left: auto;
+  padding: 0 10px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-plakette.plus {
+  background: rgba(var(--fw-erfolg-rgb), 0.14);
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-plakette.minus {
+  background: rgba(255, 107, 107, 0.14);
+  color: #FF8A8A;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-plakette.gleich {
+  background: rgba(238, 242, 247, 0.08);
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-offen-knopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 4px;
+  border: none;
+  background: none;
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-offen-knopf::after {
+  content: "⌄";
+  margin-top: -6px;
+  transition: transform 0.2s;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .gruppen-offen-auf .gruppen-offen-knopf::after {
+  transform: rotate(180deg) translateY(-6px);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen:not(.gruppen-offen-auf) .gruppen-zeile.aus {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .w-knopf {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(238, 242, 247, 0.14);
+  border-radius: 23px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  color: var(--text-leise);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .w-knopf.an,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .w-knopf[aria-pressed="true"] {
+  border-color: #F5B544;
+  background: #F5B544;
+  color: #1A1206;
+  box-shadow: 0 0 14px rgba(245, 181, 68, 0.45);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #satz-sheet .w-knopf {
+  margin-top: 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-nummer.satz-w {
+  color: #F5B544;
+  font-weight: 800;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #uebungen-sheet .uebung-hinzu {
+  display: block;
+  margin-top: 16px;
+  border: 1px dashed rgba(var(--fw-signal-rgb), 0.45);
+  background: rgba(var(--fw-signal-rgb), 0.08);
+  color: var(--fw-signal);
+}
+
+/* Seiten einzeln: R und L eines Satzes stehen als ein Block, zwischen den Paaren eine deutlichere Linie */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-reihe + .satz-reihe.seite-l,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .tag-reihe + .tag-reihe.seite-l {
+  border-top-color: transparent;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-reihe.seite-l .satz-nummer,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .tag-reihe.seite-l .satz-nummer {
+  visibility: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-reihe.seite-l .satz-nummer .satz-seite,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .tag-reihe.seite-l .satz-nummer .satz-seite {
+  visibility: visible;
+}
+
+/* Letzte Trainingsergebnisse: R und L eines Satzes als ein Kästchen mit zwei Zeilen */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-zeile:has(+ .letztes-zeile.seite-l) {
+  border-bottom-color: transparent;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-zeile.seite-l {
+  margin-top: 0;
+  border-top: 1px dashed rgba(238, 242, 247, 0.1);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-zeile.seite-l .satz-nummer {
+  background: transparent;
+  box-shadow: none;
+  color: transparent;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-zeile.seite-l .satz-nummer .satz-seite {
+  color: var(--text-leise);
+}
+
+/* Einseitige Übung: der Chip zum Umschalten Beide / R / L ist antippbar */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.seiten-chip {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.seiten-chip[aria-pressed="true"] {
+  border-color: rgba(var(--fw-signal-rgb), 0.5);
+  background: rgba(var(--fw-signal-rgb), 0.14);
+  color: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-chip.seiten-chip.gesperrt {
+  opacity: 0.55;
+}
+
+
+/* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) {
+    --fw-signal: #71B5FF;
+    --fw-signal-rgb: 113, 181, 255;
+    --fw-hell: #A8D3FF;
+    --fw-dunkel: #3F8FE6;
+    --fw-auf-signal: #04111F;
+    --fw-k1-a: #A8D3FF; --fw-k1-b: #71B5FF; --fw-k1-c: #3F8FE6;
+    --fw-k2-a: #A9EEF2; --fw-k2-b: #6FD8E0; --fw-k2-c: #3CB5C0;
+    --fw-k3-a: #BCC5FF; --fw-k3-b: #8E9BFF; --fw-k3-c: #6573E6;
+    --fw-knopf: #F0F0F0;
+    --fw-knopf-text: #07090C;
+    --fw-knopf-schein: 0 0 22px rgba(240, 240, 240, 0.14);
+    --fw-schimmer: radial-gradient(110% 50% at 50% -10%, rgba(96, 128, 168, 0.36), transparent 62%);
+    --fw-glas-rgb: 22, 27, 34;
+    --fw-erfolg: #3DDC84;
+    --fw-erfolg-rgb: 61, 220, 132;
+    --hintergrund: #000000;
+    --karte: rgb(var(--fw-glas-rgb));
+    --akzent-signal: var(--fw-signal);
+    --akzent-signal-rgb: var(--fw-signal-rgb);
+    --glas: rgba(var(--fw-glas-rgb), 0.72);
+    --glas-sheet: rgba(var(--fw-glas-rgb), 0.86);
+    --glas-fest: rgba(var(--fw-glas-rgb), 0.94);
+    --glas-schimmer: rgba(var(--fw-signal-rgb), 0.12);
+    --glas-grund: var(--fw-schimmer), linear-gradient(#000000, #000000);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"][data-farbwelt="aurora"]:not([data-design="hell"]) {
+    --fw-signal: #8A9BFF;
+    --fw-signal-rgb: 138, 155, 255;
+    --fw-hell: #C3B2FF;
+    --fw-dunkel: #5C6BE8;
+    --fw-auf-signal: #0A0820;
+    --fw-k1-a: #9CC2FF; --fw-k1-b: #5B8CFF; --fw-k1-c: #3B66E0;
+    --fw-k2-a: #C5B5FF; --fw-k2-b: #8F7CFF; --fw-k2-c: #6A55E8;
+    --fw-k3-a: #E2B5FF; --fw-k3-b: #B57BFF; --fw-k3-c: #8F4FE6;
+    --fw-knopf: linear-gradient(100deg, #5B8CFF, #A66BFF);
+    --fw-knopf-text: #FFFFFF;
+    --fw-knopf-schein: 0 8px 26px rgba(130, 110, 255, 0.45);
+    --fw-schimmer: radial-gradient(70% 45% at 15% -8%, rgba(80, 130, 255, 0.38), transparent 65%), radial-gradient(70% 45% at 90% -5%, rgba(170, 100, 255, 0.34), transparent 65%);
+    --fw-glas-rgb: 24, 24, 38;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"][data-farbwelt="volt"]:not([data-design="hell"]) {
+    --fw-signal: #C6F135;
+    --fw-signal-rgb: 198, 241, 53;
+    --fw-hell: #E3FF8C;
+    --fw-dunkel: #93BD12;
+    --fw-auf-signal: #0B0F02;
+    --fw-k1-a: #E8FF9A; --fw-k1-b: #C6F135; --fw-k1-c: #93BD12;
+    --fw-k2-a: #9AF5C8; --fw-k2-b: #45E09A; --fw-k2-c: #21B072;
+    --fw-k3-a: #FFF3A0; --fw-k3-b: #F2E04A; --fw-k3-c: #C9B21C;
+    --fw-knopf: #C6F135;
+    --fw-knopf-text: #0B0F02;
+    --fw-knopf-schein: 0 8px 26px rgba(198, 241, 53, 0.3);
+    --fw-schimmer: radial-gradient(110% 45% at 50% -10%, rgba(150, 190, 40, 0.2), transparent 62%);
+    --fw-glas-rgb: 22, 24, 20;
+    --fw-erfolg: #C6F135;
+    --fw-erfolg-rgb: 198, 241, 53;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"][data-farbwelt="gold"]:not([data-design="hell"]) {
+    --fw-signal: #E3B866;
+    --fw-signal-rgb: 227, 184, 102;
+    --fw-hell: #F3DAA6;
+    --fw-dunkel: #B98A3A;
+    --fw-auf-signal: #1A1206;
+    --fw-k1-a: #F7DFA6; --fw-k1-b: #E3B866; --fw-k1-c: #B98A3A;
+    --fw-k2-a: #F0C79A; --fw-k2-b: #D99A5B; --fw-k2-c: #A96B33;
+    --fw-k3-a: #FBF1DC; --fw-k3-b: #E6D3AE; --fw-k3-c: #B8A47E;
+    --fw-knopf: linear-gradient(180deg, #F7E6BC, #E0BA70 55%, #C99A4B);
+    --fw-knopf-text: #1A1206;
+    --fw-knopf-schein: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 8px 24px rgba(227, 184, 102, 0.22);
+    --fw-schimmer: radial-gradient(110% 50% at 50% -10%, rgba(170, 140, 80, 0.26), transparent 62%);
+    --fw-glas-rgb: 28, 25, 20;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"][data-farbwelt="puls"]:not([data-design="hell"]) {
+    --fw-signal: #FF4D5E;
+    --fw-signal-rgb: 255, 77, 94;
+    --fw-hell: #FF8C97;
+    --fw-dunkel: #D62A3D;
+    --fw-auf-signal: #1A0306;
+    --fw-k1-a: #FF8C97; --fw-k1-b: #FF4D5E; --fw-k1-c: #D62A3D;
+    --fw-k2-a: #FFB38F; --fw-k2-b: #FF7A45; --fw-k2-c: #D9551F;
+    --fw-k3-a: #FF9CCB; --fw-k3-b: #FF5FA8; --fw-k3-c: #D6337F;
+    --fw-knopf: #F0F0F0;
+    --fw-knopf-text: #14080A;
+    --fw-knopf-schein: 0 0 24px rgba(255, 77, 94, 0.25);
+    --fw-schimmer: radial-gradient(110% 48% at 50% -10%, rgba(170, 45, 60, 0.3), transparent 62%);
+    --fw-glas-rgb: 30, 21, 23;
+  }
+
+  /* Der Hauptknopf in der Farbe der Farbwelt */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.speichern-btn:not(:disabled), .knopf.haupt) {
+    background: var(--fw-knopf);
+    color: var(--fw-knopf-text);
+    box-shadow: var(--fw-knopf-schein);
+  }
+
+  /* Große Titel mit leichtem Silber-Verlauf */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) h1 {
+    background: linear-gradient(180deg, #FFFFFF 30%, #C9D3DF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Abschnitts-Überschriften leiser: normale Schreibweise statt Großbuchstaben */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.abschnitt, #liste h2) {
+    font-size: 14px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* Die Tab-Leiste schwebt als Glas-Pille über dem Inhalt */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #navigation {
+    left: 12px;
+    right: 12px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    max-width: 456px;
+    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 32px;
+    background: linear-gradient(180deg, rgba(225, 235, 250, 0.1), rgba(225, 235, 250, 0) 30%), rgba(var(--fw-glas-rgb), 0.9);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .nav-btn.aktiv {
+    color: var(--text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .nav-btn.aktiv .nav-icon {
+    background: none;
+    box-shadow: none;
+    color: var(--fw-signal);
+    filter: drop-shadow(0 0 6px rgba(var(--fw-signal-rgb), 0.8));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-ringe > .wochen-inhalt {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 6px 2px 2px 6px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-bild {
+    flex: none;
+    width: 104px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-bild .korund-k .k-teil {
+    filter: drop-shadow(0 0 6px rgba(var(--fw-signal-rgb), 0.45));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-zahlen {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-name {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-mini {
+    flex: none;
+    width: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-mini .k-spur {
+    stroke-width: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-wert {
+    margin-top: 1px;
+    font-size: 19px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-wert small {
+    white-space: nowrap;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  @media (max-width: 359px) {
+    :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k {
+      gap: 14px;
+    }
+    :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochen-k-bild {
+      width: 78px;
+    }
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 -4px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chips:empty {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid rgba(238, 242, 247, 0.1);
+    border-radius: 11px;
+    background: rgba(238, 242, 247, 0.06);
+    color: #D6DADF;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.steigt {
+    border-color: rgba(var(--fw-erfolg-rgb), 0.35);
+    background: rgba(var(--fw-erfolg-rgb), 0.12);
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-ziel {
+    display: none;
+  }
+
+  /* "Reps in Reserve (optional)" heißt im Look Korund kurz "RIR" (für Screenreader bleibt der lange Text) */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .rir .rad-titel {
+    flex: 0 0 auto;
+    font-size: 0;
+    line-height: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .rir .rad-titel::before {
+    content: "RIR";
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-home {
+    position: relative;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-serie:not(:empty) {
+    position: absolute;
+    top: 14px;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    border-radius: 16px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-serie:not(:empty)::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--fw-signal);
+    box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.9);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .heute-figuren {
+    display: flex;
+    gap: 8px;
+    margin: 14px 0 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .heute-figur {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    overflow: hidden;
+    border: 1px solid rgba(238, 242, 247, 0.08);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .heute-figur .koerper {
+    width: auto;
+    height: 88%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-hinweis {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-hinweis-symbol {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(var(--fw-erfolg-rgb), 0.13);
+    color: var(--fw-erfolg);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-hinweis-titel {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-hinweis .routine-info {
+    margin: 1px 0 0;
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .rir .umschalter {
+    flex: 1 1 0;
+    max-width: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochenplan {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile {
+    position: relative;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    padding: 10px 2px 9px;
+    border: 1px solid rgba(238, 242, 247, 0.1);
+    border-radius: 14px;
+    background: rgba(var(--fw-glas-rgb), 0.72);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile:last-child {
+    border-bottom: 1px solid rgba(238, 242, 247, 0.1);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile.heute {
+    border-color: var(--fw-signal);
+    background: rgba(var(--fw-signal-rgb), 0.1);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile:focus-within {
+    outline: 2px solid var(--fw-signal);
+    outline-offset: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-tag {
+    width: auto;
+    color: var(--text-leise);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-kurz {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--text-aus);
+    font-size: 11.5px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .plan-zeile.geplant .plan-kurz {
+    color: var(--text);
+  }
+
+  /* Trainingsmodus, Pause: großer Countdown in einem Ring, der mit der Pause schrumpft (nur im Look Korund) */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-countdown {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 210px;
+    height: 210px;
+    margin: 10px auto 14px;
+    border-radius: 50%;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-countdown::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(var(--fw-signal) calc(var(--pause-anteil, 1) * 360deg), rgba(255, 255, 255, 0.08) 0);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+    filter: drop-shadow(0 0 8px rgba(var(--fw-signal-rgb), 0.5));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-uebersicht {
+    position: relative;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf {
+    position: absolute;
+    top: 14px;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    border-radius: 17px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: #3DDC84;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf[data-status="krank"]::before {
+    background: #F5B544;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf[data-status="urlaub"]::before {
+    background: #5AC8FA;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-knopf::after {
+    content: "⌄";
+    margin: -6px 0 0 6px;
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell {
+    margin: 4px 0;
+    padding-left: 14px;
+    padding-right: 32px;
+    border-bottom-color: transparent;
+    border-radius: 14px;
+    background: rgba(var(--fw-signal-rgb), 0.10);
+    box-shadow: inset 3px 0 0 var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile.aktuell .sheet-zeile-name {
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .sheet-zeile-haken {
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz {
+    display: block;
+    margin-top: 10px;
+    padding: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-titel {
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-zahl {
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-raster {
+    display: grid;
+    grid-template-columns: 24px repeat(12, 1fr);
+    grid-template-rows: repeat(7, 13px);
+    grid-auto-flow: column;
+    gap: 4px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-wt {
+    color: var(--text-leise);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld {
+    height: 13px;
+    border-radius: 4px;
+    background: rgba(238, 242, 247, 0.06);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.stufe-1 {
+    background: rgba(var(--fw-signal-rgb), 0.55);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.stufe-2 {
+    background: var(--fw-signal);
+    box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.45);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.heute {
+    outline: 1.5px solid rgba(238, 242, 247, 0.7);
+    outline-offset: 1px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.spaeter {
+    background: transparent;
+    border: 1px dashed rgba(238, 242, 247, 0.08);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-kg-leer="ja"] :is(#kg-kopf, #kg-zeitraum, #kg-legende, #kg-klapp-btn, #kg-klapp, #kg-kacheln),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-kg-leer="ja"] h2:has(+ #kg-kacheln),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-fett-leer="ja"] :is(#fett-kopf, #fett-zeitraum, #fett-legende, #fett-klapp-btn, #fett-klapp) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-info,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-offen {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-anzahl {
+    display: block;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-plakette {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    height: 26px;
+    margin-left: auto;
+    padding: 0 10px;
+    border-radius: 13px;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-plakette.plus {
+    background: rgba(var(--fw-erfolg-rgb), 0.14);
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-plakette.minus {
+    background: rgba(255, 107, 107, 0.14);
+    color: #FF8A8A;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-plakette.gleich {
+    background: rgba(238, 242, 247, 0.08);
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-offen-knopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px 4px;
+    border: none;
+    background: none;
+    color: var(--text-leise);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-offen-knopf::after {
+    content: "⌄";
+    margin-top: -6px;
+    transition: transform 0.2s;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .gruppen-offen-auf .gruppen-offen-knopf::after {
+    transform: rotate(180deg) translateY(-6px);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen:not(.gruppen-offen-auf) .gruppen-zeile.aus {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .w-knopf {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: 1px solid rgba(238, 242, 247, 0.14);
+    border-radius: 23px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    color: var(--text-leise);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .w-knopf.an,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .w-knopf[aria-pressed="true"] {
+    border-color: #F5B544;
+    background: #F5B544;
+    color: #1A1206;
+    box-shadow: 0 0 14px rgba(245, 181, 68, 0.45);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #satz-sheet .w-knopf {
+    margin-top: 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-nummer.satz-w {
+    color: #F5B544;
+    font-weight: 800;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #uebungen-sheet .uebung-hinzu {
+    display: block;
+    margin-top: 16px;
+    border: 1px dashed rgba(var(--fw-signal-rgb), 0.45);
+    background: rgba(var(--fw-signal-rgb), 0.08);
+    color: var(--fw-signal);
+  }
+
+  /* Seiten einzeln: R und L eines Satzes stehen als ein Block, zwischen den Paaren eine deutlichere Linie */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-reihe + .satz-reihe.seite-l,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .tag-reihe + .tag-reihe.seite-l {
+    border-top-color: transparent;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-reihe.seite-l .satz-nummer,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .tag-reihe.seite-l .satz-nummer {
+    visibility: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-reihe.seite-l .satz-nummer .satz-seite,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .tag-reihe.seite-l .satz-nummer .satz-seite {
+    visibility: visible;
+  }
+
+  /* Letzte Trainingsergebnisse: R und L eines Satzes als ein Kästchen mit zwei Zeilen */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile:has(+ .letztes-zeile.seite-l) {
+    border-bottom-color: transparent;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile.seite-l {
+    margin-top: 0;
+    border-top: 1px dashed rgba(238, 242, 247, 0.1);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile.seite-l .satz-nummer {
+    background: transparent;
+    box-shadow: none;
+    color: transparent;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile.seite-l .satz-nummer .satz-seite {
+    color: var(--text-leise);
+  }
+
+  /* Einseitige Übung: der Chip zum Umschalten Beide / R / L ist antippbar */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.seiten-chip {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.seiten-chip[aria-pressed="true"] {
+    border-color: rgba(var(--fw-signal-rgb), 0.5);
+    background: rgba(var(--fw-signal-rgb), 0.14);
+    color: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-chip.seiten-chip.gesperrt {
+    opacity: 0.55;
+  }
+
+}

@@ -76,8 +76,8 @@ const EINFUEHRUNG_SCHRITTE = [
       en: "Your week in numbers"
     },
     text: {
-      de: "Hier zählt die App, wie viel du diese Woche trainiert hast. Sobald Ringe da sind, tippe auf einen kleinen, um ihn groß zu sehen.",
-      en: "Here the app counts how much you trained this week. Once rings appear, tap a small one to see it large."
+      de: "Hier zählt die App, wie viel du diese Woche trainiert hast: Volumen, Workouts und Wiederholungen, gemessen an deinem Wochenziel.",
+      en: "Here the app counts how much you trained this week: volume, workouts and reps, measured against your weekly goal."
     }
   },
   {
@@ -360,6 +360,7 @@ const EINFUEHRUNG_SCHRITTE = [
     bereich: "fortschritt",
     seite: "fortschritt",
     ziel: "fortschritt-veraenderung",
+    braucht: "veraenderung",
     pose: "zeigen",
     titel: {
       de: "Veränderung",
@@ -661,6 +662,15 @@ const EINFUEHRUNG_BRAUCHT = {
     }
     const uebung = laufendesTraining.uebungen[laufendesTraining.index];
     return erklaerungId(uebung.uebungId, uebung.name) !== "";
+  },
+  // Die Kacheln "Veränderung": Der Look Korund (seit Version 141, nur Glass im dunklen Design) blendet sie aus,
+  // solange es kein Körpergewicht gibt. In allen anderen Looks sind sie immer da.
+  veraenderung: function () {
+    const html = document.documentElement;
+    const dunkel = html.getAttribute("data-design") === "dunkel"
+      || (html.getAttribute("data-design") !== "hell" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const korund = html.getAttribute("data-stil") === "glass" && html.getAttribute("data-palette") === "korund" && dunkel;
+    return !korund || gewichtMessungen().length > 0;
   }
 };
 
@@ -937,7 +947,7 @@ function einfuehrungLaeuft() {
 // Gezählt wird nicht localStorage.length: Auf GitHub Pages teilen sich alle Projekte unter einer Adresse einen Speicher.
 const EINFUEHRUNG_APP_SCHLUESSEL = ["eintraege", "eintraegeKaputt", "eintraegeKaputt2", "routinen", "wochenplan", "laufendesTraining",
   "einstellungen", "profil", "pause", "trainings", "koerpergewicht", "eigeneUebungen", "geloeschteEigengewicht", "letztesBackup",
-  "backupHinweisWeg", "einfuehrungGesehen", "einfuehrungDiagnose", "einfuehrungVariante"];
+  "backupHinweisWeg", "einfuehrungGesehen", "einfuehrungDiagnose", "einfuehrungVariante", "notizen"];
 
 // Ist die App neu (allererster Start, noch nichts im Speicher)? Einmal beim Laden festgehalten, denn die einfuehrung.js
 // lädt vor der app.js, und deren Start schreibt sofort etwas in den Speicher (z. B. den Merker der Ränge).

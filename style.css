@@ -6037,3 +6037,48 @@ body.tour-zeigt-pause #modus-wahl {
   line-height: 1.35;
   text-align: center;
 }
+
+/* ---------- Trainingsmodus: Notizen je Übung (seit Version 141) ---------- */
+
+.modus-notiz {
+  margin-top: 20px;
+  padding: 14px 16px;
+}
+
+.modus-notiz .rad-titel {
+  display: block;
+  margin: 0;
+  text-align: left;
+}
+
+/* 16 px, sonst zoomt Safari beim Antippen hinein */
+.modus-notiz textarea {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--fuellung);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+/* Nur im Look Korund zu sehen (korund.css): Konstanz-Raster, Knopf für ungeübte Muskelgruppen, Steigerung als Plakette */
+.konstanz,
+.gruppen-offen-knopf,
+.gruppen-plakette,
+.gruppen-anzahl,
+.w-knopf,
+.uebung-hinzu {
+  display: none;
+}
+
+/* Aufwärmsatz (seit Version 141): In den Tabellen steht statt der Nummer ein "W" in der leisen Farbe.
+   Zu sehen nur, wenn es Aufwärmsätze gibt, in allen Looks. */
+.satz-nummer.satz-w {
+  color: var(--text-leise);
+}

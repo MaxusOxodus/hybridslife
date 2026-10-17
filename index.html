@@ -68,11 +68,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=146">
+  <link rel="stylesheet" href="style.css?v=147">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=146">
+  <link rel="stylesheet" href="glass.css?v=147">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=146">
+  <link rel="stylesheet" href="korund.css?v=147">
 </head>
 <body>
 
@@ -1070,18 +1070,14 @@
            Welcher, entscheidet cloudAnzeigen in der app.js. -->
       <div id="einst-ansicht-cloud" class="einst-ansicht versteckt">
         <div id="cloud-abgemeldet">
-          <p class="einst-fuss" data-t="cloud.erklaerung">Mit Anmeldung sichert Korund dein Backup nach jedem Training in der Cloud. Auf einem neuen Handy holst du es mit derselben E-Mail zurück.</p>
+          <p class="einst-fuss" data-t="cloud.erklaerung">Mit Anmeldung sichert Korund dein Backup nach jedem Training in der Cloud. Auf einem neuen Handy holst du es mit derselben E-Mail und deinem Passwort zurück.</p>
           <label class="form-titel" for="cloud-feld-email" data-t="cloud.email">E-Mail</label>
-          <input id="cloud-feld-email" class="form-feld" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="name@beispiel.de" data-t-platzhalter="cloud.emailPlatzhalter" onkeydown="if (event.key === 'Enter') cloudCodeSenden()">
-          <button id="cloud-code-senden" class="speichern-btn" onclick="cloudCodeSenden()" data-t="cloud.codeSenden">Code senden</button>
+          <input id="cloud-feld-email" class="form-feld" type="email" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="name@beispiel.de" data-t-platzhalter="cloud.emailPlatzhalter">
+          <label class="form-titel" for="cloud-feld-passwort" data-t="cloud.passwort">Passwort</label>
+          <input id="cloud-feld-passwort" class="form-feld" type="password" autocomplete="current-password" enterkeyhint="go" placeholder="mindestens 8 Zeichen" data-t-platzhalter="cloud.passwortPlatzhalter" onkeydown="if (event.key === 'Enter') cloudAnmelden(false)">
+          <button id="cloud-anmelden" class="speichern-btn" onclick="cloudAnmelden(false)" data-t="cloud.anmelden">Anmelden</button>
+          <button id="cloud-registrieren" class="zweit-btn" onclick="cloudAnmelden(true)" data-t="cloud.registrieren">Neues Konto erstellen</button>
           <p class="einst-fuss" data-t="cloud.datenschutz">Gespeichert wird dein Backup auf Servern in der EU. Nur du kannst es lesen.</p>
-        </div>
-        <div id="cloud-code" class="versteckt">
-          <p id="cloud-code-text" class="einst-fuss"></p>
-          <label class="form-titel" for="cloud-feld-code" data-t="cloud.code">Code aus der E-Mail</label>
-          <input id="cloud-feld-code" class="form-feld" inputmode="numeric" autocomplete="one-time-code" maxlength="10" enterkeyhint="done" placeholder="123456" onkeydown="if (event.key === 'Enter') cloudAnmelden()">
-          <button id="cloud-anmelden" class="speichern-btn" onclick="cloudAnmelden()" data-t="cloud.anmelden">Anmelden</button>
-          <button class="text-btn" onclick="cloudAndereEmail()" data-t="cloud.andereEmail">Andere E-Mail</button>
         </div>
         <div id="cloud-angemeldet" class="versteckt">
           <div class="karte einst-liste">
@@ -1267,9 +1263,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=146"></script>
-<script src="uebungen.js?v=146"></script>
-<script src="erklaerungen.js?v=146"></script>
+<script src="texte.js?v=147"></script>
+<script src="uebungen.js?v=147"></script>
+<script src="erklaerungen.js?v=147"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1291,15 +1287,15 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=146"></script>
-<script src="bilder.js?v=146"></script>
-<script src="vorlagen.js?v=146"></script>
-<script src="figuren.js?v=146"></script>
+<script src="raenge.js?v=147"></script>
+<script src="bilder.js?v=147"></script>
+<script src="vorlagen.js?v=147"></script>
+<script src="figuren.js?v=147"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
 <!-- Supabase für das Cloud-Backup (seit Version 146). Die Version steht im Dateinamen, deshalb ohne ?v=N -->
 <script src="supabase-2.117.2.js"></script>
-<script src="app.js?v=146"></script>
+<script src="app.js?v=147"></script>
 
 </body>
 </html>

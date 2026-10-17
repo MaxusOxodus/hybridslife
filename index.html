@@ -68,11 +68,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=142">
+  <link rel="stylesheet" href="style.css?v=143">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=142">
+  <link rel="stylesheet" href="glass.css?v=143">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=142">
+  <link rel="stylesheet" href="korund.css?v=143">
 </head>
 <body>
 
@@ -115,7 +115,7 @@
       <h2 class="abschnitt" data-t="home.letztesTraining">Letztes Training</h2>
       <div id="home-letztes" data-tour="home-letztes"></div>
 
-      <h2 class="abschnitt" data-t="home.insights">Einblicke &amp; Auswertung</h2>
+      <h2 id="home-einblicke-titel" class="abschnitt" data-t="home.insights">Einblicke &amp; Auswertung</h2>
 
       <!-- Zwei quadratische Kacheln nebeneinander, jede mit kleinem Diagramm. Den Inhalt füllt die app.js.
            Kraft: Ein Tipp öffnet den großen Verlauf der Übung. Körpergewicht: Ein Tipp öffnet das Diagramm im Fortschritt-Tab. -->
@@ -123,6 +123,10 @@
         <div id="home-kraft"></div>
         <div id="home-gewicht"></div>
       </div>
+
+      <!-- Look Korund (seit Version 143): welche Körperpartien erholt sind. In den anderen Looks ausgeblendet, die app.js füllt die Karte. -->
+      <h2 id="home-erholung-titel" class="abschnitt" data-t="home.erholung">Erholung</h2>
+      <div id="home-erholung" class="karte"></div>
     </div>
 
     <!-- Ansicht: Übung eintragen und die Liste der Einträge nach Wochen. Sie öffnet sich über "Übung eintragen"
@@ -457,6 +461,8 @@
         <div id="stat-serie-titel" class="kachel-titel"></div>
       </div>
     </div>
+    <!-- Look Korund (seit Version 143): der Reiter Statistik mit großer Zahl, Kacheln und Volumen je Partie. Die app.js füllt ihn, sonst ausgeblendet. -->
+    <div id="statistik-korund" class="statistik-korund" data-teil="statistik"></div>
     <!-- Konstanz: Trainingstage der letzten Wochen als Raster. Nur im Look Korund zu sehen, den Inhalt baut die app.js. -->
     <div id="konstanz" class="karte konstanz" data-teil="kraft"></div>
 
@@ -742,6 +748,11 @@
       <div class="fett-eingabe">
         <label id="fett-feld-titel" class="rad-titel" for="feld-koerperfett" data-t="messung.fettFeld">Körperfett in % (optional)</label>
         <input id="feld-koerperfett" class="zahl-feld" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="–" onblur="koerperfettFeldPruefen()" onkeydown="if (event.key === 'Enter') this.blur()">
+      </div>
+      <!-- Look Korund (seit Version 143): das Ziel für das Körpergewicht. Es speichert sich beim Verlassen des Feldes. Sonst ausgeblendet. -->
+      <div id="ziel-eingabe" class="fett-eingabe ziel-eingabe">
+        <label id="ziel-feld-titel" class="rad-titel" for="feld-zielgewicht" data-t="ziel.feldKurz">Ziel (optional)</label>
+        <input id="feld-zielgewicht" class="zahl-feld" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="–" onblur="zielGewichtFeldPruefen()" onkeydown="if (event.key === 'Enter') this.blur()">
       </div>
       <button class="speichern-btn" onclick="gewichtSpeichern()" data-t="speichern">Speichern</button>
     </div>
@@ -1165,9 +1176,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=142"></script>
-<script src="uebungen.js?v=142"></script>
-<script src="erklaerungen.js?v=142"></script>
+<script src="texte.js?v=143"></script>
+<script src="uebungen.js?v=143"></script>
+<script src="erklaerungen.js?v=143"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1189,13 +1200,13 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=142"></script>
-<script src="bilder.js?v=142"></script>
-<script src="vorlagen.js?v=142"></script>
-<script src="figuren.js?v=142"></script>
+<script src="raenge.js?v=143"></script>
+<script src="bilder.js?v=143"></script>
+<script src="vorlagen.js?v=143"></script>
+<script src="figuren.js?v=143"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
-<script src="app.js?v=142"></script>
+<script src="app.js?v=143"></script>
 
 </body>
 </html>

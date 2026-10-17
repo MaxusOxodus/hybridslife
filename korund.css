@@ -2163,6 +2163,594 @@
   margin-top: 20px;
 }
 
+/* ---------- Home unten (seit Version 143): ruhige Karten ----------
+   Schriftstufen wie in den Entwürfen: Label 11,5 in Großbuchstaben, Titel 28, Zahlen 22–26, leiser Text 13 */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .letztes-label,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-kachel .kachel-name {
+  display: block;
+  color: var(--text-leise);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-letztes .routine-name {
+  margin-top: 4px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-letztes .routine-info {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .letztes-rekord {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(238, 242, 247, 0.07);
+  color: var(--text-leise);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .letztes-rekord b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .letztes-rekord-symbol {
+  display: flex;
+  flex: none;
+  margin-top: 1px;
+  color: #F5C04A;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .letztes-rekord-symbol svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-einblicke-titel {
+  font-size: 0 !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-einblicke-titel::before {
+  content: attr(data-korund);
+  font-size: 15px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-kachel .home-zahl {
+  margin-top: 6px;
+  font-size: 26px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kachel-delta {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kachel-delta .plus {
+  color: var(--fw-erfolg);
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-erholung-titel {
+  display: block;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #home-erholung {
+  display: block;
+  padding: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(#home-erholung, #home-erholung-titel)[data-leer="ja"] {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-zeile {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-zeile::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--fw-erfolg);
+  transform: translateY(-1px);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-zeile.muede {
+  margin-top: 6px;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-zeile.muede::before {
+  background: #5F656D;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-start {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 0 0;
+  border: none;
+  border-top: 1px solid rgba(238, 242, 247, 0.07);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-start-knopf {
+  margin-left: auto;
+  color: var(--fw-signal);
+  font-weight: 600;
+}
+
+/* ---------- Vorlagen (seit Version 143): Umschalter 2× bis 6× und die Pläne als Karten mit Wochenleiste ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #vorlagen-liste > :not(.vorlagen-korund) {
+  display: none !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #vorlagen-liste {
+  display: block;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlagen-korund {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlagen-tage {
+  display: flex;
+  margin-bottom: 6px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlagen-tage button {
+  flex: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlagen-frage {
+  margin: 4px 4px 12px;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund {
+  width: 100%;
+  margin: 0;
+  padding: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .routine-name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .routine-info {
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .vorlage-woche {
+  gap: 4px;
+  margin-top: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .vorlage-wochentag {
+  padding: 5px 0;
+  border: none;
+  border-radius: 7px;
+  background: rgba(238, 242, 247, 0.05);
+  color: var(--text-leise);
+  font-size: 11px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund .vorlage-wochentag.aktiv {
+  background: rgba(var(--fw-signal-rgb), 0.16);
+  color: var(--fw-signal);
+}
+
+/* ---------- Fortschritt › Körper (seit Version 143): große Zahl, Ziel-Zeile, Ziel-Linie, Feld „Ziel“ im Sheet ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #kg-kopf .home-zahl.mess-gross,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fett-kopf .home-zahl.mess-gross {
+  font-size: 46px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-einheit {
+  margin-left: 4px;
+  color: var(--text-leise);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-ziel {
+  display: block;
+  margin-top: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .diagramm .linie-ziel {
+  fill: none;
+  stroke: rgba(238, 242, 247, 0.4);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 5;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .ziel-eingabe:not(.versteckt) {
+  display: block;
+}
+
+/* ---------- Fortschritt › Statistik (seit Version 143) ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-korund {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt .kacheln[data-teil="statistik"] {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-held,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-volumen {
+  padding: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-label {
+  color: var(--text-leise);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-gross {
+  margin-top: 10px;
+  font-size: 46px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-klein {
+  margin-top: 4px;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-balken {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 72px;
+  margin-top: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-spalte {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-spalte i {
+  width: 100%;
+  border-radius: 5px;
+  background: rgba(var(--fw-signal-rgb), 0.35);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-spalte.jetzt i {
+  background: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-spalte small {
+  color: var(--text-leise);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kacheln {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel {
+  margin: 0;
+  padding: 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-wert {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-wert.serie {
+  color: #FF9F45;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-wert.rekord {
+  color: #F5C04A;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kopf {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-titel {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-name {
+  width: 78px;
+  flex: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-bahn {
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(238, 242, 247, 0.07);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-bahn i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--fw-signal);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-prozent {
+  width: 40px;
+  flex: none;
+  color: var(--text-leise);
+  font-size: 13px;
+  text-align: right;
+}
+
+/* ---------- Profil (seit Version 143): Rang und Serie unter dem Namen, Level, Netz der Muster, Abzeichen in Farbgruppen ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .profil-korund-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .profil-rang {
+  color: #A98BFF;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .profil-serie {
+  color: #FF9F45;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .profil-rang + .profil-serie::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .profil-level {
+  display: block;
+  margin-top: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .profil-level-kopf {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .profil-level .rang-balken {
+  height: 4px;
+  margin-top: 8px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-raster {
+  display: none !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-korund {
+  display: block;
+  padding: 10px 18px 6px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-netz {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 0 auto 4px;
+  overflow: visible;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-netz .netz-aussen {
+  fill: none;
+  stroke: rgba(238, 242, 247, 0.12);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-netz .netz-innen {
+  fill: none;
+  stroke: rgba(238, 242, 247, 0.06);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-netz .netz-wert {
+  fill: rgba(var(--fw-signal-rgb), 0.16);
+  stroke: var(--fw-signal);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-netz text {
+  fill: #4A5059;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-netz text.an {
+  fill: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-zeile {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 13px 0;
+  border: none;
+  border-top: 1px solid rgba(238, 242, 247, 0.07);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14.5px;
+  text-align: left;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-zeile-wert {
+  margin-left: auto;
+  color: var(--text-leise);
+  font-size: 13.5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .muster-zeile-wert.an {
+  color: var(--text);
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-abzeichen {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-ring {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-ring svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-ring circle {
+  fill: none;
+  stroke-width: 5;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-ring .spur {
+  stroke: rgba(238, 242, 247, 0.08);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-ring .wert {
+  stroke: var(--fw-signal);
+  stroke-linecap: round;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-prozent {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-label {
+  color: var(--text-leise);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-titel {
+  margin-top: 3px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .naechstes-info {
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+/* Abzeichen: erreichte in der Farbe ihrer Gruppe, offene grau */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen.erreicht.kat-konstanz { --abz: #FF9F45; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen.erreicht.kat-volumen { --abz: var(--fw-signal); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen.erreicht.kat-rekorde { --abz: #F5C04A; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen.erreicht.kat-kraft { --abz: #A98BFF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen.erreicht.kat-meilenstein { --abz: #3DDC84; }
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen.erreicht .abzeichen-bild {
+  color: var(--abz) !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen.erreicht .medaille {
+  filter: none !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .abzeichen.erreicht .medaille .form {
+  fill: color-mix(in srgb, var(--abz) 16%, transparent) !important;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #profil-zahlen {
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #profil-zahlen .home-zahl {
+  font-size: 20px;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -4198,6 +4786,594 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #training-reiter {
     margin-top: 20px;
+  }
+
+  /* ---------- Home unten (seit Version 143): ruhige Karten ----------
+     Schriftstufen wie in den Entwürfen: Label 11,5 in Großbuchstaben, Titel 28, Zahlen 22–26, leiser Text 13 */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .letztes-label,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-kachel .kachel-name {
+    display: block;
+    color: var(--text-leise);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-letztes .routine-name {
+    margin-top: 4px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-letztes .routine-info {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .letztes-rekord {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(238, 242, 247, 0.07);
+    color: var(--text-leise);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .letztes-rekord b {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .letztes-rekord-symbol {
+    display: flex;
+    flex: none;
+    margin-top: 1px;
+    color: #F5C04A;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .letztes-rekord-symbol svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-einblicke-titel {
+    font-size: 0 !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-einblicke-titel::before {
+    content: attr(data-korund);
+    font-size: 15px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-kachel .home-zahl {
+    margin-top: 6px;
+    font-size: 26px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kachel-delta {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kachel-delta .plus {
+    color: var(--fw-erfolg);
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-erholung-titel {
+    display: block;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #home-erholung {
+    display: block;
+    padding: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(#home-erholung, #home-erholung-titel)[data-leer="ja"] {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-zeile {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-zeile::before {
+    content: "";
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--fw-erfolg);
+    transform: translateY(-1px);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-zeile.muede {
+    margin-top: 6px;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-zeile.muede::before {
+    background: #5F656D;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-start {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px 0 0;
+    border: none;
+    border-top: 1px solid rgba(238, 242, 247, 0.07);
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 15px;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-start-knopf {
+    margin-left: auto;
+    color: var(--fw-signal);
+    font-weight: 600;
+  }
+
+  /* ---------- Vorlagen (seit Version 143): Umschalter 2× bis 6× und die Pläne als Karten mit Wochenleiste ---------- */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #vorlagen-liste > :not(.vorlagen-korund) {
+    display: none !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #vorlagen-liste {
+    display: block;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlagen-korund {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlagen-tage {
+    display: flex;
+    margin-bottom: 6px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlagen-tage button {
+    flex: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlagen-frage {
+    margin: 4px 4px 12px;
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund {
+    width: 100%;
+    margin: 0;
+    padding: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .routine-name {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .routine-info {
+    margin-top: 2px;
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .vorlage-woche {
+    gap: 4px;
+    margin-top: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .vorlage-wochentag {
+    padding: 5px 0;
+    border: none;
+    border-radius: 7px;
+    background: rgba(238, 242, 247, 0.05);
+    color: var(--text-leise);
+    font-size: 11px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund .vorlage-wochentag.aktiv {
+    background: rgba(var(--fw-signal-rgb), 0.16);
+    color: var(--fw-signal);
+  }
+
+  /* ---------- Fortschritt › Körper (seit Version 143): große Zahl, Ziel-Zeile, Ziel-Linie, Feld „Ziel“ im Sheet ---------- */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #kg-kopf .home-zahl.mess-gross,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fett-kopf .home-zahl.mess-gross {
+    font-size: 46px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-einheit {
+    margin-left: 4px;
+    color: var(--text-leise);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-ziel {
+    display: block;
+    margin-top: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .diagramm .linie-ziel {
+    fill: none;
+    stroke: rgba(238, 242, 247, 0.4);
+    stroke-width: 1.2;
+    stroke-dasharray: 3 5;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .ziel-eingabe:not(.versteckt) {
+    display: block;
+  }
+
+  /* ---------- Fortschritt › Statistik (seit Version 143) ---------- */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-korund {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt .kacheln[data-teil="statistik"] {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-held,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-volumen {
+    padding: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-label {
+    color: var(--text-leise);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-gross {
+    margin-top: 10px;
+    font-size: 46px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-klein {
+    margin-top: 4px;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-balken {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 72px;
+    margin-top: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-spalte {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-spalte i {
+    width: 100%;
+    border-radius: 5px;
+    background: rgba(var(--fw-signal-rgb), 0.35);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-spalte.jetzt i {
+    background: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-spalte small {
+    color: var(--text-leise);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kacheln {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel {
+    margin: 0;
+    padding: 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-wert {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-wert.serie {
+    color: #FF9F45;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-wert.rekord {
+    color: #F5C04A;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kopf {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-titel {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-zeile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    font-size: 14px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-name {
+    width: 78px;
+    flex: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-bahn {
+    flex: 1;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: rgba(238, 242, 247, 0.07);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-bahn i {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--fw-signal);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-prozent {
+    width: 40px;
+    flex: none;
+    color: var(--text-leise);
+    font-size: 13px;
+    text-align: right;
+  }
+
+  /* ---------- Profil (seit Version 143): Rang und Serie unter dem Namen, Level, Netz der Muster, Abzeichen in Farbgruppen ---------- */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .profil-korund-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    margin-top: 2px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .profil-rang {
+    color: #A98BFF;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .profil-serie {
+    color: #FF9F45;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .profil-rang + .profil-serie::before {
+    content: "·";
+    margin-right: 8px;
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .profil-level {
+    display: block;
+    margin-top: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .profil-level-kopf {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .profil-level .rang-balken {
+    height: 4px;
+    margin-top: 8px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-raster {
+    display: none !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-korund {
+    display: block;
+    padding: 10px 18px 6px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-netz {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    margin: 0 auto 4px;
+    overflow: visible;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-netz .netz-aussen {
+    fill: none;
+    stroke: rgba(238, 242, 247, 0.12);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-netz .netz-innen {
+    fill: none;
+    stroke: rgba(238, 242, 247, 0.06);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-netz .netz-wert {
+    fill: rgba(var(--fw-signal-rgb), 0.16);
+    stroke: var(--fw-signal);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-netz text {
+    fill: #4A5059;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-netz text.an {
+    fill: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-zeile {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 13px 0;
+    border: none;
+    border-top: 1px solid rgba(238, 242, 247, 0.07);
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 14.5px;
+    text-align: left;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-zeile-wert {
+    margin-left: auto;
+    color: var(--text-leise);
+    font-size: 13.5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .muster-zeile-wert.an {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-abzeichen {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 16px 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-ring {
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-ring svg {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-ring circle {
+    fill: none;
+    stroke-width: 5;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-ring .spur {
+    stroke: rgba(238, 242, 247, 0.08);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-ring .wert {
+    stroke: var(--fw-signal);
+    stroke-linecap: round;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-prozent {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-label {
+    color: var(--text-leise);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-titel {
+    margin-top: 3px;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .naechstes-info {
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  /* Abzeichen: erreichte in der Farbe ihrer Gruppe, offene grau */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen.erreicht.kat-konstanz { --abz: #FF9F45; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen.erreicht.kat-volumen { --abz: var(--fw-signal); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen.erreicht.kat-rekorde { --abz: #F5C04A; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen.erreicht.kat-kraft { --abz: #A98BFF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen.erreicht.kat-meilenstein { --abz: #3DDC84; }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen.erreicht .abzeichen-bild {
+    color: var(--abz) !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen.erreicht .medaille {
+    filter: none !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .abzeichen.erreicht .medaille .form {
+    fill: color-mix(in srgb, var(--abz) 16%, transparent) !important;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-zahlen {
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-zahlen .home-zahl {
+    font-size: 20px;
   }
 
 }

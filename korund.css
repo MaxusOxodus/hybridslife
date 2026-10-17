@@ -3074,6 +3074,201 @@
   text-align: right;
 }
 
+/* ---------- Feinschliff nach dem Entwurf (Version 143) ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .home-kachel .mini-flaeche {
+  display: block;
+  fill: rgba(var(--fw-signal-rgb), 0.14);
+  stroke: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #kg-diagramm .diagramm .flaeche-haupt {
+  fill: rgba(var(--fw-signal-rgb), 0.12);
+  stroke: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #kg-diagramm .diagramm-info .routine-info {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .mess-delta.plus {
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-passt {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--fw-signal);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .vorlage-variante-korund.passt {
+  border-color: rgba(var(--fw-signal-rgb), 0.5);
+}
+
+/* Vorlagen-Seite: runder Zurück-Knopf und Titel in einer Zeile */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-varianten {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-varianten.versteckt {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-varianten > .text-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: 8px 0;
+  padding: 0;
+  border: 1px solid rgba(238, 242, 247, 0.12);
+  border-radius: 12px;
+  background: rgba(var(--fw-glas-rgb), 0.8);
+  font-size: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-varianten > .text-btn::before {
+  content: "‹";
+  color: var(--text);
+  font-size: 20px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-varianten > #varianten-titel {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-varianten > #varianten-liste {
+  grid-column: 1 / -1;
+}
+
+/* Profil: Aktivität ohne Beschriftung der Tage und Monate, ohne Hinweis-Kasten */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #profil-aktivitaet :is(.raster-tage, .raster-monate, .raster-info) {
+  display: none;
+}
+
+/* Seite Kraftrang: die große Karte */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-held {
+  padding: 22px 18px 18px;
+  text-align: center;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-held-bild svg {
+  display: block;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-held-bild polygon {
+  fill: rgba(169, 139, 255, 0.14);
+  stroke: #A98BFF;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 12px rgba(169, 139, 255, 0.5));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-held-bild text {
+  fill: #D9CCFF;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-held-label {
+  margin-top: 12px;
+  color: var(--text-leise);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-held-name {
+  margin-top: 2px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter::before,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: rgba(238, 242, 247, 0.08);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter::after {
+  right: auto;
+  width: calc((100% - 40px) * var(--leiter) / 100);
+  background: #A98BFF;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter span {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 44px;
+  color: #4A5059;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter i {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #0E1117;
+  border-radius: 50%;
+  background: #1B2129;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter .ok,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter .jetzt {
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter .ok i {
+  background: #A98BFF;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter .jetzt {
+  color: var(--text);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-leiter .jetzt i {
+  background: #A98BFF;
+  box-shadow: 0 0 0 4px rgba(169, 139, 255, 0.25);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-held-info {
+  margin-top: 16px;
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-held .teilen-knopf {
+  margin-top: 16px;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -6020,6 +6215,201 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .verlauf-volumen {
     text-align: right;
+  }
+
+  /* ---------- Feinschliff nach dem Entwurf (Version 143) ---------- */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .home-kachel .mini-flaeche {
+    display: block;
+    fill: rgba(var(--fw-signal-rgb), 0.14);
+    stroke: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #kg-diagramm .diagramm .flaeche-haupt {
+    fill: rgba(var(--fw-signal-rgb), 0.12);
+    stroke: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #kg-diagramm .diagramm-info .routine-info {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .mess-delta.plus {
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-passt {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--fw-signal);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .vorlage-variante-korund.passt {
+    border-color: rgba(var(--fw-signal-rgb), 0.5);
+  }
+
+  /* Vorlagen-Seite: runder Zurück-Knopf und Titel in einer Zeile */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-varianten {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-varianten.versteckt {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-varianten > .text-btn {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin: 8px 0;
+    padding: 0;
+    border: 1px solid rgba(238, 242, 247, 0.12);
+    border-radius: 12px;
+    background: rgba(var(--fw-glas-rgb), 0.8);
+    font-size: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-varianten > .text-btn::before {
+    content: "‹";
+    color: var(--text);
+    font-size: 20px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-varianten > #varianten-titel {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-varianten > #varianten-liste {
+    grid-column: 1 / -1;
+  }
+
+  /* Profil: Aktivität ohne Beschriftung der Tage und Monate, ohne Hinweis-Kasten */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #profil-aktivitaet :is(.raster-tage, .raster-monate, .raster-info) {
+    display: none;
+  }
+
+  /* Seite Kraftrang: die große Karte */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-held {
+    padding: 22px 18px 18px;
+    text-align: center;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-held-bild svg {
+    display: block;
+    width: 84px;
+    height: 84px;
+    margin: 0 auto;
+    overflow: visible;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-held-bild polygon {
+    fill: rgba(169, 139, 255, 0.14);
+    stroke: #A98BFF;
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 12px rgba(169, 139, 255, 0.5));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-held-bild text {
+    fill: #D9CCFF;
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-held-label {
+    margin-top: 12px;
+    color: var(--text-leise);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-held-name {
+    margin-top: 2px;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter::before,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background: rgba(238, 242, 247, 0.08);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter::after {
+    right: auto;
+    width: calc((100% - 40px) * var(--leiter) / 100);
+    background: #A98BFF;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter span {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 44px;
+    color: #4A5059;
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter i {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #0E1117;
+    border-radius: 50%;
+    background: #1B2129;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter .ok,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter .jetzt {
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter .ok i {
+    background: #A98BFF;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter .jetzt {
+    color: var(--text);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-leiter .jetzt i {
+    background: #A98BFF;
+    box-shadow: 0 0 0 4px rgba(169, 139, 255, 0.25);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-held-info {
+    margin-top: 16px;
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-held .teilen-knopf {
+    margin-top: 16px;
   }
 
 }

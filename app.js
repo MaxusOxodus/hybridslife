@@ -3683,15 +3683,20 @@
 
   // Nur im Look Korund zu sehen: oben der Umschalter 2× bis 6×, darunter die Varianten dieser Tageszahl
   // als Karten mit Wochenleiste. Ein Tipp öffnet wie bisher die Vorschau. In den anderen Looks ausgeblendet (style.css).
+  // Die Zahl der Trainingstage im Wochenplan, wenn sie zu einer Vorlage passt (2 bis 6), sonst 0
+  function vorlagenGeplant() {
+    let geplant = 0;
+    for (let i = 0; i < wochenplan.length; i++) {
+      if (wochenplan[i] && wochenplan[i] !== "ruhe") {
+        geplant++;
+      }
+    }
+    return geplant >= 2 && geplant <= 6 ? geplant : 0;
+  }
+
   function vorlagenKorundAnzeigen(liste) {
     if (!vorlagenTage) {
-      let geplant = 0;
-      for (let i = 0; i < wochenplan.length; i++) {
-        if (wochenplan[i] && wochenplan[i] !== "ruhe") {
-          geplant++;
-        }
-      }
-      vorlagenTage = geplant >= 2 && geplant <= 6 ? geplant : 3;
+      vorlagenTage = vorlagenGeplant() || 3;
     }
     const bereich = element("div", "vorlagen-korund");
     const schalter = element("div", "umschalter vorlagen-tage");
@@ -3717,9 +3722,46 @@
           vorschauOeffnen(variante);
         });
         karte.classList.add("vorlage-variante-korund");
+        // "Passt zu dir": der erste Plan der Tageszahl, die dein Wochenplan schon hat
+        if (j === 0 && vorlagenTage === vorlagenGeplant()) {
+          karte.classList.add("passt");
+          karte.firstChild.appendChild(element("span", "vorlage-passt", txt("vorlage.passt")));
+        }
         karte.firstChild.appendChild(element("span", "routine-name", txt("vorlage.variante." + variante.id)));
-        karte.firstChild.appendChild(element("span", "routine-info", txt("vorlage.tage", { n: variante.tage.length }) + " · " + vorlageTageText(variante.wochentage)));
-        karte.firstChild.appendChild(wochenleisteBauen(variante.wochentage));
+        // Ungefähre Dauer eines Tages wie bei den Routinen: je Satz 45 s plus Standard-Pause
+        let saetze = 0;
+        for (let t = 0; t < variante.tage.length; t++) {
+          for (let k = 0; k < variante.tage[t].slots.length; k++) {
+            saetze += variante.tage[t].slots[k].saetze;
+          }
+        }
+        const minuten = Math.round(saetze / variante.tage.length * (45 + pauseStandard()) / 60 / 5) * 5;
+        karte.firstChild.appendChild(element("span", "routine-info", txt("routine.dauer", { n: minuten }) + " · " + txt("vorlage.tage", { n: variante.tage.length })));
+        const leiste = wochenleisteBauen(variante.wochentage);
+        // Unter den Balken der Trainingstage steht das Kürzel des Tags (O, U, Pu, Pl …), sonst der Wochentag
+        const namen = variante.tage.map(function (tag) {
+          return txt("vorlage.tag." + tag.name);
+        });
+        // Haben alle Tage dasselbe erste Wort ("Ganzkörper A", "Ganzkörper B"), zählt das letzte Wort
+        const ersteWorte = namen.map(function (name) {
+          return name.split(" ")[0];
+        });
+        const gleicherAnfang = namen.length > 1 && ersteWorte.every(function (w) {
+          return w === ersteWorte[0];
+        });
+        const kuerzel = namen.map(function (name) {
+          if (gleicherAnfang) {
+            return name.split(" ").pop().slice(0, 2);
+          }
+          const doppelt = namen.some(function (anderer) {
+            return anderer !== name && anderer.charAt(0) === name.charAt(0);
+          });
+          return doppelt ? name.slice(0, 2) : name.charAt(0);
+        });
+        for (let t = 0; t < variante.wochentage.length; t++) {
+          leiste.children[variante.wochentage[t]].textContent = kuerzel[t];
+        }
+        karte.firstChild.appendChild(leiste);
         bereich.appendChild(karte);
       }
     }
@@ -8510,6 +8552,9 @@
           weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit).toFixed(1) + " " + y(punkte[i].wert).toFixed(1);
         }
         // Bei sehr vielen Werten wird die Linie feiner (Klasse "viele"), damit sie lesbar bleibt
+        if (reihen[r].flaeche) {
+          svg += '<path class="flaeche-' + reihen[r].art + '" d="' + weg + "L" + x(punkte[punkte.length - 1].zeit).toFixed(1) + " " + (HOEHE - UNTEN) + "L" + x(punkte[0].zeit).toFixed(1) + " " + (HOEHE - UNTEN) + 'Z"/>';
+        }
         svg += '<path class="linie-' + reihen[r].art + (punkte.length > 45 ? " viele" : "") + '" d="' + weg + '"/>';
         // Eine Linie mit Beschriftung (das Ziel im Look Korund) bekommt ihren Text links darüber
         if (reihen[r].beschriftung) {
@@ -9929,6 +9974,10 @@
         for (let i = 0; i < punkte.length; i++) {
           weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit) + " " + y(punkte[i].wert);
         }
+        // Die Fläche unter der Hauptlinie zeigt nur der Look Korund (korund.css), sonst ist sie ausgeblendet
+        if (reihen[r].art === "haupt") {
+          svg += '<path class="mini-flaeche" d="' + weg + "L" + x(punkte[punkte.length - 1].zeit) + " 100L" + x(punkte[0].zeit) + ' 100Z"/>';
+        }
         svg += '<path class="linie-' + reihen[r].art + '" d="' + weg + '"/>';
       }
       // In der kleinen Kachel würden viele Punkte zu einem Balken verkleben, dann bleibt nur die Linie
@@ -10548,7 +10597,9 @@
       const anfang = messWert(art, imZeitraum[0].wert);
       const unterschied = Math.round((wert - anfang) * 10) / 10;
       const zeichen = unterschied > 0 ? "+" : unterschied < 0 ? "−" : "±";
-      const betrag = element("span", "mess-delta", zeichen + art.text(Math.abs(unterschied)));
+      const zielWert = kennung === "kg" && zielGewicht() !== null ? messWert(art, zielGewicht()) : null;
+      const richtung = zielWert !== null && unterschied !== 0 && Math.sign(unterschied) === Math.sign(zielWert - anfang);
+      const betrag = element("span", "mess-delta" + (richtung ? " plus" : ""), zeichen + art.text(Math.abs(unterschied)));
       info.appendChild(betrag);
       const rest = txt("gruppen.in." + zeitraum, { wert: "" }).trim();
       info.appendChild(document.createTextNode(" " + rest));
@@ -10654,7 +10705,8 @@
       // Der letzte Wert steht schon im Kopf der Karte. Über dem Diagramm steht erst etwas nach dem Antippen.
       const reihen = [
         { punkte: messungen, art: "neben", mitPunkten: true, tasten: true },
-        { punkte: schnitt, art: "haupt", mitPunkten: false }
+        // Im Look Korund bekommt der Schnitt eine Fläche darunter (seit Version 143)
+        { punkte: schnitt, art: "haupt", mitPunkten: false, flaeche: lookKorund() }
       ];
       // Look Korund (seit Version 143): das Ziel als gestrichelte Linie über den ganzen Zeitraum
       const ziel = kennung === "kg" ? zielGewicht() : null;
@@ -14263,7 +14315,7 @@
       kopf.appendChild(zurueck);
       kopf.appendChild(element("span", "rang-ansicht-titel", txt("rang.seite")));
       inhalt.appendChild(kopf);
-      const gesamt = gesamtRangKarte(stand);
+      const gesamt = stand.kraft.gesamt === null ? gesamtRangKarte(stand) : rangHeldKarte(stand);
       gesamt.setAttribute("data-tour", "profil-rang");
       gesamt.querySelector(".teilen-knopf").setAttribute("data-tour", "profil-teilen");
       inhalt.appendChild(gesamt);
@@ -14324,6 +14376,40 @@
       inhalt.appendChild(raster);
     }
     inhalt.appendChild(element("p", "meldung rang-fussnote", txt("rang.hinweis")));
+  }
+
+  // Die große Karte des Gesamt-Rangs auf der Seite Kraftrang (Look Korund): Sechseck mit der Stufe, Name,
+  // die Leiter der sechs Ränge mit dem jetzigen hervorgehoben, darunter was bis zum nächsten fehlt und "Teilen"
+  function rangHeldKarte(stand) {
+    const gesamt = stand.kraft.gesamt;
+    const r = rpZuRang(gesamt);
+    const karte = element("div", "karte rang-held");
+    const sechseck = element("span", "rang-held-bild");
+    const ecken = [];
+    for (let i = 0; i < 6; i++) {
+      const winkel = Math.PI / 180 * (60 * i - 90);
+      ecken.push((42 + 38 * Math.cos(winkel)).toFixed(1) + "," + (42 + 38 * Math.sin(winkel)).toFixed(1));
+    }
+    sechseck.innerHTML = '<svg viewBox="0 0 84 84" aria-hidden="true"><polygon points="' + ecken.join(" ") + '"/><text x="42" y="51" text-anchor="middle">' + r.stufe + "</text></svg>";
+    karte.appendChild(sechseck);
+    karte.appendChild(element("div", "rang-held-label", txt("rang.gesamt")));
+    karte.appendChild(element("div", "rang-held-name", txt("rang.name." + r.rang)));
+    const leiter = element("div", "rang-leiter");
+    for (let i = 1; i <= RANG_ANZAHL; i++) {
+      const stufe = element("span", i < r.rang ? "ok" : i === r.rang ? "jetzt" : "");
+      stufe.appendChild(element("i", ""));
+      stufe.appendChild(document.createTextNode(txt("rang.name." + i)));
+      leiter.appendChild(stufe);
+    }
+    leiter.style.setProperty("--leiter", ((r.rang - 1) / (RANG_ANZAHL - 1) * 100).toFixed(1) + "%");
+    karte.appendChild(leiter);
+    if (r.rpBisNaechste > 0) {
+      karte.appendChild(element("div", "rang-held-info", txt("rang.nochRp", { rp: r.rpBisNaechste, rang: rangName(gesamt + r.rpBisNaechste) })));
+    } else {
+      karte.appendChild(element("div", "rang-held-info", txt("rang.maximum")));
+    }
+    karte.appendChild(teilenKnopf(true));
+    return karte;
   }
 
   // Für die Einführung: Rang und "Teilen" liegen im Look Korund auf der Seite Kraftrang, das erste Abzeichen in der Übersicht

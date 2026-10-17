@@ -602,6 +602,7 @@ const TEXTE = {
   "fortschritt.ueberZeitraum.0": { de: "Seit Beginn", en: "Since the start" },
   "verlauf.rekorde.eins": { de: "{n} Rekord", en: "{n} record" },
   "verlauf.rekorde.viele": { de: "{n} Rekorde", en: "{n} records" },
+  "vorlage.passt": { de: "Passt zu dir", en: "Fits you" },
   "home.einblicke": { de: "Einblicke", en: "Insights" },
   "home.seit": { de: "seit {datum}", en: "since {datum}" },
   "home.rekord": { de: "Neuer Rekord", en: "New record" },

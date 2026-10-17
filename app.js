@@ -5028,6 +5028,14 @@
     wKnopfAnzeigen("satz-w", satzW);
   }
 
+  // Bei "Seiten: Einzeln" bekommt die linke Seite eines Paars die Klasse "seite-l". Der Look Korund zeigt R und L
+  // damit als zusammengehörigen Block (korund.css), sonst ändert die Klasse nichts. platz < 0: keine Seite.
+  function seiteLMarkieren(zeile, platz) {
+    if (platz >= 0 && platz % 2 === 1) {
+      zeile.classList.add("seite-l");
+    }
+  }
+
   // Der Platz eines Satzes unter den Arbeitssätzen davor (ohne Aufwärmsätze), ab 0
   function arbeitsIndex(saetze, index) {
     return arbeitsAnzahl(saetze.slice(0, index));
@@ -5101,6 +5109,7 @@
     for (let i = 0; i < saetze.length; i++) {
       const zeile = element("button", "tag-reihe");
       zeile.appendChild(satzKennungElement(saetze, i, seiten));
+      seiteLMarkieren(zeile, seiten && !istAufwaermen(saetze[i]) ? arbeitsIndex(saetze, i) : -1);
 
       const werte = element("span", "tag-werte");
       werte.appendChild(element("span", "", gewichtText(saetze[i].gewicht) + " × " + saetze[i].wdh));
@@ -5180,6 +5189,7 @@
         const satz = saetze[i];
         zeile = element("button", "satz-reihe erledigt");
         zeile.appendChild(satzKennungElement(saetze, i, seiten));
+        seiteLMarkieren(zeile, seiten && !istAufwaermen(satz) ? arbeitsIndex(saetze, i) : -1);
         zeile.appendChild(element("span", "", gewichtText(satz.gewicht)));
         const wdh = element("span", "", satz.wdh);
         if (rirLesen(satz.rir) !== null) {
@@ -5199,6 +5209,7 @@
           zeile.className = "satz-reihe aktuell";
         }
         zeile.appendChild(satzNummerElement(i - aufwaermen, seiten));
+        seiteLMarkieren(zeile, seiten ? i - aufwaermen : -1);
         zeile.appendChild(element("span", "", "–"));
         zeile.appendChild(element("span", "", zielWdh));
         zeile.appendChild(element("span", ""));

@@ -795,6 +795,22 @@
   color: var(--fw-signal);
 }
 
+/* Seiten einzeln: R und L eines Satzes stehen als ein Block, zwischen den Paaren eine deutlichere Linie */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-reihe + .satz-reihe.seite-l,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .tag-reihe + .tag-reihe.seite-l {
+  border-top-color: transparent;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-reihe.seite-l .satz-nummer,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .tag-reihe.seite-l .satz-nummer {
+  visibility: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .satz-reihe.seite-l .satz-nummer .satz-seite,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .tag-reihe.seite-l .satz-nummer .satz-seite {
+  visibility: visible;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -1468,6 +1484,22 @@
     border: 1px dashed rgba(var(--fw-signal-rgb), 0.45);
     background: rgba(var(--fw-signal-rgb), 0.08);
     color: var(--fw-signal);
+  }
+
+  /* Seiten einzeln: R und L eines Satzes stehen als ein Block, zwischen den Paaren eine deutlichere Linie */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-reihe + .satz-reihe.seite-l,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .tag-reihe + .tag-reihe.seite-l {
+    border-top-color: transparent;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-reihe.seite-l .satz-nummer,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .tag-reihe.seite-l .satz-nummer {
+    visibility: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .satz-reihe.seite-l .satz-nummer .satz-seite,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .tag-reihe.seite-l .satz-nummer .satz-seite {
+    visibility: visible;
   }
 
 }

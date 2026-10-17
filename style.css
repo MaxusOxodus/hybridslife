@@ -333,6 +333,8 @@ h1 {
   background: var(--glas);
   -webkit-backdrop-filter: var(--glas-filter);
   backdrop-filter: var(--glas-filter);
+  /* Seitlich wischt die Leiste selbst (seit Version 140), senkrecht bleibt alles wie bisher */
+  touch-action: pan-y;
 }
 
 .nav-btn {
@@ -375,7 +377,9 @@ h1 {
   color: var(--akzent-text);
 }
 
-.nav-btn.aktiv .nav-icon {
+/* Beim Wischen auf der Leiste (seit Version 140) zeigt der Tab, zu dem es geht, schon denselben Kreis */
+.nav-btn.aktiv .nav-icon,
+.nav-btn.wisch-ziel .nav-icon {
   background: var(--akzent-leicht);
 }
 

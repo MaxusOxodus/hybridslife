@@ -7448,6 +7448,66 @@
     });
   }
 
+  // Tab-Leiste (seit Version 140): Ein seitlicher Wisch auf der Leiste unten wechselt den Tab wie ein Tipp auf ihn:
+  // nach links zum Tab rechts daneben, nach rechts zum Tab links daneben. Am Ende der Reihe passiert nichts.
+  // Die Geste beginnt nur auf einem Tab-Knopf, nicht im Streifen darunter: Dort wischt iOS zwischen den Apps.
+  // Ist der Wisch weit genug, zeigt der Tab, zu dem es geht, schon den hellen Kreis (Klasse wisch-ziel).
+  function navWischbarMachen() {
+    const leiste = document.getElementById("navigation");
+
+    // Der Tab-Knopf, den ein Wisch nach links (weg < 0) oder rechts antippt. null: In dieser Richtung gibt es keinen.
+    // Ausgeblendete Tabs (der Gym-Tab, solange SHOW_PLATZHALTER aus ist) zählen nicht mit.
+    function knopf(weg) {
+      const knoepfe = Array.prototype.filter.call(leiste.querySelectorAll(".nav-btn"), function (k) {
+        return !k.classList.contains("versteckt");
+      });
+      const i = knoepfe.indexOf(document.getElementById("nav-" + aktiveSeite)) + (weg < 0 ? 1 : -1);
+      return knoepfe[i] || null;
+    }
+
+    // Setzt den hellen Kreis an den Ziel-Tab, null nimmt ihn weg
+    function vorschau(ziel) {
+      const knoepfe = leiste.querySelectorAll(".nav-btn");
+      for (let i = 0; i < knoepfe.length; i++) {
+        knoepfe[i].classList.toggle("wisch-ziel", knoepfe[i] === ziel);
+      }
+    }
+
+    wischen(leiste, {
+      achse: "x",
+      // Keine Geste neben den Knöpfen, am Rand (dort wischt Safari zurück), in der Trainingsansicht,
+      // über einem offenen Sheet und bei offener Tastatur. Unter einem Knopf beginnt auch dann nichts, wenn der Browser
+      // die Berührung dem nächsten Knopf zuschreibt (das tut Chrome), deshalb zählt auch die Höhe des Fingers.
+      beginnt: function (ereignis) {
+        const x = ereignis.touches[0].clientX;
+        const fokus = document.activeElement;
+        const tab = ereignis.target.closest(".nav-btn");
+        if (!tab || ereignis.touches[0].clientY > tab.getBoundingClientRect().bottom
+          || (aktiveSeite === "training" && trainingAnsicht === "modus")
+          || document.body.classList.contains("sheet-offen")
+          || x < WISCH_RAND_PX || x > window.innerWidth - WISCH_RAND_PX
+          || (fokus && fokus.matches("input, select, textarea"))) {
+          return false;
+        }
+      },
+      will: function (weg) {
+        return knopf(weg) !== null;
+      },
+      bewegt: function (weg) {
+        vorschau(Math.abs(weg) >= WISCH_SEITE_PX ? knopf(weg) : null);
+      },
+      losgelassen: function (weg, tempo, abgebrochen) {
+        vorschau(null);
+        const weit = Math.abs(weg) >= WISCH_SEITE_PX;
+        const schnell = Math.abs(weg) >= WISCH_SCHNELL_WEG_PX && Math.abs(tempo) >= WISCH_SCHNELL_TEMPO && tempo * weg > 0;
+        const ziel = knopf(weg);
+        if (!abgebrochen && (weit || schnell) && ziel) {
+          ziel.click();
+        }
+      }
+    });
+  }
+
   // ---------- Erklärungen ----------
 
   // Die ID, unter der die Erklärung einer Übung in der erklaerungen.js steht. Eine alte ID führt über ALTE_IDS
@@ -12289,6 +12349,7 @@ platzhalterAnwenden();
 sheetsWischbarMachen();
 modusWischbarMachen();
 trainingWischbarMachen();
+navWischbarMachen();
 
 // Das gewählte Design (Dunkel, Hell oder System) und sein Umschalter
 designAnwenden();

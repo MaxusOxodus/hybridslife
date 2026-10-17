@@ -32,7 +32,7 @@ funktionHolen = function (name) {
 };
 
 // Die zeichnen nur oder gehören zu anderen Teilen der App: Hier tun sie nichts
-const LEER = ["anzeigen", "letztesMalAnzeigen", "trainingMerken", "pauseStarten", "pauseDauer", "modusFortschrittAnzeigen",
+const LEER = ["modusKorundAnzeigen", "satzHinweisMerken", "anzeigen", "letztesMalAnzeigen", "trainingMerken", "pauseStarten", "pauseDauer", "modusFortschrittAnzeigen",
   "modusZustandAnzeigen", "modusSaetzeAnzeigen", "modusLetztesAnzeigen", "bestwertPruefen", "satzSheetSchliessen",
   "trainingsAufraeumen", "profilAnzeigen", "homeAnzeigen", "tagSheetFuellen", "zusatzSheetsSchliessen", "trainingstage",
   "sheetSchliessen", "modusAnzeigen", "routineUebungErsetzen", "tauschRoutineStelle", "sicherSpeichern", "uebungZeigen"];

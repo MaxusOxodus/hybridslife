@@ -1106,6 +1106,8 @@
       schluessel = "gewicht.titelHantel";
     }
     document.getElementById(feldId).previousElementSibling.textContent = txt(schluessel, { einheit: einheit() });
+    // Look Korund (seit Version 142): Über dem Feld steht dort nur die Einheit, z. B. "KG"
+    document.getElementById(feldId).previousElementSibling.setAttribute("data-kurz", einheit().toUpperCase());
   }
 
   // Die Titel aller drei Gewichtsfelder passend zu ihrer Übung: im Log, im Trainingsmodus und im Sheet "Satz bearbeiten"
@@ -1164,6 +1166,10 @@
 
   // Zeigt eine Seite und markiert ihren Tab
   function seiteZeigen(name) {
+    // Die Seiten im Look Korund (Serie, Vorschlag, Rückblick …) liegen über allen Tabs und gehen beim Wechsel zu
+    if (korundSeiten.length > 0) {
+      korundSeitenSchliessen();
+    }
     // Beim Zurückkommen wird der Trainingsmodus neu aufgebaut, deshalb die Eingabe vorher merken
     if (aktiveSeite === "training" && trainingAnsicht === "modus" && !document.getElementById("modus-eingabe").classList.contains("versteckt")) {
       gemerkteTrainingWerte = [gewichtFeldWert("t-feld-gewicht"), feldWert("t-feld-wdh"), gewaehlterRir];
@@ -2749,12 +2755,210 @@
     konstanzAnzeigen();
     koerpergewichtAnzeigen();
     fortschrittUebungenAnzeigen();
+    statistikKorundAnzeigen(zahlen);
+    fortschrittReiterAnzeigen();
+  }
+
+  // ---------- Fortschritt › Statistik im Look Korund (seit Version 143) ----------
+
+  // So viele kg wiegt ein Auto für den Vergleich "So viel wie 23 Autos"
+  const AUTO_KG = 1500;
+  // So viele Monate zeigen die Balken unter dem Gesamtgewicht
+  const STATISTIK_MONATE = 6;
+  // Der Zeitraum für "Volumen je Muskelgruppe" in Tagen
+  const VOLUMEN_TAGE = 30;
+
+  // Baut den Reiter Statistik neu: oben das bewegte Gewicht mit Monatsbalken, dann vier Kacheln, dann das Volumen
+  // je Körperpartie. Nur im Look Korund zu sehen (style.css blendet es sonst aus). Die Einführung zeigt dort auf diesen
+  // Block, in den anderen Looks wie bisher auf die Kacheln.
+  function statistikKorundAnzeigen(zahlen) {
+    const bereich = document.getElementById("statistik-korund");
+    const alt = document.querySelector('#seite-fortschritt .kacheln[data-teil="statistik"]');
+    if (!bereich || !alt) {
+      return;
+    }
+    bereich.innerHTML = "";
+    if (!lookKorund()) {
+      alt.setAttribute("data-tour", "fortschritt-statistik");
+      bereich.removeAttribute("data-tour");
+      return;
+    }
+    alt.removeAttribute("data-tour");
+    bereich.setAttribute("data-tour", "fortschritt-statistik");
+
+    // Das bewegte Gewicht: in kg als Tonnen, in lbs als ganze Zahl
+    const held = element("div", "karte statistik-held");
+    held.appendChild(element("div", "statistik-label", txt("statistik.bewegt")));
+    const zahl = element("div", "statistik-gross");
+    if (einheit() === "kg") {
+      zahl.appendChild(element("span", "", (Math.round(zahlen.gewicht / 100) / 10).toLocaleString(gebiet())));
+      zahl.appendChild(element("span", "mess-einheit", " " + txt("statistik.tonnen")));
+    } else {
+      const text = volumenText(zahlen.gewicht);
+      zahl.appendChild(element("span", "", text.slice(0, text.lastIndexOf(" "))));
+      zahl.appendChild(element("span", "mess-einheit", " " + einheit()));
+    }
+    held.appendChild(zahl);
+    const autos = Math.floor(zahlen.gewicht / AUTO_KG);
+    if (autos >= 1) {
+      held.appendChild(element("div", "statistik-klein", txtAnzahl("statistik.autos", autos)));
+    }
+
+    // Monatsbalken: das Volumen je Kalendermonat, der laufende Monat rechts und kräftig
+    const tage = trainingstage();
+    const heute = new Date();
+    const monate = [];
+    for (let i = STATISTIK_MONATE - 1; i >= 0; i--) {
+      const anfang = new Date(heute.getFullYear(), heute.getMonth() - i, 1);
+      monate.push({ jahr: anfang.getFullYear(), monat: anfang.getMonth(), volumen: 0, name: anfang.toLocaleDateString(gebiet(), { month: "short" }).replace(".", "") });
+    }
+    Object.keys(tage).forEach(function (s) {
+      const d = tage[s].datum;
+      for (let i = 0; i < monate.length; i++) {
+        if (monate[i].jahr === d.getFullYear() && monate[i].monat === d.getMonth()) {
+          monate[i].volumen += tage[s].volumen;
+        }
+      }
+    });
+    let groesstes = 0;
+    for (let i = 0; i < monate.length; i++) {
+      groesstes = Math.max(groesstes, monate[i].volumen);
+    }
+    if (groesstes > 0) {
+      const balken = element("div", "statistik-balken");
+      balken.setAttribute("aria-hidden", "true");
+      for (let i = 0; i < monate.length; i++) {
+        const spalte = element("div", "statistik-spalte" + (i === monate.length - 1 ? " jetzt" : ""));
+        const saeule = element("i", "");
+        saeule.style.height = Math.max(3, Math.round(monate[i].volumen / groesstes * 52)) + "px";
+        spalte.appendChild(saeule);
+        spalte.appendChild(element("small", "", monate[i].name));
+        balken.appendChild(spalte);
+      }
+      held.appendChild(balken);
+    }
+    bereich.appendChild(held);
+
+    // Vier Kacheln: Workouts, Trainingszeit, Serie, Rekorde
+    let minuten = 0;
+    let einheiten = 0;
+    for (let i = 0; i < trainings.length; i++) {
+      const t = trainings[i];
+      const dauer = t ? (new Date(t.ende) - new Date(t.start)) / 60000 : NaN;
+      if (!isNaN(dauer) && dauer > 0 && dauer < 24 * 60) {
+        minuten += dauer;
+        einheiten++;
+      }
+    }
+    const stand = rangStand();
+    const anzahlRekorde = rekorde(stand.uebungen.map(function (u) {
+      return u.punkte;
+    })).length;
+    const kacheln = element("div", "statistik-kacheln");
+    const kachel = function (wert, titel, klasse) {
+      const k = element("div", "karte statistik-kachel");
+      k.appendChild(element("div", "statistik-wert" + (klasse ? " " + klasse : ""), wert));
+      k.appendChild(element("div", "statistik-klein", titel));
+      kacheln.appendChild(k);
+    };
+    kachel(String(zahlen.workouts), txt("fortschritt.workouts"));
+    kachel(einheiten > 0 ? txt("statistik.stunden", { n: Math.round(minuten / 60) }) : "–", einheiten > 0 ? txt("statistik.schnitt", { m: Math.round(minuten / einheiten) }) : txt("statistik.zeit"));
+    kachel(String(zahlen.serie), txt("statistik.serie"), "serie");
+    // Ein Tipp auf die Serie öffnet die Seite Serie (seit Version 144)
+    const serieKachel = kacheln.lastChild;
+    serieKachel.classList.add("tippbar");
+    serieKachel.setAttribute("role", "button");
+    serieKachel.tabIndex = 0;
+    serieKachel.onclick = serieSeiteOeffnen;
+    kachel(String(anzahlRekorde), txt("statistik.rekorde"), "rekord");
+    bereich.appendChild(kacheln);
+
+    // Volumen je Körperpartie in den letzten 30 Tagen, die größte zuerst
+    const grenze = Date.now() - VOLUMEN_TAGE * 86400000;
+    const jePartie = {};
+    let summe = 0;
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (!hatDatum(e) || new Date(e.datum).getTime() < grenze) {
+        continue;
+      }
+      const partie = erholungPartie(gruppeIdVon(e.uebungId, e.muskelgruppe));
+      const volumen = eintragVolumen(e, 0);
+      if (!partie || !(volumen > 0)) {
+        continue;
+      }
+      jePartie[partie] = (jePartie[partie] || 0) + volumen;
+      summe += volumen;
+    }
+    if (summe > 0) {
+      const karte = element("div", "karte statistik-volumen");
+      const kopf = element("div", "statistik-kopf");
+      kopf.appendChild(element("span", "statistik-titel", txt("statistik.volumen")));
+      kopf.appendChild(element("span", "statistik-klein", txt("statistik.tage", { n: VOLUMEN_TAGE })));
+      karte.appendChild(kopf);
+      const reihen = Object.keys(jePartie).sort(function (a, b) {
+        return jePartie[b] - jePartie[a];
+      });
+      const groesste = jePartie[reihen[0]];
+      for (let i = 0; i < reihen.length; i++) {
+        const anteil = jePartie[reihen[i]] / summe;
+        const zeile = element("div", "statistik-zeile");
+        zeile.appendChild(element("span", "statistik-name", txt("partie." + reihen[i])));
+        const bahn = element("span", "statistik-bahn");
+        const fuellung = element("i", "");
+        fuellung.style.width = Math.round(jePartie[reihen[i]] / groesste * 100) + "%";
+        fuellung.style.opacity = String(Math.round((0.45 + 0.55 * jePartie[reihen[i]] / groesste) * 100) / 100);
+        bahn.appendChild(fuellung);
+        zeile.appendChild(bahn);
+        zeile.appendChild(element("span", "statistik-prozent", Math.round(anteil * 100) + " %"));
+        karte.appendChild(zeile);
+      }
+      bereich.appendChild(karte);
+    }
+  }
+
+  // Look Korund (seit Version 142): Der Fortschritt hat drei Reiter. Welcher Teil wo steht, sagt data-teil in der index.html,
+  // die korund.css blendet die anderen aus. In den anderen Looks ist der Umschalter ausgeblendet und alles steht untereinander.
+  // Der Reiter wird nie gespeichert, nach dem Öffnen der App ist es wieder "Kraft".
+  let fortschrittReiter = "kraft";
+  const FORTSCHRITT_REITER = [
+    { id: "kraft", schluessel: "fortschritt.reiterKraft" },
+    { id: "koerper", schluessel: "fortschritt.reiterKoerper" },
+    { id: "statistik", schluessel: "fortschritt.statistik" }
+  ];
+
+  // Für die Einführung: stellt den Reiter ein, in dem das Element mit diesem data-tour steht. Nichts wird gespeichert.
+  function fortschrittReiterFuer(ziel) {
+    const el = document.querySelector('#seite-fortschritt [data-tour="' + ziel + '"]');
+    const teil = el ? el.closest("[data-teil]") : null;
+    if (teil && teil.getAttribute("data-teil") !== fortschrittReiter) {
+      fortschrittReiter = teil.getAttribute("data-teil");
+      fortschrittReiterAnzeigen();
+    }
+  }
+
+  function fortschrittReiterAnzeigen() {
+    document.getElementById("seite-fortschritt").setAttribute("data-reiter", fortschrittReiter);
+    // Die kleine Zeile über dem Titel passt zum Reiter (seit Version 143): Kraft 30 Tage, Körper der gewählte Zeitraum, Statistik seit Beginn
+    let ueber = txt("fortschritt.ueber");
+    if (fortschrittReiter === "statistik") {
+      ueber = txt("fortschritt.ueberStart");
+    } else if (fortschrittReiter === "koerper") {
+      ueber = txt("fortschritt.ueberZeitraum." + messStand.kg.zeitraum);
+    }
+    document.getElementById("fortschritt-ueber").textContent = ueber;
+    umschalterBauen(document.getElementById("fortschritt-reiter"), FORTSCHRITT_REITER, fortschrittReiter, function (id) {
+      fortschrittReiter = id;
+      fortschrittReiterAnzeigen();
+    });
   }
 
   // ---------- Fortschritt: Konstanz (nur im Look Korund zu sehen) ----------
 
   // So viele Wochen zeigt das Raster, die laufende Woche ist die letzte Zeile
   const KONSTANZ_WOCHEN = 12;
+  // Seit Version 142 zeigt das Raster die letzten 30 Tage (zwei Reihen zu 15)
+  const KONSTANZ_TAGE = 30;
 
   // Die Trainingstage der letzten Wochen als Raster: eine Zeile je Woche, Montag bis Sonntag.
   // stufe: 0 = kein Training, 1 = ein Workout, 2 = mehr als ein Workout an dem Tag. Tage nach heute sind "spaeter".
@@ -2799,34 +3003,45 @@
     if (!bereich) {
       return;
     }
-    const daten = konstanzDaten(eintraege, new Date(), KONSTANZ_WOCHEN);
+    // Seit Version 142 wie im Entwurf: die letzten 30 Tage in zwei Reihen, oben die Serie, unten die Workouts dieser Woche
+    const daten = konstanzDaten(eintraege, new Date(), 6);
+    const tage = [];
+    for (let w = 0; w < daten.zeilen.length; w++) {
+      for (let d = 0; d < 7; d++) {
+        if (!daten.zeilen[w][d].spaeter) {
+          tage.push(daten.zeilen[w][d]);
+        }
+      }
+    }
+    const letzte = tage.slice(-KONSTANZ_TAGE);
+    let anzahl = 0;
+    for (let i = 0; i < letzte.length; i++) {
+      if (letzte[i].stufe > 0) {
+        anzahl++;
+      }
+    }
     bereich.innerHTML = "";
     const kopf = element("div", "konstanz-kopf");
     kopf.appendChild(element("span", "konstanz-titel", txt("konstanz.titel")));
-    kopf.appendChild(element("span", "konstanz-zahl", txt("konstanz.tage", { n: daten.tage, w: KONSTANZ_WOCHEN })));
+    kopf.appendChild(element("span", "konstanz-zahl", txt("konstanz.serie", { n: gesamtZahlen().serie })));
     bereich.appendChild(kopf);
 
     const raster = element("div", "konstanz-raster");
     raster.setAttribute("role", "img");
-    raster.setAttribute("aria-label", txt("konstanz.tage", { n: daten.tage, w: KONSTANZ_WOCHEN }));
-    // Erste Spalte: die Wochentage (Mo, Mi, Fr beschriftet). Danach eine Spalte je Woche, die laufende rechts.
-    for (let d = 0; d < 7; d++) {
-      raster.appendChild(element("span", "konstanz-wt", d % 2 === 0 && d < 6 ? wochentag(d).slice(0, 2) : ""));
-    }
-    for (let w = 0; w < daten.zeilen.length; w++) {
-      for (let d = 0; d < 7; d++) {
-        const f = daten.zeilen[w][d];
-        let klasse = "konstanz-feld stufe-" + f.stufe;
-        if (f.heute) {
-          klasse += " heute";
-        }
-        if (f.spaeter) {
-          klasse += " spaeter";
-        }
-        raster.appendChild(element("span", klasse));
-      }
+    raster.setAttribute("aria-label", txt("konstanz.tage30", { n: anzahl }));
+    for (let i = 0; i < letzte.length; i++) {
+      raster.appendChild(element("span", "konstanz-feld stufe-" + letzte[i].stufe + (letzte[i].heute ? " heute" : "")));
     }
     bereich.appendChild(raster);
+
+    const fuss = element("div", "konstanz-fuss");
+    fuss.appendChild(element("span", "konstanz-fuss-text", txt("konstanz.dieseWoche")));
+    const workouts = wochenZahlen(trainingstage(), montagDerWoche(new Date())).workouts;
+    const zahl = element("span", "konstanz-fuss-zahl");
+    zahl.appendChild(element("b", "", String(workouts)));
+    zahl.appendChild(document.createTextNode(" / " + txt("konstanz.workouts", { n: WOCHEN_ZIELE.workouts })));
+    fuss.appendChild(zahl);
+    bereich.appendChild(fuss);
   }
 
   // ---------- Training: Helfer ----------
@@ -3096,6 +3311,7 @@
   function trainingAnzeigen() {
     laufendKarteAnzeigen();
     wochenplanAnzeigen();
+    trainingHeuteAnzeigen();
     routinenAnzeigen();
     vorlagenAnzeigen();
     trainingReiterAnzeigen();
@@ -3122,6 +3338,8 @@
       unterzeile = "training.unterzeileUebungen";
     }
     document.getElementById("training-unterzeile").textContent = txt(unterzeile);
+    // Look Korund (seit Version 142): Dort steht über dem Titel nur „Woche 42“ (data-korund, korund.css)
+    document.getElementById("training-unterzeile").setAttribute("data-korund", txt("training.woche", { nr: kalenderwoche(montagDerWoche(new Date())) }));
     document.getElementById("reiter-plaene").classList.toggle("versteckt", trainingReiter !== "plaene");
     document.getElementById("reiter-uebungen").classList.toggle("versteckt", trainingReiter !== "uebungen");
     bibliothekAnzeigen();
@@ -3195,6 +3413,10 @@
         zeile.classList.add("heute");
       }
       zeile.appendChild(element("span", "plan-tag", wochentag(i)));
+      // Look Korund (seit Version 142): das Datum des Tags in dieser Woche (sonst ausgeblendet)
+      const tagDatum = montagDerWoche(new Date());
+      tagDatum.setDate(tagDatum.getDate() + i);
+      zeile.appendChild(element("span", "plan-datum", tagDatum.getDate()));
 
       const auswahl = document.createElement("select");
       auswahl.appendChild(new Option(txt("plan.nichtGeplant"), ""));
@@ -3222,6 +3444,104 @@
       zeile.appendChild(kurz);
       plan.appendChild(zeile);
     }
+  }
+
+  // ---------- Training-Tab im Look Korund (seit Version 142) ----------
+
+  // Ist gerade der Look Korund zu sehen? Er wirkt nur mit Glass im dunklen Design (gewählt oder vom Gerät).
+  function lookKorund() {
+    const html = document.documentElement;
+    const dunkel = html.getAttribute("data-design") === "dunkel"
+      || (html.getAttribute("data-design") !== "hell" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    return html.getAttribute("data-stil") === "glass" && html.getAttribute("data-palette") === "korund" && dunkel;
+  }
+
+  // Sind die Knöpfe der Routinen zu sehen („Bearbeiten“)? Nur für diese Sitzung.
+  let routinenBearbeitenAn = false;
+
+  function routinenBearbeitenUmschalten() {
+    routinenBearbeitenAn = !routinenBearbeitenAn;
+    document.getElementById("routinen-liste").classList.toggle("bearbeiten-an", routinenBearbeitenAn);
+    document.getElementById("routinen-bearbeiten").textContent = txt(routinenBearbeitenAn ? "fertig" : "routinen.bearbeiten");
+  }
+
+  // „Vorlagen“ klappt die Vorlagen auf und zu und rollt beim Aufklappen hin
+  function vorlagenUmschalten() {
+    // Seit Version 143 öffnet der Knopf im Look Korund die Vorlagen als eigene Seite wie im Entwurf
+    if (lookKorund()) {
+      vorlagenSeiteAnzeigen();
+      trainingAnsichtZeigen("varianten");
+      window.scrollTo(0, 0);
+      return;
+    }
+    const plaene = document.getElementById("reiter-plaene");
+    plaene.classList.toggle("vorlagen-offen");
+    if (plaene.classList.contains("vorlagen-offen")) {
+      document.getElementById("vorlagen-liste").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  // Wann eine Routine zuletzt trainiert wurde: in den letzten 6 Tagen der Wochentag ("Di"), sonst das Datum. Ohne: "".
+  function routineZuletzt(routine) {
+    let zuletzt = null;
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (e && e.routineId === routine.id && hatDatum(e)) {
+        const datum = new Date(e.datum);
+        if (!zuletzt || datum > zuletzt) {
+          zuletzt = datum;
+        }
+      }
+    }
+    if (!zuletzt) {
+      return "";
+    }
+    const tage = Math.round((tagNull(new Date()) - tagNull(zuletzt)) / 86400000);
+    if (tage < 7) {
+      return wochentag((zuletzt.getDay() + 6) % 7);
+    }
+    return tagMonat(zuletzt);
+  }
+
+  function tagNull(datum) {
+    return new Date(datum.getFullYear(), datum.getMonth(), datum.getDate()).getTime();
+  }
+
+  // Die Karte des heutigen Trainings im Training-Tab: Name, „HEUTE“, Dauer, Übungen, Figuren und „Starten“.
+  // Nur wenn heute eine Routine geplant ist und kein Training läuft.
+  function trainingHeuteAnzeigen() {
+    const bereich = document.getElementById("training-heute");
+    bereich.innerHTML = "";
+    if (laufendesTraining) {
+      return;
+    }
+    // Look Korund (seit Version 144): oben der Rückblick, wenn er fällig ist, und an Tagen ohne Plan die Karte Ruhetag
+    if (lookKorund()) {
+      rueckblickKarteAnzeigen(bereich);
+    }
+    const routine = routineFinden(wochenplan[(new Date().getDay() + 6) % 7]);
+    if (!routine) {
+      if (lookKorund()) {
+        trainingRuhetagAnzeigen(bereich);
+      }
+      return;
+    }
+    const karte = element("div", "karte heute-karte training-heute-karte");
+    const kopf = element("div", "training-heute-kopf");
+    kopf.appendChild(element("span", "training-heute-name", routine.name));
+    kopf.appendChild(element("span", "training-heute-marke", txt("heute")));
+    karte.appendChild(kopf);
+    const meta = element("div", "korund-kopf-meta");
+    meta.appendChild(element("span", "korund-dauer", txt("routine.dauer", { n: routineDauerMinuten(routine) })));
+    meta.appendChild(element("span", "korund-anzahl", uebungenText(routine.uebungen.length)));
+    karte.appendChild(meta);
+    karte.appendChild(routineFiguren(routine));
+    const start = element("button", "speichern-btn", txt("routine.starten"));
+    start.onclick = function () {
+      routineStarten(routine);
+    };
+    karte.appendChild(start);
+    bereich.appendChild(karte);
   }
 
   // Die Symbole der Routine-Karte als Pfad für ein SVG mit 24 × 24 Einheiten: Stift, zwei Blätter, Papierkorb
@@ -3257,6 +3577,25 @@
       }
       karte.appendChild(element("div", "routine-name", routine.name));
       karte.appendChild(element("div", "routine-info", routineInfo(routine)));
+      // Look Korund (seit Version 142): kompakte Zeile mit Figuren, „5 Übungen · zuletzt Di“ und Pfeil (sonst ausgeblendet).
+      // Ein Tipp auf die Zeile öffnet dort die Routine, die Knöpfe zeigt „Bearbeiten“.
+      const figuren = routineFiguren(routine);
+      figuren.className = "routine-figuren";
+      karte.insertBefore(figuren, karte.firstChild);
+      let info = uebungenText(routine.uebungen.length);
+      const zuletzt = routineZuletzt(routine);
+      if (zuletzt) {
+        info += " · " + txt("routine.zuletzt", { tag: zuletzt });
+      }
+      karte.appendChild(element("div", "routine-korund-info", info));
+      const pfeil = element("span", "routine-pfeil", "›");
+      pfeil.setAttribute("aria-hidden", "true");
+      karte.appendChild(pfeil);
+      karte.addEventListener("click", function (ereignis) {
+        if (lookKorund() && !routinenBearbeitenAn && !ereignis.target.closest("button")) {
+          routineBearbeiten(routine);
+        }
+      });
 
       const knoepfe = element("div", "karten-knoepfe");
       const start = element("button", "knopf haupt", txt("routine.starten"));
@@ -3352,6 +3691,98 @@
       karte.firstChild.appendChild(element("span", "routine-info", txtAnzahl("vorlage.varianten", plan.varianten.length)));
       liste.appendChild(karte);
     }
+    vorlagenKorundAnzeigen(liste);
+  }
+
+  // Look Korund (seit Version 143): Welche Tageszahl der Umschalter zeigt. Wird nie gespeichert.
+  // Ohne Wahl gilt die Zahl der Trainingstage im Wochenplan (2 bis 6), ohne Plan 3.
+  let vorlagenTage = 0;
+
+  // Nur im Look Korund zu sehen: oben der Umschalter 2× bis 6×, darunter die Varianten dieser Tageszahl
+  // als Karten mit Wochenleiste. Ein Tipp öffnet wie bisher die Vorschau. In den anderen Looks ausgeblendet (style.css).
+  // Die Zahl der Trainingstage im Wochenplan, wenn sie zu einer Vorlage passt (2 bis 6), sonst 0
+  function vorlagenGeplant() {
+    let geplant = 0;
+    for (let i = 0; i < wochenplan.length; i++) {
+      if (wochenplan[i] && wochenplan[i] !== "ruhe") {
+        geplant++;
+      }
+    }
+    return geplant >= 2 && geplant <= 6 ? geplant : 0;
+  }
+
+  function vorlagenKorundAnzeigen(liste) {
+    if (!vorlagenTage) {
+      vorlagenTage = vorlagenGeplant() || 3;
+    }
+    const bereich = element("div", "vorlagen-korund");
+    const schalter = element("div", "umschalter vorlagen-tage");
+    const auswahl = VORLAGEN_PLAENE.map(function (p) {
+      return { id: p.tage, text: p.tage + "×" };
+    });
+    umschalterBauen(schalter, auswahl, vorlagenTage, function (tage) {
+      vorlagenTage = tage;
+      vorlagenAnzeigen();
+      if (vorlagenSeiteOffen) {
+        vorlagenSeiteAnzeigen();
+      }
+    });
+    bereich.appendChild(schalter);
+    for (let i = 0; i < VORLAGEN_PLAENE.length; i++) {
+      if (VORLAGEN_PLAENE[i].tage !== vorlagenTage) {
+        continue;
+      }
+      for (let j = 0; j < VORLAGEN_PLAENE[i].varianten.length; j++) {
+        const variante = VORLAGEN_PLAENE[i].varianten[j];
+        const karte = vorlageKarte(function () {
+          vorlagePlan = VORLAGEN_PLAENE[i];
+          vorschauOeffnen(variante);
+        });
+        karte.classList.add("vorlage-variante-korund");
+        // "Passt zu dir": der erste Plan der Tageszahl, die dein Wochenplan schon hat
+        if (j === 0 && vorlagenTage === vorlagenGeplant()) {
+          karte.classList.add("passt");
+          karte.firstChild.appendChild(element("span", "vorlage-passt", txt("vorlage.passt")));
+        }
+        karte.firstChild.appendChild(element("span", "routine-name", txt("vorlage.variante." + variante.id)));
+        // Ungefähre Dauer eines Tages wie bei den Routinen: je Satz 45 s plus Standard-Pause
+        let saetze = 0;
+        for (let t = 0; t < variante.tage.length; t++) {
+          for (let k = 0; k < variante.tage[t].slots.length; k++) {
+            saetze += variante.tage[t].slots[k].saetze;
+          }
+        }
+        const minuten = Math.round(saetze / variante.tage.length * (45 + pauseStandard()) / 60 / 5) * 5;
+        karte.firstChild.appendChild(element("span", "routine-info", txt("routine.dauer", { n: minuten }) + " · " + txt("vorlage.tage", { n: variante.tage.length })));
+        const leiste = wochenleisteBauen(variante.wochentage);
+        // Unter den Balken der Trainingstage steht das Kürzel des Tags (O, U, Pu, Pl …), sonst der Wochentag
+        const namen = variante.tage.map(function (tag) {
+          return txt("vorlage.tag." + tag.name);
+        });
+        // Haben alle Tage dasselbe erste Wort ("Ganzkörper A", "Ganzkörper B"), zählt das letzte Wort
+        const ersteWorte = namen.map(function (name) {
+          return name.split(" ")[0];
+        });
+        const gleicherAnfang = namen.length > 1 && ersteWorte.every(function (w) {
+          return w === ersteWorte[0];
+        });
+        const kuerzel = namen.map(function (name) {
+          if (gleicherAnfang) {
+            return name.split(" ").pop().slice(0, 2);
+          }
+          const doppelt = namen.some(function (anderer) {
+            return anderer !== name && anderer.charAt(0) === name.charAt(0);
+          });
+          return doppelt ? name.slice(0, 2) : name.charAt(0);
+        });
+        for (let t = 0; t < variante.wochentage.length; t++) {
+          leiste.children[variante.wochentage[t]].textContent = kuerzel[t];
+        }
+        karte.firstChild.appendChild(leiste);
+        bereich.appendChild(karte);
+      }
+    }
+    liste.appendChild(bereich);
   }
 
   // Ebene 2: die Varianten einer Tageszahl
@@ -3365,7 +3796,21 @@
     trainingAnsichtZeigen("uebersicht");
   }
 
+  // Look Korund: die Seite "Vorlagen" in der Ansicht der Varianten. Oben die Frage, dann Umschalter und Pläne.
+  // Die Vorschau geht von dort wie bisher zurück zu dieser Ansicht.
+  let vorlagenSeiteOffen = false;
+
+  function vorlagenSeiteAnzeigen() {
+    vorlagenSeiteOffen = true;
+    document.getElementById("varianten-titel").textContent = txt("training.vorlagen");
+    const liste = document.getElementById("varianten-liste");
+    liste.innerHTML = "";
+    liste.appendChild(element("div", "vorlagen-seite-frage", txt("vorlage.frageKurz")));
+    vorlagenKorundAnzeigen(liste);
+  }
+
   function variantenAnzeigen() {
+    vorlagenSeiteOffen = false;
     document.getElementById("varianten-titel").textContent = txt("vorlage.tageProWoche", { n: vorlagePlan.tage });
     const liste = document.getElementById("varianten-liste");
     liste.innerHTML = "";
@@ -4387,6 +4832,8 @@
     document.getElementById("modus-uebung").textContent = anzeigeName(u.name, u.uebungId);
     // Das Bild der Übung aus der bilder.js und darunter die Geräte-Zeile, z. B. "Maschine · Brust"
     document.getElementById("modus-bild").innerHTML = uebungsBild(u.uebungId);
+    // Look Korund (seit Version 142): die Muskelfigur statt des Bilds (sonst ausgeblendet)
+    document.getElementById("modus-figur").innerHTML = uebungFigurSvg(u);
     document.getElementById("modus-erklaerung").classList.toggle("versteckt", erklaerungId(u.uebungId, u.name) === "");
     const bekannt = UEBUNG_NACH_ID[u.uebungId];
     let geraet = "";
@@ -4804,6 +5251,109 @@
     if (zeigen && (warVersteckt || felderNeu)) {
       modusFelderSetzen();
     }
+    modusKorundAnzeigen(u, gemacht, zielErreicht, naechsteIndex, pauseLaeuft);
+  }
+
+  // ---------- Trainingsmodus im Look Korund (seit Version 142) ----------
+  // Alles hier füllt Elemente, die die style.css ausblendet und nur die korund.css zeigt. Gespeichert wird nichts.
+
+  // Der zuletzt fertige Satz für "Satz 2 gespeichert · 32 kg × 8" in der Pause. Nur im Speicher der Seite.
+  let letzterSatzHinweis = null;
+
+  // Merkt den gerade fertigen Satz als Text für die Pause, z. B. "Satz 2 gespeichert · 32 kg × 8"
+  function satzHinweisMerken(u) {
+    const satz = u.saetze[u.saetze.length - 1];
+    letzterSatzHinweis = txt("pause.gespeichert", { n: satzKennung(u.saetze, u.saetze.length - 1, zaehltSeiten(u)), satz: gewichtText(satz.gewicht) + " × " + satz.wdh });
+  }
+
+  function modusKorundAnzeigen(u, gemacht, zielErreicht, naechsteIndex, pauseLaeuft) {
+    const t = laufendesTraining;
+    // "Letztes Mal 30 × 8": derselbe Arbeitssatz im letzten Training dieser Übung
+    let letztmal = "";
+    const daten = letztesTrainingDaten(u.name, u.uebungId, u.eintragId);
+    if (daten && !zielErreicht) {
+      const arbeit = daten.saetze.filter(function (satz) {
+        return !istAufwaermen(satz);
+      });
+      const satz = arbeit[Math.min(gemacht, arbeit.length - 1)];
+      if (satz) {
+        letztmal = txt("modus.letztmal", { satz: zahlKurz(gewichtAnzeige(satz.gewicht)) + " × " + satz.wdh });
+      }
+    }
+    document.getElementById("modus-letztmal").textContent = letztmal;
+
+    // Pause: "von 2:00" im Ring, der gespeicherte Satz und die Karte "Als Nächstes"
+    const countdown = document.getElementById("modus-countdown");
+    countdown.setAttribute("data-von", txt("pause.von", { zeit: pauseText(pauseDauer(u)) }));
+    const gespeichert = document.getElementById("modus-gespeichert");
+    gespeichert.textContent = letzterSatzHinweis ? letzterSatzHinweis : "";
+    if (!pauseLaeuft) {
+      return;
+    }
+    const karte = document.getElementById("modus-als-naechstes");
+    let naechste = u;
+    if (zielErreicht) {
+      naechste = naechsteIndex >= 0 ? t.uebungen[naechsteIndex] : null;
+    }
+    const schluessel = naechste ? naechste.name + "|" + naechste.saetze.length + "|" + zaehltSeiten(naechste) : "fertig";
+    if (karte.getAttribute("data-schluessel") === schluessel) {
+      return;
+    }
+    karte.setAttribute("data-schluessel", schluessel);
+    karte.innerHTML = "";
+    if (!naechste) {
+      karte.appendChild(element("div", "naechstes-titel", txt("modus.alleErledigt")));
+      return;
+    }
+    const figur = element("div", "naechstes-figur");
+    figur.innerHTML = uebungFigurSvg(naechste);
+    karte.appendChild(figur);
+    const text = element("div", "naechstes-text");
+    const nummer = satzNummer(arbeitsAnzahl(naechste.saetze), zaehltSeiten(naechste));
+    text.appendChild(element("div", "naechstes-label", txt("pause.alsNaechstes", { n: nummer })));
+    text.appendChild(element("div", "naechstes-name", anzeigeName(naechste.name, naechste.uebungId)));
+    // Gewicht: der letzte Satz von heute, sonst der Vorschlag oder das letzte Mal. Wdh.: das Ziel, sonst die vom Satz.
+    let gewicht = null;
+    let wdh = "";
+    if (naechste.saetze.length > 0) {
+      const davor = naechste.saetze[naechste.saetze.length - 1];
+      gewicht = davor.gewicht;
+      wdh = davor.wdh;
+    } else {
+      const vorschlag = steigernAn() ? steigerungVorschlag(naechste) : null;
+      if (vorschlag) {
+        gewicht = vorschlag.gewicht;
+        wdh = vorschlag.wdh;
+      }
+    }
+    if (naechste.zielWdh) {
+      wdh = naechste.zielWdh + (wdhBis(naechste) ? "–" + wdhBis(naechste) : "");
+    }
+    const teile = [];
+    if (gewicht !== null) {
+      teile.push(gewichtText(gewicht));
+    }
+    if (wdh !== "") {
+      teile.push(txt("chip.wdh", { wdh: wdh }));
+    }
+    text.appendChild(element("div", "naechstes-ziel", teile.join(" × ")));
+    karte.appendChild(text);
+  }
+
+  // "‹" oben links im Trainingsmodus (Look Korund): zurück zu Home, das Training läuft weiter
+  function modusVerlassen() {
+    seiteZeigen("home");
+  }
+
+  // "…" oben rechts und der Knopf unten links (Look Korund): die Aktionen, die dort sonst als Knöpfe stehen
+  function modusOptionenOeffnen() {
+    const knoepfe = [
+      { text: txt("tausch.knopf"), aktion: tauschOeffnen },
+      { text: txt("modus.uebungUeberspringen"), aktion: uebungBeenden },
+      { text: txt("modus.beenden"), art: "gefahr", aktion: function () { trainingBeendenFragen(); } },
+      { text: txt("abbrechen"), art: "leise" }
+    ];
+    frageZeigen(txt("modus.optionen"), "", knoepfe);
   }
 
   // Die Werte, mit denen die Zahlenfelder für den nächsten Satz starten: die des Satzes davor,
@@ -4914,6 +5464,7 @@
     if (!satz.aufwaermen) {
       u.extraSatz = false;
     }
+    satzHinweisMerken(u);
 
     let eintrag = eintragFinden(u.eintragId);
     if (!eintrag) {
@@ -5228,8 +5779,11 @@
     const karte = element("div", "karte satz-tabelle");
     const kopf = element("div", "satz-reihe kopf");
     kopf.appendChild(element("span", "", txt("satz.spalte")));
-    kopf.appendChild(element("span", "", txt("gewicht")));
+    kopf.appendChild(element("span", "satz-kg-text", txt("gewicht")));
+    // Look Korund (seit Version 142): Spalten KG, WDH., RIR wie im Entwurf (sonst ausgeblendet)
+    kopf.appendChild(element("span", "satz-kg-zahl", einheit()));
     kopf.appendChild(element("span", "", txt("wdh")));
+    kopf.appendChild(element("span", "satz-rir-spalte", "RIR"));
     kopf.appendChild(element("span", ""));
     karte.appendChild(kopf);
 
@@ -5240,12 +5794,14 @@
         zeile = element("button", "satz-reihe erledigt");
         zeile.appendChild(satzKennungElement(saetze, i, seiten));
         seiteLMarkieren(zeile, seiten && !istAufwaermen(satz) ? arbeitsIndex(saetze, i) : -1);
-        zeile.appendChild(element("span", "", gewichtText(satz.gewicht)));
+        zeile.appendChild(element("span", "satz-kg-text", gewichtText(satz.gewicht)));
+        zeile.appendChild(element("span", "satz-kg-zahl", zahlKurz(gewichtAnzeige(satz.gewicht))));
         const wdh = element("span", "", satz.wdh);
         if (rirLesen(satz.rir) !== null) {
           wdh.appendChild(element("span", "satz-rir", rirText(satz.rir)));
         }
         zeile.appendChild(wdh);
+        zeile.appendChild(element("span", "satz-rir-spalte", rirLesen(satz.rir) !== null ? rirText(satz.rir).replace("RIR ", "") : "–"));
         const haken = element("span", "satz-haken", "✓");
         haken.setAttribute("aria-hidden", "true");
         zeile.appendChild(haken);
@@ -5262,6 +5818,7 @@
         seiteLMarkieren(zeile, seiten ? i - aufwaermen : -1);
         zeile.appendChild(element("span", "", "–"));
         zeile.appendChild(element("span", "", zielWdh));
+        zeile.appendChild(element("span", "satz-rir-spalte", "–"));
         zeile.appendChild(element("span", ""));
       }
       karte.appendChild(zeile);
@@ -5919,6 +6476,56 @@
     return txt("stand.xVonY", { x: gemacht, y: satzZiel(u) });
   }
 
+  // Look Korund (seit Version 142): die Teile einer Zeile in der Übersicht wie im Entwurf.
+  // Kurzer Stand: fertig "3 × 72,5 kg · fertig", angefangen "Satz 2 von 3 · 32 kg", offen "3 × 45 kg" oder "3 Sätze".
+  function uebersichtZeileKorund(zeile, u, i) {
+    const figur = element("span", "sheet-figur");
+    figur.innerHTML = uebungFigurSvg(u);
+    figur.setAttribute("aria-hidden", "true");
+    zeile.appendChild(figur);
+    const text = element("span", "sheet-korund-text");
+    const bekannt = UEBUNG_NACH_ID[u.uebungId];
+    text.appendChild(element("span", "sheet-korund-gruppe", bekannt ? anzeigeGruppe("", u.uebungId) + " · " + bereichName(bekannt.bereich) : (u.muskelgruppe || "")));
+    text.appendChild(element("span", "sheet-korund-name", anzeigeName(u.name, u.uebungId)));
+    const arbeit = u.saetze.filter(function (satz) {
+      return !istAufwaermen(satz);
+    });
+    let schwerstes = null;
+    for (let j = 0; j < arbeit.length; j++) {
+      if (schwerstes === null || arbeit[j].gewicht > schwerstes) {
+        schwerstes = arbeit[j].gewicht;
+      }
+    }
+    let stand = "";
+    if (uebungErledigt(u)) {
+      stand = txt("uebersicht.fertig", { n: arbeit.length, gewicht: gewichtText(schwerstes) });
+    } else if (arbeit.length > 0) {
+      stand = txt("uebersicht.angefangen", { n: satzNummer(arbeit.length, zaehltSeiten(u)), ziel: u.zielSaetze || "–", gewicht: gewichtText(arbeit[arbeit.length - 1].gewicht) });
+    } else {
+      const vorschlag = steigernAn() ? steigerungVorschlag(u) : null;
+      if (u.zielSaetze && vorschlag) {
+        stand = u.zielSaetze + " × " + gewichtText(vorschlag.gewicht);
+      } else {
+        stand = uebungStandText(u);
+      }
+    }
+    text.appendChild(element("span", "sheet-korund-stand", stand));
+    zeile.appendChild(text);
+    // Tauschen direkt aus der Liste: zur Übung springen und die Auswahl öffnen (bei erledigten steht stattdessen das ✓)
+    if (!uebungErledigt(u)) {
+      const tausch = element("span", "sheet-tausch", "⇄");
+      tausch.setAttribute("role", "button");
+      tausch.setAttribute("aria-label", txt("tausch.knopf"));
+      tausch.onclick = function (ereignis) {
+        ereignis.stopPropagation();
+        zusatzSheetsSchliessen();
+        uebungZeigen(i);
+        tauschOeffnen();
+      };
+      zeile.appendChild(tausch);
+    }
+  }
+
   // Öffnet die Übersicht aller Übungen des Trainings. Antippen springt zu der Übung.
   function uebersichtOeffnen() {
     const t = laufendesTraining;
@@ -5941,6 +6548,8 @@
         stand += " · " + txt("tausch.statt", { name: anzeigeName(u.ursprung.name, u.ursprung.uebungId) });
       }
       zeile.appendChild(element("span", "sheet-zeile-zweit", stand));
+      // Look Korund (seit Version 142): Figur, Gruppe, Name ohne Nummer, kurzer Stand und Tausch-Symbol (sonst ausgeblendet)
+      uebersichtZeileKorund(zeile, u, i);
       // Erledigte Übungen stehen leise mit ✓ da, die offenen wie bisher. Die Reihenfolge bleibt die der Routine.
       if (uebungErledigt(u)) {
         zeile.classList.add("erledigt");
@@ -5952,10 +6561,18 @@
       };
       liste.appendChild(zeile);
     }
-    // Übung hinzufügen (seit Version 141): nur im Look Korund zu sehen (korund.css)
+    // Übung hinzufügen (seit Version 141) und Beenden (seit Version 142): nur im Look Korund zu sehen (korund.css)
+    const knoepfe = element("div", "uebersicht-knoepfe");
     const hinzu = element("button", "sheet-neu uebung-hinzu", txt("hinzu.knopf"));
     hinzu.onclick = uebungHinzufuegenOeffnen;
-    liste.appendChild(hinzu);
+    knoepfe.appendChild(hinzu);
+    const beenden = element("button", "uebersicht-beenden", txt("modus.beenden"));
+    beenden.onclick = function () {
+      zusatzSheetsSchliessen();
+      trainingBeendenFragen();
+    };
+    knoepfe.appendChild(beenden);
+    liste.appendChild(knoepfe);
     zusatzSheetOeffnen("uebungen-sheet");
   }
 
@@ -6349,6 +6966,8 @@
 
   // Baut die ganze Übersicht neu auf
   function homeAnzeigen() {
+    // Look Korund (seit Version 142): Der Titel heißt dort "Heute" (die korund.css zeigt data-korund statt des Texts)
+    document.querySelector("#ansicht-home > h1").setAttribute("data-korund", txt("home.heute"));
     document.getElementById("home-datum").textContent = new Date().toLocaleDateString(gebiet(), { weekday: "long", day: "numeric", month: "long" });
     homeSerieAnzeigen();
     homeHeuteAnzeigen();
@@ -6356,6 +6975,25 @@
     homeLetztesAnzeigen();
     homeGewichtAnzeigen();
     homeKraftAnzeigen();
+    homeErholungAnzeigen();
+    // Look Korund (seit Version 143): Die Überschrift heißt dort nur "Einblicke"
+    document.getElementById("home-einblicke-titel").setAttribute("data-korund", txt("home.einblicke"));
+  }
+
+  // Nur im Look Korund zu sehen (seit Version 143): die Veränderung im Zeitraum des kleinen Diagramms, z. B. "+4,5 kg seit 19.9."
+  // plus färbt einen Anstieg grün (bei der Kraft), beim Körpergewicht bleibt der Text leise.
+  function kachelDelta(flaeche, punkte, plus) {
+    if (punkte.length < 2) {
+      return;
+    }
+    const unterschied = gewichtAnzeige(punkte[punkte.length - 1].wert) - gewichtAnzeige(punkte[0].wert);
+    const gerundet = Math.round(unterschied * 10) / 10;
+    const zeichen = gerundet > 0 ? "+" : gerundet < 0 ? "−" : "±";
+    const zeile = element("div", "kachel-delta");
+    const wert = element("span", plus && gerundet > 0 ? "plus" : "", zeichen + zahlText(Math.abs(gerundet)) + " " + einheit());
+    zeile.appendChild(wert);
+    zeile.appendChild(document.createTextNode(" " + txt("home.seit", { datum: datumKurz(punkte[0].zeit) })));
+    flaeche.appendChild(zeile);
   }
 
   // Baut eine der zwei quadratischen Kacheln auf Home in den Bereich. Die ganze Fläche ist ein Button (beimTipp).
@@ -6393,6 +7031,7 @@
     }
     const letzte = liste[liste.length - 1];
     flaeche.appendChild(element("div", "home-zahl", kgText(letzte.wert)));
+    kachelDelta(flaeche, miniZeitraum(liste), false);
 
     // Das kleine Diagramm zeigt wie das große die Messungen und ihren 7-Tage-Schnitt.
     // Der Schnitt rechnet immer mit allen Messungen, auch mit denen vor dem gezeigten Zeitraum.
@@ -6494,6 +7133,13 @@
   function statusWaehlen() {
     const laufend = auszeitAktuell();
     const jetzt = laufend ? laufend.art : "aktiv";
+    // Look Korund (seit Version 142): ein eigenes Sheet mit drei Karten wie im Entwurf
+    if (lookKorund()) {
+      statusAuswahl = jetzt;
+      statusSheetFuellen();
+      zusatzSheetOeffnen("status-sheet");
+      return;
+    }
     const knoepfe = ["aktiv", "krank", "urlaub"].map(function (art) {
       return {
         text: (art === jetzt ? "✓ " : "") + txt("status." + art),
@@ -6507,12 +7153,61 @@
     frageZeigen(txt("status.titel"), txt("status.text"), knoepfe);
   }
 
+  // Die Auswahl im Status-Sheet, bis „Übernehmen“ sie speichert
+  let statusAuswahl = "aktiv";
+
+  // Die drei Karten im Status-Sheet: Symbol, Name, kurze Erklärung und rechts der Kreis der Auswahl
+  function statusSheetFuellen() {
+    const liste = document.getElementById("status-sheet-liste");
+    liste.innerHTML = "";
+    const svg = function (inhalt) {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inhalt + "</svg>";
+    };
+    const symbole = {
+      aktiv: svg('<polyline points="3 12 7 12 10 5 14 19 17 12 21 12"/>'),
+      krank: svg('<path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/>'),
+      urlaub: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>')
+    };
+    ["aktiv", "krank", "urlaub"].forEach(function (art) {
+      const karte = element("button", "status-karte status-" + art);
+      karte.type = "button";
+      karte.setAttribute("role", "radio");
+      karte.setAttribute("aria-checked", art === statusAuswahl ? "true" : "false");
+      const symbol = element("span", "status-symbol");
+      symbol.innerHTML = symbole[art];
+      karte.appendChild(symbol);
+      const text = element("span", "status-karte-text");
+      text.appendChild(element("span", "status-karte-name", txt("status." + art)));
+      text.appendChild(element("span", "status-karte-info", txt("status.info." + art)));
+      karte.appendChild(text);
+      karte.appendChild(element("span", "status-kreis"));
+      karte.onclick = function () {
+        statusAuswahl = art;
+        statusSheetFuellen();
+      };
+      liste.appendChild(karte);
+    });
+  }
+
+  function statusUebernehmen() {
+    zusatzSheetsSchliessen();
+    statusSetzen(statusAuswahl);
+  }
+
   // Look Korund (seit Version 141): die Serie oben rechts neben dem Titel, z. B. "Serie: 6 Wochen". Ohne Serie leer.
   // Dieselbe Zahl wie im Profil (gesamtZahlen). Die korund.css zeigt sie nur im Look Korund.
   function homeSerieAnzeigen() {
     const feld = document.getElementById("home-serie");
     const serie = gesamtZahlen().serie;
     feld.textContent = serie > 0 ? txtAnzahl("profil.serieText", serie) : "";
+    feld.onclick = serieSeiteOeffnen;
+    if (serie > 0) {
+      feld.setAttribute("role", "button");
+      feld.tabIndex = 0;
+    } else {
+      feld.removeAttribute("role");
+      feld.removeAttribute("tabindex");
+    }
   }
 
   // Die IDs der Muskelgruppen einer Routine in ihrer Reihenfolge, jede einmal, höchstens max.
@@ -6536,6 +7231,54 @@
       }
     }
     return ids;
+  }
+
+  // Look Korund (seit Version 142): Wie lange eine Routine ungefähr dauert, in Minuten. Aus den letzten (bis zu 5)
+  // Trainings dieser Routine mit Start und Ende, sonst geschätzt: je Satz 45 s Arbeit plus die Pause der Übung.
+  function routineDauerMinuten(routine) {
+    const dauern = [];
+    for (let i = trainings.length - 1; i >= 0 && dauern.length < 5; i--) {
+      const t = trainings[i];
+      if (t && t.routineId === routine.id && t.start && t.ende) {
+        const minuten = (new Date(t.ende) - new Date(t.start)) / 60000;
+        if (minuten > 5 && minuten < 300) {
+          dauern.push(minuten);
+        }
+      }
+    }
+    if (dauern.length > 0) {
+      return Math.round(dauern.reduce(function (a, b) { return a + b; }, 0) / dauern.length);
+    }
+    let sekunden = 0;
+    for (let i = 0; i < routine.uebungen.length; i++) {
+      const u = routine.uebungen[i];
+      sekunden += (u.zielSaetze || 3) * (45 + pauseDauer(u));
+    }
+    return Math.round(sekunden / 60);
+  }
+
+  // Look Korund (seit Version 142): der Kopf einer Routinen-Karte wie im Entwurf. Die Teile sind sonst ausgeblendet.
+  function routineKopfKorund(karte, routine, label) {
+    karte.classList.add("mit-korund-kopf");
+    const gruppen = [];
+    const ids = routineGruppenIds(routine, 3);
+    for (let i = 0; i < ids.length; i++) {
+      gruppen.push(GRUPPE_NACH_ID[ids[i]][sprache] || GRUPPE_NACH_ID[ids[i]].de);
+    }
+    if (label) {
+      karte.appendChild(element("div", "korund-kopf-label", label + " · " + routine.name));
+    }
+    karte.appendChild(element("div", "korund-kopf-titel", gruppen.length > 0 ? gruppen.join(", ") : routine.name));
+    const meta = element("div", "korund-kopf-meta");
+    meta.appendChild(element("span", "korund-dauer", txt("routine.dauer", { n: routineDauerMinuten(routine) })));
+    meta.appendChild(element("span", "korund-anzahl", uebungenText(routine.uebungen.length)));
+    karte.appendChild(meta);
+  }
+
+  // Look Korund (seit Version 142): die Muskelfigur einer einzelnen Übung als SVG, ohne Gruppe die leere Figur
+  function uebungFigurSvg(u) {
+    const ids = routineGruppenIds({ uebungen: [u] }, 1);
+    return koerperSvg(GRUPPE_NACH_ID[ids[0]] || { id: "", ansicht: "vorn" });
   }
 
   // Look Korund: die Muskelfiguren einer Routine als kleine Kacheln (Klasse heute-figuren, nur im Look Korund zu sehen)
@@ -6631,6 +7374,8 @@
       }
       karte.appendChild(element("div", "ansicht-titel", routine.name));
       karte.appendChild(element("div", "routine-info", routineInfo(routine)));
+      // Look Korund (seit Version 142): "GEPLANT · PUSH", die Muskelgruppen als Titel und "ca. 62 Min · 4 Übungen"
+      routineKopfKorund(karte, routine, txt(erledigt ? "home.erledigt" : "home.geplantKurz"));
       karte.appendChild(routineFiguren(routine));
 
       let start;
@@ -6647,13 +7392,13 @@
     }
 
     if (plan === "ruhe") {
-      karte.appendChild(element("div", "heute-label", txt("heute")));
+      karte.appendChild(element("div", "heute-label heute-label-tag", txt("heute")));
       karte.appendChild(element("div", "ansicht-titel", txt("ruhetag")));
       karte.appendChild(element("div", "routine-info", txt("home.ruheText")));
       return;
     }
 
-    karte.appendChild(element("div", "heute-label", txt("heute")));
+    karte.appendChild(element("div", "heute-label heute-label-tag", txt("heute")));
     karte.appendChild(element("div", "ansicht-titel", txt("home.nichtsGeplant")));
     karte.appendChild(element("div", "routine-info", txt("home.nichtsText")));
     const zumPlan = element("button", "knopf heute-knopf", txt("home.zumPlan"));
@@ -6749,6 +7494,10 @@
       const tag = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + i);
       const trainiert = homeTage[tagSchluessel(tag)];
       const btn = element("button", "home-tag");
+      // Nur ein Merkmal für den Look Korund (gefüllter Kreis): an der Anzeige sonst ändert es nichts
+      if (trainiert) {
+        btn.classList.add("trainiert");
+      }
       btn.appendChild(element("span", "tag-name", wochentag(i)));
       btn.appendChild(element("span", "tag-zahl", tag.getDate()));
 
@@ -7137,6 +7886,12 @@
     if (training.minuten !== null) {
       info += " · " + dauerText(training.minuten);
     }
+    // Nur im Look Korund zu sehen (seit Version 143): Datum und Dauer klein über dem Namen
+    let label = tagText(training.datum);
+    if (training.minuten !== null) {
+      label += " · " + dauerText(training.minuten);
+    }
+    karte.appendChild(element("div", "letztes-label", label));
     karte.appendChild(element("div", "routine-name", training.name));
     karte.appendChild(element("div", "routine-info", info));
 
@@ -7145,6 +7900,240 @@
     zahlen.appendChild(homeZahl(anzahlSaetze, txt("saetze")));
     zahlen.appendChild(homeVolumenZahl(bewegt, txt("home.bewegt")));
     karte.appendChild(zahlen);
+
+    // Nur im Look Korund (seit Version 143): neue Rekorde dieses Trainings in einer leisen Zeile, dieselbe Regel wie im Bericht
+    if (lookKorund()) {
+      const rekordListe = berichtRekorde(rangStand(), training.eintraege);
+      if (rekordListe.length > 0) {
+        const zeile = element("div", "letztes-rekord");
+        const symbol = element("span", "letztes-rekord-symbol");
+        symbol.innerHTML = iconSvg("pokal");
+        zeile.appendChild(symbol);
+        const namen = rekordListe.map(function (r) {
+          return r.name;
+        });
+        const text = element("span", "");
+        text.appendChild(element("b", "", txt(rekordListe.length === 1 ? "home.rekord" : "home.rekorde")));
+        // Ab drei Rekorden steht nur der erste mit "und 2 weitere" da, damit die Zeile kurz bleibt
+        let liste = namen.join(", ");
+        if (rekordListe.length === 1) {
+          liste = namen[0] + " " + kgText(rekordListe[0].wert);
+        } else if (rekordListe.length > 2) {
+          liste = txt("home.rekordeMehr", { name: namen[0], n: rekordListe.length - 1 });
+        }
+        text.appendChild(document.createTextNode(" · " + liste));
+        zeile.appendChild(text);
+        karte.appendChild(zeile);
+      }
+    }
+  }
+
+  // ---------- Home: Erholung (Look Korund, seit Version 143) ----------
+
+  // Nach so vielen Kalendertagen gilt eine Körperpartie als erholt (gestern trainiert = noch nicht, vorgestern = ja)
+  const ERHOLUNG_TAGE = 2;
+  // Partien, die länger nicht trainiert wurden, zählen nicht mit
+  const ERHOLUNG_FENSTER_TAGE = 14;
+  // Die Körperpartien der Karte und welche Muskelgruppen dazugehören
+  const ERHOLUNG_PARTIEN = [
+    { id: "brust", gruppen: ["brust"] },
+    { id: "ruecken", gruppen: ["lat", "ruecken-oben", "ruecken-unten", "trapez"] },
+    { id: "beine", gruppen: ["quadrizeps", "beinbeuger", "po", "adduktoren", "abduktoren", "waden"] },
+    { id: "schultern", gruppen: ["schulter-vorn", "schulter-seite", "schulter-hinten"] },
+    { id: "arme", gruppen: ["bizeps", "trizeps", "unterarme"] }
+  ];
+
+  // Die ID der Muskelgruppe eines Eintrags oder einer Übung der Routine: über die bekannte Übung, sonst über den gespeicherten Namen der Gruppe
+  function gruppeIdVon(uebungId, gruppenName) {
+    const bekannt = UEBUNG_NACH_ID[uebungId] || UEBUNG_NACH_ID[ALTE_IDS[uebungId]];
+    if (bekannt && !bekannt.selbst && bekannt.haupt) {
+      return uebungGruppe(bekannt);
+    }
+    const name = String(gruppenName || "").trim().toLowerCase();
+    for (let i = 0; i < MUSKELGRUPPEN.length; i++) {
+      if (name !== "" && (MUSKELGRUPPEN[i].de.toLowerCase() === name || MUSKELGRUPPEN[i].en.toLowerCase() === name)) {
+        return MUSKELGRUPPEN[i].id;
+      }
+    }
+    return "";
+  }
+
+  // Die Partie zu einer Muskelgruppe oder null
+  function erholungPartie(gruppeId) {
+    for (let i = 0; i < ERHOLUNG_PARTIEN.length; i++) {
+      if (ERHOLUNG_PARTIEN[i].gruppen.indexOf(gruppeId) !== -1) {
+        return ERHOLUNG_PARTIEN[i].id;
+      }
+    }
+    return null;
+  }
+
+  // Je Partie, vor wie vielen Kalendertagen sie zuletzt trainiert wurde (nur Partien im Fenster).
+  // liste: Einträge, heute: Date. Ergebnis: { brust: 1, beine: 4, ... }
+  function erholungTage(liste, heute) {
+    const heuteTag = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate()).getTime();
+    const tage = {};
+    for (let i = 0; i < liste.length; i++) {
+      const e = liste[i];
+      if (!hatDatum(e) || arbeitsSaetzeVon(e).length === 0) {
+        continue;
+      }
+      const partie = erholungPartie(gruppeIdVon(e.uebungId, e.muskelgruppe));
+      if (!partie) {
+        continue;
+      }
+      const d = new Date(e.datum);
+      const abstand = Math.round((heuteTag - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / 86400000);
+      if (abstand < 0 || abstand > ERHOLUNG_FENSTER_TAGE) {
+        continue;
+      }
+      if (tage[partie] === undefined || abstand < tage[partie]) {
+        tage[partie] = abstand;
+      }
+    }
+    return tage;
+  }
+
+  // Die Routine, deren Partien alle erholt sind: zuerst die heute geplante, dann die mit den am längsten erholten Partien.
+  // Routinen ohne erkannte Partie zählen nicht. Ohne passende Routine null.
+  function erholungRoutine(tage, liste, geplantId) {
+    let beste = null;
+    let besteWert = -1;
+    for (let i = 0; i < liste.length; i++) {
+      const r = liste[i];
+      if (!r || !Array.isArray(r.uebungen) || r.uebungen.length === 0) {
+        continue;
+      }
+      let passt = true;
+      let wert = Infinity;
+      let erkannt = 0;
+      for (let j = 0; j < r.uebungen.length; j++) {
+        const partie = erholungPartie(gruppeIdVon(r.uebungen[j].uebungId, r.uebungen[j].muskelgruppe));
+        if (!partie) {
+          continue;
+        }
+        erkannt++;
+        const t = tage[partie] === undefined ? ERHOLUNG_FENSTER_TAGE + 1 : tage[partie];
+        if (t < ERHOLUNG_TAGE) {
+          passt = false;
+        }
+        wert = Math.min(wert, t);
+      }
+      if (!passt || erkannt === 0) {
+        continue;
+      }
+      if (r.id === geplantId) {
+        return r;
+      }
+      if (wert > besteWert) {
+        beste = r;
+        besteWert = wert;
+      }
+    }
+    return beste;
+  }
+
+  // Die Karte "Erholung" auf Home. Ohne Training in den letzten zwei Wochen fehlt sie ganz (data-leer).
+  // Die Figur je Partie und welche Partien in der Mehrzahl stehen („Beine sind“, „Brust ist“)
+  const ERHOLUNG_FIGUR = { brust: "brust", ruecken: "lat", beine: "quadrizeps", schultern: "schulter-seite", arme: "bizeps" };
+  const ERHOLUNG_MEHRZAHL = ["beine", "schultern", "arme"];
+
+  // Seit Version 145 wie im ersten Entwurf „Bereit für heute“: oben ein Satz mit rundem Symbol, darunter je trainierter Partie
+  // Figur, Punkt (grün erholt, orange noch nicht) und die Tage seit dem Training, unten der Knopf zur passenden Routine
+  function homeErholungAnzeigen() {
+    const bereich = document.getElementById("home-erholung");
+    const titel = document.getElementById("home-erholung-titel");
+    if (!bereich || !lookKorund()) {
+      return;
+    }
+    bereich.innerHTML = "";
+    const tage = erholungTage(eintraege, new Date());
+    // Die Partien mit Training in den letzten zwei Wochen, die am längsten erholten zuerst
+    const partien = ERHOLUNG_PARTIEN.map(function (p) {
+      return p.id;
+    }).filter(function (id) {
+      return tage[id] !== undefined;
+    }).sort(function (a, b) {
+      return tage[b] - tage[a];
+    });
+    if (partien.length === 0) {
+      bereich.setAttribute("data-leer", "ja");
+      titel.setAttribute("data-leer", "ja");
+      return;
+    }
+    bereich.removeAttribute("data-leer");
+    titel.removeAttribute("data-leer");
+    const erholt = partien.filter(function (id) {
+      return tage[id] >= ERHOLUNG_TAGE;
+    });
+    const muede = partien.filter(function (id) {
+      return tage[id] < ERHOLUNG_TAGE;
+    });
+    const namen = function (liste) {
+      return listeText(liste.map(function (id) {
+        return txt("partie." + id);
+      }));
+    };
+    const mehrzahl = function (liste) {
+      return liste.length > 1 || ERHOLUNG_MEHRZAHL.indexOf(liste[0]) !== -1;
+    };
+
+    const kopf = element("div", "erholung-kopf");
+    const symbol = element("span", "erholung-symbol" + (erholt.length > 0 ? " erholt" : ""));
+    symbol.innerHTML = iconSvg("puls");
+    kopf.appendChild(symbol);
+    const text = element("div", "erholung-text");
+    text.appendChild(element("b", "", erholt.length > 0 ? txt(mehrzahl(erholt) ? "erholung.erholt" : "erholung.erholtEins", { wer: namen(erholt) }) : txt("erholung.nochNicht")));
+    if (muede.length > 0) {
+      // Am längsten braucht die zuletzt trainierte Partie
+      const rest = ERHOLUNG_TAGE - Math.min.apply(null, muede.map(function (id) {
+        return tage[id];
+      }));
+      text.appendChild(element("div", "erholung-info", txt(mehrzahl(muede) ? "erholung.brauchen" : "erholung.braucht", { wer: namen(muede), tage: txtAnzahl("erholung.tage", rest) })));
+    }
+    kopf.appendChild(text);
+    bereich.appendChild(kopf);
+
+    const liste = element("div", "erholung-liste");
+    liste.style.setProperty("--spalten", partien.length);
+    partien.forEach(function (id) {
+      const partie = element("div", "erholung-partie");
+      const figur = element("span", "erholung-figur");
+      figur.innerHTML = koerperSvg(GRUPPE_NACH_ID[ERHOLUNG_FIGUR[id]]);
+      partie.appendChild(figur);
+      const name = element("span", "erholung-name");
+      name.appendChild(element("i", "erholung-punkt" + (tage[id] >= ERHOLUNG_TAGE ? " erholt" : "")));
+      name.appendChild(document.createTextNode(txt("partie." + id)));
+      partie.appendChild(name);
+      let wann = txtAnzahl("erholung.tage", tage[id]);
+      if (tage[id] === 0) {
+        wann = txt("heute");
+      } else if (tage[id] === 1) {
+        wann = txt("erholung.gestern");
+      }
+      partie.appendChild(element("small", "", wann));
+      liste.appendChild(partie);
+    });
+    bereich.appendChild(liste);
+
+    const plan = wochenplan[(new Date().getDay() + 6) % 7];
+    const routine = laufendesTraining ? null : erholungRoutine(tage, routinen, plan);
+    if (routine) {
+      const knopf = element("button", "zweit-btn erholung-start", txt("erholung.starten", { name: routine.name }));
+      knopf.type = "button";
+      knopf.onclick = function () {
+        routineStarten(routine);
+      };
+      bereich.appendChild(knopf);
+    }
+  }
+
+  // "Beine", "Beine und Rücken", "Beine, Rücken und Arme"
+  function listeText(namen) {
+    if (namen.length <= 1) {
+      return namen.join("");
+    }
+    return namen.slice(0, -1).join(", ") + " " + txt("und") + " " + namen[namen.length - 1];
   }
 
   // Eine Zahl mit Beschriftung darunter
@@ -7466,8 +8455,13 @@
     if (laufendesTraining) {
       start = new Date(laufendesTraining.gestartet).getTime();
     }
+    // Look Korund (seit Version 142): dieselbe Zeit noch einmal als "ZEIT 23:41" über der Übung
+    const zeit = document.getElementById("modus-zeit");
     if (isNaN(start)) {
       uhr.textContent = "";
+      if (zeit) {
+        zeit.textContent = "";
+      }
       return;
     }
     const sekunden = Math.max(0, Math.floor((Date.now() - start) / 1000));
@@ -7477,6 +8471,10 @@
       text = stunden + ":" + text;
     }
     uhr.textContent = text;
+    if (zeit) {
+      zeit.textContent = text;
+      zeit.setAttribute("data-label", txt("modus.zeit"));
+    }
   }
 
   // Beim Zurückkehren zur App: Restzeit der Pause neu berechnen, das Display wieder anlassen und die Uhr auffrischen
@@ -7623,7 +8621,14 @@
           weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit).toFixed(1) + " " + y(punkte[i].wert).toFixed(1);
         }
         // Bei sehr vielen Werten wird die Linie feiner (Klasse "viele"), damit sie lesbar bleibt
+        if (reihen[r].flaeche) {
+          svg += '<path class="flaeche-' + reihen[r].art + '" d="' + weg + "L" + x(punkte[punkte.length - 1].zeit).toFixed(1) + " " + (HOEHE - UNTEN) + "L" + x(punkte[0].zeit).toFixed(1) + " " + (HOEHE - UNTEN) + 'Z"/>';
+        }
         svg += '<path class="linie-' + reihen[r].art + (punkte.length > 45 ? " viele" : "") + '" d="' + weg + '"/>';
+        // Eine Linie mit Beschriftung (das Ziel im Look Korund) bekommt ihren Text links darüber
+        if (reihen[r].beschriftung) {
+          svg += '<text class="ziel-text" x="' + LINKS + '" y="' + (y(punkte[0].wert) - 6).toFixed(1) + '">' + reihen[r].beschriftung + "</text>";
+        }
       }
       // Bei sehr vielen Werten würden die Punkte die Linie verdecken. Ein einzelner Wert braucht immer einen.
       if ((reihen[r].mitPunkten && punkte.length <= 45) || punkte.length === 1) {
@@ -7726,6 +8731,8 @@
     document.getElementById("muster-sheet").classList.remove("offen");
     document.getElementById("teilen-sheet").classList.remove("offen");
     document.getElementById("zeit-sheet").classList.remove("offen");
+    document.getElementById("status-sheet").classList.remove("offen");
+    document.getElementById("zusatztraining-sheet").classList.remove("offen");
     document.getElementById("zusatz-hintergrund").classList.remove("offen");
     // Liegt darunter noch die Übungsauswahl (die Erklärung wurde von dort geöffnet), bleibt die Seite gesperrt
     if (!document.getElementById("sheet").classList.contains("offen")) {
@@ -8633,6 +9640,7 @@
 
   function gruppenListeAnzeigen(bereich, gruppen) {
     fortschrittZeitraumBauen(bereich);
+    bereich.classList.add("liste");
     let titelGesetzt = false;
 
     for (let i = 0; i < gruppen.length; i++) {
@@ -8701,12 +9709,104 @@
         };
       }
       bereich.appendChild(zeile);
+      // Nur im Look Korund zu sehen: unter dem Kopf der Gruppe die Karte ihrer zuletzt trainierten Übung mit Gewicht
+      if (trainiert) {
+        const karte = kraftKarteKorund(g);
+        if (karte) {
+          bereich.appendChild(karte);
+        }
+      }
     }
+  }
+
+  // Wie weit die Karten im Look Korund zurückschauen: 12 Wochen
+  const KRAFT_KARTE_TAGE = 84;
+
+  // Die Karte einer Gruppe im Look Korund: Figur, Name, "Bestes Gewicht · 12 Wochen", die Veränderung und die Linie
+  // des schwersten Gewichts je Trainingstag. Genommen wird die zuletzt trainierte Übung der Gruppe mit Gewicht.
+  // Ohne eine solche Übung (nur Eigengewicht ohne Zusatz) gibt es keine Karte. Ein Tipp öffnet den großen Verlauf.
+  function kraftKarteKorund(g) {
+    const grenze = Date.now() - KRAFT_KARTE_TAGE * 86400000;
+    let u = null;
+    let punkte = [];
+    for (let i = 0; i < g.uebungen.length && !u; i++) {
+      const alle = verlaufPunkte(g.uebungen[i].name, g.uebungen[i].id, "schwer");
+      const neue = alle.filter(function (p) {
+        return p.zeit >= grenze && p.wert > 0;
+      });
+      if (neue.length > 0) {
+        u = g.uebungen[i];
+        punkte = neue;
+      }
+    }
+    if (!u) {
+      return null;
+    }
+    const karte = element("button", "karte kraft-karte");
+    karte.type = "button";
+    const kopf = element("span", "kraft-karte-kopf");
+    const figur = element("span", "kraft-karte-figur");
+    figur.innerHTML = koerperSvg(g.gruppe || { id: "", ansicht: "vorn" });
+    kopf.appendChild(figur);
+    const text = element("span", "kraft-karte-text");
+    text.appendChild(element("span", "kraft-karte-name", anzeigeName(u.name, u.id)));
+    text.appendChild(element("span", "kraft-karte-info", txt("kraft.bestesGewicht")));
+    kopf.appendChild(text);
+    const erster = punkte[0].wert;
+    const letzter = punkte[punkte.length - 1].wert;
+    const unterschied = gewichtAnzeige(letzter) - gewichtAnzeige(erster);
+    if (punkte.length > 1) {
+      const zeichen = unterschied > 0 ? "+" : unterschied < 0 ? "−" : "±";
+      kopf.appendChild(element("span", "kraft-karte-plus" + (unterschied > 0 ? " plus" : ""), zeichen + zahlText(Math.abs(Math.round(unterschied * 100) / 100)) + " " + einheit()));
+    }
+    karte.appendChild(kopf);
+    const linie = element("span", "kraft-karte-linie");
+    linie.innerHTML = kraftLinieSvg(punkte);
+    karte.appendChild(linie);
+    karte.setAttribute("aria-label", anzeigeName(u.name, u.id) + ", " + gewichtText(letzter));
+    karte.onclick = function () {
+      verlaufOeffnen(u.name, u.id);
+    };
+    return karte;
+  }
+
+  // Die Linie einer Karte als SVG (300 × 120 Einheiten): Fläche darunter, Punkt am Anfang und am Ende mit Wert
+  function kraftLinieSvg(punkte) {
+    const links = 12, rechts = 286, oben = 46, unten = 108;
+    let min = Infinity, max = -Infinity;
+    for (let i = 0; i < punkte.length; i++) {
+      min = Math.min(min, punkte[i].wert);
+      max = Math.max(max, punkte[i].wert);
+    }
+    const t0 = punkte[0].zeit;
+    const t1 = punkte[punkte.length - 1].zeit;
+    const xy = punkte.map(function (p) {
+      const x = t1 > t0 ? links + (p.zeit - t0) / (t1 - t0) * (rechts - links) : rechts;
+      const y = max > min ? unten - (p.wert - min) / (max - min) * (unten - oben) : (oben + unten) / 2;
+      return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
+    });
+    const weg = xy.map(function (p, i) {
+      return (i === 0 ? "M" : "L") + p[0] + " " + p[1];
+    }).join(" ");
+    const erstes = xy[0];
+    const letztes = xy[xy.length - 1];
+    let svg = '<svg viewBox="0 0 300 120" aria-hidden="true"><defs><linearGradient id="kraft-flaeche" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" class="kraft-flaeche-oben"/><stop offset="1" class="kraft-flaeche-unten"/></linearGradient></defs>';
+    if (xy.length > 1) {
+      svg += '<path class="kraft-flaeche" d="' + weg + " L" + letztes[0] + " 120 L" + erstes[0] + ' 120 Z"/>';
+      svg += '<path class="kraft-weg" d="' + weg + '"/>';
+      svg += '<circle class="kraft-anfang" cx="' + erstes[0] + '" cy="' + erstes[1] + '" r="4.5"/>';
+      svg += '<text class="kraft-wert-klein" x="' + erstes[0] + '" y="' + (erstes[1] - 12) + '">' + zahlText(gewichtAnzeige(punkte[0].wert)) + "</text>";
+    }
+    svg += '<circle class="kraft-ende" cx="' + letztes[0] + '" cy="' + letztes[1] + '" r="6"/>';
+    svg += '<text class="kraft-wert" x="' + letztes[0] + '" y="' + (letztes[1] - 16) + '" text-anchor="end">' + gewichtText(punkte[punkte.length - 1].wert) + "</text>";
+    return svg + "</svg>";
   }
 
   // Ebene 2: die Übungen einer Gruppe mit ihrem aktuellen 1RM, der Veränderung im gewählten Zeitraum
   // und dem kleinen Diagramm dieses Zeitraums. Ein Tipp öffnet den großen Verlauf.
   function gruppeUebungenAnzeigen(bereich, g) {
+    bereich.classList.remove("liste");
     const kopf = element("div", "gruppen-kopf");
     const zurueck = element("button", "text-btn", txt("zurueck.pfeil"));
     zurueck.onclick = function () {
@@ -8944,6 +10044,10 @@
         for (let i = 0; i < punkte.length; i++) {
           weg += (i === 0 ? "M" : "L") + x(punkte[i].zeit) + " " + y(punkte[i].wert);
         }
+        // Die Fläche unter der Hauptlinie zeigt nur der Look Korund (korund.css), sonst ist sie ausgeblendet
+        if (reihen[r].art === "haupt") {
+          svg += '<path class="mini-flaeche" d="' + weg + "L" + x(punkte[punkte.length - 1].zeit) + " 100L" + x(punkte[0].zeit) + ' 100Z"/>';
+        }
         svg += '<path class="linie-' + reihen[r].art + '" d="' + weg + '"/>';
       }
       // In der kleinen Kachel würden viele Punkte zu einem Balken verkleben, dann bleibt nur die Linie
@@ -9010,6 +10114,7 @@
     }
     const letzter = punkte[punkte.length - 1];
     flaeche.appendChild(element("div", "home-zahl", kraftText(ausKg(letzter.wert))));
+    kachelDelta(flaeche, miniZeitraum(punkte), true);
     miniDiagramm(flaeche, [{ punkte: miniZeitraum(punkte), art: "haupt", mitPunkten: true, ring: true }]);
   }
 
@@ -9416,6 +10521,9 @@
     document.getElementById("gewicht-sheet-titel").textContent = txt(titel);
     document.getElementById("fett-feld-titel").textContent = txt(fettTitel);
     document.getElementById("gewicht-sheet-rad").classList.toggle("versteckt", art === "fett");
+    // Das Feld "Ziel" gibt es nur beim Körpergewicht und nur im Look Korund (korund.css)
+    document.getElementById("ziel-eingabe").classList.toggle("versteckt", art === "fett");
+    zielGewichtFeldFuellen();
 
     // Die Zukunft ist gesperrt
     const feld = document.getElementById("feld-messdatum");
@@ -9528,13 +10636,106 @@
     }
     const letzte = liste[liste.length - 1];
     const wert = messWert(art, letzte.wert);
-    kopf.appendChild(element("div", "home-zahl", art.text(wert)));
+    const zahl = element("div", "home-zahl", art.text(wert));
+    // Look Korund (seit Version 143): die Zahl groß, die Einheit klein dahinter
+    if (lookKorund()) {
+      const text = art.text(wert);
+      const trenner = text.lastIndexOf(" ");
+      zahl.textContent = "";
+      zahl.classList.add("mess-gross");
+      zahl.appendChild(element("span", "", text.slice(0, trenner)));
+      zahl.appendChild(element("span", "mess-einheit", text.slice(trenner)));
+    }
+    kopf.appendChild(zahl);
     let zeile = datumMitJahr(new Date(letzte.zeit));
     if (liste.length > 1) {
       const unterschied = Math.round((wert - messWert(art, liste[liste.length - 2].wert)) * 10) / 10;
       zeile += " · " + txt("messung.zurDavor", { wert: aenderungText(unterschied, art.text) });
     }
-    kopf.appendChild(element("div", "routine-info", zeile));
+    if (!lookKorund()) {
+      kopf.appendChild(element("div", "routine-info", zeile));
+      return;
+    }
+    // Look Korund (seit Version 143): die Veränderung im gewählten Zeitraum, beim Körpergewicht dazu das Ziel
+    const zeitraum = messStand[kennung].zeitraum;
+    const grenze = zeitraum > 0 ? Date.now() - zeitraum * 86400000 : -Infinity;
+    const imZeitraum = liste.filter(function (m) {
+      return m.zeit >= grenze;
+    });
+    const info = element("div", "routine-info mess-ziel");
+    if (imZeitraum.length > 1) {
+      const anfang = messWert(art, imZeitraum[0].wert);
+      const unterschied = Math.round((wert - anfang) * 10) / 10;
+      const zeichen = unterschied > 0 ? "+" : unterschied < 0 ? "−" : "±";
+      const zielWert = kennung === "kg" && zielGewicht() !== null ? messWert(art, zielGewicht()) : null;
+      const richtung = zielWert !== null && unterschied !== 0 && Math.sign(unterschied) === Math.sign(zielWert - anfang);
+      const betrag = element("span", "mess-delta" + (richtung ? " plus" : ""), zeichen + art.text(Math.abs(unterschied)));
+      info.appendChild(betrag);
+      const rest = txt("gruppen.in." + zeitraum, { wert: "" }).trim();
+      info.appendChild(document.createTextNode(" " + rest));
+    } else {
+      info.appendChild(document.createTextNode(datumMitJahr(new Date(letzte.zeit))));
+    }
+    const ziel = kennung === "kg" ? zielGewicht() : null;
+    if (ziel !== null) {
+      const zielWert = messWert(art, ziel);
+      const fehlt = Math.round((zielWert - wert) * 10) / 10;
+      let text = txt("ziel.gewichtErreicht", { ziel: art.text(zielWert) });
+      if (fehlt !== 0) {
+        text = txt("ziel.gewichtKurz", { ziel: art.text(zielWert) });
+        // Schätzung aus dem Tempo im Zeitraum: nur wenn es in Richtung Ziel geht und unter einem Jahr bleibt
+        if (imZeitraum.length > 1) {
+          const tage = (imZeitraum[imZeitraum.length - 1].zeit - imZeitraum[0].zeit) / 86400000;
+          const tempo = (wert - messWert(art, imZeitraum[0].wert)) / Math.max(tage, 1);
+          if (tage >= 7 && tempo !== 0 && Math.sign(tempo) === Math.sign(fehlt)) {
+            const wochen = Math.ceil(Math.abs(fehlt) / Math.abs(tempo) / 7);
+            if (wochen <= 52) {
+              text = txtAnzahl("ziel.inWochen", wochen);
+            }
+          }
+        }
+      }
+      info.appendChild(document.createTextNode(" · " + text));
+    }
+    kopf.appendChild(info);
+  }
+
+  // ---------- Ziel für das Körpergewicht (Look Korund, seit Version 143) ----------
+
+  // Gespeichert als einstellungen.zielGewicht in kg. Ohne gültigen Eintrag gibt es kein Ziel (null).
+  function zielGewicht() {
+    const wert = einstellungen.zielGewicht;
+    if (typeof wert !== "number" || isNaN(wert) || wert < GEWICHT_EINHEITEN.kg.koerperMin || wert > GEWICHT_EINHEITEN.kg.koerperMax) {
+      return null;
+    }
+    return wert;
+  }
+
+  // Liest das Feld "Ziel" im Sheet Körpergewicht: leer löscht das Ziel, eine Zahl im erlaubten Bereich speichert es.
+  // Eine ungültige Zahl wird verworfen und das Feld zeigt wieder das alte Ziel.
+  function zielGewichtFeldPruefen() {
+    const feld = document.getElementById("feld-zielgewicht");
+    const roh = String(feld.value).trim().replace(",", ".");
+    if (roh === "") {
+      delete einstellungen.zielGewicht;
+    } else {
+      const zahl = Number(roh);
+      const grenzen = GEWICHT_EINHEITEN[einheit()];
+      if (!isNaN(zahl) && zahl >= grenzen.koerperMin && zahl <= grenzen.koerperMax) {
+        einstellungen.zielGewicht = Math.round(zuKg(zahl) * 100) / 100;
+      }
+    }
+    einstellungenSpeichern();
+    zielGewichtFeldFuellen();
+    koerpergewichtAnzeigen();
+    homeGewichtAnzeigen();
+  }
+
+  function zielGewichtFeldFuellen() {
+    const feld = document.getElementById("feld-zielgewicht");
+    const ziel = zielGewicht();
+    feld.value = ziel === null ? "" : zahlText(Math.round(ausKg(ziel) * 10) / 10);
+    document.getElementById("ziel-feld-titel").textContent = txt("ziel.feld", { einheit: einheit() });
   }
 
   // Zeichnet Messungen mit ihrem 7-Tage-Schnitt: die Messungen dünn und grau, darüber kräftig der Schnitt.
@@ -9572,10 +10773,19 @@
       diagramm.appendChild(element("p", "meldung", hinweis));
     } else {
       // Der letzte Wert steht schon im Kopf der Karte. Über dem Diagramm steht erst etwas nach dem Antippen.
-      diagrammZeichnen(diagramm, [
+      const reihen = [
         { punkte: messungen, art: "neben", mitPunkten: true, tasten: true },
-        { punkte: schnitt, art: "haupt", mitPunkten: false }
-      ], function (p) {
+        // Im Look Korund bekommt der Schnitt eine Fläche darunter (seit Version 143)
+        { punkte: schnitt, art: "haupt", mitPunkten: false, flaeche: lookKorund() }
+      ];
+      // Look Korund (seit Version 143): das Ziel als gestrichelte Linie über den ganzen Zeitraum
+      const ziel = kennung === "kg" ? zielGewicht() : null;
+      if (ziel !== null && lookKorund()) {
+        const anfang = von === undefined ? messungen[0].zeit : von;
+        const ende = von === undefined ? messungen[messungen.length - 1].zeit : bis;
+        reihen.unshift({ punkte: [{ zeit: anfang, wert: art.umrechnen(ziel) }, { zeit: ende, wert: art.umrechnen(ziel) }], art: "ziel", mitPunkten: false, beschriftung: txt("ziel.gewichtKurz", { ziel: art.text(messWert(art, ziel)) }) });
+      }
+      diagrammZeichnen(diagramm, reihen, function (p) {
         return art.text(p.wert);
       }, von, bis, txt("messung.antippen"));
     }
@@ -9748,9 +10958,62 @@
     umschalterBauen(document.getElementById(kennung + "-zeitraum"), KG_ZEITRAEUME, stand.zeitraum, function (tage) {
       stand.zeitraum = tage;
       messBereichAnzeigen(kennung);
+      fortschrittReiterAnzeigen();
     });
     messungenZeichnen(kennung, art, liste, stand.zeitraum);
     messKalenderAnzeigen(kennung, art, liste);
+    if (kennung === "fett") {
+      koerperKachelnAnzeigen();
+    }
+  }
+
+  // Look Korund (seit Version 143): unter der Karte Körpergewicht zwei Kacheln Körperfett und Magermasse.
+  // Ein Tipp auf Körperfett klappt den ganzen Bereich Körperfett (Diagramm, Eintragen) auf und zu. Sonst ausgeblendet.
+  let koerperFettOffen = false;
+
+  function koerperKachelnAnzeigen() {
+    const bereich = document.getElementById("koerper-kacheln");
+    if (!bereich) {
+      return;
+    }
+    bereich.innerHTML = "";
+    document.getElementById("seite-fortschritt").setAttribute("data-fett-offen", koerperFettOffen ? "ja" : "nein");
+    const fett = fettMessungen();
+    const fettKachel = element("button", "karte koerper-kachel");
+    fettKachel.type = "button";
+    fettKachel.setAttribute("aria-expanded", koerperFettOffen ? "true" : "false");
+    fettKachel.appendChild(element("div", "statistik-label", txt("koerperfett")));
+    if (fett.length === 0) {
+      fettKachel.appendChild(element("div", "koerper-wert leise", "–"));
+      fettKachel.appendChild(element("div", "statistik-klein", txt("koerper.fettLeer")));
+    } else {
+      const letzte = fett[fett.length - 1];
+      fettKachel.appendChild(element("div", "koerper-wert", fettText(letzte.wert)));
+      if (fett.length > 1) {
+        const unterschied = Math.round((letzte.wert - fett[fett.length - 2].wert) * 10) / 10;
+        const zeichen = unterschied > 0 ? "+" : unterschied < 0 ? "−" : "±";
+        fettKachel.appendChild(element("div", "statistik-klein" + (unterschied < 0 ? " plus" : ""), zeichen + fettText(Math.abs(unterschied))));
+      }
+    }
+    fettKachel.onclick = function () {
+      koerperFettOffen = !koerperFettOffen;
+      koerperKachelnAnzeigen();
+    };
+    bereich.appendChild(fettKachel);
+
+    // Magermasse: Gewicht ohne Fett, aus der letzten Messung, die beides hat
+    const gewichte = gewichtMessungen();
+    let mager = null;
+    for (let i = gewichte.length - 1; i >= 0 && mager === null; i--) {
+      if (gewichte[i].fett !== null) {
+        mager = gewichte[i].wert * (1 - gewichte[i].fett / 100);
+      }
+    }
+    const magerKachel = element("div", "karte koerper-kachel");
+    magerKachel.appendChild(element("div", "statistik-label", txt("koerper.mager")));
+    magerKachel.appendChild(element("div", "koerper-wert" + (mager === null ? " leise" : ""), mager === null ? "–" : kgText(mager)));
+    magerKachel.appendChild(element("div", "statistik-klein", mager === null ? txt("koerper.magerLeer") : txt("koerper.magerInfo")));
+    bereich.appendChild(magerKachel);
   }
 
   // Fortschritt-Tab: Körpergewicht und Körperfett mit Kopf, Diagramm und Kalender, dazu die Kacheln
@@ -10433,8 +11696,35 @@
     balken: '<path d="M6 20v-7M12 20V5M18 20v-10"/>',
     weiter: '<path d="M10 6l6 6-6 6"/>',
     gewicht: '<path d="M9 8a3 3 0 0 1 6 0M6.5 8h11l2 12h-15z"/>',
-    hantel: '<path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/>'
+    hantel: '<path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/>',
+    // Look Korund (seit Version 143): Rekord-Zeile auf Home
+    pokal: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/>',
+    // Look Korund (seit Version 143): Symbole der Abzeichen
+    puls: '<path d="M3 9.5h4l2-4 4 9 2-5h6"/>',
+    flamme: '<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1.2-3.6 2.5-4.8.3 1.8 1.2 2.8 2.3 3.1C11.2 9 11 6 12 3z"/>',
+    kalender: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    blitz: '<path d="M13 3 5 13h6l-1 8 8-10h-6z"/>',
+    stern: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/>',
+    haken: '<path d="M5 12.5l4.5 4.5L19 7.5"/>'
   };
+
+  // Das Symbol eines Abzeichens im Look Korund: nach Gruppe, offene höhere Stufen mit Stern statt Pokal
+  function abzeichenSymbol(a) {
+    const kat = abzeichenKategorie(a);
+    if (kat === "konstanz") {
+      return a.gruppe === "workouts" ? "kalender" : "flamme";
+    }
+    if (kat === "volumen") {
+      return "hantel";
+    }
+    if (kat === "rekorde") {
+      return a.stufe === 3 ? "stern" : "pokal";
+    }
+    if (kat === "kraft") {
+      return a.erreicht ? "blitz" : "schloss";
+    }
+    return "haken";
+  }
 
   // Die Zeichnung eines Icons als SVG-Text
   function iconSvg(name) {
@@ -11401,11 +12691,83 @@
     const zahlen = gesamtZahlen();
     const bereich = document.getElementById("profil-zahlen");
     bereich.innerHTML = "";
+    // Look Korund: zwei Karten statt einer (die Klasse "karte" wandert an die Hüllen), sonst wie bisher eine
+    const korund = lookKorund();
+    document.getElementById("profil-karte").classList.toggle("karte", !korund);
+    document.getElementById("profil-oben").classList.toggle("karte", korund);
+    document.getElementById("profil-aktivitaet").classList.toggle("karte", korund);
+    if (korund) {
+      profilKarteKorund(zahlen, bereich);
+      return;
+    }
     bereich.appendChild(homeZahl(zahlen.workouts, txt("profil.workouts")));
     bereich.appendChild(homeZahl(zahlen.serie, txt("profil.serie")));
     const volumen = homeZahl(volumenText(zahlen.gewicht), txt("verlauf.volumen"));
     volumen.classList.add("breit");
     bereich.appendChild(volumen);
+  }
+
+  // ---------- Profil im Look Korund (seit Version 143): Rang und Serie unter dem Namen, Level, drei Zahlen ----------
+
+  // XP: je Trainingstag 100, je Rekord 50, je bewegter Tonne 10. Nichts davon wird gespeichert, alles kommt aus den Einträgen.
+  const XP_JE_TRAINING = 100;
+  const XP_JE_REKORD = 50;
+  const XP_JE_TONNE = 10;
+  // Level L beginnt bei LEVEL_XP × L × (L − 1) / 2 XP: Level 2 bei 500, Level 3 bei 1.500, Level 4 bei 3.000 …
+  const LEVEL_XP = 500;
+
+  // Level und Fortschritt zu einer Zahl XP: { level, xp, von, bis }
+  function levelStand(xp) {
+    let level = 1;
+    while (LEVEL_XP * (level + 1) * level / 2 <= xp) {
+      level++;
+    }
+    return { level: level, xp: xp, von: LEVEL_XP * level * (level - 1) / 2, bis: LEVEL_XP * (level + 1) * level / 2 };
+  }
+
+  function profilKarteKorund(zahlen, bereich) {
+    const stand = rangStand();
+    const anzahlRekorde = rekorde(stand.uebungen.map(function (u) {
+      return u.punkte;
+    })).length;
+
+    // Unter dem Namen: der Gesamt-Rang (lila) und die Serie (orange), nur was es gibt
+    const namen = document.querySelector("#seite-profil .profil-namen");
+    let info = namen.querySelector(".profil-korund-info");
+    if (!info) {
+      info = element("div", "profil-korund-info");
+      namen.appendChild(info);
+    }
+    info.innerHTML = "";
+    if (stand.kraft.gesamt !== null) {
+      info.appendChild(element("span", "profil-rang", rangName(stand.kraft.gesamt)));
+    }
+    if (zahlen.serie > 0) {
+      const serie = element("button", "profil-serie", txt("profil.serieKurz", { n: zahlen.serie }));
+      serie.type = "button";
+      serie.onclick = serieSeiteOeffnen;
+      info.appendChild(serie);
+    }
+
+    // Level mit dünnem Balken
+    const xp = zahlen.workouts * XP_JE_TRAINING + anzahlRekorde * XP_JE_REKORD + Math.floor(zahlen.gewicht / 1000) * XP_JE_TONNE;
+    const l = levelStand(xp);
+    let level = document.getElementById("profil-level");
+    if (!level) {
+      level = element("div", "profil-level");
+      level.id = "profil-level";
+      bereich.parentNode.insertBefore(level, bereich);
+    }
+    level.innerHTML = "";
+    const kopf = element("div", "profil-level-kopf");
+    kopf.appendChild(element("span", "", txt("profil.level", { n: l.level })));
+    kopf.appendChild(element("span", "", txt("profil.xp", { xp: l.xp.toLocaleString(gebiet()), bis: l.bis.toLocaleString(gebiet()) })));
+    level.appendChild(kopf);
+    level.appendChild(rangBalken((l.xp - l.von) / (l.bis - l.von)));
+
+    bereich.appendChild(homeZahl(zahlen.workouts, txt("profil.workouts")));
+    bereich.appendChild(homeZahl(einheit() === "kg" ? (Math.round(zahlen.gewicht / 100) / 10).toLocaleString(gebiet()) + " t" : volumenText(zahlen.gewicht), txt("home.bewegt")));
+    bereich.appendChild(homeZahl(anzahlRekorde, txt("statistik.rekorde")));
   }
 
   // ---------- Profil: Erinnerung ans Backup ----------
@@ -11663,14 +13025,46 @@
       return;
     }
 
+    // Look Korund (seit Version 143): Datum ohne Jahr, dazu die Dauer und die Zahl der Rekorde des Tages
+    const korund = lookKorund();
+    const rekordeJeTag = {};
+    const minutenJeTag = {};
+    if (korund) {
+      rekorde(rangStand().uebungen.map(function (u) {
+        return u.punkte;
+      })).forEach(function (r) {
+        const s = tagSchluessel(new Date(r.zeit));
+        rekordeJeTag[s] = (rekordeJeTag[s] || 0) + 1;
+      });
+      for (let i = 0; i < trainings.length; i++) {
+        const t = trainings[i];
+        const dauer = t ? Math.round((new Date(t.ende) - new Date(t.start)) / 60000) : NaN;
+        if (!isNaN(dauer) && dauer > 0 && dauer < 24 * 60) {
+          const s = tagSchluessel(new Date(t.start));
+          minutenJeTag[s] = (minutenJeTag[s] || 0) + dauer;
+        }
+      }
+    }
+
     for (let i = 0; i < schluessel.length && i < verlaufGezeigt; i++) {
       const tag = profilTage[schluessel[i]];
       const zeile = element("button", "verlauf-zeile");
       const links = element("span", "verlauf-text");
       links.appendChild(element("span", "verlauf-name", tagName(tag)));
-      links.appendChild(element("span", "verlauf-info", tagTextMitJahr(tag.datum) + " · " + txtAnzahl("anzahl.saetze", tag.saetze)));
+      let info = tagTextMitJahr(tag.datum) + " · " + txtAnzahl("anzahl.saetze", tag.saetze);
+      if (korund) {
+        info = tagText(tag.datum) + " · " + txtAnzahl("anzahl.saetze", tag.saetze);
+        if (minutenJeTag[tag.schluessel]) {
+          info += " · " + dauerText(minutenJeTag[tag.schluessel]);
+        }
+      }
+      links.appendChild(element("span", "verlauf-info", info));
       zeile.appendChild(links);
-      zeile.appendChild(element("span", "verlauf-volumen", volumenText(tag.volumen)));
+      const rechts = element("span", "verlauf-volumen", volumenText(tag.volumen));
+      if (korund && rekordeJeTag[tag.schluessel]) {
+        rechts.appendChild(element("span", "verlauf-rekord", txtAnzahl("verlauf.rekorde", rekordeJeTag[tag.schluessel])));
+      }
+      zeile.appendChild(rechts);
       zeile.onclick = function () {
         tagSheetOeffnen(tag.schluessel);
       };
@@ -12063,6 +13457,10 @@
     // Wer die Ränge hier sieht, braucht dazu keine Meldung mehr
     const daten = rangPruefen(false);
     const stand = daten.stand;
+    if (lookKorund()) {
+      profilAbzeichenKorund(inhalt, daten, stand);
+      return;
+    }
 
     // Die Einführung erklärt Rang, "Teilen" und Abzeichen an der Karte des Gesamt-Rangs, ihrem Knopf und dem ersten Abzeichen (einfuehrung.js)
     const gesamt = gesamtRangKarte(stand);
@@ -12077,6 +13475,14 @@
       muster.appendChild(musterKarte(MUSTER[i], stand.kraft.muster[MUSTER[i]], stand.gruende[MUSTER[i]]));
     }
     inhalt.appendChild(muster);
+    // Look Korund (seit Version 143): dieselben Muster als Netz und kurze Liste. Sonst ausgeblendet, dort stehen die Kacheln.
+    inhalt.appendChild(musterKorund(stand));
+
+    // Look Korund: das Abzeichen, das am nächsten dran ist. Sonst ausgeblendet.
+    const naechstes = naechstesAbzeichen(daten.abzeichen);
+    if (naechstes) {
+      inhalt.appendChild(naechstesAbzeichenKarte(naechstes, stand));
+    }
 
     inhalt.appendChild(element("h2", "abschnitt", txt("profil.reiter.abzeichen")));
     const raster = element("div", "abzeichen-raster");
@@ -12948,12 +14354,249 @@
   function abzeichenKachel(a, stand) {
     const kachel = element("div", "abzeichen");
     kachel.classList.toggle("erreicht", a.erreicht);
+    // Die Farbgruppe für den Look Korund (seit Version 143). In den anderen Looks ändert die Klasse nichts.
+    kachel.classList.add("kat-" + abzeichenKategorie(a));
     const bild = element("span", "abzeichen-bild");
     bild.innerHTML = medailleSvg(a.stufe);
+    // Look Korund: ein Symbol im Kreis statt der Medaille
+    if (lookKorund()) {
+      bild.classList.add("abzeichen-symbol");
+      bild.innerHTML = iconSvg(abzeichenSymbol(a));
+    }
     kachel.appendChild(bild);
     kachel.appendChild(element("div", "abzeichen-titel", abzeichenTitel(a)));
     kachel.appendChild(element("div", "abzeichen-info", abzeichenInfo(a, stand)));
     return kachel;
+  }
+
+  // Look Korund (seit Version 143): Ist die Seite "Kraftrang" im Reiter Abzeichen offen? Wird nie gespeichert.
+  let profilKraftrang = false;
+
+  // Die Reihenfolge und Namen der Farbgruppen im Reiter Abzeichen
+  const ABZEICHEN_KATEGORIEN = ["konstanz", "volumen", "rekorde", "kraft", "meilenstein"];
+
+  // Der Reiter Abzeichen im Look Korund: oben "Als Nächstes", dann eine Zeile "Kraftrang ›", dann die Abzeichen nach Farbgruppen
+  // mit "2 von 3". Die Zeile öffnet die Seite Kraftrang mit Gesamt-Rang, Konstanz-Rang und Bewegungsmustern.
+  function profilAbzeichenKorund(inhalt, daten, stand) {
+    if (profilKraftrang) {
+      const kopf = element("div", "rang-ansicht-kopf");
+      const zurueck = element("button", "rang-zurueck", "‹");
+      zurueck.setAttribute("aria-label", txt("zurueck"));
+      zurueck.onclick = function () {
+        profilKraftrang = false;
+        profilReiterAnzeigen();
+      };
+      kopf.appendChild(zurueck);
+      kopf.appendChild(element("span", "rang-ansicht-titel", txt("rang.seite")));
+      inhalt.appendChild(kopf);
+      const gesamt = stand.kraft.gesamt === null ? gesamtRangKarte(stand) : rangHeldKarte(stand);
+      gesamt.setAttribute("data-tour", "profil-rang");
+      gesamt.querySelector(".teilen-knopf").setAttribute("data-tour", "profil-teilen");
+      inhalt.appendChild(gesamt);
+      inhalt.appendChild(konstanzKarte(stand));
+      inhalt.appendChild(element("h2", "abschnitt", txt("rang.muster")));
+      inhalt.appendChild(musterKorund(stand));
+      inhalt.appendChild(element("p", "meldung rang-fussnote", txt("rang.hinweis")));
+      return;
+    }
+
+    const naechstes = naechstesAbzeichen(daten.abzeichen);
+    if (naechstes) {
+      inhalt.appendChild(naechstesAbzeichenKarte(naechstes, stand));
+    }
+
+    const zeile = element("button", "karte kraftrang-zeile");
+    zeile.type = "button";
+    const bild = element("span", "rang-bild");
+    bild.innerHTML = rangSvg(stand.kraft.gesamt);
+    zeile.appendChild(bild);
+    const text = element("span", "kraftrang-text");
+    text.appendChild(element("span", "kraftrang-label", txt("rang.seite")));
+    text.appendChild(element("span", "kraftrang-name", stand.kraft.gesamt === null ? txt("rang.keiner") : rangName(stand.kraft.gesamt)));
+    zeile.appendChild(text);
+    zeile.appendChild(element("span", "einst-pfeil", "›"));
+    zeile.onclick = function () {
+      profilKraftrang = true;
+      profilReiterAnzeigen();
+      window.scrollTo(0, document.getElementById("profil-reiter").offsetTop - 60);
+    };
+    inhalt.appendChild(zeile);
+
+    let erstes = true;
+    for (let k = 0; k < ABZEICHEN_KATEGORIEN.length; k++) {
+      const kat = ABZEICHEN_KATEGORIEN[k];
+      const liste = daten.abzeichen.filter(function (a) {
+        return abzeichenKategorie(a) === kat && !(a.geheim && !a.erreicht);
+      });
+      if (liste.length === 0) {
+        continue;
+      }
+      const erreicht = liste.filter(function (a) {
+        return a.erreicht;
+      }).length;
+      const kopf = element("div", "abzeichen-gruppe-kopf");
+      kopf.appendChild(element("span", "", txt("abzeichen.kat." + kat)));
+      kopf.appendChild(element("span", "abzeichen-gruppe-zahl", txt("abzeichen.vonN", { n: erreicht, von: liste.length })));
+      inhalt.appendChild(kopf);
+      const raster = element("div", "abzeichen-raster");
+      for (let i = 0; i < liste.length; i++) {
+        const kachel = abzeichenKachel(liste[i], stand);
+        if (erstes) {
+          kachel.setAttribute("data-tour", "profil-abzeichen");
+          erstes = false;
+        }
+        raster.appendChild(kachel);
+      }
+      inhalt.appendChild(raster);
+    }
+    inhalt.appendChild(element("p", "meldung rang-fussnote", txt("rang.hinweis")));
+  }
+
+  // Die große Karte des Gesamt-Rangs auf der Seite Kraftrang (Look Korund): Sechseck mit der Stufe, Name,
+  // die Leiter der sechs Ränge mit dem jetzigen hervorgehoben, darunter was bis zum nächsten fehlt und "Teilen"
+  function rangHeldKarte(stand) {
+    const gesamt = stand.kraft.gesamt;
+    const r = rpZuRang(gesamt);
+    const karte = element("div", "karte rang-held");
+    const sechseck = element("span", "rang-held-bild");
+    const ecken = [];
+    for (let i = 0; i < 6; i++) {
+      const winkel = Math.PI / 180 * (60 * i - 90);
+      ecken.push((42 + 38 * Math.cos(winkel)).toFixed(1) + "," + (42 + 38 * Math.sin(winkel)).toFixed(1));
+    }
+    sechseck.innerHTML = '<svg viewBox="0 0 84 84" aria-hidden="true"><polygon points="' + ecken.join(" ") + '"/><text x="42" y="51" text-anchor="middle">' + r.stufe + "</text></svg>";
+    karte.appendChild(sechseck);
+    karte.appendChild(element("div", "rang-held-label", txt("rang.gesamt")));
+    karte.appendChild(element("div", "rang-held-name", txt("rang.name." + r.rang)));
+    const leiter = element("div", "rang-leiter");
+    for (let i = 1; i <= RANG_ANZAHL; i++) {
+      const stufe = element("span", i < r.rang ? "ok" : i === r.rang ? "jetzt" : "");
+      stufe.appendChild(element("i", ""));
+      stufe.appendChild(document.createTextNode(txt("rang.name." + i)));
+      leiter.appendChild(stufe);
+    }
+    leiter.style.setProperty("--leiter", ((r.rang - 1) / (RANG_ANZAHL - 1) * 100).toFixed(1) + "%");
+    karte.appendChild(leiter);
+    if (r.rpBisNaechste > 0) {
+      karte.appendChild(element("div", "rang-held-info", txt("rang.nochRp", { rp: r.rpBisNaechste, rang: rangName(gesamt + r.rpBisNaechste) })));
+    } else {
+      karte.appendChild(element("div", "rang-held-info", txt("rang.maximum")));
+    }
+    karte.appendChild(teilenKnopf(true));
+    return karte;
+  }
+
+  // Für die Einführung: Rang und "Teilen" liegen im Look Korund auf der Seite Kraftrang, das erste Abzeichen in der Übersicht
+  function profilKraftrangFuer(ziel) {
+    const offen = lookKorund() && (ziel === "profil-rang" || ziel === "profil-teilen");
+    if (offen !== profilKraftrang) {
+      profilKraftrang = offen;
+      profilReiterAnzeigen();
+    }
+  }
+
+  // Die Farbgruppe eines Abzeichens im Look Korund: Konstanz orange, Volumen blau, Rekorde gold, Kraft lila, sonst grün
+  function abzeichenKategorie(a) {
+    if (a.gruppe === "workouts" || a.gruppe === "serie") {
+      return "konstanz";
+    }
+    if (a.gruppe === "volumen") {
+      return "volumen";
+    }
+    if (a.gruppe === "rekorde") {
+      return "rekorde";
+    }
+    if (a.gruppe === "gesamtRang" || a.id === "allrounder") {
+      return "kraft";
+    }
+    return "meilenstein";
+  }
+
+  // Das offene Abzeichen mit Stufen, das seinem Ziel am nächsten ist (größter Anteil), oder null
+  function naechstesAbzeichen(liste) {
+    let bestes = null;
+    let anteil = -1;
+    for (let i = 0; i < liste.length; i++) {
+      const a = liste[i];
+      if (a.erreicht || !a.gruppe || a.gruppe === "gesamtRang" || !(a.ziel > 0)) {
+        continue;
+      }
+      const jetzt = a.wert / a.ziel;
+      if (jetzt > anteil) {
+        bestes = a;
+        anteil = jetzt;
+      }
+    }
+    return bestes;
+  }
+
+  // Die Karte "Als Nächstes" mit Ring, Name und Stand (nur im Look Korund zu sehen)
+  function naechstesAbzeichenKarte(a, stand) {
+    const karte = element("div", "karte naechstes-abzeichen");
+    const ring = element("span", "naechstes-ring");
+    const anteil = Math.max(0, Math.min(1, a.wert / a.ziel));
+    const umfang = 2 * Math.PI * 27;
+    ring.innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle class="spur" cx="32" cy="32" r="27"/><circle class="wert" cx="32" cy="32" r="27" stroke-dasharray="' + (umfang * anteil).toFixed(1) + " " + umfang.toFixed(1) + '"/></svg>';
+    ring.appendChild(element("span", "naechstes-prozent", Math.round(anteil * 100) + " %"));
+    karte.appendChild(ring);
+    const text = element("div", "naechstes-text");
+    text.appendChild(element("div", "naechstes-label", txt("abzeichen.naechstes")));
+    text.appendChild(element("div", "naechstes-titel", abzeichenTitel(a)));
+    text.appendChild(element("div", "naechstes-info", abzeichenInfo(a, stand)));
+    karte.appendChild(text);
+    return karte;
+  }
+
+  // Die Bewegungsmuster im Look Korund: ein Netz mit sechs Ecken (je weiter außen, desto höher der Rang)
+  // und darunter je Muster eine Zeile mit Rang oder "Noch kein Wert". Ein Tipp tut dasselbe wie die Kachel.
+  function musterKorund(stand) {
+    const karte = element("div", "karte muster-korund");
+    const cx = 150;
+    const cy = 112;
+    const radius = 80;
+    const punkt = function (i, r) {
+      const winkel = Math.PI / 180 * (60 * i - 90);
+      return [cx + radius * r * Math.cos(winkel), cy + radius * r * Math.sin(winkel)];
+    };
+    const sechseck = function (r) {
+      const ecken = [];
+      for (let i = 0; i < 6; i++) {
+        ecken.push(punkt(i, r).map(function (n) {
+          return n.toFixed(1);
+        }).join(","));
+      }
+      return ecken.join(" ");
+    };
+    let svg = '<svg class="muster-netz" viewBox="0 0 300 224" role="img" aria-label="' + txt("rang.muster") + '">';
+    svg += '<polygon class="netz-aussen" points="' + sechseck(1) + '"/><polygon class="netz-innen" points="' + sechseck(0.5) + '"/>';
+    const werte = [];
+    for (let i = 0; i < MUSTER.length; i++) {
+      const m = stand.kraft.muster[MUSTER[i]];
+      const wert = m && m.rp !== null ? Math.max(0.06, Math.min(1, m.rp / RP_MAX)) : 0.04;
+      werte.push(punkt(i, wert).map(function (n) {
+        return n.toFixed(1);
+      }).join(","));
+      const beschriftung = punkt(i, 1.24);
+      svg += '<text class="' + (m && m.rp !== null ? "an" : "") + '" x="' + beschriftung[0].toFixed(1) + '" y="' + (beschriftung[1] + 4).toFixed(1) + '" text-anchor="middle">' + txt("muster.kurz." + MUSTER[i]) + "</text>";
+    }
+    svg += '<polygon class="netz-wert" points="' + werte.join(" ") + '"/></svg>';
+    karte.insertAdjacentHTML("beforeend", svg);
+
+    for (let i = 0; i < MUSTER.length; i++) {
+      const m = stand.kraft.muster[MUSTER[i]];
+      const vorlage = musterKarte(MUSTER[i], m, stand.gruende[MUSTER[i]]);
+      const zeile = element("button", "muster-zeile");
+      zeile.type = "button";
+      zeile.appendChild(element("span", "", txt("muster." + MUSTER[i])));
+      let wert = txt("muster.leer");
+      if (m) {
+        wert = m.rp === null ? "–" : rangName(m.rp);
+      }
+      zeile.appendChild(element("span", "muster-zeile-wert" + (m && m.rp !== null ? " an" : ""), wert));
+      zeile.onclick = vorlage.onclick;
+      karte.appendChild(zeile);
+    }
+    return karte;
   }
 
   // Der Fortschritts-Rang einer Übung als Karte für den Verlauf. Ohne Rang steht da, was fehlt.
@@ -12982,6 +14625,1125 @@
       karte.appendChild(element("div", "routine-info", txt("rang.zaehltNicht")));
     }
     bereich.appendChild(karte);
+  }
+
+  // ---------- Look Korund, Runde 2 (seit Version 144): eigene Seiten über der App ----------
+  // Serie, Vorschlag von Korund, Geräte, Einschränkungen, Dein Vorschlag und Rückblick sind Seiten in #korund-seite
+  // (index.html, nur in der korund.css zu sehen). Sie liegen über dem Tab, ‹ geht eine Seite zurück.
+  // Jede Seite ist { titel, rechts(), schliessen, bauen(inhalt, unten) }. Keine Seite legt von selbst etwas an,
+  // gespeichert wird nur, was auf den Seiten Geräte und Einschränkungen gewählt wird, und mit „Übernehmen“ im Rückblick.
+  let korundSeiten = [];
+
+  function korundSeiteOeffnen(seite) {
+    korundSeiten.push(seite);
+    korundSeiteZeichnen();
+  }
+
+  function korundSeiteZurueck() {
+    korundSeiten.pop();
+    korundSeiteZeichnen();
+  }
+
+  function korundSeitenSchliessen() {
+    korundSeiten = [];
+    korundSeiteZeichnen();
+  }
+
+  // Zeichnet die oberste Seite neu (auch nach einer Wahl auf ihr, dann ohne nach oben zu springen). Ohne Seite ist die Ebene zu.
+  function korundSeiteZeichnen() {
+    const ebene = document.getElementById("korund-seite");
+    const offen = korundSeiten.length > 0;
+    ebene.classList.toggle("offen", offen);
+    document.body.classList.toggle("korund-seite-offen", offen);
+    if (!offen) {
+      return;
+    }
+    const seite = korundSeiten[korundSeiten.length - 1];
+    const zurueck = document.getElementById("korund-seite-zurueck");
+    zurueck.textContent = seite.schliessen ? "✕" : "‹";
+    zurueck.setAttribute("aria-label", txt(seite.schliessen ? "schliessen" : "zurueck"));
+    zurueck.onclick = seite.schliessen ? korundSeitenSchliessen : korundSeiteZurueck;
+    document.getElementById("korund-seite-titel").textContent = seite.titel;
+    document.getElementById("korund-seite-rechts").textContent = seite.rechts ? seite.rechts() : "";
+    const inhalt = document.getElementById("korund-seite-inhalt");
+    const unten = document.getElementById("korund-seite-unten");
+    const scroll = ebene.scrollTop;
+    inhalt.innerHTML = "";
+    unten.innerHTML = "";
+    seite.bauen(inhalt, unten);
+    ebene.classList.toggle("mit-unten", unten.childElementCount > 0);
+    ebene.scrollTop = seite.gezeichnet ? scroll : 0;
+    seite.gezeichnet = true;
+  }
+
+  // Bausteine der Seiten
+  function seitenUmschalter(auswahl, aktiv, beimWechsel) {
+    const schalter = element("div", "seiten-umschalter");
+    umschalterBauen(schalter, auswahl, aktiv, beimWechsel);
+    return schalter;
+  }
+
+  function seitenLabel(text, rechts) {
+    const label = element("div", "seiten-label");
+    label.appendChild(element("span", "", text));
+    if (rechts) {
+      label.appendChild(rechts);
+    }
+    return label;
+  }
+
+  // Eine Zeile einer Liste: links Symbol und Text, rechts Wert und Pfeil (mit beimTipp ein Knopf)
+  function seitenZeile(text, wert, beimTipp, optionen) {
+    const o = optionen || {};
+    const zeile = element(beimTipp ? "button" : "div", "seiten-zeile" + (o.klasse ? " " + o.klasse : ""));
+    if (beimTipp) {
+      zeile.type = "button";
+      zeile.onclick = beimTipp;
+    }
+    if (o.icon) {
+      const symbol = element("span", "seiten-zeile-icon");
+      symbol.innerHTML = iconSvg(o.icon);
+      zeile.appendChild(symbol);
+    }
+    zeile.appendChild(element("span", "seiten-zeile-text", text));
+    if (wert !== undefined && wert !== "") {
+      zeile.appendChild(element("span", "seiten-zeile-wert" + (o.leise ? " leise" : ""), wert));
+    }
+    if (beimTipp) {
+      zeile.appendChild(element("span", "seiten-pfeil", "›"));
+    }
+    return zeile;
+  }
+
+  function seitenKnopf(text, haupt, beimTipp) {
+    const knopf = element("button", haupt ? "speichern-btn" : "zweit-btn", text);
+    knopf.type = "button";
+    knopf.onclick = beimTipp;
+    return knopf;
+  }
+
+  function seitenFigur(gruppeId) {
+    const figur = element("span", "seiten-figur");
+    figur.innerHTML = koerperSvg(GRUPPE_NACH_ID[gruppeId] || { id: "", ansicht: "vorn" });
+    return figur;
+  }
+
+  // ---------- Serie ----------
+
+  // So viele Wochen zeigt die Liste „Letzte Wochen“, je Woche so viele Striche
+  const SERIE_LISTE_WOCHEN = 7;
+  const SERIE_STRICHE = 5;
+
+  function serieSeiteOeffnen() {
+    if (!lookKorund()) {
+      return;
+    }
+    korundSeiteOeffnen({ titel: txt("serie.titel"), bauen: serieSeiteBauen });
+  }
+
+  // Krank oder Urlaub in der Woche ab montag, sonst ""
+  function auszeitArtInWoche(montag) {
+    const von = montag.getTime();
+    const bis = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 7).getTime();
+    const liste = auszeiten();
+    for (let i = 0; i < liste.length; i++) {
+      const ende = liste[i].bis === null ? Date.now() : liste[i].bis;
+      if (liste[i].von < bis && ende >= von) {
+        return liste[i].art;
+      }
+    }
+    return "";
+  }
+
+  function serieSeiteBauen(inhalt) {
+    const zahlen = gesamtZahlen();
+    const montag = montagDerWoche(new Date());
+    const tage = trainingstage();
+    const jeWoche = {};
+    Object.keys(tage).forEach(function (s) {
+      const m = montagDerWoche(tage[s].datum).getTime();
+      jeWoche[m] = (jeWoche[m] || 0) + 1;
+    });
+
+    const karte = element("div", "karte seiten-karte serie-held");
+    const kopf = element("div", "seiten-kopfzeile");
+    const symbol = element("span", "serie-symbol");
+    symbol.innerHTML = iconSvg("flamme");
+    kopf.appendChild(symbol);
+    kopf.appendChild(element("span", "seiten-klein-label", txt("serie.aktuell")));
+    karte.appendChild(kopf);
+    const zahl = element("div", "serie-zahl");
+    zahl.appendChild(document.createTextNode(String(zahlen.serie)));
+    zahl.appendChild(element("small", "", txt(zahlen.serie === 1 ? "serie.woche" : "serie.wochen")));
+    karte.appendChild(zahl);
+    const diese = jeWoche[montag.getTime()] || 0;
+    const fehlt = SERIE_TAGE_PRO_WOCHE - diese;
+    karte.appendChild(element("div", "seiten-klein", txt("serie.regel", { n: SERIE_TAGE_PRO_WOCHE }) + " " + (fehlt > 0 ? txtAnzahl("serie.fehlt", fehlt) : txt("serie.geschafft"))));
+    karte.appendChild(element("div", "seiten-trenn"));
+    const fuss = element("div", "seiten-kopfzeile seiten-klein");
+    const links = element("span", "");
+    links.appendChild(document.createTextNode(txt("serie.laengste") + " "));
+    links.appendChild(element("b", "", txtAnzahl("serie.anzahl", zahlen.laengsteSerie)));
+    fuss.appendChild(links);
+    const rechts = element("span", "seiten-rechts");
+    rechts.appendChild(document.createTextNode(txt("serie.pausen") + " "));
+    rechts.appendChild(element("b", "", String(zahlen.pausen)));
+    fuss.appendChild(rechts);
+    karte.appendChild(fuss);
+    inhalt.appendChild(karte);
+
+    inhalt.appendChild(seitenLabel(txt("serie.letzte")));
+    const liste = element("div", "karte seiten-liste");
+    for (let w = 0; w < SERIE_LISTE_WOCHEN; w++) {
+      const m = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7 * w);
+      const anzahl = jeWoche[m.getTime()] || 0;
+      const auszeit = anzahl < SERIE_TAGE_PRO_WOCHE ? auszeitArtInWoche(m) : "";
+      const zeile = element("div", "serie-woche");
+      zeile.appendChild(element("span", "serie-kw", txt("serie.kw", { n: kalenderwoche(m) })));
+      const striche = element("span", "serie-striche");
+      for (let i = 0; i < SERIE_STRICHE; i++) {
+        striche.appendChild(element("i", i < anzahl ? (auszeit ? "frei" : "an") : ""));
+      }
+      zeile.appendChild(striche);
+      let ende = anzahl >= SERIE_TAGE_PRO_WOCHE ? "✓" : "–";
+      if (w === 0) {
+        ende = txt("serie.laeuft");
+      } else if (auszeit) {
+        ende = txt("status." + auszeit);
+      }
+      zeile.appendChild(element("span", "serie-ende", ende));
+      liste.appendChild(zeile);
+    }
+    inhalt.appendChild(liste);
+  }
+
+  // ---------- Geräte ----------
+
+  // Die Geräte für „Vorschlag von Korund“. Erkannt wird eine Übung an ihrem Namen (Deutsch und Englisch),
+  // eine Übung kann mehrere brauchen (Bankdrücken: Langhantel und Flachbank). Maschinen ohne eigenes Gerät
+  // brauchen „Andere Maschinen“ (Bereich „maschine“). Übungen ohne Gerät (Eigengewicht) gehen immer.
+  const GERAETE = [
+    { id: "langhantel", gruppe: "frei", muster: /langhantel|barbell|sz-|\bsz\b|ez-bar|ez bar/ },
+    { id: "kurzhantel", gruppe: "frei", muster: /kurzhantel|dumbbell/ },
+    { id: "kettlebell", gruppe: "frei", muster: /kettlebell|turkish get-up/ },
+    { id: "bank", gruppe: "frei", muster: /bankdrücken|bench|schrägbank|negativbank|flachbank|incline|decline/ },
+    { id: "kabel", gruppe: "kabel", muster: /kabel|cable|seilzug|latzug|pulldown|face pull/ },
+    { id: "klimmzug", gruppe: "kabel", muster: /klimmz|pull-up|chin-up|hängendes|hanging/ },
+    { id: "dip", gruppe: "kabel", muster: /\bdips?\b|dip-/ },
+    { id: "beinpresse", gruppe: "maschine", muster: /beinpresse|leg press/ },
+    { id: "multipresse", gruppe: "maschine", muster: /multipresse|smith/ },
+    { id: "maschine", gruppe: "maschine", muster: null }
+  ];
+  const GERAETE_GRUPPEN = ["frei", "kabel", "maschine"];
+  const GERAETE_ORTE = ["gym", "zuhause", "unterwegs"];
+  // Ohne Wahl: im Gym alles, zuhause Kurzhanteln und Bank, unterwegs nichts
+  const GERAETE_START = { zuhause: ["kurzhantel", "bank"], unterwegs: [] };
+
+  // Freie Übungen, deren Name kein Gerät nennt (Stand Version 144: 61 Übungen). Die Kurzhantel-Liste wird zuerst geprüft,
+  // so ist der Goblet Squat eine Kurzhantel-Übung und die Kniebeuge eine Langhantel-Übung.
+  const FREI_KURZHANTEL = /goblet|split squat|cossack|sumo-kniebeuge|sumo squat|hammer|konzentration|concentration|zottman|kickback|seitheben|lateral raise|frontheben|front raise|arnold|reverse fl|farmer|suitcase|ausfallschritt|lunge|step-up|überkopf-trizeps|overhead triceps|handgelenkcurl|wrist curl|mit gewicht|weighted|schulterdrücken|shoulder press|seal row/;
+  const FREI_LANGHANTEL = /meadows|pendlay|landmine|t-bar|kreuzheben|deadlift|good morning|rack pull|trap bar|high pull|military|z-press|bradford|kniebeuge|squat|hip thrust|scott|preacher|drag curl|french press|skull|plate pinch/;
+
+  // Die Geräte, die eine Übung braucht (Liste von ids, leer ohne Gerät). Eigene Übungen kennt der Vorschlag nicht.
+  function uebungGeraete(u) {
+    const name = ((u.de || "") + " " + (u.en || "")).toLowerCase();
+    const liste = [];
+    for (let i = 0; i < GERAETE.length; i++) {
+      if (GERAETE[i].muster && GERAETE[i].muster.test(name)) {
+        liste.push(GERAETE[i].id);
+      }
+    }
+    const nurBank = liste.every(function (id) {
+      return id === "bank";
+    });
+    // Eine Maschine, die keines der Geräte oben ist (Brustpresse, Butterfly …)
+    if (u.bereich === "maschine" && nurBank) {
+      liste.push("maschine");
+    }
+    // Freie Gewichte ohne Gerät im Namen: zuerst die typischen Kurzhantel-Übungen, sonst die mit Langhantel
+    if (u.bereich === "frei" && nurBank) {
+      if (FREI_KURZHANTEL.test(name)) {
+        liste.push("kurzhantel");
+      } else if (FREI_LANGHANTEL.test(name)) {
+        liste.push("langhantel");
+      }
+    }
+    return liste;
+  }
+
+  // Gespeichert in einstellungen.geraete: { ort, gym, zuhause, unterwegs } mit den Listen der vorhandenen Geräte
+  function geraeteStand() {
+    const roh = einstellungen.geraete && typeof einstellungen.geraete === "object" ? einstellungen.geraete : {};
+    const alle = GERAETE.map(function (g) {
+      return g.id;
+    });
+    const stand = { ort: GERAETE_ORTE.indexOf(roh.ort) !== -1 ? roh.ort : "gym" };
+    GERAETE_ORTE.forEach(function (ort) {
+      stand[ort] = Array.isArray(roh[ort]) ? roh[ort].filter(function (id) {
+        return alle.indexOf(id) !== -1;
+      }) : (GERAETE_START[ort] || alle).slice();
+    });
+    return stand;
+  }
+
+  function geraeteSpeichern(stand) {
+    einstellungen.geraete = stand;
+    einstellungenSpeichern();
+  }
+
+  function geraeteVorhanden() {
+    const stand = geraeteStand();
+    return stand[stand.ort];
+  }
+
+  function geraeteSeiteOeffnen() {
+    korundSeiteOeffnen({
+      titel: txt("geraete.titel"),
+      rechts: function () {
+        return txt("geraete.anzahl", { n: geraeteVorhanden().length, von: GERAETE.length });
+      },
+      bauen: geraeteSeiteBauen
+    });
+  }
+
+  function geraeteSeiteBauen(inhalt, unten) {
+    const stand = geraeteStand();
+    const vorhanden = stand[stand.ort];
+    const aendern = function () {
+      geraeteSpeichern(stand);
+      korundSeiteZeichnen();
+    };
+    inhalt.appendChild(seitenUmschalter(GERAETE_ORTE.map(function (o) {
+      return { id: o, text: txt("geraete.ort." + o) };
+    }), stand.ort, function (ort) {
+      stand.ort = ort;
+      aendern();
+    }));
+    GERAETE_GRUPPEN.forEach(function (gruppeId) {
+      const gruppe = GERAETE.filter(function (g) {
+        return g.gruppe === gruppeId;
+      });
+      const alle = gruppe.every(function (g) {
+        return vorhanden.indexOf(g.id) !== -1;
+      });
+      const umschalten = element("button", "seiten-label-knopf", txt(alle ? "geraete.keine" : "geraete.alle"));
+      umschalten.type = "button";
+      umschalten.onclick = function () {
+        gruppe.forEach(function (g) {
+          const platz = vorhanden.indexOf(g.id);
+          if (alle && platz !== -1) {
+            vorhanden.splice(platz, 1);
+          } else if (!alle && platz === -1) {
+            vorhanden.push(g.id);
+          }
+        });
+        aendern();
+      };
+      inhalt.appendChild(seitenLabel(txt("geraete.gruppe." + gruppeId), umschalten));
+      const liste = element("div", "karte seiten-liste");
+      gruppe.forEach(function (g) {
+        const an = vorhanden.indexOf(g.id) !== -1;
+        const zeile = element("button", "seiten-zeile" + (an ? "" : " aus"));
+        zeile.type = "button";
+        zeile.setAttribute("role", "checkbox");
+        zeile.setAttribute("aria-checked", an ? "true" : "false");
+        zeile.appendChild(element("span", "seiten-zeile-text", txt("geraet." + g.id)));
+        const haken = element("span", "seiten-haken");
+        if (an) {
+          haken.innerHTML = iconSvg("haken");
+        }
+        zeile.appendChild(haken);
+        zeile.onclick = function () {
+          const platz = vorhanden.indexOf(g.id);
+          if (platz === -1) {
+            vorhanden.push(g.id);
+          } else {
+            vorhanden.splice(platz, 1);
+          }
+          aendern();
+        };
+        liste.appendChild(zeile);
+      });
+      inhalt.appendChild(liste);
+    });
+    unten.appendChild(seitenKnopf(txt("speichern"), true, korundSeiteZurueck));
+  }
+
+  // ---------- Einschränkungen ----------
+
+  // Die Stellen und welche Übungen sie weglassen: „leicht“ nur die stärksten Belastungen, ab „mittel“ mehr.
+  // Geprüft wird der Name der Übung (Deutsch und Englisch). Kein Ersatz für ärztlichen Rat, das steht auf der Seite.
+  const EINSCHRAENKUNGEN = [
+    { id: "schulter", leicht: /überkopf|overhead|military|schulterdrücken|shoulder press|nackendrücken|aufrechtes rudern|upright row|arnold|z-press|bradford|pike/, mittel: /dips?\b|bankdrücken|bench press|brustpresse|chest press|seitheben|lateral raise|frontheben|front raise|klimmz|pull-up|schrägbank|incline/ },
+    { id: "ellbogen", leicht: /skull|french|stirndrücken|overhead triceps/, mittel: /trizeps|triceps|curl|dips?\b/ },
+    { id: "handgelenk", leicht: /frontkniebeuge|front squat|liegestütz|push-up/, mittel: /langhantel|barbell|curl|handgelenk|wrist/ },
+    { id: "ruecken", leicht: /kreuzheben|deadlift|good morning/, mittel: /vorgebeugt|bent.?over|rudern|row|kniebeuge|squat|hyperextension|rückenstrecker/ },
+    { id: "huefte", leicht: /ausfallschritt|lunge|split squat|sumo/, mittel: /kniebeuge|squat|kreuzheben|deadlift|hip thrust|adduktor|adductor|abduktor|abductor/ },
+    { id: "knie", leicht: /kniebeuge|squat|ausfallschritt|lunge|sprung|jump|step-up/, mittel: /beinstrecker|leg extension|beinpresse|leg press|hackenschmidt|hack/ },
+    { id: "sprunggelenk", leicht: /sprung|jump|seilspringen/, mittel: /ausfallschritt|lunge|kniebeuge|squat|wadenheben|calf raise/ }
+  ];
+  const EINSCHRAENKUNG_SEITEN = ["links", "rechts", "beide"];
+  const EINSCHRAENKUNG_STUFEN = ["leicht", "mittel", "stark"];
+
+  function einschraenkungRegel(stelle) {
+    for (let i = 0; i < EINSCHRAENKUNGEN.length; i++) {
+      if (EINSCHRAENKUNGEN[i].id === stelle) {
+        return EINSCHRAENKUNGEN[i];
+      }
+    }
+    return null;
+  }
+
+  // Gespeichert in einstellungen.einschraenkungen: Liste von { stelle, seite, stufe }. Ungültige Einträge zählen nicht.
+  function einschraenkungen() {
+    if (!Array.isArray(einstellungen.einschraenkungen)) {
+      return [];
+    }
+    return einstellungen.einschraenkungen.filter(function (e) {
+      return e && einschraenkungRegel(e.stelle) && EINSCHRAENKUNG_SEITEN.indexOf(e.seite) !== -1 && EINSCHRAENKUNG_STUFEN.indexOf(e.stufe) !== -1;
+    });
+  }
+
+  function einschraenkungVon(stelle) {
+    return einschraenkungen().filter(function (e) {
+      return e.stelle === stelle;
+    })[0] || null;
+  }
+
+  function einschraenkungSetzen(stelle, wert) {
+    const liste = einschraenkungen().filter(function (e) {
+      return e.stelle !== stelle;
+    });
+    if (wert) {
+      liste.push({ stelle: stelle, seite: wert.seite, stufe: wert.stufe });
+    }
+    einstellungen.einschraenkungen = liste;
+    einstellungenSpeichern();
+  }
+
+  // Lässt eine Übung (aus UEBUNG_NACH_ID) wegen einer Einschränkung weg? Gibt die Stelle zurück oder "".
+  function uebungEingeschraenkt(u) {
+    if (!u) {
+      return "";
+    }
+    const name = ((u.de || "") + " " + (u.en || "")).toLowerCase();
+    const liste = einschraenkungen();
+    for (let i = 0; i < liste.length; i++) {
+      const regel = einschraenkungRegel(liste[i].stelle);
+      if (regel.leicht.test(name) || (liste[i].stufe !== "leicht" && regel.mittel.test(name))) {
+        return liste[i].stelle;
+      }
+    }
+    return "";
+  }
+
+  // Für die Zeile im Vorschlag: „keine“, „Knie links“ oder „2 Stellen“
+  function einschraenkungKurz() {
+    const liste = einschraenkungen();
+    if (liste.length === 0) {
+      return txt("einschraenkung.keine");
+    }
+    if (liste.length > 1) {
+      return txt("einschraenkung.mehrere", { n: liste.length });
+    }
+    return txt("stelle." + liste[0].stelle) + (liste[0].seite === "beide" ? "" : " " + txt("einschraenkung.seiteKurz." + liste[0].seite));
+  }
+
+  // Die Stelle, die auf der Seite gerade offen ist ("" = keine)
+  let einschraenkungOffen = "";
+
+  function einschraenkungenSeiteOeffnen() {
+    einschraenkungOffen = "";
+    korundSeiteOeffnen({ titel: txt("einschraenkung.titel"), bauen: einschraenkungenSeiteBauen });
+  }
+
+  function einschraenkungenSeiteBauen(inhalt) {
+    inhalt.appendChild(element("p", "seiten-text", txt("einschraenkung.text")));
+    if (einschraenkungOffen) {
+      const stelle = einschraenkungOffen;
+      // Eine neu geöffnete Stelle gilt sofort als „links, leicht“, so wie die Auswahl es zeigt
+      if (!einschraenkungVon(stelle)) {
+        einschraenkungSetzen(stelle, { seite: "links", stufe: "leicht" });
+      }
+      const jetzt = einschraenkungVon(stelle);
+      const karte = element("div", "karte seiten-karte einschraenkung-offen");
+      const kopf = element("div", "seiten-kopfzeile");
+      kopf.appendChild(element("span", "seiten-titel", txt("stelle." + stelle)));
+      const fertig = element("button", "seiten-link seiten-rechts", txt("fertig"));
+      fertig.type = "button";
+      fertig.onclick = function () {
+        einschraenkungOffen = "";
+        korundSeiteZeichnen();
+      };
+      kopf.appendChild(fertig);
+      karte.appendChild(kopf);
+      karte.appendChild(element("div", "seiten-klein-label einschraenkung-frage", txt("einschraenkung.seite")));
+      karte.appendChild(seitenUmschalter(EINSCHRAENKUNG_SEITEN.map(function (s) {
+        return { id: s, text: txt("einschraenkung.seite." + s) };
+      }), jetzt.seite, function (s) {
+        einschraenkungSetzen(stelle, { seite: s, stufe: jetzt.stufe });
+        korundSeiteZeichnen();
+      }));
+      karte.appendChild(element("div", "seiten-klein-label einschraenkung-frage", txt("einschraenkung.wieStark")));
+      karte.appendChild(seitenUmschalter(EINSCHRAENKUNG_STUFEN.map(function (s) {
+        return { id: s, text: txt("einschraenkung.stufe." + s) };
+      }), jetzt.stufe, function (s) {
+        einschraenkungSetzen(stelle, { seite: jetzt.seite, stufe: s });
+        korundSeiteZeichnen();
+      }));
+      const fuss = element("div", "seiten-kopfzeile einschraenkung-fuss");
+      fuss.appendChild(element("span", "seiten-klein", txt("einschraenkung.ohne." + stelle + (jetzt.stufe === "leicht" ? ".leicht" : ".mehr"))));
+      const weg = element("button", "seiten-link leise seiten-rechts", txt("einschraenkung.entfernen"));
+      weg.type = "button";
+      weg.onclick = function () {
+        einschraenkungSetzen(stelle, null);
+        einschraenkungOffen = "";
+        korundSeiteZeichnen();
+      };
+      fuss.appendChild(weg);
+      karte.appendChild(fuss);
+      inhalt.appendChild(karte);
+    }
+    const liste = element("div", "karte seiten-liste");
+    EINSCHRAENKUNGEN.forEach(function (regel) {
+      if (regel.id === einschraenkungOffen) {
+        return;
+      }
+      const e = einschraenkungVon(regel.id);
+      const wert = e ? txt("einschraenkung.seite." + e.seite) + " · " + txt("einschraenkung.stufe." + e.stufe) : txt("einschraenkung.keine");
+      liste.appendChild(seitenZeile(txt("stelle." + regel.id), wert, function () {
+        einschraenkungOffen = regel.id;
+        korundSeiteZeichnen();
+      }, { leise: !e }));
+    });
+    inhalt.appendChild(liste);
+    inhalt.appendChild(element("p", "seiten-fuss", txt("einschraenkung.hinweis")));
+  }
+
+  // ---------- Zusatz-Training ----------
+
+  let zusatzWahl = "vorschlag";
+
+  function zusatzTrainingOeffnen() {
+    zusatzWahl = "vorschlag";
+    zusatzTrainingFuellen();
+    zusatzSheetOeffnen("zusatztraining-sheet");
+  }
+
+  // Drei Karten wie im Status-Sheet: Name, kurze Erklärung, rechts der Kreis der Auswahl
+  function zusatzTrainingFuellen() {
+    const liste = document.getElementById("zusatztraining-liste");
+    liste.innerHTML = "";
+    ["vorschlag", "routine", "leer"].forEach(function (art) {
+      const karte = element("button", "status-karte zusatz-karte");
+      karte.type = "button";
+      karte.setAttribute("role", "radio");
+      karte.setAttribute("aria-checked", art === zusatzWahl ? "true" : "false");
+      const text = element("span", "status-karte-text");
+      text.appendChild(element("span", "status-karte-name", txt("zusatz." + art)));
+      text.appendChild(element("span", "status-karte-info", txt("zusatz." + art + ".info")));
+      karte.appendChild(text);
+      karte.appendChild(element("span", "status-kreis"));
+      karte.onclick = function () {
+        zusatzWahl = art;
+        zusatzTrainingFuellen();
+      };
+      liste.appendChild(karte);
+    });
+  }
+
+  function zusatzTrainingWeiter() {
+    zusatzSheetsSchliessen();
+    if (zusatzWahl === "vorschlag") {
+      generatorSeiteOeffnen();
+    } else if (zusatzWahl === "routine") {
+      korundSeiteOeffnen({ titel: txt("zusatz.routine"), bauen: zusatzRoutinenBauen });
+    } else {
+      // „Leer starten“: die Übungen selbst wählen im Editor einer neuen Routine, wie „+ Neue Routine“
+      routineNeu();
+    }
+  }
+
+  function zusatzRoutinenBauen(inhalt) {
+    const liste = element("div", "karte seiten-liste");
+    routinen.forEach(function (r) {
+      if (r.uebungen.length === 0) {
+        return;
+      }
+      const zeile = seitenZeile(r.name, uebungenText(r.uebungen.length), function () {
+        korundSeitenSchliessen();
+        routineStarten(r);
+      }, { leise: true });
+      zeile.insertBefore(seitenFigur(routineGruppenIds(r, 1)[0]), zeile.firstChild);
+      liste.appendChild(zeile);
+    });
+    if (liste.childElementCount === 0) {
+      liste.appendChild(seitenZeile(txt("zusatz.keineRoutine"), undefined, null, { klasse: "leise" }));
+    }
+    inhalt.appendChild(liste);
+  }
+
+  // ---------- Vorschlag von Korund ----------
+
+  // Der Fokus: Figur, Partien für „erholt“ und je Platz eine Muskelgruppe. Die Plätze werden der Reihe nach gefüllt.
+  const FOKUS = [
+    { id: "ganzkoerper", figur: "ganzkoerper", partien: ["brust", "ruecken", "beine", "schultern", "arme"], plaetze: ["lat", "brust", "quadrizeps", "schulter-seite", "bauch", "beinbeuger", "ruecken-oben", "trizeps"] },
+    { id: "oberkoerper", figur: "brust", partien: ["brust", "ruecken", "schultern", "arme"], plaetze: ["brust", "lat", "schulter-vorn", "ruecken-oben", "schulter-seite", "trizeps", "bizeps", "schulter-hinten"] },
+    { id: "beine", figur: "quadrizeps", partien: ["beine"], plaetze: ["quadrizeps", "beinbeuger", "po", "quadrizeps", "waden", "adduktoren", "beinbeuger", "abduktoren"] },
+    { id: "ruecken", figur: "lat", partien: ["ruecken"], plaetze: ["lat", "ruecken-oben", "lat", "schulter-hinten", "bizeps", "ruecken-unten", "trapez", "bizeps"] },
+    { id: "schultern", figur: "schulter-seite", partien: ["schultern"], plaetze: ["schulter-vorn", "schulter-seite", "schulter-hinten", "schulter-seite", "trapez", "schulter-hinten", "trizeps", "bizeps"] },
+    { id: "bauch", figur: "bauch", partien: [], plaetze: ["bauch", "bauch-schraeg", "bauch", "ruecken-unten", "bauch-schraeg", "bauch"] }
+  ];
+  const GENERATOR_ZEITEN = [30, 45, 60, 75];
+  // So viele Minuten braucht eine Übung mit drei Sätzen und Pausen ungefähr
+  const MINUTEN_JE_UEBUNG = 9;
+  // Unter so vielen passenden Übungen je Platz wird gewürfelt
+  const VORSCHLAG_AUSWAHL = 4;
+  // Wdh. je Platz: die ersten zwei schwer, dann mittel, dann leichter
+  const VORSCHLAG_WDH = [[8, 12], [8, 12], [10, 12], [12, 15]];
+
+  // Nur für diese Sitzung, nie im Speicher
+  let generator = { minuten: 45, fokus: "ganzkoerper", uebungen: [], wurf: 0 };
+
+  function generatorSeiteOeffnen() {
+    korundSeiteOeffnen({ titel: txt("generator.titel"), bauen: generatorSeiteBauen });
+  }
+
+  // Ein Fokus ist erholt, wenn mindestens eine seiner Partien in den letzten zwei Wochen trainiert wurde
+  // und keine davon zu frisch ist (ERHOLUNG_TAGE wie bei der Karte Erholung auf Home)
+  function fokusErholt(fokus, tage) {
+    const bekannt = fokus.partien.filter(function (p) {
+      return tage[p] !== undefined;
+    });
+    return bekannt.length > 0 && bekannt.every(function (p) {
+      return tage[p] >= ERHOLUNG_TAGE;
+    });
+  }
+
+  function generatorSeiteBauen(inhalt, unten) {
+    const tage = erholungTage(eintraege, new Date());
+    inhalt.appendChild(seitenLabel(txt("generator.zeit")));
+    inhalt.appendChild(seitenUmschalter(GENERATOR_ZEITEN.map(function (m) {
+      return { id: m, text: txt("generator.minuten", { m: m }) };
+    }), generator.minuten, function (m) {
+      generator.minuten = m;
+      korundSeiteZeichnen();
+    }));
+    const legende = element("span", "seiten-klein");
+    legende.appendChild(element("span", "seiten-punkt"));
+    legende.appendChild(document.createTextNode(txt("generator.erholt")));
+    inhalt.appendChild(seitenLabel(txt("generator.fokus"), legende));
+    const raster = element("div", "generator-fokus");
+    FOKUS.forEach(function (f) {
+      const kachel = element("button", "generator-kachel");
+      kachel.type = "button";
+      kachel.setAttribute("aria-pressed", f.id === generator.fokus ? "true" : "false");
+      kachel.appendChild(seitenFigur(f.figur));
+      const name = element("span", "generator-name");
+      if (fokusErholt(f, tage)) {
+        name.appendChild(element("span", "seiten-punkt"));
+      }
+      name.appendChild(document.createTextNode(txt("fokus." + f.id)));
+      kachel.appendChild(name);
+      kachel.onclick = function () {
+        generator.fokus = f.id;
+        korundSeiteZeichnen();
+      };
+      raster.appendChild(kachel);
+    });
+    inhalt.appendChild(raster);
+    const stand = geraeteStand();
+    const liste = element("div", "karte seiten-liste generator-details");
+    liste.appendChild(seitenZeile(txt("geraete.titel"), txt("geraete.ort." + stand.ort) + " · " + stand[stand.ort].length, geraeteSeiteOeffnen, { klasse: "beschriftet" }));
+    liste.appendChild(seitenZeile(txt("einschraenkung.titel"), einschraenkungKurz(), einschraenkungenSeiteOeffnen, { klasse: "beschriftet" }));
+    inhalt.appendChild(liste);
+    unten.appendChild(seitenKnopf(txt("generator.erstellen"), true, function () {
+      generator.wurf++;
+      generator.uebungen = vorschlagBauen();
+      korundSeiteOeffnen({ titel: txt("vorschlag.titel"), bauen: vorschlagSeiteBauen });
+    }));
+  }
+
+  // Die Übungen, die für eine Muskelgruppe in Frage kommen: passend zu Geräten und Einschränkungen und noch nicht
+  // im Vorschlag. Schon trainierte zuerst (für sie gibt es ein Gewicht vom letzten Mal), sonst wie in der Bibliothek.
+  function vorschlagKandidaten(gruppeId, schonDa) {
+    const listen = UEBUNGSLISTEN[gruppeId];
+    if (!listen) {
+      return [];
+    }
+    const vorhanden = geraeteVorhanden();
+    const ids = (listen.frei || []).concat(listen.maschine || [], listen.eigen || []);
+    const trainiert = {};
+    trainierteUebungen().forEach(function (u) {
+      trainiert[u.id] = true;
+    });
+    const passend = [];
+    ids.forEach(function (id) {
+      const u = UEBUNG_NACH_ID[id];
+      if (!u || u.selbst || schonDa.indexOf(u.id) !== -1 || passend.indexOf(u) !== -1 || uebungEingeschraenkt(u)) {
+        return;
+      }
+      if (uebungGeraete(u).every(function (g) {
+        return vorhanden.indexOf(g) !== -1;
+      })) {
+        passend.push(u);
+      }
+    });
+    // Stabil sortieren: trainierte nach vorn, sonst bleibt die Reihenfolge
+    return passend.map(function (u, i) {
+      return { u: u, i: i };
+    }).sort(function (a, b) {
+      return (trainiert[b.u.id] ? 1 : 0) - (trainiert[a.u.id] ? 1 : 0) || a.i - b.i;
+    }).map(function (x) {
+      return x.u;
+    });
+  }
+
+  // Eine Zahl von 0 bis unter 1, die bei gleichem Wurf gleich bleibt. So würfelt „Neu würfeln“ neu, das Zeichnen nicht.
+  function vorschlagZufall(platz) {
+    const x = Math.sin((generator.wurf + 1) * 9301 + platz * 49297) * 233280;
+    return x - Math.floor(x);
+  }
+
+  function vorschlagWaehlen(kandidaten, platz) {
+    const auswahl = kandidaten.slice(0, VORSCHLAG_AUSWAHL);
+    return auswahl[Math.floor(vorschlagZufall(platz) * auswahl.length)];
+  }
+
+  // So viele Übungen, wie in die Zeit passen (mindestens zwei), je Platz des Fokus eine
+  function vorschlagBauen() {
+    const fokus = FOKUS.filter(function (f) {
+      return f.id === generator.fokus;
+    })[0];
+    const anzahl = Math.max(2, Math.round(generator.minuten / MINUTEN_JE_UEBUNG));
+    const liste = [];
+    const schonDa = [];
+    for (let i = 0; i < fokus.plaetze.length && liste.length < anzahl; i++) {
+      const kandidaten = vorschlagKandidaten(fokus.plaetze[i], schonDa);
+      if (kandidaten.length > 0) {
+        const u = vorschlagWaehlen(kandidaten, i);
+        const wdh = VORSCHLAG_WDH[Math.min(liste.length, VORSCHLAG_WDH.length - 1)];
+        schonDa.push(u.id);
+        liste.push({ id: u.id, gruppe: fokus.plaetze[i], platz: i, wdh: wdh[0], wdhMax: wdh[1] });
+      }
+    }
+    return liste;
+  }
+
+  // Der Vorschlag als Routine für trainingBeginnen: 3 Sätze, Wdh. wie gezeigt, Standard-Pause. Er wird nicht gespeichert.
+  function vorschlagRoutine() {
+    return {
+      id: "",
+      name: txt("fokus." + generator.fokus),
+      uebungen: generator.uebungen.map(function (v) {
+        const u = UEBUNG_NACH_ID[v.id];
+        return { name: anzeigeName(u.de, u.id), uebungId: u.id, muskelgruppe: GRUPPE_NACH_ID[uebungGruppe(u)][sprache], zielSaetze: 3, zielWdh: v.wdh, zielWdhMax: v.wdhMax, pause: null };
+      })
+    };
+  }
+
+  function vorschlagSeiteBauen(inhalt, unten) {
+    inhalt.appendChild(element("div", "seiten-gross", txt("fokus." + generator.fokus)));
+    const stand = geraeteStand();
+    const teile = [txt("generator.minuten", { m: generator.minuten }), uebungenText(generator.uebungen.length), txt("geraete.ort." + stand.ort)];
+    const liste = einschraenkungen();
+    if (liste.length === 1) {
+      teile.push(txt("stelle." + liste[0].stelle + ".schonend"));
+    } else if (liste.length > 1) {
+      teile.push(txt("vorschlag.schonend"));
+    }
+    inhalt.appendChild(element("p", "seiten-text", teile.join(" · ")));
+    const karte = element("div", "karte seiten-liste vorschlag-liste");
+    generator.uebungen.forEach(function (v) {
+      const u = UEBUNG_NACH_ID[v.id];
+      const zeile = element("div", "vorschlag-zeile");
+      zeile.appendChild(seitenFigur(uebungGruppe(u)));
+      const text = element("span", "vorschlag-text");
+      text.appendChild(element("span", "vorschlag-name", anzeigeName(u.de, u.id)));
+      const info = element("span", "seiten-klein", txt("vorschlag.ziel", { s: 3, von: v.wdh, bis: v.wdhMax }));
+      const punkte = verlaufPunkte(u.de, u.id, "schwer");
+      if (punkte.length > 0 && punkte[punkte.length - 1].wert > 0) {
+        info.appendChild(document.createTextNode(" · " + kgText(punkte[punkte.length - 1].wert)));
+      } else if (uebungGeraete(u).length > 0) {
+        info.appendChild(document.createTextNode(" · "));
+        info.appendChild(element("span", "vorschlag-neu", txt("vorschlag.startgewicht")));
+      }
+      text.appendChild(info);
+      zeile.appendChild(text);
+      const tausch = element("button", "vorschlag-tausch");
+      tausch.type = "button";
+      tausch.setAttribute("aria-label", txt("vorschlag.tauschen", { name: anzeigeName(u.de, u.id) }));
+      tausch.innerHTML = iconSvg("wechsel");
+      const kandidaten = vorschlagKandidaten(v.gruppe, generator.uebungen.map(function (x) {
+        return x.id;
+      }));
+      tausch.disabled = kandidaten.length === 0;
+      tausch.onclick = function () {
+        generator.wurf++;
+        v.id = vorschlagWaehlen(kandidaten, v.platz).id;
+        korundSeiteZeichnen();
+      };
+      zeile.appendChild(tausch);
+      karte.appendChild(zeile);
+    });
+    if (generator.uebungen.length === 0) {
+      karte.appendChild(seitenZeile(txt("vorschlag.leer"), undefined, null, { klasse: "leise" }));
+    }
+    inhalt.appendChild(karte);
+    unten.appendChild(seitenKnopf(txt("vorschlag.neu"), false, function () {
+      generator.wurf++;
+      generator.uebungen = vorschlagBauen();
+      korundSeiteZeichnen();
+    }));
+    if (generator.uebungen.length > 0) {
+      unten.appendChild(seitenKnopf("▶ " + txt("routine.starten"), true, function () {
+        const routine = vorschlagRoutine();
+        korundSeitenSchliessen();
+        routineStarten(routine);
+      }));
+    }
+  }
+
+  // ---------- Ruhetag im Training-Tab ----------
+
+  // Die nächste geplante Routine nach heute (bis zu sechs Tage weiter) als { routine, tag } oder null
+  function naechsteGeplante() {
+    const heute = (new Date().getDay() + 6) % 7;
+    for (let i = 1; i < 7; i++) {
+      const routine = routineFinden(wochenplan[(heute + i) % 7]);
+      if (routine && routine.uebungen.length > 0) {
+        return { routine: routine, tag: i === 1 ? txt("ruhetag.morgen") : wochentag((heute + i) % 7) };
+      }
+    }
+    return null;
+  }
+
+  // Heute ist nichts geplant oder Ruhetag: Karte „Heute“ und die Liste mit Zusatz-Training und Verschieben
+  function trainingRuhetagAnzeigen(bereich) {
+    const ruhe = wochenplan[(new Date().getDay() + 6) % 7] === "ruhe";
+    const karte = element("div", "karte seiten-karte ruhetag-karte");
+    karte.appendChild(element("div", "seiten-klein-label", txt("heute")));
+    karte.appendChild(element("div", "seiten-gross", txt(ruhe ? "ruhetag" : "home.nichtsGeplant")));
+    karte.appendChild(element("div", "seiten-klein", txt(ruhe ? "ruhetag.text" : "ruhetag.textLeer")));
+    const naechste = naechsteGeplante();
+    if (naechste) {
+      karte.appendChild(element("div", "seiten-trenn"));
+      const zeile = element("div", "seiten-kopfzeile");
+      zeile.appendChild(seitenFigur(routineGruppenIds(naechste.routine, 1)[0]));
+      const text = element("span", "seiten-stapel");
+      text.appendChild(element("span", "seiten-klein-label", naechste.tag));
+      text.appendChild(element("span", "seiten-titel", naechste.routine.name));
+      zeile.appendChild(text);
+      zeile.appendChild(element("span", "seiten-klein seiten-rechts", uebungenText(naechste.routine.uebungen.length) + " · " + txt("generator.minuten", { m: routineDauerMinuten(naechste.routine) })));
+      karte.appendChild(zeile);
+    }
+    bereich.appendChild(karte);
+    const liste = element("div", "karte seiten-liste ruhetag-liste");
+    liste.appendChild(seitenZeile(txt("zusatz.titel"), undefined, zusatzTrainingOeffnen, { icon: "plus", klasse: "signal" }));
+    // Ohne geplante Routine in der Woche gibt es nichts zu verschieben, dann heißt die Zeile „Woche planen“
+    const geplant = wochenplan.some(function (id) {
+      return routineFinden(id);
+    });
+    liste.appendChild(seitenZeile(txt(geplant ? "ruhetag.verschieben" : "ruhetag.planen"), undefined, function () {
+      document.getElementById("wochenplan").scrollIntoView({ behavior: "smooth", block: "center" });
+    }, { icon: "kalender" }));
+    bereich.appendChild(liste);
+  }
+
+  // ---------- Rückblick nach 6 Wochen ----------
+
+  // Nach so vielen Tagen im Block und mindestens so vielen Trainingstagen darin bietet Korund den Rückblick an
+  const RUECKBLICK_TAGE = 42;
+  const RUECKBLICK_MIN_TRAININGS = 6;
+
+  // Ab wann der Block zählt: der letzte Rückblick (einstellungen.rueckblickAm), sonst der erste Eintrag
+  function rueckblickStart() {
+    if (typeof einstellungen.rueckblickAm === "number" && isFinite(einstellungen.rueckblickAm)) {
+      return einstellungen.rueckblickAm;
+    }
+    let erster = Infinity;
+    eintraege.forEach(function (e) {
+      if (hatDatum(e)) {
+        erster = Math.min(erster, new Date(e.datum).getTime());
+      }
+    });
+    return erster;
+  }
+
+  // Die Trainingstage im Block (ein Tag zählt, wenn er nach dem Start endet)
+  function rueckblickTrainings(start) {
+    const tage = trainingstage();
+    return Object.keys(tage).filter(function (s) {
+      return tage[s].datum.getTime() + 86400000 > start;
+    }).length;
+  }
+
+  function rueckblickFaellig() {
+    const start = rueckblickStart();
+    return isFinite(start) && Date.now() - start >= RUECKBLICK_TAGE * 86400000 && rueckblickTrainings(start) >= RUECKBLICK_MIN_TRAININGS;
+  }
+
+  // Die Karte oben im Training-Tab, wenn ein Rückblick fällig ist
+  function rueckblickKarteAnzeigen(bereich) {
+    if (!rueckblickFaellig()) {
+      return;
+    }
+    const karte = element("button", "karte seiten-karte rueckblick-karte");
+    karte.type = "button";
+    const symbol = element("span", "rueckblick-symbol");
+    symbol.innerHTML = iconSvg("kalender");
+    karte.appendChild(symbol);
+    const text = element("span", "seiten-stapel");
+    text.appendChild(element("span", "seiten-titel", txt("rueckblick.karte")));
+    text.appendChild(element("span", "seiten-klein", txt("rueckblick.karteText")));
+    karte.appendChild(text);
+    karte.appendChild(element("span", "seiten-pfeil", "›"));
+    karte.onclick = rueckblickOeffnen;
+    bereich.appendChild(karte);
+  }
+
+  // Antworten und Vorschläge, nur für diese Sitzung
+  let rueckblick = { schlaf: "gut", energie: "normal", menge: "passt", aenderungen: [] };
+
+  function rueckblickOeffnen() {
+    rueckblick = { schlaf: "gut", energie: "normal", menge: "passt", aenderungen: [] };
+    korundSeiteOeffnen({
+      titel: txt("rueckblick.titel"),
+      schliessen: true,
+      rechts: function () {
+        return txt("rueckblick.schritt", { n: 1 });
+      },
+      bauen: rueckblickFragenBauen
+    });
+  }
+
+  // Die Veränderung des geschätzten 1RM im Block, gemittelt über die Übungen mit mindestens zwei Tagen darin, oder null
+  function rueckblickKraft(start) {
+    const anteile = [];
+    trainierteUebungen().forEach(function (u) {
+      const punkte = verlaufPunkte(u.name, u.id, "1rm").filter(function (p) {
+        return p.zeit + 86400000 > start && p.wert > 0;
+      });
+      if (punkte.length >= 2) {
+        anteile.push(punkte[punkte.length - 1].wert / punkte[0].wert - 1);
+      }
+    });
+    if (anteile.length === 0) {
+      return null;
+    }
+    return anteile.reduce(function (a, b) {
+      return a + b;
+    }, 0) / anteile.length;
+  }
+
+  const RUECKBLICK_FRAGEN = [
+    { id: "schlaf", werte: ["schlecht", "okay", "gut"] },
+    { id: "energie", werte: ["muede", "normal", "stark"] },
+    { id: "menge", werte: ["wenig", "passt", "viel"] }
+  ];
+
+  function rueckblickFragenBauen(inhalt, unten) {
+    const start = rueckblickStart();
+    const wochen = Math.max(1, Math.round((Date.now() - start) / (7 * 86400000)));
+    inhalt.appendChild(element("div", "seiten-gross", txtAnzahl("rueckblick.geschafft", wochen)));
+    inhalt.appendChild(element("p", "seiten-text", txt("rueckblick.text")));
+    const kacheln = element("div", "rueckblick-kacheln");
+    const kachel = function (wert, titel, klasse) {
+      const k = element("div", "karte rueckblick-kachel");
+      k.appendChild(element("b", klasse, wert));
+      k.appendChild(element("span", "seiten-klein", titel));
+      kacheln.appendChild(k);
+    };
+    const kraft = rueckblickKraft(start);
+    kachel(kraft === null ? "–" : prozentText(kraft), txt("rueckblick.kraft"), kraft !== null && kraft > 0 ? "plus" : "metall");
+    kachel(String(rueckblickTrainings(start)), txt("rueckblick.trainings"), "metall");
+    kachel(String(gesamtZahlen().serie), txt("statistik.serie"), "serie");
+    inhalt.appendChild(kacheln);
+    RUECKBLICK_FRAGEN.forEach(function (f) {
+      inhalt.appendChild(element("div", "seiten-titel rueckblick-frage", txt("rueckblick.frage." + f.id)));
+      inhalt.appendChild(seitenUmschalter(f.werte.map(function (w) {
+        return { id: w, text: txt("rueckblick." + f.id + "." + w) };
+      }), rueckblick[f.id], function (w) {
+        rueckblick[f.id] = w;
+        korundSeiteZeichnen();
+      }));
+    });
+    unten.appendChild(seitenKnopf(txt("rueckblick.weiter"), true, function () {
+      rueckblick.aenderungen = rueckblickVorschlaege(start);
+      korundSeiteOeffnen({
+        titel: txt("rueckblick.titel"),
+        rechts: function () {
+          return txt("rueckblick.schritt", { n: 2 });
+        },
+        bauen: rueckblickBlockBauen
+      });
+    }));
+  }
+
+  // Die Arbeitssätze je Körperpartie seit dem Start des Blocks
+  function rueckblickSaetze(start) {
+    const saetze = {};
+    eintraege.forEach(function (e) {
+      if (!hatDatum(e) || new Date(e.datum).getTime() < start) {
+        return;
+      }
+      const partie = erholungPartie(gruppeIdVon(e.uebungId, e.muskelgruppe));
+      if (partie) {
+        saetze[partie] = (saetze[partie] || 0) + arbeitsSaetzeVon(e).length;
+      }
+    });
+    return saetze;
+  }
+
+  // Die Vorschläge für den nächsten Block, je einer: { art, text, info, an, routineId, platz, wert }.
+  // Sie ändern erst mit „Übernehmen“ etwas, und auch dann nur neue Kopien der Routinen. Höchstens einer je Übung.
+  function rueckblickVorschlaege(start) {
+    const liste = [];
+    const vergeben = {};
+    const dazu = function (art, r, platz, text, info, wert) {
+      const schluessel = r.id + ":" + platz;
+      if (vergeben[schluessel]) {
+        return;
+      }
+      vergeben[schluessel] = true;
+      liste.push({ art: art, text: text, info: info, an: true, routineId: r.id, platz: platz, wert: wert });
+    };
+    const saetze = rueckblickSaetze(start);
+    const partieVon = function (u) {
+      return erholungPartie(gruppeIdVon(u.uebungId, u.muskelgruppe));
+    };
+    // 1. Einschränkungen: eine passende andere Übung derselben Muskelgruppe
+    routinen.forEach(function (r) {
+      r.uebungen.forEach(function (u, platz) {
+        const fest = UEBUNG_NACH_ID[u.uebungId];
+        const stelle = uebungEingeschraenkt(fest);
+        if (!stelle) {
+          return;
+        }
+        const andere = vorschlagKandidaten(uebungGruppe(fest), r.uebungen.map(function (x) {
+          return x.uebungId;
+        }));
+        if (andere.length > 0) {
+          const neu = andere[0];
+          const name = anzeigeName(neu.de, neu.id);
+          dazu("tausch", r, platz, txt("rueckblick.tausch", { neu: name, alt: u.name }), txt("rueckblick.tauschInfo." + stelle), { name: name, uebungId: neu.id, muskelgruppe: GRUPPE_NACH_ID[uebungGruppe(neu)][sprache] });
+        }
+      });
+    });
+    // 2. Der Rücken hinkt der Brust hinterher: ein Satz mehr bei der ersten Rücken-Übung jeder Routine
+    if ((saetze.brust || 0) > 0 && (saetze.ruecken || 0) < saetze.brust * 0.8) {
+      routinen.forEach(function (r) {
+        const platz = r.uebungen.findIndex(function (u) {
+          return partieVon(u) === "ruecken";
+        });
+        if (platz !== -1 && r.uebungen[platz].zielSaetze > 0 && r.uebungen[platz].zielSaetze < 10) {
+          dazu("plus", r, platz, txt("rueckblick.mehrRuecken", { name: r.uebungen[platz].name }), txt("rueckblick.mehrRueckenInfo"), { zielSaetze: r.uebungen[platz].zielSaetze + 1 });
+        }
+      });
+    }
+    // 3. Kein Plus im Block bei mindestens vier Tagen und Ziel ab 10 Wdh.: 6–10 Wdh., dafür mehr Gewicht
+    routinen.forEach(function (r) {
+      r.uebungen.forEach(function (u, platz) {
+        const punkte = verlaufPunkte(u.name, u.uebungId, "1rm").filter(function (p) {
+          return p.zeit + 86400000 > start && p.wert > 0;
+        });
+        if (punkte.length >= 4 && punkte[punkte.length - 1].wert <= punkte[0].wert * 1.01 && (u.zielWdhMax || u.zielWdh || 0) >= 10) {
+          dazu("hoch", r, platz, txt("rueckblick.wdh", { name: u.name }), txt("rueckblick.wdhInfo"), { zielWdh: 6, zielWdhMax: 10 });
+        }
+      });
+    });
+    // 4. Die Antworten: zu viel (oder müde nach schlechtem Schlaf) heißt einen Satz weniger ab vier Sätzen,
+    //    zu wenig ohne Müdigkeit einen Satz mehr bei der ersten Übung jeder Routine
+    const weniger = rueckblick.menge === "viel" || (rueckblick.schlaf === "schlecht" && rueckblick.energie === "muede");
+    routinen.forEach(function (r) {
+      if (weniger) {
+        r.uebungen.forEach(function (u, platz) {
+          if (u.zielSaetze >= 4) {
+            dazu("minus", r, platz, txt("rueckblick.weniger", { name: u.name }), txt("rueckblick.wenigerInfo"), { zielSaetze: u.zielSaetze - 1 });
+          }
+        });
+      } else if (rueckblick.menge === "wenig" && rueckblick.energie !== "muede" && r.uebungen.length > 0 && r.uebungen[0].zielSaetze > 0 && r.uebungen[0].zielSaetze < 10) {
+        dazu("plus", r, 0, txt("rueckblick.mehr", { name: r.uebungen[0].name }), txt("rueckblick.mehrInfo"), { zielSaetze: r.uebungen[0].zielSaetze + 1 });
+      }
+    });
+    return liste;
+  }
+
+  function rueckblickBlockBauen(inhalt, unten) {
+    inhalt.appendChild(element("div", "seiten-gross", txt("rueckblick.block")));
+    const liste = rueckblick.aenderungen;
+    inhalt.appendChild(element("p", "seiten-text", txt(liste.length > 0 ? "rueckblick.blockText" : "rueckblick.allesGut")));
+    if (liste.length > 0) {
+      const karte = element("div", "karte seiten-liste");
+      const zeichen = { plus: "+", minus: "−", tausch: "↔", hoch: "↑" };
+      liste.forEach(function (a) {
+        const zeile = element("button", "rueckblick-aenderung" + (a.an ? "" : " aus"));
+        zeile.type = "button";
+        zeile.setAttribute("aria-pressed", a.an ? "true" : "false");
+        zeile.appendChild(element("span", "rueckblick-marke " + a.art, zeichen[a.art]));
+        const text = element("span", "vorschlag-text");
+        text.appendChild(element("span", "vorschlag-name", a.text));
+        text.appendChild(element("span", "seiten-klein", a.info));
+        zeile.appendChild(text);
+        zeile.onclick = function () {
+          a.an = !a.an;
+          korundSeiteZeichnen();
+        };
+        karte.appendChild(zeile);
+      });
+      inhalt.appendChild(karte);
+      inhalt.appendChild(element("p", "seiten-fuss", txt("rueckblick.antippen")));
+    }
+    inhalt.appendChild(seitenLabel(txt("rueckblick.woche")));
+    const woche = element("div", "rueckblick-woche");
+    for (let i = 0; i < 7; i++) {
+      const routine = routineFinden(wochenplan[i]);
+      const tag = element("div", routine ? "an" : "");
+      tag.appendChild(element("small", "", wochentag(i)));
+      tag.appendChild(element("b", "", routine ? routine.name.trim().charAt(0).toUpperCase() : "–"));
+      woche.appendChild(tag);
+    }
+    inhalt.appendChild(woche);
+    unten.appendChild(seitenKnopf(txt("rueckblick.anpassen"), false, korundSeiteZurueck));
+    unten.appendChild(seitenKnopf(txt("rueckblick.uebernehmen"), true, rueckblickUebernehmen));
+  }
+
+  // Legt für jede Routine mit gewählten Änderungen eine Kopie „Name (Block N)“ an und trägt die Änderungen nur dort ein.
+  // Die alten Routinen und der Wochenplan bleiben unverändert. Danach beginnt der neue Block (rueckblickAm, rueckblickAnzahl).
+  function rueckblickUebernehmen() {
+    const nummer = (typeof einstellungen.rueckblickAnzahl === "number" ? einstellungen.rueckblickAnzahl : 0) + 2;
+    const kopien = {};
+    const neu = [];
+    rueckblick.aenderungen.forEach(function (a) {
+      const alt = routineFinden(a.routineId);
+      if (!a.an || !alt || !alt.uebungen[a.platz]) {
+        return;
+      }
+      if (!kopien[a.routineId]) {
+        kopien[a.routineId] = { id: neueId(), name: alt.name.replace(/ \(Block \d+\)$/, "") + " " + txt("rueckblick.blockName", { n: nummer }), uebungen: uebungenKopieren(alt.uebungen) };
+        neu.push(kopien[a.routineId]);
+      }
+      const u = kopien[a.routineId].uebungen[a.platz];
+      Object.keys(a.wert).forEach(function (feld) {
+        u[feld] = a.wert[feld];
+      });
+    });
+    neu.forEach(function (r) {
+      routinen.push(r);
+    });
+    if (neu.length > 0) {
+      routinenSpeichern();
+    }
+    einstellungen.rueckblickAm = Date.now();
+    einstellungen.rueckblickAnzahl = nummer - 1;
+    einstellungenSpeichern();
+    korundSeitenSchliessen();
+    trainingAnzeigen();
+    frageZeigen(txt("rueckblick.fertigTitel"), neu.length > 0 ? txtAnzahl("rueckblick.fertigText", neu.length, {
+      namen: neu.map(function (r) {
+        return r.name;
+      }).join(", ")
+    }) : txt("rueckblick.fertigOhne"), [{ text: txt("ok"), art: "haupt" }]);
   }
 
   // ---------- Einstellungen ----------

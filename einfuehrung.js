@@ -670,7 +670,8 @@ const EINFUEHRUNG_BRAUCHT = {
     const dunkel = html.getAttribute("data-design") === "dunkel"
       || (html.getAttribute("data-design") !== "hell" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
     const korund = html.getAttribute("data-stil") === "glass" && html.getAttribute("data-palette") === "korund" && dunkel;
-    return !korund || gewichtMessungen().length > 0;
+    // Seit Version 143 stehen dort im Look Korund statt der Kacheln Körperfett und Magermasse, der Schritt entfällt
+    return !korund;
   }
 };
 
@@ -743,6 +744,18 @@ function einfuehrungVorbereiten(schritt) {
   if (schritt.seite === "profil" && schritt.reiter && profilReiter !== schritt.reiter) {
     profilReiter = schritt.reiter;
     profilReiterAnzeigen();
+  }
+  // Im Look Korund liegen Rang und "Teilen" auf der eigenen Seite Kraftrang (seit Version 143)
+  if (schritt.seite === "profil" && typeof profilKraftrangFuer === "function") {
+    profilKraftrangFuer(schritt.ziel);
+  }
+  // Im Look Korund sind die Vorlagen eingeklappt (seit Version 142): Der Schritt dazu klappt sie auf, danach klappt einfuehrungAufraeumen sie wieder zu
+  if (schritt.ziel === "training-vorlagen") {
+    document.getElementById("reiter-plaene").classList.add("vorlagen-offen");
+  }
+  // Im Look Korund hat der Fortschritt Reiter (seit Version 142): Der Rundgang stellt den Reiter ein, in dem das Ziel steht
+  if (schritt.seite === "fortschritt" && typeof fortschrittReiterFuer === "function") {
+    fortschrittReiterFuer(schritt.ziel);
   }
   einfuehrungZeigtSetzen(schritt.zeigt || "");
   // Eine frisch gewechselte Seite und ihre Ansicht blenden 0,3 Sekunden lang ein und stehen dabei noch je 8 px zu tief.
@@ -840,7 +853,7 @@ function einfuehrungStarten(bereich) {
     homeWocheHeute();
   }
   tourBereich = bereich;
-  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen") };
+  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen"), vorlagenOffen: document.getElementById("reiter-plaene").classList.contains("vorlagen-offen") };
   // Nur Schritte mit sichtbarem Element zählen, damit "1 von 2" stimmt
   const schritte = [];
   tourLeise = true;
@@ -923,6 +936,14 @@ function einfuehrungAufraeumen() {
   // Nach dem Rundgang durch die Einstellungen bleiben sie offen. Hat nur die Prüfung sie geöffnet, gehen sie wieder zu.
   if (tourBereich !== "einstellungen" && tourVorher && !tourVorher.einstOffen && document.getElementById("einst-sheet").classList.contains("offen")) {
     einstSchliessen();
+  }
+  // Die Vorlagen sind wieder zu, wenn sie vorher zu waren (seit Version 145, sonst stand „Vorlagen“ im Look Korund doppelt da)
+  if (tourVorher && !tourVorher.vorlagenOffen) {
+    document.getElementById("reiter-plaene").classList.remove("vorlagen-offen");
+  }
+  // Im Look Korund ist danach die Seite Kraftrang wieder zu (seit Version 143)
+  if (typeof profilKraftrangFuer === "function") {
+    profilKraftrangFuer("");
   }
   // Im Profil steht wieder der Reiter von vorher
   if (tourVorher && profilReiter !== tourVorher.profilReiter) {
@@ -1648,7 +1669,7 @@ function einfuehrungPruefen() {
   // Schritte, die gerade zu Recht fehlen (keine Routine, kein Training, keine Erklärung): nur ein Hinweis, kein Fehler
   const hinweise = [];
   tourBereich = "training";
-  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen") };
+  tourVorher = { ansicht: trainingAnsicht, reiter: trainingReiter, profilReiter: profilReiter, einstOffen: document.getElementById("einst-sheet").classList.contains("offen"), vorlagenOffen: document.getElementById("reiter-plaene").classList.contains("vorlagen-offen") };
   tourLeise = true;
   for (let i = 0; i < EINFUEHRUNG_SCHRITTE.length; i++) {
     const schritt = EINFUEHRUNG_SCHRITTE[i];

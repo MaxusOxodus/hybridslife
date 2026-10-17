@@ -744,6 +744,14 @@ function einfuehrungVorbereiten(schritt) {
     profilReiter = schritt.reiter;
     profilReiterAnzeigen();
   }
+  // Im Look Korund sind die Vorlagen eingeklappt (seit Version 142): Der Schritt dazu klappt sie auf, sie bleiben danach offen
+  if (schritt.ziel === "training-vorlagen") {
+    document.getElementById("reiter-plaene").classList.add("vorlagen-offen");
+  }
+  // Im Look Korund hat der Fortschritt Reiter (seit Version 142): Der Rundgang stellt den Reiter ein, in dem das Ziel steht
+  if (schritt.seite === "fortschritt" && typeof fortschrittReiterFuer === "function") {
+    fortschrittReiterFuer(schritt.ziel);
+  }
   einfuehrungZeigtSetzen(schritt.zeigt || "");
   // Eine frisch gewechselte Seite und ihre Ansicht blenden 0,3 Sekunden lang ein und stehen dabei noch je 8 px zu tief.
   // Das Einblenden wird hier sofort beendet, sonst säße der Rahmen daneben.

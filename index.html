@@ -431,11 +431,15 @@
 
   <!-- Seite: Fortschritt -->
   <section id="seite-fortschritt" class="seite">
+    <!-- Look Korund (seit Version 142): Zeile über dem Titel und die Reiter Kraft, Körper, Statistik. In den anderen Looks ausgeblendet.
+         data-teil sagt, in welchem Reiter ein Teil steht. Es ändert am Aussehen der anderen Looks nichts. -->
+    <p id="fortschritt-ueber" class="fortschritt-ueber" data-t="fortschritt.ueber">Letzte 30 Tage</p>
     <h1 data-t="nav.fortschritt">Fortschritt</h1>
     <p class="unterzeile" data-t="fortschritt.unterzeile">Deine Zahlen auf einen Blick</p>
+    <div id="fortschritt-reiter" class="umschalter fortschritt-reiter"></div>
 
-    <h2 class="abschnitt" data-t="fortschritt.statistik">Statistik</h2>
-    <div class="kacheln" data-tour="fortschritt-statistik">
+    <h2 class="abschnitt" data-t="fortschritt.statistik" data-teil="statistik">Statistik</h2>
+    <div class="kacheln" data-tour="fortschritt-statistik" data-teil="statistik">
       <div class="karte">
         <div id="stat-workouts" class="kachel-zahl">0</div>
         <div class="kachel-titel" data-t="fortschritt.workouts">Workouts gesamt</div>
@@ -454,10 +458,10 @@
       </div>
     </div>
     <!-- Konstanz: Trainingstage der letzten Wochen als Raster. Nur im Look Korund zu sehen, den Inhalt baut die app.js. -->
-    <div id="konstanz" class="karte konstanz"></div>
+    <div id="konstanz" class="karte konstanz" data-teil="kraft"></div>
 
-    <h2 id="kg-abschnitt" class="abschnitt" data-t="koerpergewicht">Körpergewicht</h2>
-    <div class="karte" data-tour="fortschritt-gewicht">
+    <h2 id="kg-abschnitt" class="abschnitt" data-t="koerpergewicht" data-teil="koerper">Körpergewicht</h2>
+    <div class="karte" data-tour="fortschritt-gewicht" data-teil="koerper">
       <!-- Kopf mit dem letzten Eintrag und Zeitraum des Diagramms: Beides baut die app.js -->
       <div id="kg-kopf" class="mess-kopf"></div>
       <div id="kg-zeitraum" class="umschalter"></div>
@@ -467,20 +471,20 @@
         <span><i class="legende-punkt"></i><span data-t="fortschritt.messung">Messung</span></span>
       </div>
     </div>
-    <button class="zweit-btn" onclick="gewichtSheetOeffnen()" data-t="fortschritt.gewichtEintragen" data-tour="fortschritt-eintragen">Gewicht eintragen</button>
+    <button class="zweit-btn" onclick="gewichtSheetOeffnen()" data-t="fortschritt.gewichtEintragen" data-tour="fortschritt-eintragen" data-teil="koerper">Gewicht eintragen</button>
     <!-- "Alle Einträge": Der Button klappt den Kalender mit allen Messungen auf und zu. Am Anfang ist er zu.
          Den Inhalt des Kalenders baut die app.js. -->
-    <button id="kg-klapp-btn" class="zweit-btn" aria-expanded="false" aria-controls="kg-klapp" onclick="messKalenderKlappen('kg')"><span data-t="messung.alleEintraege">Alle Einträge</span><span class="klapp-pfeil" aria-hidden="true">▾</span></button>
-    <div id="kg-klapp" class="klapp"><div class="klapp-innen">
+    <button id="kg-klapp-btn" data-teil="koerper" class="zweit-btn" aria-expanded="false" aria-controls="kg-klapp" onclick="messKalenderKlappen('kg')"><span data-t="messung.alleEintraege">Alle Einträge</span><span class="klapp-pfeil" aria-hidden="true">▾</span></button>
+    <div id="kg-klapp" data-teil="koerper" class="klapp"><div class="klapp-innen">
       <div id="kg-kalender" class="karte kalender"></div>
     </div></div>
 
-    <h2 class="abschnitt" data-t="fortschritt.veraenderung">Veränderung im 7-Tage-Schnitt</h2>
-    <div id="kg-kacheln" class="kacheln" data-tour="fortschritt-veraenderung"></div>
+    <h2 class="abschnitt" data-t="fortschritt.veraenderung" data-teil="koerper">Veränderung im 7-Tage-Schnitt</h2>
+    <div id="kg-kacheln" data-teil="koerper" class="kacheln" data-tour="fortschritt-veraenderung"></div>
 
     <!-- Körperfett: derselbe Aufbau wie beim Körpergewicht. Es lässt sich allein oder beim Gewicht mit eintragen. -->
-    <h2 class="abschnitt" data-t="koerperfett">Körperfett</h2>
-    <div class="karte">
+    <h2 class="abschnitt" data-t="koerperfett" data-teil="koerper">Körperfett</h2>
+    <div class="karte" data-teil="koerper">
       <div id="fett-kopf" class="mess-kopf"></div>
       <div id="fett-zeitraum" class="umschalter"></div>
       <div id="fett-diagramm"></div>
@@ -489,14 +493,14 @@
         <span><i class="legende-punkt"></i><span data-t="fortschritt.messung">Messung</span></span>
       </div>
     </div>
-    <button class="zweit-btn" onclick="fettSheetOeffnen()" data-t="fortschritt.fettEintragen">Körperfett eintragen</button>
-    <button id="fett-klapp-btn" class="zweit-btn" aria-expanded="false" aria-controls="fett-klapp" onclick="messKalenderKlappen('fett')"><span data-t="messung.alleEintraege">Alle Einträge</span><span class="klapp-pfeil" aria-hidden="true">▾</span></button>
-    <div id="fett-klapp" class="klapp"><div class="klapp-innen">
+    <button class="zweit-btn" data-teil="koerper" onclick="fettSheetOeffnen()" data-t="fortschritt.fettEintragen">Körperfett eintragen</button>
+    <button id="fett-klapp-btn" data-teil="koerper" class="zweit-btn" aria-expanded="false" aria-controls="fett-klapp" onclick="messKalenderKlappen('fett')"><span data-t="messung.alleEintraege">Alle Einträge</span><span class="klapp-pfeil" aria-hidden="true">▾</span></button>
+    <div id="fett-klapp" data-teil="koerper" class="klapp"><div class="klapp-innen">
       <div id="fett-kalender" class="karte kalender"></div>
     </div></div>
 
-    <h2 id="kraft-abschnitt" class="abschnitt" data-t="fortschritt.kraft">Kraftentwicklung</h2>
-    <div id="fortschritt-uebungen"></div>
+    <h2 id="kraft-abschnitt" class="abschnitt" data-t="fortschritt.kraft" data-teil="kraft">Kraftentwicklung</h2>
+    <div id="fortschritt-uebungen" data-teil="kraft"></div>
   </section>
 
   <!-- Seite: Gym -->
@@ -744,6 +748,20 @@
   </div>
 
   <!-- Sheet: alle Übungen des laufenden Trainings, Antippen springt zu der Übung -->
+  <!-- Look Korund (seit Version 142): der Status als eigenes Sheet mit drei Karten. In den anderen Looks fragt ein kurzer Dialog. -->
+  <div id="status-sheet" class="zusatz-sheet">
+    <div class="sheet-griff"></div>
+    <div class="sheet-kopf">
+      <span class="sheet-titel" data-t="status.titel">Dein Status</span>
+      <button onclick="zusatzSheetsSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
+    </div>
+    <div class="zusatz-inhalt">
+      <p class="status-sheet-text" data-t="status.text"></p>
+      <div id="status-sheet-liste" role="radiogroup"></div>
+      <button class="speichern-btn" type="button" onclick="statusUebernehmen()" data-t="status.uebernehmen">Übernehmen</button>
+    </div>
+  </div>
+
   <div id="uebungen-sheet" class="zusatz-sheet">
     <div class="sheet-griff"></div>
     <div class="sheet-kopf">

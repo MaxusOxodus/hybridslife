@@ -1824,6 +1824,331 @@
   display: none;
 }
 
+/* ---------- Status-Sheet (seit Version 142) ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-sheet-text {
+  margin: 0 0 16px;
+  color: var(--text-leise);
+  font-size: 14px;
+  line-height: 1.45;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #status-sheet-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(var(--fw-glas-rgb), 0.55);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte[aria-checked="true"] {
+  border-color: rgba(var(--fw-signal-rgb), 0.7);
+  background: rgba(var(--fw-signal-rgb), 0.1);
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-symbol {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(var(--fw-signal-rgb), 0.14);
+  color: var(--fw-signal);
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-krank .status-symbol { background: rgba(255, 140, 120, 0.14); color: #FF9C8A; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-urlaub .status-symbol { background: rgba(255, 205, 110, 0.14); color: #FFCF70; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-symbol svg { width: 22px; height: 22px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte-name { font-size: 16px; font-weight: 600; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte-info { font-size: 13px; color: var(--text-leise); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-kreis {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-sizing: border-box;
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte[aria-checked="true"] .status-kreis {
+  border: 6px solid var(--fw-signal);
+}
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #status-sheet .speichern-btn { width: 100%; }
+
+/* ---------- Fortschritt wie im Entwurf (seit Version 142) ----------
+   Oben „Letzte 30 Tage“, der Titel und die Reiter Kraft, Körper, Statistik. data-teil (index.html) sagt, was in welchem Reiter steht.
+   Während eines Rundgangs stellt die Einführung den passenden Reiter ein. */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-ueber {
+  display: block;
+  margin: 12px 0 0;
+  color: var(--text-leise);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt > h1 {
+  margin-top: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt > .unterzeile {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-reiter {
+  display: flex;
+  margin: 8px 0 18px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-reiter button {
+  flex: 1;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-reiter="kraft"] [data-teil]:not([data-teil="kraft"]),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-reiter="koerper"] [data-teil]:not([data-teil="koerper"]),
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt[data-reiter="statistik"] [data-teil]:not([data-teil="statistik"]) {
+  display: none !important;
+}
+
+/* Im Reiter Statistik braucht es die Überschrift nicht, der Reiter sagt es schon. Im Reiter Kraft fehlt „Kraftentwicklung“ und in der Liste der Zeitraum. */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt h2[data-teil="statistik"],
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt #kraft-abschnitt,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste > .umschalter.klein {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #seite-fortschritt h2#kg-abschnitt {
+  margin-top: 0;
+}
+
+/* Konstanz: 30 Tage in zwei Reihen zu 15 */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz {
+  margin-top: 0;
+  padding: 18px 18px 16px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-zahl {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-raster {
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: none;
+  grid-auto-flow: row;
+  gap: 6px 5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld {
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 5px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.stufe-1,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.stufe-2 {
+  background: var(--fw-signal);
+  box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.35);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-feld.heute {
+  outline: 2px solid rgba(238, 242, 247, 0.9);
+  outline-offset: 0;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-fuss {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 16px;
+  color: var(--text-leise);
+  font-size: 15px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .konstanz-fuss-zahl b {
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+/* Kraft: je Gruppe ein Kopf „BRUST ›“ und darunter die Karte ihrer Übung */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) {
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 0;
+  margin: 22px 0 8px;
+  padding: 4px 4px;
+  border: none;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus)::before,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus)::after {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) :is(.gruppen-figur, .gruppen-anzahl, .gruppen-plakette) {
+  display: none;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) .listen-text {
+  flex: none;
+  color: var(--text-leise);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) .einst-pfeil {
+  margin-left: 4px;
+  color: var(--text-leise);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fortschritt-uebungen.liste > .gruppen-zeile:first-of-type {
+  margin-top: 6px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 16px 18px 10px;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-kopf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-figur {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(238, 242, 247, 0.1);
+  border-radius: 14px;
+  background: rgba(var(--fw-glas-rgb), 0.6);
+  overflow: hidden;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-figur svg {
+  width: 40px;
+  height: 40px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-info {
+  color: var(--text-leise);
+  font-size: 13px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-plus {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 4px;
+  color: var(--text-leise);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-plus.plus {
+  color: var(--fw-erfolg);
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-linie {
+  display: block;
+  margin-top: 4px;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-karte-linie svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-flaeche-oben { stop-color: rgba(var(--fw-signal-rgb), 0.28); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-flaeche-unten { stop-color: rgba(var(--fw-signal-rgb), 0); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-flaeche { fill: url(#kraft-flaeche); }
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-weg {
+  fill: none;
+  stroke: var(--fw-signal);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(var(--fw-signal-rgb), 0.5));
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-anfang {
+  fill: var(--hintergrund, #0B0D10);
+  stroke: var(--fw-signal);
+  stroke-width: 2.5;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-ende {
+  fill: var(--fw-signal);
+  stroke: #0B0D10;
+  stroke-width: 2.5;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-wert-klein {
+  fill: var(--text-leise);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kraft-wert {
+  fill: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
 
 /* ===== System mit dunklem Gerät (dieselben Regeln wie oben) ===== */
 @media (prefers-color-scheme: dark) {
@@ -3520,6 +3845,331 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #reiter-plaene:not(.vorlagen-offen) > :is(h2.abschnitt:nth-last-of-type(1), .vorlagen-frage, #vorlagen-liste) {
     display: none;
+  }
+
+  /* ---------- Status-Sheet (seit Version 142) ---------- */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-sheet-text {
+    margin: 0 0 16px;
+    color: var(--text-leise);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #status-sheet-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(var(--fw-glas-rgb), 0.55);
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte[aria-checked="true"] {
+    border-color: rgba(var(--fw-signal-rgb), 0.7);
+    background: rgba(var(--fw-signal-rgb), 0.1);
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-symbol {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(var(--fw-signal-rgb), 0.14);
+    color: var(--fw-signal);
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-krank .status-symbol { background: rgba(255, 140, 120, 0.14); color: #FF9C8A; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-urlaub .status-symbol { background: rgba(255, 205, 110, 0.14); color: #FFCF70; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-symbol svg { width: 22px; height: 22px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte-name { font-size: 16px; font-weight: 600; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte-info { font-size: 13px; color: var(--text-leise); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-kreis {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    box-sizing: border-box;
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte[aria-checked="true"] .status-kreis {
+    border: 6px solid var(--fw-signal);
+  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #status-sheet .speichern-btn { width: 100%; }
+
+  /* ---------- Fortschritt wie im Entwurf (seit Version 142) ----------
+     Oben „Letzte 30 Tage“, der Titel und die Reiter Kraft, Körper, Statistik. data-teil (index.html) sagt, was in welchem Reiter steht.
+     Während eines Rundgangs stellt die Einführung den passenden Reiter ein. */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-ueber {
+    display: block;
+    margin: 12px 0 0;
+    color: var(--text-leise);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt > h1 {
+    margin-top: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt > .unterzeile {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-reiter {
+    display: flex;
+    margin: 8px 0 18px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-reiter button {
+    flex: 1;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-reiter="kraft"] [data-teil]:not([data-teil="kraft"]),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-reiter="koerper"] [data-teil]:not([data-teil="koerper"]),
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt[data-reiter="statistik"] [data-teil]:not([data-teil="statistik"]) {
+    display: none !important;
+  }
+
+  /* Im Reiter Statistik braucht es die Überschrift nicht, der Reiter sagt es schon. Im Reiter Kraft fehlt „Kraftentwicklung“ und in der Liste der Zeitraum. */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt h2[data-teil="statistik"],
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt #kraft-abschnitt,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste > .umschalter.klein {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #seite-fortschritt h2#kg-abschnitt {
+    margin-top: 0;
+  }
+
+  /* Konstanz: 30 Tage in zwei Reihen zu 15 */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz {
+    margin-top: 0;
+    padding: 18px 18px 16px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-zahl {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-raster {
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: none;
+    grid-auto-flow: row;
+    gap: 6px 5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld {
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: 5px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.stufe-1,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.stufe-2 {
+    background: var(--fw-signal);
+    box-shadow: 0 0 8px rgba(var(--fw-signal-rgb), 0.35);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-feld.heute {
+    outline: 2px solid rgba(238, 242, 247, 0.9);
+    outline-offset: 0;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-fuss {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 16px;
+    color: var(--text-leise);
+    font-size: 15px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .konstanz-fuss-zahl b {
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 700;
+  }
+
+  /* Kraft: je Gruppe ein Kopf „BRUST ›“ und darunter die Karte ihrer Übung */
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) {
+    justify-content: flex-start;
+    gap: 4px;
+    min-height: 0;
+    margin: 22px 0 8px;
+    padding: 4px 4px;
+    border: none;
+    background: none;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus)::before,
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus)::after {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) :is(.gruppen-figur, .gruppen-anzahl, .gruppen-plakette) {
+    display: none;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) .listen-text {
+    flex: none;
+    color: var(--text-leise);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste .gruppen-zeile:not(.aus) .einst-pfeil {
+    margin-left: 4px;
+    color: var(--text-leise);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fortschritt-uebungen.liste > .gruppen-zeile:first-of-type {
+    margin-top: 6px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 16px 18px 10px;
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-kopf {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-figur {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(238, 242, 247, 0.1);
+    border-radius: 14px;
+    background: rgba(var(--fw-glas-rgb), 0.6);
+    overflow: hidden;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-figur svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-name {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-info {
+    color: var(--text-leise);
+    font-size: 13px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-plus {
+    flex: none;
+    align-self: flex-start;
+    margin-top: 4px;
+    color: var(--text-leise);
+    font-size: 17px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-plus.plus {
+    color: var(--fw-erfolg);
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-linie {
+    display: block;
+    margin-top: 4px;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-karte-linie svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-flaeche-oben { stop-color: rgba(var(--fw-signal-rgb), 0.28); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-flaeche-unten { stop-color: rgba(var(--fw-signal-rgb), 0); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-flaeche { fill: url(#kraft-flaeche); }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-weg {
+    fill: none;
+    stroke: var(--fw-signal);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 4px rgba(var(--fw-signal-rgb), 0.5));
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-anfang {
+    fill: var(--hintergrund, #0B0D10);
+    stroke: var(--fw-signal);
+    stroke-width: 2.5;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-ende {
+    fill: var(--fw-signal);
+    stroke: #0B0D10;
+    stroke-width: 2.5;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-wert-klein {
+    fill: var(--text-leise);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kraft-wert {
+    fill: var(--text);
+    font-size: 14px;
+    font-weight: 700;
   }
 
 }

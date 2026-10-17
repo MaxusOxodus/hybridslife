@@ -67,7 +67,7 @@ pruefe("Text DE", TEXTE["konstanz.tage"].de === "{n} Trainingstage in {w} Wochen
 pruefe("Text EN", TEXTE["konstanz.titel"].en === "Consistency");
 pruefe("Knopf-Text", TEXTE["gruppen.offenKnopf"].de.includes("{n}"));
 pruefe("Raster steht im Fortschritt", html.includes('id="konstanz"'));
-pruefe("andere Looks: ausgeblendet", /\.konstanz,\s*\n\.gruppen-offen-knopf,[^{]*\{\s*\n\s*display: none;/.test(stil));
+pruefe("andere Looks: ausgeblendet", /\.konstanz,\s*\n(?:[^{]*\n)?\.gruppen-offen-knopf,[^{]*\{\s*\n\s*display: none;/.test(stil));
 pruefe("Korund: sichtbar", korund.includes('[data-palette="korund"][data-design="dunkel"] .konstanz {'));
 
 console.log(pruefungen + " Prüfungen, " + fehler + " Fehler");

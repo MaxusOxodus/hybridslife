@@ -446,7 +446,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     // Schulterdrücken nach Beschreibung: sitzend, Rücken an der fast senkrechten Lehne, Füße flach vor dem Sitz, Hände von Ohrhöhe nach oben
     schulterdruecken: { name: "Schulterdrücken sitzend", familie: "schulterdruecken", tempo: .32, kurz: true, sitzen: .53, lehne: 1.42, h(s) { const p = neutral(); beinZiel(p, .55, 0, .07, .42); p.hLz = -.1; p.hRz = .1; p.rumpf = -.05; return p; } },
     seitheben: { name: "Seitheben", familie: "seitheben", tempo: .36, kurz: true, h(s) { s = 1 - s; const p = stehen(neutral(), .04, .08), o = 1 - s; p.sLz = -(.12 + 1.38 * s); p.sRz = .12 + 1.38 * s; p.sLx = p.sRx = -.15; p.eL = p.eR = .25; p.rumpf = .05; return p; } },
-    facepull: { name: "Face Pull", familie: "facepull", tempo: .34, seile: "oben", h(s) { s = 1 - s; const p = stehen(neutral(), .2, .2, -.15, .1); p.rumpf = -.08; p.sLx = p.sRx = -1.65 + .1 * s; p.sLz = -(.15 + .95 * s); p.sRz = .15 + .95 * s; p.eL = p.eR = .15 + 1.7 * s; return p; } },
+    facepull: { name: "Face Pull", familie: "facepull", tempo: .34, seile: "seilZwei", h(s) { s = 1 - s; const p = stehen(neutral(), .2, .2, -.15, .1); p.rumpf = -.08; p.sLx = p.sRx = -1.65 + .1 * s; p.sLz = -(.15 + .95 * s); p.sRz = .15 + .95 * s; p.eL = p.eR = .15 + 1.7 * s; return p; } },
     shrugs: { name: "Shrugs mit Kurzhanteln", familie: "shrugs", tempo: .45, kurz: true, h(s) { s = 1 - s; const p = stehen(neutral(), .03, .06); p.schY = .07 * s; p.sLz = -.1; p.sRz = .1; p.eL = p.eR = .05; p.kopf = -.05 * s; return p; } },
     // Kabelrudern nach Beschreibung: sitzen, Füße an der Platte, Knie leicht gebeugt, Oberkörper aufrecht, Griff zum Bauch
     // Kabelrudern nach Beschreibung: sitzen, Füße an der Platte, Knie leicht gebeugt, Oberkörper aufrecht, Griff zum Bauch
@@ -457,7 +457,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     klimmzug: { name: "Klimmzüge", familie: "klimmzug", tempo: .3, h(s) { s = 1 - s; const p = neutral(); p.by = 1.19 + .4 * s; p.sLx = p.sRx = -2.95 + .8 * s; p.sLz = -(.38 + .45 * s); p.sRz = .38 + .45 * s; p.eL = p.eR = .1 + 1.9 * s; p.hL = p.hR = .25; p.kL = p.kR = .9; p.kopf = .1 * s; return p; } },
     knieheben: { name: "Knieheben hängend", familie: "bauch", tempo: .34, h(s) { s = 1 - s; const p = neutral(); p.by = 1.19; p.sLx = p.sRx = -2.95; p.sLz = -.38; p.sRz = .38; p.eL = p.eR = .1; p.hL = p.hR = .1 + 1.55 * s; p.kL = p.kR = .25 + 1.25 * s; p.rumpf = -.15 * s; return p; } },
     curls: { name: "Kurzhantel-Curls", familie: "curls", tempo: .36, kurz: true, h(s, t, satz, ph) { s = 1 - s; const p = stehen(neutral(), .05, .08), b = 1 - profil((ph + .5) % 1); p.sLx = -.1 * s; p.sRx = -.1 * b; p.eL = .1 + 2.15 * s; p.eR = .1 + 2.15 * b; p.sLz = -.08; p.sRz = .08; return p; } },
-    pushdown: { name: "Trizepsdrücken am Kabel", familie: "trizeps", tempo: .36, seile: "mitte", h(s) { s = 1 - s; const p = stehen(neutral(), .12, .16); p.rumpf = .18; p.sLx = p.sRx = -.2; p.sLz = -.12; p.sRz = .12; p.eL = p.eR = 1.85 - 1.65 * s; return p; } },
+    pushdown: { name: "Trizepsdrücken am Kabel", familie: "trizeps", tempo: .36, seile: "mitte", stange: "kurz", h(s) { s = 1 - s; const p = stehen(neutral(), .12, .16); p.rumpf = .18; p.sLx = p.sRx = -.2; p.sLz = -.12; p.sRz = .12; p.eL = p.eR = 1.85 - 1.65 * s; return p; } },
     farmer: { name: "Farmer's Walk", familie: "unterarme", tempo: .9, gehen: true, kugelHaende: true, h(s, t) { const w = Math.sin(t * 5.2), p = neutral(); p.by = 1; p.hL = .38 * w; p.hR = -.38 * w; p.kL = Math.max(0, -w) * .6 + .05; p.kR = Math.max(0, w) * .6 + .05; p.sLz = -.14; p.sRz = .14; p.eL = p.eR = .04; p.wx = Math.sin(t * .55) * .9; return p; } },
     rueckenstrecker: { name: "Rückenstrecker", familie: "rueckenstrecker", tempo: .32, h(s) { s = 1 - s; const p = neutral(); p.by = 1; p.rx = .8; p.rumpf = 1.05 * (1 - s); p.kopf = -.3; return p; } },
     // Crunch: Rücken auf der Matte, Knie hoch, Füße flach am Boden, Hände am Kopf
@@ -2357,6 +2357,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   function propBauen(art) {
     if (art === "lang" || art === "becken" || art === "nacken") return langhantel([[.225, .065]]);
     if (art === "lat") { const g = new THREE.Group(), s = zyl(.014, 1.15, M.stange, 10); s.rotation.z = Math.PI / 2; g.add(s); [-1, 1].forEach(v => { const e = zyl(.014, .18, M.stange, 8); e.rotation.z = Math.PI / 2 + v * .5; e.position.set(v * .62, -.04, 0); g.add(e); }); return g; }
+    // Kurze gerade Stange für Trizepsdrücken am Kabel, in der Mitte die Öse fürs Seil
+    if (art === "kurz") { const g = new THREE.Group(), st = zyl(.014, .5, M.stange, 10); st.rotation.z = Math.PI / 2; g.add(st, teil(kugelGeo(.022, 10, 8), M.chrom)); [-1, 1].forEach(v => { const gr = zyl(.017, .12, M.gummi, 10); gr.rotation.z = Math.PI / 2; gr.position.x = v * .19; g.add(gr); }); return g; }
     if (art === "kugel") { const k = kettlebell(.12); k.children.forEach(c => c.position.y -= .2); return k; }
   }
   const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
@@ -2498,7 +2500,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     if (ue.kurzR || a.kurzR) hand(b.m.aR);
     if (ue.kugelHaende) { hand(b.m.aL, "kugel"); hand(b.m.aR, "kugel"); }
     if (ue.seile && o.userData.rollen) {
-      const r = o.userData.rollen, punkte = ue.seile === "rollen" ? [[r[0], "L"], [r[1], "R"]] : ue.seile === "obenL" ? [[[-.82, 2.14, .1], "M"]] : ue.seile === "unten" ? [[[0, .3, -.58], "M"]] : [[[0, 2.1, .3], "M"]];
+      const r = o.userData.rollen, punkte = ue.seile === "rollen" ? [[r[0], "L"], [r[1], "R"]] : ue.seile === "obenL" ? [[[-.82, 2.14, .1], "M"]] : ue.seile === "seilZwei" ? [[[0, 2.1, .3], "L"], [[0, 2.1, .3], "R"]] : ue.seile === "unten" ? [[[0, .3, -.58], "M"]] : [[[0, 2.1, .3], "M"]];
       b.seile = punkte.map(pk => { const l = seil(raum, [0, 0, 0], [0, 0, 0]); l.userData.rolle = pk[0]; l.userData.hand = pk[1]; return l; });
     }
   }

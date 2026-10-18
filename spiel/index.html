@@ -2141,7 +2141,9 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
       x.fillStyle = "rgba(14,16,20,.92)"; x.beginPath(); x.arc(64, 64, 52, 0, 7); x.fill();
       x.strokeStyle = "#FF9F45"; x.lineWidth = 8; x.stroke();
       x.strokeStyle = "#FFB46E"; x.lineWidth = 7; x.lineCap = "round";
-      [[40, 50, 88], [34, 66, 80], [44, 82, 92]].forEach(l => { x.beginPath(); x.moveTo(l[0], l[1]); x.lineTo(l[2], l[1]); x.stroke(); });
+      // Staub wie das Symbol in der Leiste: drei versetzte Striche und zwei Körnchen (nicht wie ein Menü)
+      [[36, 82, 74], [46, 64, 94], [38, 46, 70]].forEach(l => { x.beginPath(); x.moveTo(l[0], l[1]); x.lineTo(l[2], l[1]); x.stroke(); });
+      x.fillStyle = "#FFB46E"; [[88, 82], [84, 46]].forEach(c => { x.beginPath(); x.arc(c[0], c[1], 5, 0, 7); x.fill(); });
     });
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: plakettenTex, transparent: true, depthTest: false })); s.scale.set(.42, .42, 1); s.renderOrder = 10; return s;
   }
@@ -2364,7 +2366,16 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     if (!raum) return;
     const ziel = Math.min(STUFEN[stand.stufe].plaetze, Math.floor(ausstrahlung() / 110), objekte.filter(o => ANKER[o.userData.item.key]).length);
     while (besucher.length > ziel) { const b = besucher.pop(); besucherFrei(b); raum.remove(b.m.w); entsorgen(b.m.w); }
-    while (besucher.length < ziel) besucher.push(besucherBauen(besucher.length));
+    // Nach dem Aufbau des Raums sind alle bis auf einen Besucher schon an einem Gerät, so wirkt das Gym sofort belebt
+    const frisch = besucher.length === 0;
+    while (besucher.length < ziel) { const b = besucherBauen(besucher.length); besucher.push(b); if (frisch && besucher.length > 1) direktAnsGeraet(b); }
+  }
+  function direktAnsGeraet(b) {
+    const frei = objekte.filter(o => ANKER[o.userData.item.key] && !o.userData.besetzt); if (!frei.length) return;
+    const o = frei[Math.floor(Math.random() * frei.length)], a = ankerWaehlen(o.userData.item.key);
+    o.userData.besetzt = b; b.ziel = o; b.anker = a; b.ankerWelt = raum.worldToLocal(o.localToWorld(new THREE.Vector3(a.pos[0], 0, a.pos[2])));
+    b.m.w.position.copy(raum.worldToLocal(o.localToWorld(new THREE.Vector3(a.pos[0], a.pos[1], a.pos[2])))); b.m.w.rotation.y = o.rotation.y + a.blick;
+    b.zustand = "trainieren"; b.saetze = 1 + Math.floor(Math.random() * 2); b.satz = 0; b.satzZeit = Math.random() * 4; b.pause = 0; b.ph = Math.random(); einsteigen(b);
   }
   function besucherBauen(n) {
     const m = menschBauen(n), S = STUFEN[stand.stufe].S, gangZ = S / 2 - GANG * ZELLE / 2;

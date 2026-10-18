@@ -1220,6 +1220,7 @@
     pauseAnzeigen();
     wachSperreAktualisieren();
     uhrAktualisieren();
+    rangMeldungAnsicht();
   }
 
   // Blendet die Kopfzeile ein, sobald der große Titel nach oben weggescrollt ist
@@ -3277,6 +3278,7 @@
     pauseAnzeigen();
     wachSperreAktualisieren();
     uhrAktualisieren();
+    rangMeldungAnsicht();
   }
 
   // ---------- Training: Rückfrage-Dialog ----------
@@ -13773,6 +13775,14 @@
 
   // So viele Ränge oder Abzeichen nennt eine Meldung höchstens einzeln, der Rest steht als "+2" dahinter
   const RANG_MELDUNG_ANZAHL = 3;
+  // So lange steht die Meldung da, dann blendet sie sich selbst aus (seit Version 148)
+  const RANG_MELDUNG_SEKUNDEN = 5;
+
+  // Im Trainingsmodus und im Bericht danach kommt keine Meldung (seit Version 148). Was dort neu erreicht wird,
+  // wartet hier und erscheint, sobald der Bericht mit „Fertig“ verlassen ist (oder eine andere Seite offen ist).
+  // Nur im Speicher der Seite, nach dem Neuladen ist es weg.
+  let rangMeldungWartet = null;
+  let rangMeldungUhr = null;
 
   // Fasst Namen für die Meldung zusammen: "A, B, C +2"
   function meldungNamen(namen) {
@@ -13783,9 +13793,20 @@
     return text;
   }
 
-  // Zeigt über der Navigationsleiste eine Meldung für alle neuen Stufen und Abzeichen zusammen,
-  // z. B. "Neuer Rang: Stark I · Drücken horizontal". Sie bleibt, bis sie angetippt oder geschlossen wird.
+  function rangMeldungGesperrt() {
+    return aktiveSeite === "training" && (trainingAnsicht === "modus" || trainingAnsicht === "fertig");
+  }
+
+  // Zeigt oben unter der Statusleiste eine Meldung für alle neuen Stufen und Abzeichen zusammen,
+  // z. B. "Neuer Rang: Stark I · Drücken horizontal". Sie geht nach RANG_MELDUNG_SEKUNDEN von selbst weg.
   function rangMeldungZeigen(aufstiege, abzeichen) {
+    if (rangMeldungGesperrt()) {
+      rangMeldungWartet = rangMeldungWartet ? {
+        aufstiege: rangMeldungWartet.aufstiege.concat(aufstiege),
+        abzeichen: rangMeldungWartet.abzeichen.concat(abzeichen)
+      } : { aufstiege: aufstiege, abzeichen: abzeichen };
+      return;
+    }
     const zeilen = [];
     if (aufstiege.length > 0) {
       const namen = [];
@@ -13803,10 +13824,25 @@
     }
     document.getElementById("rang-hinweis-text").textContent = zeilen.join("\n");
     document.getElementById("rang-hinweis").classList.add("sichtbar");
+    clearTimeout(rangMeldungUhr);
+    rangMeldungUhr = setTimeout(rangMeldungSchliessen, RANG_MELDUNG_SEKUNDEN * 1000);
   }
 
   function rangMeldungSchliessen() {
+    clearTimeout(rangMeldungUhr);
     document.getElementById("rang-hinweis").classList.remove("sichtbar");
+  }
+
+  // Nach jedem Wechsel der Seite oder der Ansicht im Training: Im Trainingsmodus und im Bericht geht eine sichtbare
+  // Meldung weg, sonst erscheint eine wartende
+  function rangMeldungAnsicht() {
+    if (rangMeldungGesperrt()) {
+      rangMeldungSchliessen();
+    } else if (rangMeldungWartet) {
+      const wartet = rangMeldungWartet;
+      rangMeldungWartet = null;
+      rangMeldungZeigen(wartet.aufstiege, wartet.abzeichen);
+    }
   }
 
   // Tippen auf die Meldung: das Profil mit dem Reiter "Abzeichen" öffnen
@@ -15752,9 +15788,12 @@
   // ---------- Cloud-Backup (seit Version 146) ----------
   // Mit Anmeldung sichert Korund das Backup (genau das von „Backup exportieren“, backupText) bei Supabase:
   // je Nutzer ein Datensatz in der Tabelle backups (SQL in supabase/tabelle-backups.sql). Ohne Anmeldung bleibt alles nur auf dem Gerät.
-  // Angemeldet wird mit E-Mail und Passwort (seit Version 147), ganz ohne E-Mail: Ein Link aus einer E-Mail würde auf dem iPhone
-  // nur Safari anmelden (Safari und die App auf dem Homescreen haben getrennte Speicher), und eigene E-Mail-Vorlagen mit Code
-  // gehen bei Supabase nur mit eigenem E-Mail-Dienst. Dafür ist in Supabase „Confirm email“ aus.
+  // Angemeldet wird mit E-Mail und Passwort (seit Version 147). Ein Link aus einer E-Mail meldet auf dem iPhone nur Safari an
+  // (Safari und die App auf dem Homescreen haben getrennte Speicher). Seit Version 148 ist in Supabase „Confirm email“ an:
+  // Der Link aus der Bestätigungsmail öffnet nur die App-Adresse, angemeldet wird danach wie gewohnt in der App.
+  // „Passwort vergessen“ (seit Version 148): Der Link aus der Mail öffnet die App (auf dem iPhone in Safari), dort setzt man
+  // das neue Passwort und meldet sich danach in der App an. Dafür braucht es den Ablauf „implicit“ (Standard von supabase-js):
+  // Bei „pkce“ läge ein Schlüssel im Speicher der App, und Safari könnte den Link nicht einlösen.
   // Adresse und öffentlicher Schlüssel (publishable) dürfen in der App stehen. Der geheime Schlüssel (sb_secret_…) nie.
   const SUPABASE_URL = "https://saoewdpehahljrmydpan.supabase.co";
   const SUPABASE_KEY = "sb_publishable_auNxZiJoalFlRRbkiooKfw_gthv4_vs";
@@ -15769,15 +15808,33 @@
   let cloudLaeuft = false;
   // Hat die automatische Sicherung zuletzt nicht gesichert, weil in der Cloud mehr Einträge liegen?
   let cloudUebersprungen = false;
+  // Kam die App über den Link „Passwort vergessen“? null: nein. "warten": Der Link wird noch geprüft, das Feld ist gesperrt.
+  // true: Supabase hat den Link angenommen (Ereignis PASSWORD_RECOVERY), das neue Passwort kann gesetzt werden.
+  let cloudNeuesPasswort = null;
 
   // Die Verbindung zu Supabase, erst beim ersten Gebrauch gebaut. Ohne die Bibliothek (supabase-2.117.2.js) null.
+  // Aus der Adresse liest supabase-js nur den Link „Passwort vergessen“ (type=recovery), nie einen anderen.
   function cloudClient() {
     if (!cloudVerbindung && window.supabase) {
       cloudVerbindung = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: { storageKey: CLOUD_SPEICHER, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+        auth: { storageKey: CLOUD_SPEICHER, persistSession: true, autoRefreshToken: true, detectSessionInUrl: function (adresse, werte) {
+          return werte.type === "recovery";
+        } }
+      });
+      cloudVerbindung.auth.onAuthStateChange(function (ereignis) {
+        if (ereignis === "PASSWORD_RECOVERY") {
+          cloudNeuesPasswort = true;
+          cloudAnzeigen();
+        }
       });
     }
     return cloudVerbindung;
+  }
+
+  // Die Adresse der App, dorthin führen die Links aus den Mails. Sie muss in Supabase unter
+  // Authentication → URL Configuration eingetragen sein (https://maxusoxodus.github.io/hybridslife/).
+  function cloudAdresse() {
+    return location.origin + location.pathname;
   }
 
   // Angemeldet heißt: Die Anmeldung liegt im Speicher. So stimmt die Anzeige auch ohne Netz.
@@ -15803,11 +15860,17 @@
     return txt("cloud.stand.tage", { n: tage });
   }
 
-  // Zeigt den passenden Teil der Unterseite: Anmelden (E-Mail und Passwort) oder angemeldet
+  // Zeigt den passenden Teil der Unterseite: Anmelden (E-Mail und Passwort), neues Passwort setzen oder angemeldet.
+  // Während des Links „Passwort vergessen“ liegt auch eine Anmeldung im Speicher, deshalb zählt der Link zuerst.
   function cloudAnzeigen() {
-    const an = cloudAngemeldet();
-    document.getElementById("cloud-abgemeldet").classList.toggle("versteckt", an);
+    const neu = cloudNeuesPasswort !== null;
+    const an = !neu && cloudAngemeldet();
+    document.getElementById("cloud-abgemeldet").classList.toggle("versteckt", an || neu);
+    document.getElementById("cloud-neu").classList.toggle("versteckt", !neu);
     document.getElementById("cloud-angemeldet").classList.toggle("versteckt", !an);
+    document.getElementById("cloud-setzen").disabled = cloudLaeuft || cloudNeuesPasswort !== true;
+    document.getElementById("cloud-vergessen").disabled = cloudLaeuft;
+    document.getElementById("cloud-loeschen").disabled = cloudLaeuft;
     document.getElementById("cloud-konto").textContent = cloudEmailAngemeldet();
     document.getElementById("cloud-stand").textContent = cloudStandText();
     document.getElementById("cloud-sichern").disabled = cloudLaeuft;
@@ -15881,16 +15944,23 @@
     }
     cloudMeldung("");
     cloudBeschaeftigt(true);
-    const anfrage = neu ? verbindung.auth.signUp({ email: email, password: passwort }) : verbindung.auth.signInWithPassword({ email: email, password: passwort });
+    const anfrage = neu ? verbindung.auth.signUp({ email: email, password: passwort, options: { emailRedirectTo: cloudAdresse() } }) : verbindung.auth.signInWithPassword({ email: email, password: passwort });
     anfrage.then(function (antwort) {
       cloudBeschaeftigt(false);
       if (antwort.error) {
         cloudMeldung(cloudFehlerText(antwort.error));
         return;
       }
-      // Ohne Sitzung verlangt Supabase eine Bestätigung per E-Mail („Confirm email“ ist dort noch an)
+      // Gibt es die E-Mail schon, meldet Supabase bei „Confirm email“ keinen Fehler (sonst ließe sich erraten, wer ein Konto hat),
+      // sondern einen Nutzer ohne Identitäten. Eine Mail kommt dann nicht.
+      const nutzer = antwort.data && antwort.data.user;
+      if (neu && nutzer && Array.isArray(nutzer.identities) && nutzer.identities.length === 0) {
+        cloudMeldung(txt("cloud.gibtEsSchon"));
+        return;
+      }
+      // Ohne Sitzung verlangt Supabase erst die Bestätigung per E-Mail („Confirm email“ ist an)
       if (!antwort.data || !antwort.data.session) {
-        cloudMeldung(txt("cloud.nichtBestaetigt"));
+        cloudMeldung(txt(neu ? "cloud.mailGeschickt" : "cloud.nichtBestaetigt"));
         return;
       }
       document.getElementById("cloud-feld-passwort").value = "";
@@ -16006,6 +16076,98 @@
     });
   }
 
+  // „Passwort vergessen?“: Supabase schickt eine Mail mit einem Link an die E-Mail im Feld. Ob es das Konto gibt, sagt
+  // Supabase nicht, deshalb sagt es die App auch nicht. Der Mail-Versand von Supabase hat ein kleines Limit (429, cloud.zuOft).
+  function cloudPasswortVergessen() {
+    if (cloudLaeuft) {
+      return;
+    }
+    const email = document.getElementById("cloud-feld-email").value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      cloudMeldung(txt("cloud.vergessenEmail"));
+      document.getElementById("cloud-feld-email").focus();
+      return;
+    }
+    const verbindung = cloudClient();
+    if (!verbindung) {
+      cloudMeldung(txt("cloud.keinNetz"));
+      return;
+    }
+    cloudMeldung("");
+    cloudBeschaeftigt(true);
+    verbindung.auth.resetPasswordForEmail(email, { redirectTo: cloudAdresse() }).then(function (antwort) {
+      cloudBeschaeftigt(false);
+      cloudMeldung(antwort.error ? cloudFehlerText(antwort.error) : txt("cloud.vergessenGeschickt"));
+    }).catch(function (fehler) {
+      cloudBeschaeftigt(false);
+      cloudMeldung(cloudFehlerText(fehler));
+    });
+  }
+
+  // Beim Start: Kam die App über einen Link aus einer Mail? Beim Link „Passwort vergessen“ liest supabase-js ihn
+  // (cloudClient) und die Einstellungen zeigen das Feld für das neue Passwort. Ein abgelaufener Link meldet das.
+  // Andere Links (Bestätigung der E-Mail) verschwinden nur aus der Adresse. Gibt true zurück, wenn die Einstellungen aufgehen.
+  function cloudLinkPruefen() {
+    const werte = new URLSearchParams(location.hash.slice(1));
+    if (werte.get("type") === "recovery" && werte.get("access_token")) {
+      const verbindung = cloudClient();
+      if (!verbindung) {
+        return false;
+      }
+      cloudNeuesPasswort = "warten";
+      einstOeffnen("cloud");
+      einstZeigen("cloud");
+      // Nimmt Supabase den Link nicht an, kommt kein PASSWORD_RECOVERY, sondern hier ein Fehler
+      verbindung.auth.initialize().then(function (antwort) {
+        if (antwort && antwort.error && cloudNeuesPasswort === "warten") {
+          cloudNeuesPasswort = null;
+          cloudAnzeigen();
+          cloudMeldung(txt("cloud.linkAbgelaufen"));
+        }
+      });
+      return true;
+    }
+    if (!werte.get("access_token") && !werte.get("error_code")) {
+      return false;
+    }
+    history.replaceState(null, "", location.pathname + location.search);
+    if (!werte.get("error_code")) {
+      return false;
+    }
+    einstOeffnen("cloud");
+    einstZeigen("cloud");
+    cloudMeldung(txt("cloud.linkAbgelaufen"));
+    return true;
+  }
+
+  // Setzt nach dem Link „Passwort vergessen“ das neue Passwort. Danach ist dieser Browser wieder abgemeldet:
+  // Auf dem iPhone ist das Safari, angemeldet wird in der App auf dem Homescreen.
+  function cloudPasswortSetzen() {
+    if (cloudLaeuft || cloudNeuesPasswort !== true) {
+      return;
+    }
+    const feld = document.getElementById("cloud-feld-neu");
+    if (feld.value.length < CLOUD_PASSWORT_MIN) {
+      cloudMeldung(txt("cloud.passwortKurz"));
+      return;
+    }
+    cloudMeldung("");
+    cloudBeschaeftigt(true);
+    cloudClient().auth.updateUser({ password: feld.value }).then(function (antwort) {
+      cloudBeschaeftigt(false);
+      if (antwort.error) {
+        cloudMeldung(cloudFehlerText(antwort.error));
+        return;
+      }
+      feld.value = "";
+      cloudNeuesPasswort = null;
+      cloudLokalAbmelden(txt("cloud.passwortGesetzt"));
+    }).catch(function (fehler) {
+      cloudBeschaeftigt(false);
+      cloudMeldung(cloudFehlerText(fehler));
+    });
+  }
+
   function cloudAbmeldenFragen() {
     frageZeigen(txt("cloud.abmeldenTitel"), txt("cloud.abmeldenText"), [
       { text: txt("cloud.abmelden"), art: "gefahr", aktion: cloudAbmelden },
@@ -16013,13 +16175,51 @@
     ]);
   }
 
+  function cloudLoeschenFragen() {
+    frageZeigen(txt("cloud.loeschenTitel"), txt("cloud.loeschenText"), [
+      { text: txt("cloud.loeschenJa"), art: "gefahr", aktion: cloudLoeschen },
+      { text: txt("abbrechen"), art: "leise" }
+    ]);
+  }
+
+  // Löscht das Konto und damit das Backup in der Cloud (SQL-Funktion konto_loeschen in supabase/konto-loeschen.sql).
+  // Die Daten auf dem Gerät bleiben unverändert, danach ist das Gerät abgemeldet.
+  function cloudLoeschen() {
+    const verbindung = cloudClient();
+    if (!verbindung || !cloudAngemeldet() || cloudLaeuft) {
+      return;
+    }
+    cloudMeldung("");
+    cloudBeschaeftigt(true);
+    verbindung.auth.getSession().then(function (antwort) {
+      if (!antwort.data || !antwort.data.session) {
+        throw new Error(txt("cloud.abgelaufen"));
+      }
+      return verbindung.rpc("konto_loeschen");
+    }).then(function (antwort) {
+      if (antwort.error) {
+        throw antwort.error;
+      }
+      cloudBeschaeftigt(false);
+      cloudLokalAbmelden(txt("cloud.geloescht"));
+    }).catch(function (fehler) {
+      cloudBeschaeftigt(false);
+      cloudMeldung(cloudFehlerText(fehler));
+    });
+  }
+
   // Meldet nur dieses Gerät ab. Die Daten auf dem Gerät und das Backup in der Cloud bleiben.
   function cloudAbmelden() {
+    cloudLokalAbmelden(txt("cloud.abgemeldet"));
+  }
+
+  // Vergisst die Anmeldung auf diesem Gerät und zeigt danach text. Die Daten auf dem Gerät bleiben.
+  function cloudLokalAbmelden(text) {
     const fertig = function () {
       localStorage.removeItem(CLOUD_SPEICHER);
       localStorage.removeItem("cloudZuletzt");
       cloudUebersprungen = false;
-      cloudMeldung(txt("cloud.abgemeldet"));
+      cloudMeldung(text);
       cloudAnzeigen();
       einstWerteAnzeigen();
     };
@@ -16306,7 +16506,8 @@ startMeldungenZeigen();
 
 // Neuen Nutzern bietet die Einführung beim Start den Rundgang über Home an (einfuehrung.js). Läuft noch ein Training,
 // fragt die App zuerst danach: Dann entfällt das Angebot für diesen Start und zählt nicht mit.
-if (!laufendesTraining) {
+// Kam die App über einen Link aus einer Mail (seit Version 148), stehen die Einstellungen offen, dann entfällt es auch.
+if (!cloudLinkPruefen() && !laufendesTraining) {
   einfuehrungAnbieten("home");
 }
 

@@ -49,7 +49,44 @@ pruefe("Backup-Version bleibt 12", /version: 12,/.test(app));
 pruefe("Bibliothek in der index.html vor der app.js", index.indexOf('<script src="supabase-2.117.2.js"></script>') !== -1 && index.indexOf("supabase-2.117.2.js") < index.indexOf("app.js?v="));
 pruefe("Bibliothek in DATEIEN", sw.indexOf('"supabase-2.117.2.js",') !== -1 && fs.existsSync(path.join(wurzel, "supabase-2.117.2.js")));
 pruefe("Schlüssel der Anmeldung in EINFUEHRUNG_APP_SCHLUESSEL", /"korundCloud", "cloudZuletzt"/.test(einfuehrung));
-pruefe("Anmeldung mit E-Mail und Passwort, kein Link", /signInWithPassword\(\{ email: email, password: passwort \}\)/.test(app) && /signUp\(\{ email: email, password: passwort \}\)/.test(app) && /detectSessionInUrl: false/.test(app) && !/signInWithOtp|verifyOtp/.test(app));
+pruefe("Anmeldung mit E-Mail und Passwort, kein Link", /signInWithPassword\(\{ email: email, password: passwort \}\)/.test(app) && /signUp\(\{ email: email, password: passwort, options: \{ emailRedirectTo: cloudAdresse\(\) \} \}\)/.test(app) && !/signInWithOtp|verifyOtp/.test(app));
+// Seit Version 148: Aus der Adresse liest supabase-js nur den Link „Passwort vergessen“, und der Ablauf bleibt „implicit“
+// (bei „pkce“ könnte Safari den Link aus der Mail nicht einlösen)
+pruefe("Adresse: nur der Link Passwort vergessen", /detectSessionInUrl: function \(adresse, werte\) \{\s*return werte\.type === "recovery";\s*\}/.test(app));
+pruefe("Ablauf bleibt implicit", !/flowType/.test(app));
+pruefe("Passwort vergessen mit redirectTo auf die App", /resetPasswordForEmail\(email, \{ redirectTo: cloudAdresse\(\) \}\)/.test(app) && /return location\.origin \+ location\.pathname;/.test(app));
+pruefe("Neues Passwort erst nach PASSWORD_RECOVERY", /ereignis === "PASSWORD_RECOVERY"/.test(app) && /cloudNeuesPasswort !== true/.test(app) && /updateUser\(\{ password: feld\.value \}\)/.test(app));
+pruefe("Neues Passwort mindestens CLOUD_PASSWORT_MIN Zeichen", /feld\.value\.length < CLOUD_PASSWORT_MIN/.test(app));
+pruefe("Feld für das neue Passwort ist ein Passwortfeld", /id="cloud-feld-neu" class="form-feld" type="password" autocomplete="new-password"/.test(index));
+pruefe("Text auf der Seite für das neue Passwort", /data-t="cloud\.neuErklaerung">Neues Passwort hier setzen, dann in der App wie gewohnt anmelden\.</.test(index));
+pruefe("Konto löschen über die SQL-Funktion", /verbindung\.rpc\("konto_loeschen"\)/.test(app) && /function cloudLoeschenFragen\(\)/.test(app));
+
+// Konto löschen (seit Version 148): Funktion mit den Rechten des Besitzers, die nur den eigenen Nutzer löscht.
+// Postgres gibt neue Funktionen allen (PUBLIC), deshalb erst allen und anon wegnehmen, dann nur authenticated geben.
+const loeschen = lesen("supabase/konto-loeschen.sql");
+const loeschenCode = loeschen.split("\n").filter(function (zeile) { return !/^\s*--/.test(zeile); }).join("\n");
+pruefe("Löschen: security definer", /create or replace function public\.konto_loeschen\(\)[\s\S]*security definer/.test(loeschenCode));
+pruefe("Löschen: leerer search_path", /set search_path = ''/.test(loeschenCode));
+pruefe("Löschen: nur der eigene Nutzer", /delete from auth\.users where id = auth\.uid\(\);/.test(loeschenCode) && (loeschenCode.match(/delete from/g) || []).length === 1);
+const entzug = loeschenCode.indexOf("revoke execute on function public.konto_loeschen() from public, anon;");
+const freigabe = loeschenCode.indexOf("grant execute on function public.konto_loeschen() to authenticated;");
+pruefe("Löschen: revoke von public und anon", entzug !== -1);
+pruefe("Löschen: grant nur an authenticated, nach dem revoke", freigabe > entzug && entzug !== -1);
+pruefe("Löschen: keine weitere Freigabe", (loeschenCode.match(/\bgrant\b/g) || []).length === 1);
+pruefe("Löschen: Anleitung oben in der Datei", /^-- Korund Konto löschen/.test(loeschen) && /SQL Editor/.test(loeschen.split("\n").slice(0, 3).join("\n")));
+pruefe("Backup fällt mit dem Konto weg (on delete cascade)", /references auth\.users \(id\) on delete cascade/.test(sql));
+pruefe("SQL-Dateien gehören nicht in DATEIEN", sw.indexOf(".sql") === -1);
+
+// Fehlertexte: zu viele Versuche (auch beim Mail-Versand von „Passwort vergessen“) und nicht bestätigte E-Mail
+const texte = new Function(lesen("texte.js") + "; return TEXTE;")();
+const start = app.indexOf("\n  function cloudFehlerText(");
+const cloudFehlerText = new Function("navigator", "txt", app.slice(start, app.indexOf("\n  }\n", start) + 5) + "return cloudFehlerText;")(
+  { onLine: true }, function (schluessel) { return schluessel; });
+pruefe("429 heißt zu viele Versuche", cloudFehlerText({ status: 429, message: "email rate limit exceeded" }) === "cloud.zuOft");
+pruefe("over_email_send_rate_limit heißt zu viele Versuche", cloudFehlerText({ code: "over_email_send_rate_limit", status: 429, message: "x" }) === "cloud.zuOft");
+pruefe("Nicht bestätigt", cloudFehlerText({ message: "Email not confirmed", status: 400 }) === "cloud.nichtBestaetigt");
+pruefe("Text nicht bestätigt richtet sich an Nutzer", texte["cloud.nichtBestaetigt"].de === "Bitte bestätige zuerst deine E-Mail. Schau auch im Spam-Ordner nach." && !/Supabase/.test(texte["cloud.nichtBestaetigt"].en));
+pruefe("Text nach Neues Konto erstellen", texte["cloud.mailGeschickt"].de === "Wir haben dir eine Mail geschickt. Bestätige sie und melde dich dann hier an.");
 pruefe("Passwortfeld ist ein Passwortfeld", /id="cloud-feld-passwort" class="form-feld" type="password"/.test(index));
 pruefe("Sicherung nach jedem Training", /trainingseinheitSpeichern\(t\);\n[^\n]*\n\s+cloudAutomatisch\(\);/.test(app));
 

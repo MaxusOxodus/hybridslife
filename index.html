@@ -68,11 +68,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=147">
+  <link rel="stylesheet" href="style.css?v=148">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=147">
+  <link rel="stylesheet" href="glass.css?v=148">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=147">
+  <link rel="stylesheet" href="korund.css?v=148">
 </head>
 <body>
 
@@ -1066,8 +1066,8 @@
         </div>
       </div>
 
-      <!-- Unterseite: Cloud-Backup (seit Version 146). Sichtbar ist einer der drei Teile: E-Mail eingeben, Code eingeben, angemeldet.
-           Welcher, entscheidet cloudAnzeigen in der app.js. -->
+      <!-- Unterseite: Cloud-Backup (seit Version 146). Sichtbar ist einer der drei Teile: Anmelden, neues Passwort setzen
+           (seit Version 148, nach dem Link aus der Mail „Passwort vergessen“), angemeldet. Welcher, entscheidet cloudAnzeigen in der app.js. -->
       <div id="einst-ansicht-cloud" class="einst-ansicht versteckt">
         <div id="cloud-abgemeldet">
           <p class="einst-fuss" data-t="cloud.erklaerung">Mit Anmeldung sichert Korund dein Backup nach jedem Training in der Cloud. Auf einem neuen Handy holst du es mit derselben E-Mail und deinem Passwort zurück.</p>
@@ -1077,7 +1077,14 @@
           <input id="cloud-feld-passwort" class="form-feld" type="password" autocomplete="current-password" enterkeyhint="go" placeholder="mindestens 8 Zeichen" data-t-platzhalter="cloud.passwortPlatzhalter" onkeydown="if (event.key === 'Enter') cloudAnmelden(false)">
           <button id="cloud-anmelden" class="speichern-btn" onclick="cloudAnmelden(false)" data-t="cloud.anmelden">Anmelden</button>
           <button id="cloud-registrieren" class="zweit-btn" onclick="cloudAnmelden(true)" data-t="cloud.registrieren">Neues Konto erstellen</button>
+          <button id="cloud-vergessen" class="text-btn" onclick="cloudPasswortVergessen()" data-t="cloud.vergessen">Passwort vergessen?</button>
           <p class="einst-fuss" data-t="cloud.datenschutz">Gespeichert wird dein Backup auf Servern in der EU. Nur du kannst es lesen.</p>
+        </div>
+        <div id="cloud-neu" class="versteckt">
+          <p class="einst-fuss" data-t="cloud.neuErklaerung">Neues Passwort hier setzen, dann in der App wie gewohnt anmelden.</p>
+          <label class="form-titel" for="cloud-feld-neu" data-t="cloud.neuesPasswort">Neues Passwort</label>
+          <input id="cloud-feld-neu" class="form-feld" type="password" autocomplete="new-password" enterkeyhint="done" placeholder="mindestens 8 Zeichen" data-t-platzhalter="cloud.passwortPlatzhalter" onkeydown="if (event.key === 'Enter') cloudPasswortSetzen()">
+          <button id="cloud-setzen" class="speichern-btn" onclick="cloudPasswortSetzen()" data-t="cloud.setzen">Passwort speichern</button>
         </div>
         <div id="cloud-angemeldet" class="versteckt">
           <div class="karte einst-liste">
@@ -1104,6 +1111,7 @@
           </div>
           <p class="einst-fuss" data-t="cloud.automatisch">Nach jedem Training sichert Korund von selbst. Gesichert wird dasselbe wie beim Backup-Export.</p>
           <button class="zweit-btn" onclick="cloudAbmeldenFragen()" data-t="cloud.abmelden">Abmelden</button>
+          <button id="cloud-loeschen" class="zweit-btn gefahr" onclick="cloudLoeschenFragen()" data-t="cloud.loeschen">Konto und Cloud-Backup löschen</button>
         </div>
         <p id="cloud-meldung" class="meldung form-meldung" role="status"></p>
       </div>
@@ -1237,7 +1245,7 @@
           </div>
         </div>
         <p class="einst-fuss" data-t="ueber.text">Korund ist eine Trainings-App für Krafttraining.</p>
-        <p class="einst-fuss" data-t="ueber.lokal">Alle Daten liegen lokal auf diesem Gerät.</p>
+        <p class="einst-fuss" data-t="ueber.lokal">Ohne Cloud-Backup bleiben alle Daten auf diesem Gerät.</p>
       </div>
     </div>
   </div>
@@ -1263,9 +1271,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=147"></script>
-<script src="uebungen.js?v=147"></script>
-<script src="erklaerungen.js?v=147"></script>
+<script src="texte.js?v=148"></script>
+<script src="uebungen.js?v=148"></script>
+<script src="erklaerungen.js?v=148"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1287,15 +1295,15 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=147"></script>
-<script src="bilder.js?v=147"></script>
-<script src="vorlagen.js?v=147"></script>
-<script src="figuren.js?v=147"></script>
+<script src="raenge.js?v=148"></script>
+<script src="bilder.js?v=148"></script>
+<script src="vorlagen.js?v=148"></script>
+<script src="figuren.js?v=148"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
 <!-- Supabase für das Cloud-Backup (seit Version 146). Die Version steht im Dateinamen, deshalb ohne ?v=N -->
 <script src="supabase-2.117.2.js"></script>
-<script src="app.js?v=147"></script>
+<script src="app.js?v=148"></script>
 
 </body>
 </html>

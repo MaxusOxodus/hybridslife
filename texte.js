@@ -795,8 +795,8 @@ const TEXTE = {
   "einst.blockiert": { de: "Blockierte Nutzer", en: "Blocked users" },
   "einst.bald": { de: "Bald verfügbar", en: "Available soon" },
   "einst.konto.hinweis": {
-    de: "Ein Konto mit Anmeldung gibt es noch nicht. Bis dahin liegen deine Daten nur auf diesem Gerät.",
-    en: "There is no account or sign-in yet. Until then your data only lives on this device."
+    de: "Ein Konto brauchst du nur für das Cloud-Backup. Ohne Anmeldung liegen deine Daten nur auf diesem Gerät.",
+    en: "You only need an account for the cloud backup. Without signing in, your data only lives on this device."
   },
   "einst.abo.hinweis": {
     de: "Ein Abo gibt es noch nicht. Es gibt hier also nichts zu verwalten.",
@@ -877,15 +877,15 @@ const TEXTE = {
     en: "Korund is a strength training app for the gym. Track your workouts, progress and ranks."
   },
   "ueber.lokal": {
-    de: "Alle Daten liegen lokal auf diesem Gerät. Es gibt kein Konto und keine Cloud, nichts wird an einen Server geschickt.",
-    en: "All data is stored locally on this device. There is no account and no cloud, nothing is sent to a server."
+    de: "Ohne Cloud-Backup bleiben alle Daten auf diesem Gerät. Mit Cloud-Backup liegt eine Kopie aller Daten (auch Körpergewicht, Körperfett, Profil und Einschränkungen) auf Servern in der EU. Sie wird verschlüsselt übertragen, ist nur für dich lesbar und jederzeit löschbar.",
+    en: "Without cloud backup, all data stays on this device. With cloud backup, a copy of all data (including body weight, body fat, profile and limitations) is stored on servers in the EU. It is transferred encrypted, only you can read it, and you can delete it at any time."
   },
 
   // ---------- FAQ: Die Anzahl der Fragen steht als FAQ_ANZAHL in der app.js ----------
   "faq.1.frage": { de: "Wo liegen meine Daten?", en: "Where is my data stored?" },
   "faq.1.antwort": {
-    de: "Nur auf diesem Gerät, im Speicher des Browsers. Es gibt kein Konto und keine Cloud. Achtung: Wenn du die App vom Home-Bildschirm löschst oder in Safari die Website-Daten löschst, können alle Trainings verloren gehen. Exportiere deshalb regelmäßig ein Backup.",
-    en: "Only on this device, in the browser's storage. There is no account and no cloud. Warning: if you delete the app from your Home Screen or clear the website data in Safari, all your workouts can be lost. So export a backup regularly."
+    de: "Ohne Cloud-Backup bleibt alles auf diesem Gerät, im Speicher des Browsers. Mit Cloud-Backup liegt eine Kopie aller Daten (auch Körpergewicht, Körperfett, Profil und Einschränkungen) auf Servern in der EU, verschlüsselt übertragen, nur für dich lesbar und jederzeit löschbar unter Einstellungen → Cloud-Backup. Achtung: Ohne Cloud-Backup können alle Trainings verloren gehen, wenn du die App vom Home-Bildschirm löschst oder in Safari die Website-Daten löschst. Exportiere dann regelmäßig ein Backup.",
+    en: "Without cloud backup, everything stays on this device, in the browser's storage. With cloud backup, a copy of all data (including body weight, body fat, profile and limitations) is stored on servers in the EU, transferred encrypted, readable only by you and deletable at any time under Settings → Cloud backup. Warning: without cloud backup, all your workouts can be lost if you delete the app from your Home Screen or clear the website data in Safari. In that case, export a backup regularly."
   },
   "faq.2.frage": { de: "Wie mache ich ein Backup?", en: "How do I make a backup?" },
   "faq.2.antwort": {
@@ -894,8 +894,8 @@ const TEXTE = {
   },
   "faq.3.frage": { de: "Wie ziehe ich auf ein neues iPhone um?", en: "How do I move to a new iPhone?" },
   "faq.3.antwort": {
-    de: "Exportiere auf dem alten iPhone ein Backup und sichere die Datei so, dass du auf dem neuen daran kommst, zum Beispiel in iCloud Drive. Öffne Korund auf dem neuen iPhone, tippe in den Einstellungen auf „Backup importieren“, wähle die Datei und dann „Ersetzen“. Von allein wandern die Daten nicht mit.",
-    en: "Export a backup on the old iPhone and save the file where the new one can reach it, for example in iCloud Drive. Open Korund on the new iPhone, tap “Import backup” in the settings, pick the file and choose “Replace”. The data does not move over by itself."
+    de: "Mit Cloud-Backup wandern deine Daten mit: Öffne Korund auf dem neuen iPhone, melde dich unter Einstellungen → Cloud-Backup mit derselben E-Mail und deinem Passwort an und tippe auf „Aus der Cloud holen“. Ohne Cloud-Backup wandern sie nicht von allein mit: Exportiere auf dem alten iPhone ein Backup und sichere die Datei so, dass du auf dem neuen daran kommst, zum Beispiel in iCloud Drive. Tippe dann auf dem neuen iPhone in den Einstellungen auf „Backup importieren“, wähle die Datei und dann „Ersetzen“.",
+    en: "With cloud backup, your data moves with you: open Korund on the new iPhone, sign in under Settings → Cloud backup with the same email and your password, and tap “Restore from cloud”. Without cloud backup, it does not move over by itself: export a backup on the old iPhone and save the file where the new one can reach it, for example in iCloud Drive. Then tap “Import backup” in the settings on the new iPhone, pick the file and choose “Replace”."
   },
   "faq.4.frage": { de: "Was ist der Unterschied zwischen Ergänzen und Ersetzen?", en: "What is the difference between Merge and Replace?" },
   "faq.4.antwort": {
@@ -959,7 +959,16 @@ const TEXTE = {
   "cloud.falsch": { de: "E-Mail oder Passwort stimmt nicht.", en: "Email or password is wrong." },
   "cloud.gibtEsSchon": { de: "Für diese E-Mail gibt es schon ein Konto. Tippe auf „Anmelden“.", en: "There is already an account for this email. Tap “Sign in”." },
   "cloud.passwortKurz": { de: "Das Passwort braucht mindestens 8 Zeichen.", en: "The password needs at least 8 characters." },
-  "cloud.nichtBestaetigt": { de: "Supabase verlangt noch eine Bestätigung per E-Mail. Schalte dort „Confirm email“ aus und versuch es noch mal.", en: "Supabase still asks for email confirmation. Turn off “Confirm email” there and try again." },
+  "cloud.nichtBestaetigt": { de: "Bitte bestätige zuerst deine E-Mail. Schau auch im Spam-Ordner nach.", en: "Please confirm your email first. Check your spam folder too." },
+  "cloud.mailGeschickt": { de: "Wir haben dir eine Mail geschickt. Bestätige sie und melde dich dann hier an.", en: "We sent you an email. Confirm it, then sign in here." },
+  "cloud.vergessen": { de: "Passwort vergessen?", en: "Forgot password?" },
+  "cloud.vergessenEmail": { de: "Gib oben deine E-Mail ein und tippe dann noch mal auf „Passwort vergessen?“.", en: "Enter your email above, then tap “Forgot password?” again." },
+  "cloud.vergessenGeschickt": { de: "Gibt es zu dieser E-Mail ein Konto, kommt gleich eine Mail mit einem Link. Auf dem iPhone öffnet er sich in Safari: Setz dort dein neues Passwort und melde dich dann hier an.", en: "If there is an account for this email, a mail with a link is on its way. On iPhone it opens in Safari: set your new password there, then sign in here." },
+  "cloud.neuErklaerung": { de: "Neues Passwort hier setzen, dann in der App wie gewohnt anmelden.", en: "Set your new password here, then sign in to the app as usual." },
+  "cloud.neuesPasswort": { de: "Neues Passwort", en: "New password" },
+  "cloud.setzen": { de: "Passwort speichern", en: "Save password" },
+  "cloud.passwortGesetzt": { de: "Passwort geändert. Melde dich jetzt in der App mit dem neuen Passwort an.", en: "Password changed. Now sign in to the app with your new password." },
+  "cloud.linkAbgelaufen": { de: "Der Link aus der Mail ist abgelaufen oder wurde schon benutzt. Fordere in der App einen neuen an.", en: "The link from the email has expired or was already used. Request a new one in the app." },
   "cloud.email": { de: "E-Mail", en: "Email" },
   "cloud.emailPlatzhalter": { de: "name@beispiel.de", en: "name@example.com" },
   "cloud.datenschutz": { de: "Gespeichert wird dein Backup auf Servern in der EU. Nur du kannst es lesen.", en: "Your backup is stored on servers in the EU. Only you can read it." },
@@ -972,6 +981,11 @@ const TEXTE = {
   "cloud.abmeldenTitel": { de: "Abmelden?", en: "Sign out?" },
   "cloud.abmeldenText": { de: "Deine Daten bleiben auf diesem Gerät und dein Backup in der Cloud. Nach dem Abmelden sichert Korund nicht mehr automatisch.", en: "Your data stays on this device and your backup stays in the cloud. After signing out, Korund no longer backs up automatically." },
   "cloud.abgemeldet": { de: "Abgemeldet.", en: "Signed out." },
+  "cloud.loeschen": { de: "Konto und Cloud-Backup löschen", en: "Delete account and cloud backup" },
+  "cloud.loeschenTitel": { de: "Konto löschen?", en: "Delete account?" },
+  "cloud.loeschenText": { de: "Dein Konto und dein Backup in der Cloud werden endgültig gelöscht. Die Daten auf diesem Handy bleiben erhalten, danach bist du abgemeldet.", en: "Your account and your cloud backup will be deleted for good. The data on this phone stays, and you will be signed out." },
+  "cloud.loeschenJa": { de: "Endgültig löschen", en: "Delete for good" },
+  "cloud.geloescht": { de: "Konto und Cloud-Backup sind gelöscht. Die Daten auf diesem Handy sind noch da.", en: "Account and cloud backup are deleted. The data on this phone is still here." },
   "cloud.stand.nie": { de: "Noch nicht gesichert", en: "Not backed up yet" },
   "cloud.stand.heute": { de: "Gesichert: heute, {zeit}", en: "Backed up: today, {zeit}" },
   "cloud.stand.gestern": { de: "Gesichert: gestern, {zeit}", en: "Backed up: yesterday, {zeit}" },

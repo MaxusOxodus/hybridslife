@@ -877,15 +877,15 @@ const TEXTE = {
     en: "Korund is a strength training app for the gym. Track your workouts, progress and ranks."
   },
   "ueber.lokal": {
-    de: "Ohne Cloud-Backup bleiben alle Daten auf diesem Gerät. Mit Cloud-Backup liegt eine Kopie aller Daten (auch Körpergewicht, Körperfett, Profil und Einschränkungen) auf Servern in der EU. Sie wird verschlüsselt übertragen, ist nur für dich lesbar und jederzeit löschbar.",
-    en: "Without cloud backup, all data stays on this device. With cloud backup, a copy of all data (including body weight, body fat, profile and limitations) is stored on servers in the EU. It is transferred encrypted, only you can read it, and you can delete it at any time."
+    de: "Ohne Cloud-Backup bleiben alle Daten auf diesem Gerät. Mit Cloud-Backup liegt eine Kopie aller Daten (auch Körpergewicht, Körperfett, Profil und Einschränkungen) auf Servern in der EU. Das Cloud-Backup wird verschlüsselt übertragen und ist jederzeit löschbar. Andere Nutzer können es nicht lesen.",
+    en: "Without cloud backup, all data stays on this device. With cloud backup, a copy of all data (including body weight, body fat, profile and limitations) is stored on servers in the EU. The cloud backup is transferred encrypted and can be deleted at any time. Other users cannot read it."
   },
 
   // ---------- FAQ: Die Anzahl der Fragen steht als FAQ_ANZAHL in der app.js ----------
   "faq.1.frage": { de: "Wo liegen meine Daten?", en: "Where is my data stored?" },
   "faq.1.antwort": {
-    de: "Ohne Cloud-Backup bleibt alles auf diesem Gerät, im Speicher des Browsers. Mit Cloud-Backup liegt eine Kopie aller Daten (auch Körpergewicht, Körperfett, Profil und Einschränkungen) auf Servern in der EU, verschlüsselt übertragen, nur für dich lesbar und jederzeit löschbar unter Einstellungen → Cloud-Backup. Achtung: Ohne Cloud-Backup können alle Trainings verloren gehen, wenn du die App vom Home-Bildschirm löschst oder in Safari die Website-Daten löschst. Exportiere dann regelmäßig ein Backup.",
-    en: "Without cloud backup, everything stays on this device, in the browser's storage. With cloud backup, a copy of all data (including body weight, body fat, profile and limitations) is stored on servers in the EU, transferred encrypted, readable only by you and deletable at any time under Settings → Cloud backup. Warning: without cloud backup, all your workouts can be lost if you delete the app from your Home Screen or clear the website data in Safari. In that case, export a backup regularly."
+    de: "Ohne Cloud-Backup bleibt alles auf diesem Gerät, im Speicher des Browsers. Mit Cloud-Backup liegt eine Kopie aller Daten (auch Körpergewicht, Körperfett, Profil und Einschränkungen) auf Servern in der EU. Das Cloud-Backup wird verschlüsselt übertragen und ist jederzeit löschbar unter Einstellungen → Cloud-Backup. Andere Nutzer können es nicht lesen. Achtung: Ohne Cloud-Backup können alle Trainings verloren gehen, wenn du die App vom Home-Bildschirm löschst oder in Safari die Website-Daten löschst. Exportiere dann regelmäßig ein Backup.",
+    en: "Without cloud backup, everything stays on this device, in the browser's storage. With cloud backup, a copy of all data (including body weight, body fat, profile and limitations) is stored on servers in the EU. The cloud backup is transferred encrypted and can be deleted at any time under Settings → Cloud backup. Other users cannot read it. Warning: without cloud backup, all your workouts can be lost if you delete the app from your Home Screen or clear the website data in Safari. In that case, export a backup regularly."
   },
   "faq.2.frage": { de: "Wie mache ich ein Backup?", en: "How do I make a backup?" },
   "faq.2.antwort": {
@@ -971,7 +971,7 @@ const TEXTE = {
   "cloud.linkAbgelaufen": { de: "Der Link aus der Mail ist abgelaufen oder wurde schon benutzt. Fordere in der App einen neuen an.", en: "The link from the email has expired or was already used. Request a new one in the app." },
   "cloud.email": { de: "E-Mail", en: "Email" },
   "cloud.emailPlatzhalter": { de: "name@beispiel.de", en: "name@example.com" },
-  "cloud.datenschutz": { de: "Gespeichert wird dein Backup auf Servern in der EU. Nur du kannst es lesen.", en: "Your backup is stored on servers in the EU. Only you can read it." },
+  "cloud.datenschutz": { de: "Gespeichert wird dein Backup auf Servern in der EU. Andere Nutzer können es nicht lesen.", en: "Your backup is stored on servers in the EU. Other users cannot read it." },
   "cloud.anmelden": { de: "Anmelden", en: "Sign in" },
   "cloud.angemeldetAls": { de: "Angemeldet als", en: "Signed in as" },
   "cloud.jetzt": { de: "Jetzt sichern", en: "Back up now" },

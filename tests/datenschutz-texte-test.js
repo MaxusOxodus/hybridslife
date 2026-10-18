@@ -53,8 +53,16 @@ Object.keys(TEXTE).filter(function (k) {
   pruefe(k + ": ohne Cloud-Backup auf dem Gerät", /Ohne Cloud-Backup/.test(t.de) && /[Ww]ithout cloud backup/.test(t.en));
   pruefe(k + ": Server in der EU", /in der EU/.test(t.de) && /in the EU/.test(t.en));
   pruefe(k + ": alle Daten samt Körperdaten", /Körpergewicht, Körperfett, Profil und Einschränkungen/.test(t.de) && /body weight, body fat, profile and limitations/.test(t.en));
-  pruefe(k + ": verschlüsselt, nur für dich, löschbar", /verschlüsselt/.test(t.de) && /nur für dich lesbar/.test(t.de) && /löschbar/.test(t.de) && /encrypted/.test(t.en) && /only (by )?you/.test(t.en) && /delete/.test(t.en));
+  pruefe(k + ": verschlüsselt, löschbar, andere Nutzer können es nicht lesen", /verschlüsselt/.test(t.de) && /löschbar/.test(t.de) && /Andere Nutzer können es nicht lesen\./.test(t.de) && /encrypted/.test(t.en) && /deleted/.test(t.en) && /Other users cannot read it\./.test(t.en));
 });
+// Die App verspricht nicht, dass nur der Nutzer die Daten lesen kann (der Besitzer des Supabase-Projekts kann es),
+// sondern nur, dass andere Nutzer sie nicht lesen können
+pruefe("cloud.datenschutz: andere Nutzer können es nicht lesen", TEXTE["cloud.datenschutz"].de === "Gespeichert wird dein Backup auf Servern in der EU. Andere Nutzer können es nicht lesen." && TEXTE["cloud.datenschutz"].en === "Your backup is stored on servers in the EU. Other users cannot read it.");
+dateien.forEach(function (datei) {
+  pruefe(datei + " verspricht nicht „nur du kannst es lesen“", !/nur du kannst|nur für dich lesbar|only you can read|readable only by you/i.test(lesen(datei)));
+});
+const cloudErsatz = /data-t="cloud\.datenschutz">([^<]*)</.exec(lesen("index.html"));
+pruefe("Ersatztext cloud.datenschutz in der index.html passt", !!cloudErsatz && cloudErsatz[1] === TEXTE["cloud.datenschutz"].de);
 pruefe("faq.3.antwort: mit Cloud-Backup wandern die Daten mit", /Mit Cloud-Backup wandern deine Daten mit/.test(TEXTE["faq.3.antwort"].de) && /With cloud backup, your data moves with you/.test(TEXTE["faq.3.antwort"].en));
 pruefe("faq.3.antwort: ohne nicht", /Ohne Cloud-Backup wandern sie nicht von allein mit/.test(TEXTE["faq.3.antwort"].de) && /Without cloud backup, it does not move over by itself/.test(TEXTE["faq.3.antwort"].en));
 

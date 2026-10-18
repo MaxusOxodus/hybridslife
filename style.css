@@ -5641,6 +5641,24 @@ button.einst-zeile:first-child {
   color: var(--text);
 }
 
+/* Mit Video (seit Version 162): die Kachel wird groß und quadratisch, das Video füllt sie ganz aus */
+.erklaerung-bild.mit-video {
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  overflow: hidden;
+  background: #0b0c0e;
+}
+
+.erklaerung-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Ein Schritt: große Nummer links, rechts fetter Titel und der Text. Alles bricht um, nichts wird abgeschnitten. */
 .erklaerung-schritt,
 .erklaerung-box {

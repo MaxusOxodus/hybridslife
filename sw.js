@@ -2,7 +2,7 @@
 
 // Dieselbe Nummer wie bei style.css?v=N, texte.js?v=N, uebungen.js?v=N, raenge.js?v=N, bilder.js?v=N und app.js?v=N in der index.html.
 // Erst wenn sich diese Zahl ändert, bemerkt der Browser eine neue Version.
-const VERSION = 161;
+const VERSION = 162;
 
 const CACHE = "gymstead-v" + VERSION;
 
@@ -39,6 +39,7 @@ const DATEIEN = [
   "erklaerungen-ganzkoerper.js",
   "raenge.js?v=" + VERSION,
   "bilder.js?v=" + VERSION,
+  "uebungsvideos.js",
   "vorlagen.js?v=" + VERSION,
   "figuren.js?v=" + VERSION,
   "einfuehrung.js",
@@ -90,8 +91,9 @@ self.addEventListener("message", function (ereignis) {
 self.addEventListener("fetch", function (ereignis) {
   const anfrage = ereignis.request;
   const adresse = new URL(anfrage.url);
-  // Das Gym-Spiel unter spiel/ ist eine eigene Seite und kommt immer aus dem Netz
-  if (anfrage.method !== "GET" || adresse.origin !== self.location.origin || adresse.pathname.includes("/spiel/")) {
+  // Das Gym-Spiel unter spiel/ ist eine eigene Seite und kommt immer aus dem Netz.
+  // Die Übungsvideos unter videos/ auch: Sie sind zu groß für den Cache, und Safari lädt Videos in Stücken (Range).
+  if (anfrage.method !== "GET" || adresse.origin !== self.location.origin || adresse.pathname.includes("/spiel/") || adresse.pathname.includes("/videos/")) {
     return;
   }
 

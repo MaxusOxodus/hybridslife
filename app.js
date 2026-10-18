@@ -9283,6 +9283,30 @@
     zusatzSheetOeffnen("erklaerung-sheet");
   }
 
+  // Das Video einer Übung für die Erklärung (seit Version 162): läuft stumm in Schleife, die Figur kommt aus dem Profil.
+  // Kann der Browser MP4 nicht abspielen, nimmt er die WebM-Datei. Bis das Video da ist, steht das Standbild.
+  function uebungsVideo(eid) {
+    const datei = "videos/" + eid + "-" + videoFigur(profil.geschlecht);
+    const video = document.createElement("video");
+    video.className = "erklaerung-video";
+    video.muted = true;
+    video.loop = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("preload", "auto");
+    video.poster = datei + ".webp";
+    const mp4 = document.createElement("source");
+    mp4.src = datei + ".mp4";
+    mp4.type = "video/mp4";
+    const webm = document.createElement("source");
+    webm.src = datei + ".webm";
+    webm.type = "video/webm";
+    video.appendChild(mp4);
+    video.appendChild(webm);
+    return video;
+  }
+
   // Öffnet die Erklärung: Name oben, darunter das Bild, die Schritte und die schmalen Boxen.
   // Gibt es keine, passiert nichts. Nur mit auchOhne (die Bibliothek) öffnet sich das Sheet mit einem Hinweis.
   function erklaerungOeffnen(id, name, auchOhne) {
@@ -9301,7 +9325,12 @@
     inhalt.scrollTop = 0;
     const bild = element("div", "erklaerung-bild");
     bild.setAttribute("aria-hidden", "true");
-    bild.innerHTML = uebungsBild(eid);
+    if (UEBUNGSVIDEOS.indexOf(eid) !== -1) {
+      bild.classList.add("mit-video");
+      bild.appendChild(uebungsVideo(eid));
+    } else {
+      bild.innerHTML = uebungsBild(eid);
+    }
     inhalt.appendChild(bild);
 
     const schritte = daten.schritte[sprache] || daten.schritte.de;

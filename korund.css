@@ -8382,3 +8382,87 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen-knopf.runter[aria-pressed="true"] { border-color: rgba(255, 112, 112, 0.6); background: rgba(255, 112, 112, 0.15); color: #FF8A80; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen-knopf[aria-pressed="true"] svg { animation: korund-pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
 }
+
+
+/* ---------- Statistik, lila Kraftrang, grüne Veränderungen (seit Version 155) ---------- */
+@keyframes korund-wachsen-hoch { from { transform: scaleY(0); } to { transform: none; } }
+@keyframes korund-wachsen-breit { from { transform: scaleX(0); } to { transform: none; } }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-svg { --akzent: #A98BFF; --akzent-text: #A98BFF; --akzent-leicht: rgba(169, 139, 255, 0.16); --auf-akzent: #1A1230; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-svg.farbe-3 .form { fill: #A98BFF; stroke: #A98BFF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-balken div { background: #A98BFF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-serie { padding: 18px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-serie-kopf { display: flex; align-items: center; gap: 14px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-serie-kopf .status-symbol { display: grid; place-items: center; width: 48px; height: 48px; flex: none; border-radius: 50%; background: rgba(255, 159, 69, 0.15); color: #FF9F45; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-serie-kopf .status-symbol svg { width: 24px; height: 24px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-serie-zahl { display: flex; align-items: baseline; gap: 2px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-serie-zahl b { font-size: 30px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-serie-zahl span { color: var(--text-leise); font-size: 15px; font-weight: 600; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-serie-text .seiten-klein { margin-top: 4px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-serie-wochen { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 18px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche-balken { position: relative; width: 100%; height: 34px; border-radius: 8px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche-balken::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--anteil, 0) * 100%); border-radius: 8px; background: rgba(255, 159, 69, 0.45); transform-origin: bottom; animation: korund-wachsen-hoch 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche.voll .statistik-woche-balken::after { background: #FF9F45; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche.jetzt .statistik-woche-balken { box-shadow: inset 0 0 0 1.5px rgba(255, 159, 69, 0.7); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche-name { color: var(--text-aus); font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche.jetzt .statistik-woche-name { color: #FF9F45; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche-kacheln { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; margin: 0; padding: 14px 12px; animation: korund-karte-rein 0.4s ease both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel .status-symbol { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 8px; border-radius: 50%; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel .status-symbol svg { width: 18px; height: 18px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.farbe-blau .status-symbol { background: rgba(110, 168, 255, 0.15); color: #7EB0FF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.farbe-tuerkis .status-symbol { background: rgba(95, 212, 196, 0.15); color: #5FD4C4; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.farbe-lila .status-symbol { background: rgba(169, 139, 255, 0.16); color: #A98BFF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-wert { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-wert span { color: var(--text-leise); font-size: 13px; font-weight: 600; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel .seiten-klein { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-balken { width: 100%; height: 4px; margin-top: 10px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-balken span { display: block; height: 100%; border-radius: 2px; transform-origin: left; animation: korund-wachsen-breit 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;  }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.farbe-blau .statistik-kachel-balken span { background: #7EB0FF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.farbe-tuerkis .statistik-kachel-balken span { background: #5FD4C4; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.farbe-lila .statistik-kachel-balken span { background: #A98BFF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.erreicht .statistik-kachel-balken span { background: var(--fw-erfolg); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-ziel { margin-top: 6px; color: var(--text-aus); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.erreicht .statistik-kachel-ziel { color: var(--fw-erfolg); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .kachel-delta .plus { color: var(--fw-erfolg); }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-svg { --akzent: #A98BFF; --akzent-text: #A98BFF; --akzent-leicht: rgba(169, 139, 255, 0.16); --auf-akzent: #1A1230; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-svg.farbe-3 .form { fill: #A98BFF; stroke: #A98BFF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-balken div { background: #A98BFF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-serie { padding: 18px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-serie-kopf { display: flex; align-items: center; gap: 14px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-serie-kopf .status-symbol { display: grid; place-items: center; width: 48px; height: 48px; flex: none; border-radius: 50%; background: rgba(255, 159, 69, 0.15); color: #FF9F45; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-serie-kopf .status-symbol svg { width: 24px; height: 24px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-serie-zahl { display: flex; align-items: baseline; gap: 2px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-serie-zahl b { font-size: 30px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-serie-zahl span { color: var(--text-leise); font-size: 15px; font-weight: 600; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-serie-text .seiten-klein { margin-top: 4px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-serie-wochen { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 18px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche-balken { position: relative; width: 100%; height: 34px; border-radius: 8px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche-balken::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--anteil, 0) * 100%); border-radius: 8px; background: rgba(255, 159, 69, 0.45); transform-origin: bottom; animation: korund-wachsen-hoch 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche.voll .statistik-woche-balken::after { background: #FF9F45; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche.jetzt .statistik-woche-balken { box-shadow: inset 0 0 0 1.5px rgba(255, 159, 69, 0.7); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche-name { color: var(--text-aus); font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche.jetzt .statistik-woche-name { color: #FF9F45; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche-kacheln { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; margin: 0; padding: 14px 12px; animation: korund-karte-rein 0.4s ease both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel .status-symbol { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 8px; border-radius: 50%; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel .status-symbol svg { width: 18px; height: 18px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.farbe-blau .status-symbol { background: rgba(110, 168, 255, 0.15); color: #7EB0FF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.farbe-tuerkis .status-symbol { background: rgba(95, 212, 196, 0.15); color: #5FD4C4; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.farbe-lila .status-symbol { background: rgba(169, 139, 255, 0.16); color: #A98BFF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-wert { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-wert span { color: var(--text-leise); font-size: 13px; font-weight: 600; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel .seiten-klein { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-balken { width: 100%; height: 4px; margin-top: 10px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-balken span { display: block; height: 100%; border-radius: 2px; transform-origin: left; animation: korund-wachsen-breit 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;  }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.farbe-blau .statistik-kachel-balken span { background: #7EB0FF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.farbe-tuerkis .statistik-kachel-balken span { background: #5FD4C4; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.farbe-lila .statistik-kachel-balken span { background: #A98BFF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.erreicht .statistik-kachel-balken span { background: var(--fw-erfolg); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-ziel { margin-top: 6px; color: var(--text-aus); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.erreicht .statistik-kachel-ziel { color: var(--fw-erfolg); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kachel-delta .plus { color: var(--fw-erfolg); }
+}

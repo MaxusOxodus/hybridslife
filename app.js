@@ -7034,6 +7034,8 @@
 
   // Nur im Look Korund zu sehen (seit Version 143): die Veränderung im Zeitraum des kleinen Diagramms, z. B. "+4,5 kg seit 19.9."
   // plus färbt einen Anstieg grün (bei der Kraft), beim Körpergewicht bleibt der Text leise.
+  // plus: true = mehr ist gut (Kraft), "koerper" = Körpergewicht (seit Version 155 im Look Korund grün in Richtung des Ziels,
+  // ohne Ziel jede Veränderung)
   function kachelDelta(flaeche, punkte, plus) {
     if (punkte.length < 2) {
       return;
@@ -7042,10 +7044,27 @@
     const gerundet = Math.round(unterschied * 10) / 10;
     const zeichen = gerundet > 0 ? "+" : gerundet < 0 ? "−" : "±";
     const zeile = element("div", "kachel-delta");
-    const wert = element("span", plus && gerundet > 0 ? "plus" : "", zeichen + zahlText(Math.abs(gerundet)) + " " + einheit());
+    let gut = plus === true && gerundet > 0;
+    if (plus === "koerper" && lookKorund()) {
+      const ziel = zielGewicht();
+      gut = gewichtGuteRichtung(gewichtAnzeige(punkte[0].wert), gerundet, ziel === null ? null : gewichtAnzeige(ziel));
+    }
+    const wert = element("span", gut ? "plus" : "", zeichen + zahlText(Math.abs(gerundet)) + " " + einheit());
     zeile.appendChild(wert);
     zeile.appendChild(document.createTextNode(" " + txt("home.seit", { datum: datumKurz(punkte[0].zeit) })));
     flaeche.appendChild(zeile);
+  }
+
+  // Ist eine Veränderung des Körpergewichts gut (grün)? Mit Ziel: in Richtung des Ziels. Ohne Ziel: jede Veränderung (Wunsch Maxi,
+  // seit Version 155). Keine Veränderung ist nie grün. anfang und ziel in derselben Einheit wie unterschied.
+  function gewichtGuteRichtung(anfang, unterschied, ziel) {
+    if (!unterschied) {
+      return false;
+    }
+    if (ziel === null || ziel === undefined) {
+      return true;
+    }
+    return Math.sign(unterschied) === Math.sign(ziel - anfang);
   }
 
   // Baut eine der zwei quadratischen Kacheln auf Home in den Bereich. Die ganze Fläche ist ein Button (beimTipp).
@@ -7083,7 +7102,7 @@
     }
     const letzte = liste[liste.length - 1];
     flaeche.appendChild(element("div", "home-zahl", kgText(letzte.wert)));
-    kachelDelta(flaeche, miniZeitraum(liste), false);
+    kachelDelta(flaeche, miniZeitraum(liste), "koerper");
 
     // Das kleine Diagramm zeigt wie das große die Messungen und ihren 7-Tage-Schnitt.
     // Der Schnitt rechnet immer mit allen Messungen, auch mit denen vor dem gezeigten Zeitraum.
@@ -10720,7 +10739,8 @@
       const unterschied = Math.round((wert - anfang) * 10) / 10;
       const zeichen = unterschied > 0 ? "+" : unterschied < 0 ? "−" : "±";
       const zielWert = kennung === "kg" && zielGewicht() !== null ? messWert(art, zielGewicht()) : null;
-      const richtung = zielWert !== null && unterschied !== 0 && Math.sign(unterschied) === Math.sign(zielWert - anfang);
+      // Seit Version 155: Körpergewicht grün in Richtung des Ziels, ohne Ziel jede Veränderung; Körperfett grün, wenn es sinkt
+      const richtung = kennung === "kg" ? gewichtGuteRichtung(anfang, unterschied, zielWert) : unterschied < 0;
       const betrag = element("span", "mess-delta" + (richtung ? " plus" : ""), zeichen + art.text(Math.abs(unterschied)));
       info.appendChild(betrag);
       const rest = txt("gruppen.in." + zeitraum, { wert: "" }).trim();
@@ -13506,6 +13526,10 @@
 
   // Statistik: die Serie und die Zahlen der laufenden Woche, alles in der gewählten Einheit
   function profilStatistikAnzeigen(inhalt) {
+    if (lookKorund()) {
+      profilStatistikKorund(inhalt);
+      return;
+    }
     const serie = element("div", "karte");
     serie.appendChild(element("div", "routine-name", txtAnzahl("profil.serieText", gesamtZahlen().serie)));
     serie.appendChild(element("div", "routine-info", txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE })));
@@ -13516,6 +13540,68 @@
     const woche = element("div", "karte");
     woche.appendChild(wochenZahlenFeld(wochenZahlen(profilTage, montagDerWoche(new Date()))));
     inhalt.appendChild(woche);
+  }
+
+  // Look Korund (seit Version 155): Serie mit Flamme und den letzten 8 Wochen, darunter „Diese Woche“ als drei Kacheln
+  // mit Symbol, Wert, Ziel und Balken. Dieselben Zahlen wie bisher (gesamtZahlen, wochenZahlen, wochenRingDaten).
+  const STATISTIK_SERIE_WOCHEN = 8;
+
+  function profilStatistikKorund(inhalt) {
+    const montag = montagDerWoche(new Date());
+    const serie = gesamtZahlen().serie;
+    const karte = element("div", "karte statistik-serie");
+    const kopf = element("div", "statistik-serie-kopf");
+    const flamme = element("span", "status-symbol");
+    flamme.innerHTML = symbolSvg("flamme");
+    kopf.appendChild(flamme);
+    const text = element("div", "statistik-serie-text");
+    const zahl = element("div", "statistik-serie-zahl");
+    zahl.appendChild(element("b", "", String(serie)));
+    zahl.appendChild(element("span", "", " " + txt(serie === 1 ? "statistik.serieWoche" : "statistik.serieWochen")));
+    text.appendChild(zahl);
+    text.appendChild(element("div", "seiten-klein", txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE })));
+    kopf.appendChild(text);
+    karte.appendChild(kopf);
+    // Die letzten Wochen, die älteste links, diese Woche rechts. Voll: Ziel der Serie erreicht, halb: trainiert, aber zu wenig.
+    const wochen = element("div", "statistik-serie-wochen");
+    for (let i = STATISTIK_SERIE_WOCHEN - 1; i >= 0; i--) {
+      const m = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7 * i);
+      const n = wochenZahlen(profilTage, m).workouts;
+      const woche = element("div", "statistik-woche" + (n >= SERIE_TAGE_PRO_WOCHE ? " voll" : n > 0 ? " halb" : "") + (i === 0 ? " jetzt" : ""));
+      const balken = element("span", "statistik-woche-balken");
+      balken.style.setProperty("--anteil", Math.min(1, n / SERIE_TAGE_PRO_WOCHE));
+      woche.appendChild(balken);
+      woche.appendChild(element("span", "statistik-woche-name", i === 0 ? txt("statistik.jetzt") : String(kalenderwoche(m))));
+      woche.setAttribute("aria-label", txt("statistik.wocheAria", { kw: kalenderwoche(m), n: n }));
+      wochen.appendChild(woche);
+    }
+    karte.appendChild(wochen);
+    inhalt.appendChild(karte);
+
+    inhalt.appendChild(element("h2", "abschnitt", txt("home.dieseWoche")));
+    const daten = wochenRingDaten(wochenZahlen(profilTage, montag));
+    const kacheln = element("div", "statistik-woche-kacheln");
+    [["workouts", "hantel", "blau"], ["wdh", "wiederholen", "tuerkis"], ["volumen", "gewicht", "lila"]].forEach(function (k) {
+      const d = daten[k[0]];
+      const kachel = element("div", "karte statistik-kachel farbe-" + k[2] + (d.erreicht ? " erreicht" : ""));
+      const symbol = element("span", "status-symbol");
+      symbol.innerHTML = symbolSvg(k[1]);
+      kachel.appendChild(symbol);
+      const wert = element("div", "statistik-kachel-wert", d.wertText);
+      if (k[0] === "volumen") {
+        wert.appendChild(element("span", "", " " + d.einheit));
+      }
+      kachel.appendChild(wert);
+      kachel.appendChild(element("div", "seiten-klein", d.name));
+      const balken = element("div", "statistik-kachel-balken");
+      const fuellung = element("span");
+      fuellung.style.width = Math.min(100, Math.round(d.wert / d.ziel * 100)) + "%";
+      balken.appendChild(fuellung);
+      kachel.appendChild(balken);
+      kachel.appendChild(element("div", "statistik-kachel-ziel", d.von));
+      kacheln.appendChild(kachel);
+    });
+    inhalt.appendChild(kacheln);
   }
 
   // Abzeichen: der Gesamt-Kraftrang, der Konstanz-Rang, die sechs Bewegungsmuster und die Abzeichen.
@@ -15840,6 +15926,8 @@
     pfeilRunter: '<path d="M12 5v14M6 13l6 6 6-6"/>',
     haken: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
     pfeilHoch: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+    wiederholen: '<path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5"/><path d="M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5"/><path d="M4 20v-4.5h4.5"/>',
+    gewicht: '<path d="M6 8h12l2 12H4L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
     pokal: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
     daumenHoch: '<path d="M7 11v9H4v-9h3z"/><path d="M7 11l4-7a2 2 0 0 1 3 2l-1 4h5a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 16.8 20H7"/>',
     daumenRunter: '<path d="M7 13V4H4v9h3z"/><path d="M7 13l4 7a2 2 0 0 0 3-2l-1-4h5a2 2 0 0 0 2-2.3l-1.2-6A2 2 0 0 0 16.8 4H7"/>'

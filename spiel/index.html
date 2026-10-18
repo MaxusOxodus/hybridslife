@@ -76,6 +76,16 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
 .karte:active { transform: scale(.97); }
 .karte .k-symbol { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 4px; background: rgba(var(--akzent-rgb), .12); color: var(--akzent); }
 .karte .k-symbol svg { width: 19px; height: 19px; }
+.k-bild { position: relative; aspect-ratio: 4 / 3; margin: -4px -4px 6px; border-radius: 13px; overflow: hidden; background: radial-gradient(90% 80% at 50% 35%, rgba(126,140,170,.16), rgba(255,255,255,.02) 70%); display: grid; place-items: center; color: var(--aus); }
+.k-bild svg { width: 26px; height: 26px; }
+.k-bild img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .3s; }
+.k-bild img.da { opacity: 1; }
+.k-bild .k-marke { position: absolute; left: 8px; top: 8px; font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 7px; background: rgba(7,8,11,.7); color: var(--leise); }
+.karte.gesperrt .k-bild img { filter: grayscale(1) brightness(.7); }
+.rueck { align-self: center; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 19px; border: 1px solid var(--kante); background: var(--glas-fest); color: var(--text); font-weight: 700; font-size: 13.5px; cursor: pointer; animation: rein .25s cubic-bezier(.2,.8,.2,1); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.rueck svg { width: 15px; height: 15px; transform: scaleX(-1); }
+.zeige-name { position: fixed; z-index: 7; pointer-events: none; padding: 6px 10px; border-radius: 10px; background: var(--glas-fest); border: 1px solid var(--kante); font-size: 12.5px; font-weight: 650; transform: translate(14px, 14px); white-space: nowrap; }
+.zeige-name span { color: var(--leise); font-weight: 500; margin-left: 6px; }
 .karte .k-name { font-weight: 680; font-size: 14px; }
 .karte .k-info { color: var(--leise); font-size: 12px; line-height: 1.35; }
 .karte .k-preis { margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; font-weight: 750; font-size: 13px; font-variant-numeric: tabular-nums; }
@@ -193,6 +203,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   </div>
 
   <div class="unten">
+    <div id="rueck-platz" style="display:flex;justify-content:center"></div>
     <div id="ueber-reiter"></div>
     <div class="hinweis" id="hinweis">Ziehen zum Drehen · Tippen auf ein Gerät</div>
     <div class="reiter" id="reiter" role="tablist"></div>
@@ -258,22 +269,22 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   ];
   // fp = Fläche in Rasterfeldern (je 0,5 m), gruppen = welche Partien es zum Glänzen bringen, wert = Ausstrahlung
   const KATALOG = [
-    { key: "rack", farbe: 0x18191d, name: "Power Rack", kat: "frei", preis: 0, fp: [3, 3], gruppen: ["beine", "brust"], wert: 60, text: "Kniebeuge, Bankdrücken" },
-    { key: "bank", farbe: 0x18191d, polster: 0x5e1a24, name: "Hantelbank", kat: "frei", preis: 0, fp: [1, 3], gruppen: ["brust"], wert: 30, text: "Bankdrücken, Rudern" },
-    { key: "kh", farbe: 0x18191d, name: "Kurzhantel-Ablage", kat: "frei", preis: 0, fp: [2, 4], gruppen: ["schultern", "arme"], wert: 40, text: "Schulterdrücken, Curls" },
-    { key: "scheiben", farbe: 0x18191d, name: "Hantelscheiben-Baum", kat: "frei", preis: 120, fp: [2, 2], gruppen: [], wert: 20, text: "Ordnung im Gym, Deko mit Gewicht" },
-    { key: "schraeg", farbe: 0x18191d, polster: 0x1c1e22, name: "Schrägbank", kat: "frei", preis: 180, fp: [2, 3], gruppen: ["brust", "schultern"], wert: 35, text: "Schrägbankdrücken" },
-    { key: "kettle", farbe: 0x18191d, name: "Kettlebell-Reihe", kat: "frei", preis: 140, fp: [3, 1], gruppen: ["beine", "arme"], wert: 25, text: "Swings, Goblet Squat" },
-    { key: "dip", farbe: 0x18191d, name: "Dip-Station", kat: "frei", preis: 220, fp: [2, 2], gruppen: ["brust", "arme"], wert: 30, text: "Dips, Knieheben" },
-    { key: "plattform", farbe: 0x18191d, name: "Heberplattform", kat: "frei", preis: 300, fp: [4, 4], gruppen: ["beine", "ruecken"], wert: 55, stufe: 2, text: "Kreuzheben auf Holz" },
-    { key: "kabel", farbe: 0x18191d, name: "Kabelzug", kat: "maschine", preis: 380, fp: [4, 2], gruppen: ["ruecken", "arme"], wert: 70, text: "Kabelrudern, Trizeps" },
-    { key: "latzug", farbe: 0x18191d, polster: 0x1c1e22, name: "Latzug", kat: "maschine", preis: 420, fp: [2, 3], gruppen: ["ruecken"], wert: 65, stufe: 1, text: "Latziehen" },
-    { key: "beinstr", farbe: 0x18191d, polster: 0x5e1a24, name: "Beinstrecker", kat: "maschine", preis: 360, fp: [2, 3], gruppen: ["beine"], wert: 50, stufe: 1, text: "Beinstrecker, Beinbeuger" },
-    { key: "presse", farbe: 0x18191d, polster: 0x1c1e22, name: "Beinpresse", kat: "maschine", preis: 640, fp: [2, 4], gruppen: ["beine"], wert: 90, stufe: 1, text: "Beinpresse, Wadenheben" },
-    { key: "smith", farbe: 0x18191d, name: "Multipresse", kat: "maschine", preis: 900, fp: [4, 3], gruppen: ["beine", "brust", "schultern"], wert: 120, stufe: 2, text: "Geführte Kniebeuge, Bank" },
+    { key: "rack", name: "Power Rack", kat: "frei", preis: 0, fp: [5, 3], gruppen: ["beine", "brust"], wert: 60, text: "Kniebeuge, Bankdrücken" },
+    { key: "bank", name: "Hantelbank", kat: "frei", preis: 0, fp: [1, 3], gruppen: ["brust"], wert: 30, text: "Bankdrücken, Rudern" },
+    { key: "kh", name: "Kurzhantel-Ablage", kat: "frei", preis: 0, fp: [4, 2], gruppen: ["schultern", "arme"], wert: 40, text: "Schulterdrücken, Curls" },
+    { key: "scheiben", name: "Hantelscheiben-Baum", kat: "frei", preis: 120, fp: [2, 2], gruppen: [], wert: 20, text: "Ordnung im Gym, Deko mit Gewicht" },
+    { key: "schraeg", name: "Schrägbank", kat: "frei", preis: 180, fp: [1, 3], gruppen: ["brust", "schultern"], wert: 35, text: "Schrägdrücken mit Kurzhanteln" },
+    { key: "kettle", name: "Kettlebell-Reihe", kat: "frei", preis: 140, fp: [3, 1], gruppen: ["beine", "arme"], wert: 25, text: "Swings, Goblet Squat" },
+    { key: "dip", name: "Klimmzug-Station", kat: "frei", preis: 220, fp: [2, 2], gruppen: ["ruecken", "brust", "arme"], wert: 30, text: "Klimmzüge, Dips, Knieheben" },
+    { key: "plattform", name: "Heberplattform", kat: "frei", preis: 300, fp: [4, 4], gruppen: ["beine", "ruecken"], wert: 55, stufe: 2, text: "Kreuzheben auf Holz" },
+    { key: "kabel", name: "Kabelzug", kat: "maschine", preis: 380, fp: [4, 2], gruppen: ["ruecken", "arme"], wert: 70, text: "Kabelrudern, Trizeps" },
+    { key: "latzug", name: "Latzug", kat: "maschine", preis: 420, fp: [2, 3], gruppen: ["ruecken"], wert: 65, stufe: 1, text: "Latziehen" },
+    { key: "beinstr", name: "Beinstrecker", kat: "maschine", preis: 360, fp: [2, 3], gruppen: ["beine"], wert: 50, stufe: 1, text: "Beinstrecker, Beinbeuger" },
+    { key: "presse", name: "Beinpresse", kat: "maschine", preis: 640, fp: [2, 4], gruppen: ["beine"], wert: 90, stufe: 1, text: "Beinpresse, Wadenheben" },
+    { key: "smith", name: "Multipresse", kat: "maschine", preis: 900, fp: [5, 3], gruppen: ["beine", "brust", "schultern"], wert: 120, stufe: 2, text: "Geführte Kniebeuge, Bank" },
     { key: "pflanze", name: "Pflanze", kat: "deko", preis: 90, fp: [1, 1], gruppen: [], wert: 15, text: "Etwas Grün" },
-    { key: "spind", farbe: 0x18191d, name: "Spinde", kat: "deko", preis: 150, fp: [3, 1], gruppen: [], wert: 25, text: "Platz für die Taschen" },
-    { key: "kuehl", farbe: 0x18191d, name: "Getränke-Kühlschrank", kat: "deko", preis: 200, fp: [1, 1], gruppen: [], wert: 30, stufe: 2, text: "Wasser und Shakes" },
+    { key: "spind", name: "Spinde", kat: "deko", preis: 150, fp: [3, 1], gruppen: [], wert: 25, text: "Platz für die Taschen" },
+    { key: "kuehl", name: "Getränke-Kühlschrank", kat: "deko", preis: 200, fp: [1, 1], gruppen: [], wert: 30, stufe: 2, text: "Wasser und Shakes" },
     { key: "regal", name: "Kristall-Vitrine", kat: "deko", preis: 0, kristalle: 3, fp: [1, 1], gruppen: [], wert: 60, text: "Zeigt deine Kristalle" },
     { key: "spiegel", name: "Spiegelwand", kat: "wand", preis: 160, gruppen: [], wert: 30, text: "Technik checken" },
     { key: "neon", name: "Neon „KORUND“", kat: "wand", preis: 240, gruppen: [], wert: 45, text: "Leuchtet in deiner Farbwelt" },
@@ -316,15 +327,32 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     return {
       v: 2, demo: true, splitter: 420, kristalle: 2, ruf: 180, stufe: 0, freiStufe: 0, farbwelt: "blau", farben: ["blau"],
       items: [
-        { id: 1, key: "rack", i: 4, j: 1, rot: 0, tier: 0 },
-        { id: 2, key: "bank", i: 5, j: 4, rot: 0, tier: 0 },
-        { id: 3, key: "kh", i: 0, j: 4, rot: 0, tier: 0 }
+        { id: 1, key: "rack", i: 4, j: 0, rot: 0, tier: 0 },
+        { id: 2, key: "bank", i: 6, j: 4, rot: 0, tier: 0 },
+        { id: 3, key: "kh", i: 0, j: 2, rot: 3, tier: 0 }
       ],
       wand: [], lager: [], naechsteId: 10, tage: tage, verarbeitet: Object.keys(tage), demoTage: 0, abgeholt: {}, truhen: {}
     };
   }
   let stand = startStand();
-  try { const s = JSON.parse(localStorage.getItem(SPEICHER) || "null"); if (s && s.v === 2 && Array.isArray(s.items)) stand = s; } catch (e) {}
+  // Gespeicherten Stand prüfen: kaputte oder fremde Werte werden ersetzt
+  function standPruefen(s) {
+    if (!s || s.v !== 2 || !Array.isArray(s.items)) return null;
+    const zahlOk = (v, d) => (typeof v === "number" && isFinite(v) && v >= 0 ? Math.floor(v) : d);
+    const r = Object.assign(startStand(), { demo: s.demo !== false, splitter: zahlOk(s.splitter, 0), kristalle: zahlOk(s.kristalle, 0), ruf: zahlOk(s.ruf, 0), demoTage: zahlOk(s.demoTage, 0) });
+    r.freiStufe = Math.min(STUFEN.length - 1, zahlOk(s.freiStufe, 0)); r.stufe = Math.min(r.freiStufe, zahlOk(s.stufe, 0));
+    r.farben = Array.isArray(s.farben) ? s.farben.filter(f => FARBWELTEN.some(x => x.id === f)) : []; if (!r.farben.includes("blau")) r.farben.unshift("blau");
+    r.farbwelt = r.farben.includes(s.farbwelt) ? s.farbwelt : "blau";
+    const ids = new Set(), teil = it => { if (!it || !KATALOG.some(k => k.key === it.key)) return null; let id = zahlOk(it.id, 0); while (!id || ids.has(id)) id = 9000 + ids.size + Math.floor(Math.random() * 1000); ids.add(id); return { id, key: it.key, tier: Math.min(2, zahlOk(it.tier, 0)), rot: zahlOk(it.rot, 0) % 4, i: typeof it.i === "number" ? it.i : undefined, j: typeof it.j === "number" ? it.j : undefined }; };
+    r.items = s.items.map(teil).filter(Boolean); r.wand = (s.wand || []).map(teil).filter(Boolean); r.lager = (s.lager || []).map(teil).filter(Boolean);
+    r.lager.forEach(it => { delete it.i; delete it.j; });
+    r.naechsteId = Math.max(zahlOk(s.naechsteId, 10), 10, ...[...ids].map(i => i + 1));
+    r.tage = s.tage && typeof s.tage === "object" ? s.tage : {}; Object.keys(r.tage).forEach(t => { const d = r.tage[t]; if (!/^\d{4}-\d\d-\d\d$/.test(t) || !d || !Array.isArray(d.gruppen)) delete r.tage[t]; });
+    r.verarbeitet = Array.isArray(s.verarbeitet) ? s.verarbeitet.filter(t => typeof t === "string") : Object.keys(r.tage);
+    ["abgeholt", "truhen", "rekordWochen"].forEach(k => { r[k] = s[k] && typeof s[k] === "object" ? s[k] : {}; });
+    return r;
+  }
+  try { const s = standPruefen(JSON.parse(localStorage.getItem(SPEICHER) || "null")); if (s) stand = s; } catch (e) {}
   function merken() { try { localStorage.setItem(SPEICHER, JSON.stringify(stand)); } catch (e) {} }
 
   function heute() { const d = new Date(); d.setDate(d.getDate() + (stand.demo ? stand.demoTage : 0)); return iso(d); }
@@ -439,10 +467,16 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     if (k.kristalle) return ICON.kristall + " " + k.kristalle;
     return '<span style="color:var(--akzent);display:inline-flex">' + ICON.splitter + "</span> " + zahl(k.preis);
   }
+  // Vorschau aus dem echten 3D-Modell; bis sie fertig ist, steht das Symbol der Kategorie da
+  function bildHtml(k, marke) {
+    const src = vorschauBild(k.key);
+    return '<span class="k-bild">' + ICON[KAT_ICON[k.kat]] + '<img alt="" data-vorschau="' + k.key + '"' + (src ? ' src="' + src + '" class="da"' : "") + ">" + (marke ? '<span class="k-marke">' + marke + "</span>" : "") + "</span>";
+  }
   function anzahlBesitz(key) { return stand.items.concat(stand.wand, stand.lager).filter(x => x.key === key).length; }
   let bauenKat = "frei";
   function bauenSheet(kopf, inhalt, sheet) {
-    kopf.innerHTML = "<b>Bauen</b><span class='label'>" + zahl(stand.splitter) + " Splitter</span>";
+    const besitz = KATALOG.filter(k => anzahlBesitz(k.key)).length;
+    kopf.innerHTML = "<b>Bauen</b><span class='label'>Sammlung " + besitz + " / " + KATALOG.length + "</span>";
     const chips = document.createElement("div"); chips.className = "chips";
     const kats = (stand.lager.length ? ["lager"] : []).concat(["frei", "maschine", "deko", "wand"]);
     if (bauenKat === "lager" && !stand.lager.length) bauenKat = "frei";
@@ -453,7 +487,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
       stand.lager.forEach((it, idx) => {
         const k = KATALOG.find(x => x.key === it.key);
         const b = document.createElement("button"); b.type = "button"; b.className = "karte lager";
-        b.innerHTML = '<span class="k-symbol">' + ICON[KAT_ICON[k.kat]] + '</span><span class="k-name">' + k.name + '</span><span class="k-info">' + TIERS[it.tier].name + '</span><span class="k-preis">Aufstellen</span>';
+        b.innerHTML = bildHtml(k, TIERS[it.tier].name) + '<span class="k-name">' + k.name + '</span><span class="k-info">' + k.text + '</span><span class="k-preis">Aufstellen</span>';
         b.onclick = () => { stand.lager.splice(idx, 1); aufstellen(it); };
         raster.appendChild(b);
       });
@@ -465,7 +499,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
         const teuer = k.kristalle ? stand.kristalle < k.kristalle : stand.splitter < k.preis;
         if (gesperrt) b.classList.add("gesperrt"); else if (teuer) b.classList.add("teuer");
         const preis = gesperrt ? ICON.schloss.replace("<svg", '<svg style="width:13px;height:13px"') + " " + STUFEN[k.stufe].name : (einmal && hat) ? "✓ Im Gym" : k.preis === 0 && !k.kristalle ? "Gratis" : preisHtml(k);
-        b.innerHTML = '<span class="k-symbol">' + ICON[KAT_ICON[k.kat]] + '</span><span class="k-name">' + k.name + (hat && !einmal ? " <span style='color:var(--aus);font-weight:600'>×" + hat + "</span>" : "") + '</span><span class="k-info">' + k.text + '</span><span class="k-preis">' + preis + "</span>";
+        b.innerHTML = bildHtml(k, gesperrt ? "ab " + STUFEN[k.stufe].name : hat ? (einmal ? "im Gym" : "×" + hat) : "") + '<span class="k-name">' + k.name + '</span><span class="k-info">' + k.text + '</span><span class="k-preis">' + preis + "</span>";
         b.onclick = () => kaufen(k, gesperrt, teuer, einmal && hat);
         raster.appendChild(b);
       });
@@ -694,7 +728,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   function einlagern(obj) {
     const it = obj.userData.item, k = KATALOG.find(x => x.key === it.key);
     if (k.kat === "wand") { stand.wand = stand.wand.filter(x => x.id !== it.id); wandAufbauen(); }
-    else { stand.items = stand.items.filter(x => x.id !== it.id); raum.remove(obj); objekte.splice(objekte.indexOf(obj), 1); }
+    else { stand.items = stand.items.filter(x => x.id !== it.id); raum.remove(obj); entsorgen(obj); objekte.splice(objekte.indexOf(obj), 1); }
     delete it.i; delete it.j; stand.lager.push(it); merken();
     auswahl = null; markieren(null); kopfZeigen(); ueberZeigen(); toast(k.name, "liegt im Lager"); besucherAnpassen();
   }
@@ -750,199 +784,373 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   if (!window.THREE) { $("laden").textContent = "3D konnte nicht geladen werden. Bitte mit Internet öffnen."; return; }
   const canvas = $("welt");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  const handy = Math.min(innerWidth, innerHeight) < 700;
+  renderer.setPixelRatio(Math.min(handy ? 2 : 1.75, window.devicePixelRatio || 1));
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.NoToneMapping;
   const szene = new THREE.Scene();
   const kamera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 120);
-  const blick = { winkel: 0, ziel: 0, neigung: 0.7, zoom: 1, soll: null, ist: null };
+  const blick = { winkel: 0, ziel: 0, neigung: 0.7, neigungZiel: 0.7, zoom: 1, soll: null, ist: null };
   const himmel = new THREE.HemisphereLight(0x9aa0c0, 0x15141a, 0.34); szene.add(himmel);
   const sonne = new THREE.DirectionalLight(0xf2eeff, 0.72);
-  sonne.position.set(7, 12, 8); sonne.castShadow = true; sonne.shadow.mapSize.set(1536, 1536); sonne.shadow.bias = -0.0006; sonne.shadow.normalBias = 0.02;
+  sonne.position.set(7, 12, 8); sonne.castShadow = true; sonne.shadow.mapSize.set(handy ? 1024 : 2048, handy ? 1024 : 2048); sonne.shadow.bias = -0.0006; sonne.shadow.normalBias = 0.02;
   szene.add(sonne); szene.add(sonne.target);
   const fuell = new THREE.DirectionalLight(0x7eb0ff, 0.25); fuell.position.set(-7, 5, 6); szene.add(fuell);
   const kante = new THREE.DirectionalLight(0xffffff, 0.15); kante.position.set(-4, 6, -9); szene.add(kante);
+  // Spiegelungen für Metall: kleine Licht-Umgebung (Deckenfeld, Fenster, warmes Licht), einmal vorberechnet
+  function umgebungBauen(r) {
+    const pm = new THREE.PMREMGenerator(r), u = new THREE.Scene();
+    u.add(new THREE.Mesh(new THREE.BoxGeometry(20, 10, 20), new THREE.MeshBasicMaterial({ color: 0x14151a, side: THREE.BackSide })));
+    const feld = (w, h, x, y, z, rx, ry, f, st) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(f).multiplyScalar(st), side: THREE.DoubleSide })); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); u.add(m); };
+    feld(9, 2.4, 0, 4.9, 0, Math.PI / 2, 0, 0xffffff, 2.2); feld(4, 3, -9.9, 2.5, 1, 0, Math.PI / 2, 0xbfd4ff, 1.2);
+    feld(3, 2, 6, 2.5, -9.9, 0, 0, 0xffc890, 1.0); feld(20, .5, 0, .4, 9.9, 0, 0, 0x7eb0ff, .6); feld(20, 20, 0, -4.9, 0, Math.PI / 2, 0, 0x202228, 1);
+    const rt = pm.fromScene(u, .03); pm.dispose(); u.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); return rt.texture;
+  }
+  szene.environment = umgebungBauen(renderer);
+  // Alte Räume und Geräte geben ihren Grafikspeicher frei; geteilte Teile bleiben
+  function entsorgen(obj) {
+    obj.traverse(o => {
+      if (o.geometry && !istGeteilt(o.geometry)) o.geometry.dispose();
+      const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+      ms.forEach(m => { if (istGeteilt(m)) return; if (m.map && !istGeteilt(m.map)) m.map.dispose(); m.dispose(); });
+    });
+  }
 
-  // Farben der Hantelscheiben wie im Wettkampf: 25 rot, 20 blau, 15 gelb, 10 grün
-  const SCHEIBE = { rot: 0xa8323a, blau: 0x2f5aa8, gelb: 0xc79a2e, gruen: 0x2f8a52, schwarz: 0x16171a };
+  // ---------- Geometrie und Material: einmal bauen, überall wiederverwenden ----------
+  const GEO = new Map();
+  function geteilt(x) { (x.userData || (x.userData = {})).geteilt = true; return x; }
+  const istGeteilt = x => !!(x && x.userData && x.userData.geteilt);
+  function geo(key, bauen) { let g = GEO.get(key); if (!g) { g = geteilt(bauen()); GEO.set(key, g); } return g; }
+  const r3 = v => Math.round(v * 1000) / 1000;
+  // Quader mit Fase an allen Kanten: fängt Licht an den Kanten wie echtes Rohr
+  function kastenGeo(w, h, d, b) {
+    b = Math.min(b, w / 2.5, h / 2.5, d / 2.5);
+    return geo("k" + [w, h, d, b].map(r3).join(","), () => {
+      if (b < .003) return new THREE.BoxGeometry(w, h, d);
+      const s = new THREE.Shape(), x = w / 2 - b, y = h / 2 - b;
+      s.moveTo(-x, -y); s.lineTo(x, -y); s.lineTo(x, y); s.lineTo(-x, y); s.lineTo(-x, -y);
+      const g = new THREE.ExtrudeGeometry(s, { depth: d - 2 * b, bevelEnabled: true, bevelThickness: b, bevelSize: b, bevelSegments: 1, curveSegments: 1 });
+      g.translate(0, 0, -(d - 2 * b) / 2); return g;
+    });
+  }
+  function zylGeo(r, h, seg, r2) { r2 = r2 === undefined ? r : r2; return geo("z" + [r, h, seg, r2].map(r3).join(","), () => new THREE.CylinderGeometry(r, r2, h, seg)); }
+  function kugelGeo(r, a, b) { return geo("s" + [r, a, b].join(","), () => new THREE.SphereGeometry(r, a || 16, b || 12)); }
+  function ringGeo(r, t, bogen) { return geo("t" + [r, t, bogen || 0].map(r3).join(","), () => new THREE.TorusGeometry(r, t, 8, 24, bogen || Math.PI * 2)); }
+  function teil(g, m, x, y, z, schatten) { const me = new THREE.Mesh(g, m); me.position.set(x || 0, y || 0, z || 0); me.castShadow = schatten !== false; me.receiveShadow = true; return me; }
+  // Kleine Teile werfen keinen Schatten: spart einen Zeichenaufruf je Teil im Schattendurchgang
+  function box(w, h, d, m, x, y, z, schatten, fase) { return teil(kastenGeo(w, h, d, fase === undefined ? (Math.min(w, h, d) > .03 ? .007 : 0) : fase), m, x, y, z, schatten === undefined ? Math.max(w, h, d) > .2 : schatten); }
+  function zyl(r, h, m, seg, r2) { return teil(zylGeo(r, h, seg || 20, r2), m); }
+
+  function std(o) { return geteilt(new THREE.MeshStandardMaterial(o)); }
   const M = {
-    stahl: new THREE.MeshStandardMaterial({ color: 0x1a1c20, metalness: 0.6, roughness: 0.4 }),
-    platin: new THREE.MeshStandardMaterial({ color: 0xc9cfd5, metalness: 0.9, roughness: 0.22 }),
-    chrom: new THREE.MeshStandardMaterial({ color: 0xd0d6dc, metalness: 0.95, roughness: 0.18 }),
-    schwarz: new THREE.MeshStandardMaterial({ color: 0x131518, metalness: 0.2, roughness: 0.75 }),
-    gummi: new THREE.MeshStandardMaterial({ color: 0x141518, metalness: 0.15, roughness: 0.6 }),
-    polster: new THREE.MeshStandardMaterial({ color: 0x7a1e2c, metalness: 0.08, roughness: 0.48 }),
-    sockel: new THREE.MeshStandardMaterial({ color: 0x0c0d10, metalness: 0.3, roughness: 0.6 }),
-    holz: new THREE.MeshStandardMaterial({ color: 0x6b4b2f, metalness: 0.05, roughness: 0.7 }),
-    gruen: new THREE.MeshStandardMaterial({ color: 0x2f6b46, roughness: 0.8 }),
-    topf: new THREE.MeshStandardMaterial({ color: 0x2b2f35, roughness: 0.6, metalness: .2 }),
-    spiegel: new THREE.MeshStandardMaterial({ color: 0x66778b, metalness: 0.4, roughness: 0.12, emissive: 0x1a2330, emissiveIntensity: 0.7 }),
-    glas: new THREE.MeshStandardMaterial({ color: 0x9fc0e8, metalness: 0.1, roughness: 0.1, transparent: true, opacity: 0.35 })
+    stahl: std({ color: 0x1a1c20, metalness: .6, roughness: .4 }),
+    graphit: std({ color: 0x2b2e34, metalness: .7, roughness: .32 }),
+    platin: std({ color: 0xc9cfd5, metalness: 1, roughness: .2 }),
+    chrom: std({ color: 0xe2e6ea, metalness: 1, roughness: .12 }),
+    stange: std({ color: 0xb9bec4, metalness: 1, roughness: .32 }),
+    schwarz: std({ color: 0x121317, metalness: .2, roughness: .7 }),
+    gummi: std({ color: 0x111215, metalness: 0, roughness: .78 }),
+    polster: std({ color: 0x101114, metalness: 0, roughness: .55 }),
+    naht: std({ color: 0x24262c, metalness: 0, roughness: .6 }),
+    sockel: std({ color: 0x0c0d10, metalness: .3, roughness: .6, envMapIntensity: .4 }),
+    kappe: std({ color: 0x24262b, metalness: .5, roughness: .45, envMapIntensity: .6 }),
+    holz: std({ color: 0x6b4b2f, metalness: 0, roughness: .62, envMapIntensity: .5 }),
+    gruen: std({ color: 0x2f6b46, roughness: .7 }),
+    gruenHell: std({ color: 0x3f8a58, roughness: .7 }),
+    topf: std({ color: 0x23262c, roughness: .5, metalness: .3 }),
+    spiegel: std({ color: 0x9aa6b4, metalness: 1, roughness: .04 }),
+    glas: std({ color: 0x9fc0e8, metalness: .1, roughness: .05, transparent: true, opacity: .28 }),
+    haut: [0xc69c7a, 0x8d5f43, 0xe0b896, 0x6b4630].map(c => std({ color: c, roughness: .7 })),
+    hose: std({ color: 0x17181c, roughness: .85 }),
+    schuh: std({ color: 0xd8dade, roughness: .6 }),
+    haar: std({ color: 0x1a1512, roughness: .8 })
   };
-  function korundMat() { const f = farbwelt(); return new THREE.MeshStandardMaterial({ color: new THREE.Color(f.farbe).multiplyScalar(0.55), metalness: 0.75, roughness: 0.25, emissive: f.farbe, emissiveIntensity: 0.18 }); }
-  // Lack je Gerät (Stahl), Platin glänzt silbern, Korund in der Farbwelt
-  let bauFarbe = null, bauPolster = null; const lack = {}, polster = {};
-  function lackMat(f) { return lack[f] || (lack[f] = new THREE.MeshStandardMaterial({ color: 0x2c2f35, metalness: .6, roughness: .34 })); }
-  function P() { const f = 0x111215; return polster[f] || (polster[f] = new THREE.MeshStandardMaterial({ color: f, metalness: .08, roughness: .5 })); }
-  function rahmenMat(tier) { return tier === 2 ? korundMat() : tier === 1 ? M.platin : bauFarbe ? lackMat(bauFarbe) : M.stahl; }
-  function box(w, h, d, m, x, y, z, schatten) { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.position.set(x, y, z); me.castShadow = schatten !== false; me.receiveShadow = true; return me; }
-  function zyl(r, h, m, seg, r2) { const me = new THREE.Mesh(new THREE.CylinderGeometry(r, r2 === undefined ? r : r2, h, seg || 20), m); me.castShadow = true; me.receiveShadow = true; return me; }
-  const scheibenMat = {};
-  function sMat(f) { return scheibenMat[f] || (scheibenMat[f] = new THREE.MeshStandardMaterial({ color: f, metalness: 0.08, roughness: 0.62 })); }
+  // Korund-Stufe der Geräte: Metall in der Farbwelt, je Farbwelt einmal gebaut
+  const korundMats = {};
+  function korundMat() { const f = farbwelt(); return korundMats[f.id] || (korundMats[f.id] = std({ color: new THREE.Color(f.farbe).multiplyScalar(.5), metalness: .9, roughness: .22, emissive: f.farbe, emissiveIntensity: .12 })); }
+  function rahmenMat(tier) { return tier === 2 ? korundMat() : tier === 1 ? M.platin : M.graphit; }
+  // Lochbild für Rack-Pfosten: jedes Loch ein Fleck in der Textur, keine Extra-Geometrie
+  let lochTex = null; const lochMats = {};
+  function lochMat(tier) {
+    if (!lochTex) { const c = document.createElement("canvas"); c.width = 32; c.height = 512; const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, 32, 512); x.fillStyle = "#151515"; for (let y = 10; y < 512; y += 22) { x.beginPath(); x.arc(16, y, 5, 0, 7); x.fill(); } lochTex = geteilt(new THREE.CanvasTexture(c)); }
+    const key = tier === 2 ? "k" + farbwelt().id : tier;
+    if (!lochMats[key]) { const m = rahmenMat(tier).clone(); m.map = lochTex; lochMats[key] = geteilt(m); }
+    return lochMats[key];
+  }
+  const P = () => M.polster;
+
   // Weicher Lichtschein ohne Nachbearbeitung: Sprite mit Verlauf, addiert
   let scheinTex = null;
   function scheinTextur() {
     if (scheinTex) return scheinTex;
     const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d");
     const g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(.25, "rgba(255,255,255,.45)"); g.addColorStop(1, "rgba(255,255,255,0)");
-    x.fillStyle = g; x.fillRect(0, 0, 128, 128); scheinTex = new THREE.CanvasTexture(c); return scheinTex;
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128); scheinTex = geteilt(new THREE.CanvasTexture(c)); return scheinTex;
   }
   function schein(farbe, groesse, staerke) {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: scheinTextur(), color: farbe, transparent: true, opacity: staerke === undefined ? .7 : staerke, blending: THREE.AdditiveBlending, depthWrite: false }));
     s.scale.set(groesse, groesse, 1); s.renderOrder = 5; return s;
   }
   function bodenSchein(farbe, w, d, staerke) {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: scheinTextur(), color: farbe, transparent: true, opacity: staerke, blending: THREE.AdditiveBlending, depthWrite: false }));
-    m.rotation.x = -Math.PI / 2; m.position.y = .012; m.renderOrder = 2; return m;
+    const m = new THREE.Mesh(geo("ebene1", () => new THREE.PlaneGeometry(1, 1)), new THREE.MeshBasicMaterial({ map: scheinTextur(), color: farbe, transparent: true, opacity: staerke, blending: THREE.AdditiveBlending, depthWrite: false }));
+    m.scale.set(w, d, 1); m.rotation.x = -Math.PI / 2; m.position.y = .012; m.renderOrder = 2; return m;
   }
-  function scheibe(r, d) { const g = new THREE.Group(); const s = zyl(r, d, M.gummi, 28); s.rotation.z = Math.PI / 2; const n = zyl(r * 0.26, d + 0.012, M.chrom, 14); n.rotation.z = Math.PI / 2; g.add(s, n); return g; }
-  function stange(l, m) { const s = zyl(0.026, l, m || M.chrom, 12); s.rotation.z = Math.PI / 2; return s; }
+  // Kontaktschatten: dunkler weicher Fleck, wo ein Gerät auf dem Boden steht (statt teurer Umgebungsverdeckung)
+  let schattenTex = null;
+  function kontaktSchatten(w, d, staerke) {
+    if (!schattenTex) { const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"); const g = x.createRadialGradient(64, 64, 10, 64, 64, 64); g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(.55, "rgba(0,0,0,.6)"); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, 128, 128); schattenTex = geteilt(new THREE.CanvasTexture(c)); }
+    const m = new THREE.Mesh(geo("ebene1", () => new THREE.PlaneGeometry(1, 1)), new THREE.MeshBasicMaterial({ map: schattenTex, transparent: true, opacity: staerke || .55, depthWrite: false, color: 0x000000 }));
+    m.scale.set(w, d, 1); m.rotation.x = -Math.PI / 2; m.position.y = .006; m.renderOrder = 1; return m;
+  }
   // Leuchtfarbe: die Farbwelt kräftiger, damit das LED-Licht wie im Entwurf wirkt
   function leucht() { const c = new THREE.Color(farbwelt().farbe), h = {}; c.getHSL(h); return c.setHSL(h.h, Math.min(1, h.s * 1.25 + .1), .55).getHex(); }
-  function glanzLeiste(g, w, h, d, x, y, z) { const m = new THREE.MeshStandardMaterial({ color: 0x0a0c10, emissive: leucht(), emissiveIntensity: 1.1, roughness: 0.4 }); g.userData.glanz.push(m); g.add(box(w, h, d, m, x, y, z, false)); }
+  function glanzLeiste(g, w, h, d, x, y, z) { const m = new THREE.MeshStandardMaterial({ color: 0x0a0c10, emissive: leucht(), emissiveIntensity: 1.1, roughness: .4 }); g.userData.glanz.push(m); g.add(box(w, h, d, m, x, y, z, false, 0)); }
 
-  // Geräte, gebaut aus Grundformen. Mittelpunkt = Mitte der Fläche, vorne = +z
+  // ---------- Bauteile mit echten Maßen (Meter) ----------
+  // Hantelscheibe als Drehkörper: Rand, vertiefte Fläche, Nabe. Achse = x
+  function scheibeGeo(r, d) {
+    return geo("p" + r3(r) + "," + r3(d), () => {
+      const p = [[.026, -d * .5], [.07, -d * .5], [.075, -d * .34], [r - .035, -d * .34], [r - .015, -d * .5], [r, -d * .42], [r, d * .42], [r - .015, d * .5], [r - .035, d * .34], [.075, d * .34], [.07, d * .5], [.026, d * .5], [.026, -d * .5]].map(v => new THREE.Vector2(v[0], v[1]));
+      const g = new THREE.LatheGeometry(p, 40); g.rotateZ(Math.PI / 2); return g;
+    });
+  }
+  function nabeGeo(d) { return geo("n" + r3(d), () => { const p = [[.026, -d * .58], [.062, -d * .58], [.062, d * .58], [.026, d * .58], [.026, -d * .58]].map(v => new THREE.Vector2(v[0], v[1])); const g = new THREE.LatheGeometry(p, 24); g.rotateZ(Math.PI / 2); return g; }); }
+  function scheibe(r, d) { const g = new THREE.Group(); g.add(teil(scheibeGeo(r, d), M.gummi), teil(nabeGeo(d), M.chrom, 0, 0, 0, false)); return g; }
+  // Olympia-Langhantel: 2,2 m, Griff 28 mm, Hülsen 50 mm, Scheiben werden von innen nach außen gesteckt
+  function langhantel(scheiben, laenge) {
+    laenge = laenge || 2.2; const g = new THREE.Group(), griff = laenge * .6, huelse = (laenge - griff) / 2 - .03;
+    const s = zyl(.014, griff, M.stange, 12); s.rotation.z = Math.PI / 2; g.add(s);
+    [-1, 1].forEach(v => {
+      const k = zyl(.036, .03, M.chrom, 16); k.rotation.z = Math.PI / 2; k.position.x = v * (griff / 2 + .015); g.add(k);
+      const h = zyl(.025, huelse, M.chrom, 16); h.rotation.z = Math.PI / 2; h.position.x = v * (griff / 2 + .03 + huelse / 2); g.add(h);
+      let x = griff / 2 + .035;
+      (scheiben || []).forEach(p => { const sc = scheibe(p[0], p[1]); sc.position.x = v * (x + p[1] / 2); g.add(sc); x += p[1] + .003; });
+    });
+    return g;
+  }
+  // Sechskant-Kurzhantel, Achse = x
+  function kurzhantel(kopf, breite) {
+    const g = new THREE.Group(), gr = zyl(.016, .135, M.stange, 10); gr.rotation.z = Math.PI / 2; g.add(gr);
+    [-1, 1].forEach(v => { const k = zyl(kopf, breite, M.gummi, 6); k.rotation.z = Math.PI / 2; k.rotation.x = Math.PI / 6; k.position.x = v * (.0675 + breite / 2); g.add(k); const c = zyl(kopf * .45, breite + .006, M.chrom, 12); c.rotation.z = Math.PI / 2; c.position.x = k.position.x; g.add(c); });
+    return g;
+  }
+  function kettlebell(r) {
+    const g = new THREE.Group(), k = teil(kugelGeo(r, 18, 14), M.gummi, 0, r * .95, 0); k.scale.y = .92; g.add(k);
+    g.add(teil(zylGeo(r * .55, .02, 16), M.gummi, 0, .01, 0));
+    const h = teil(ringGeo(r * .62, r * .12, Math.PI), M.schwarz, 0, r * 1.62, 0); g.add(h);
+    [-1, 1].forEach(v => g.add(teil(zylGeo(r * .12, r * .5, 8), M.schwarz, v * r * .62, r * 1.5, 0)));
+    return g;
+  }
+  function rolle(r) { const g = new THREE.Group(); const t = teil(ringGeo(r, r * .28), M.schwarz); t.rotation.y = Math.PI / 2; g.add(t, teil(kastenGeo(.03, r * 1.6, r * 1.6, .005), M.graphit)); return g; }
+  // Gewichtsblock einer Maschine mit Führungsstangen und Stecker
+  function gewichtsblock(g, x, y0, z, hoehe, tier) {
+    const n = Math.round(hoehe / .05);
+    for (let i = 0; i < n; i++) g.add(box(.24, .044, .11, i % 5 === 4 ? M.graphit : M.schwarz, x, y0 + .025 + i * .05, z, true, .004));
+    [-.09, .09].forEach(v => g.add(teil(zylGeo(.008, hoehe + .5, 6), M.chrom, x + v, y0 + (hoehe + .5) / 2, z)));
+    g.add(teil(zylGeo(.006, .16, 6), M.chrom, x + .1, y0 + hoehe * .45, z + .02).rotateZ(Math.PI / 2));
+    g.add(box(.3, .04, .16, rahmenMat(tier), x, y0 + hoehe + .5, z));
+  }
+  function seil(g, a, b) {
+    const geom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]);
+    const l = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0x9aa0a8 })); g.add(l); return l;
+  }
+  function polster(w, h, d) { const g = new THREE.Group(); g.add(box(w, h, d, M.polster, 0, 0, 0, true, Math.min(.03, h * .45))); g.add(box(w + .004, h * .18, d + .004, M.naht, 0, -h * .2, 0, false, .003)); return g; }
+
+  // Geräte. Mittelpunkt = Mitte der Fläche, vorne = +z, Boden = y 0
   const BAU = {
     rack(g, t) {
-      const R = rahmenMat(t);
-      [[-.62, -.5], [.62, -.5], [-.62, .45], [.62, .45]].forEach(p => g.add(box(.09, 2.3, .09, R, p[0], 1.15, p[1])));
-      g.add(box(1.33, .09, .09, R, 0, 2.28, -.5), box(1.33, .09, .09, R, 0, 2.28, .45), box(.09, .09, 1.04, R, -.62, 2.28, -.02), box(.09, .09, 1.04, R, .62, 2.28, -.02));
-      g.add(box(1.4, .05, 1.2, M.schwarz, 0, .025, 0));
-      [-.62, .62].forEach(x => g.add(box(.07, .07, .16, M.chrom, x, 1.42, .52)));
-      const s = stange(2.2); s.position.set(0, 1.5, .52); g.add(s);
-      [-.92, .92].forEach(x => { const a = scheibe(.42, .09, SCHEIBE.rot); a.position.set(x, 1.5, .52); g.add(a); const b = scheibe(.3, .07, SCHEIBE.gelb); b.position.set(x + Math.sign(x) * .09, 1.5, .52); g.add(b); });
-      glanzLeiste(g, 1.2, .02, .02, 0, .06, .58);
+      const R = rahmenMat(t), L = lochMat(t);
+      [[-.6, -.5], [.6, -.5], [-.6, .5], [.6, .5]].forEach(p => g.add(box(.075, 2.3, .075, L, p[0], 1.15, p[1])));
+      [-.5, .5].forEach(z => g.add(box(1.275, .075, .075, R, 0, 2.27, z)));
+      [-.6, .6].forEach(x => { g.add(box(.075, .075, 1.075, R, x, 2.27, 0)); g.add(box(.09, .06, 1.35, R, x, .03, 0)); });
+      g.add(box(1.29, .06, .09, R, 0, .03, -.55));
+      const zug = zyl(.016, 1.3, M.stange, 10); zug.rotation.z = Math.PI / 2; zug.position.set(0, 2.24, .56); g.add(zug);
+      [-.6, .6].forEach(x => {
+        g.add(box(.06, .1, .09, M.schwarz, x, 1.33, .575), box(.05, .04, .05, M.schwarz, x, 1.38, .61));
+        g.add(box(.05, .05, 1.0, R, x * .93, .62, 0));
+        const pin = zyl(.024, .28, M.chrom, 12); pin.rotation.x = Math.PI / 2; pin.position.set(x, .6, -.68); g.add(pin);
+        [0, 1].forEach(n => { const s = scheibe(.225, .06); s.rotation.y = Math.PI / 2; s.position.set(x, .6, -.6 - n * .064); g.add(s); });
+      });
+      const ablage = langhantel([[.225, .065], [.225, .065]]); ablage.position.set(0, 1.405, .6); g.add(ablage); g.userData.ablage = ablage;
+      glanzLeiste(g, 1.15, .02, .02, 0, .065, .6);
     },
     bank(g, t) {
-      const R = rahmenMat(t);
-      g.add(box(.42, .11, 1.25, P(), 0, .47, 0));
-      glanzLeiste(g, .36, .04, 1.18, 0, .395, 0); glanzLeiste(g, .025, .03, 1.2, .222, .44, 0); glanzLeiste(g, .025, .03, 1.2, -.222, .44, 0);
-      [-.42, .42].forEach(z => { g.add(box(.07, .36, .07, t ? R : M.chrom, 0, .2, z)); g.add(box(.5, .05, .08, t ? R : M.chrom, 0, .03, z)); });
-      g.add(box(.07, .05, .9, R, 0, .3, 0));
+      const R = t ? rahmenMat(t) : M.chrom;
+      const p = polster(.29, .09, 1.18); p.position.set(0, .385, 0); g.add(p);
+      g.add(box(.06, .06, 1.0, rahmenMat(t), 0, .31, 0));
+      [-.47, .47].forEach(z => { g.add(box(.055, .3, .055, R, 0, .17, z)); g.add(box(.46, .05, .06, R, 0, .025, z)); });
+      [-.2, .2].forEach(x => { const w = zyl(.035, .03, M.gummi, 14); w.rotation.z = Math.PI / 2; w.position.set(x, .035, .54); g.add(w); });
+      glanzLeiste(g, .02, .02, 1.1, .15, .335, 0); glanzLeiste(g, .02, .02, 1.1, -.15, .335, 0);
     },
     schraeg(g, t) {
       const R = rahmenMat(t);
-      const sitz = box(.42, .1, .45, P(), 0, .45, .35); g.add(sitz);
-      const lehne = box(.42, .1, 1.0, P(), 0, .75, -.15); lehne.rotation.x = .62; g.add(lehne);
-      glanzLeiste(g, .36, .03, .95, 0, .69, -.13); g.userData.glanz.at(-1); g.children.at(-1).rotation.x = .62;
-      g.add(box(.08, .4, .08, R, 0, .22, .35), box(.08, .8, .08, R, 0, .42, -.5), box(.55, .05, .1, R, 0, .03, .45), box(.55, .05, .1, R, 0, .03, -.55));
-      [-.32, .32].forEach(x => g.add(box(.06, 1.3, .06, R, x, .65, -.8)));
-      const s = stange(1.6); s.position.set(0, 1.25, -.75); g.add(s);
+      const sitz = polster(.29, .08, .36); sitz.position.set(0, .43, .32); sitz.rotation.x = -.12; g.add(sitz);
+      const lehne = polster(.29, .08, .86); lehne.position.set(0, .7, -.18); lehne.rotation.x = .75; g.add(lehne);
+      g.add(box(.06, .06, 1.05, R, 0, .3, 0), box(.05, .5, .05, R, 0, .5, -.35));
+      const leiter = box(.07, .03, .55, R, 0, .38, -.15); leiter.rotation.x = .5; g.add(leiter);
+      [-.47, .47].forEach(z => { g.add(box(.05, .28, .05, R, 0, .15, z)); g.add(box(.46, .05, .06, R, 0, .025, z)); });
+      [-.2, .2].forEach(x => { const w = zyl(.035, .03, M.gummi, 14); w.rotation.z = Math.PI / 2; w.position.set(x, .035, .54); g.add(w); });
+      glanzLeiste(g, .02, .02, .95, .1, .28, 0);
     },
     kh(g, t) {
       const R = rahmenMat(t);
-      g.add(box(.55, .06, 1.8, R, 0, .55, 0), box(.55, .06, 1.8, R, 0, .25, 0));
-      [-.85, .85].forEach(z => g.add(box(.55, .62, .07, R, 0, .31, z)));
-      for (let i = 0; i < 4; i++) [.66, .36].forEach((y, reihe) => {
-        const h = new THREE.Group(), r = .1 + i * .013 - reihe * .012;
-        [-.14, .14].forEach(x => { const k = zyl(r, .08, M.gummi, 16); k.rotation.z = Math.PI / 2; k.position.x = x; h.add(k); });
-        const gr = zyl(.02, .22, M.chrom, 10); gr.rotation.z = Math.PI / 2; h.add(gr);
-        h.position.set(0, y + r - .03, -.6 + i * .4); g.add(h);
+      [-.85, .85].forEach(x => { g.add(box(.06, .85, .06, R, x, .425, -.2), box(.06, .62, .06, R, x, .31, .2), box(.06, .06, .55, R, x, .03, 0)); });
+      // zwei schräge Ebenen, vorne tiefer, damit man die Hanteln greifen kann
+      [[.78, .1], [.44, .25]].forEach((e, n) => {
+        const ebene = new THREE.Group(); ebene.position.set(0, e[0], e[1] - .15); ebene.rotation.x = .22; g.add(ebene);
+        [-.07, .07].forEach(z => ebene.add(box(1.76, .03, .03, R, 0, 0, z)));
+        for (let i = 0; i < 5; i++) { const kopf = n ? .085 + i * .006 : .058 + i * .006, b = n ? .1 : .07; const h = kurzhantel(kopf, b); h.rotation.y = Math.PI / 2; h.position.set(-.68 + i * .34, kopf + .012, 0); ebene.add(h); }
       });
-      glanzLeiste(g, .02, .02, 1.7, .29, .56, 0);
+      glanzLeiste(g, 1.7, .02, .02, 0, .065, .27);
     },
     scheiben(g, t) {
       const R = rahmenMat(t);
-      g.add(box(.7, .06, .7, R, 0, .03, 0), box(.07, 1.0, .07, R, 0, .5, 0));
-      [[.2, .32, .42, SCHEIBE.rot], [.2, .62, .36, SCHEIBE.blau], [-.2, .32, .42, SCHEIBE.rot], [-.2, .62, .36, SCHEIBE.gelb], [0, .9, .28, SCHEIBE.gruen]].forEach(p => { const s = scheibe(p[2], .07, p[3]); s.rotation.y = 0; s.position.set(p[0], p[1], 0); g.add(s); });
+      g.add(box(.6, .05, .08, R, 0, .025, 0), box(.08, .05, .6, R, 0, .025, 0), box(.07, 1.05, .07, R, 0, .55, 0));
+      const griff = teil(ringGeo(.06, .012), M.chrom, 0, 1.12, 0); g.add(griff);
+      [[.26, 1, .225], [.6, 1, .2], [.26, -1, .225], [.6, -1, .16], [.88, 1, .14], [.88, -1, .12]].forEach(p => {
+        const pin = zyl(.024, .22, M.chrom, 12); pin.rotation.x = Math.PI / 2; pin.rotation.z = 0; pin.position.set(0, p[0], p[1] * .14); g.add(pin);
+        const s = scheibe(p[2], .05); s.rotation.y = Math.PI / 2; s.position.set(0, p[0], p[1] * .1); g.add(s);
+      });
     },
     kettle(g, t) {
       const R = rahmenMat(t);
-      g.add(box(1.4, .05, .4, R, 0, .3, 0)); [-.65, .65].forEach(x => g.add(box(.05, .3, .38, R, x, .15, 0)));
-      [-.48, -.16, .16, .48].forEach((x, i) => { const r = .1 + i * .015; const k = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), M.gummi); k.position.set(x, .33 + r, 0); k.castShadow = true; g.add(k); const h = new THREE.Mesh(new THREE.TorusGeometry(r * .55, .018, 6, 14, Math.PI), M.chrom); h.position.set(x, .33 + r * 1.75, 0); g.add(h); });
-      glanzLeiste(g, 1.3, .02, .02, 0, .33, .2);
+      [-.65, .65].forEach(x => g.add(box(.05, .32, .32, R, x, .16, 0)));
+      g.add(box(1.36, .03, .34, R, 0, .3, 0), box(1.36, .03, .3, R, 0, .06, 0));
+      [.11, .12, .13, .14].forEach((r, i) => { const k = kettlebell(r); k.position.set(-.48 + i * .32, .315, 0); g.add(k); });
+      glanzLeiste(g, 1.3, .02, .02, 0, .3, .17);
     },
     dip(g, t) {
       const R = rahmenMat(t);
-      [-.3, .3].forEach(x => { g.add(box(.07, 1.3, .07, R, x, .65, -.3), box(.07, 1.3, .07, R, x, .65, .3), box(.07, .07, .75, R, x, 1.3, 0)); });
-      g.add(box(.8, .05, .8, M.schwarz, 0, .025, 0)); g.add(box(.6, .06, .06, R, 0, .9, -.3));
-      glanzLeiste(g, .02, .02, .7, .34, 1.3, 0);
+      [-.42, .42].forEach(x => { g.add(box(.07, 2.25, .07, R, x, 1.125, -.4)); g.add(box(.08, .06, .9, R, x, .03, -.05)); });
+      g.add(box(.91, .07, .07, R, 0, 2.21, -.4));
+      const zug = zyl(.016, 1.2, M.stange, 10); zug.rotation.z = Math.PI / 2; zug.position.set(0, 2.22, -.1); g.add(zug);
+      [-.42, .42].forEach(x => g.add(box(.06, .06, .3, R, x, 2.21, -.25)));
+      [-.27, .27].forEach(x => { const d = zyl(.018, .5, M.gummi, 10); d.rotation.x = Math.PI / 2; d.position.set(x, 1.25, .05); g.add(d); g.add(box(.06, .06, .12, R, x * 1.4, 1.25, -.3)); g.add(box(.05, .05, .2, R, x * 1.25, 1.25, -.2)); });
+      const r = polster(.34, .06, .5); r.rotation.x = Math.PI / 2; r.position.set(0, 1.25, -.34); g.add(r);
+      glanzLeiste(g, .02, .02, .8, .46, .065, -.05);
     },
     plattform(g, t) {
-      g.add(box(1.95, .06, 1.95, M.gummi, 0, .03, 0)); g.add(box(.85, .065, 1.95, M.holz, 0, .035, 0));
-      const s = stange(2.1, t ? rahmenMat(t) : M.chrom); s.position.set(0, .23, 0); s.rotation.y = 0; g.add(s);
-      [-.9, .9].forEach(x => { const a = scheibe(.225, .1, SCHEIBE.blau); a.position.set(x, .23, 0); g.add(a); });
-      glanzLeiste(g, 1.9, .02, .02, 0, .07, .98);
+      g.add(box(2.0, .05, 2.0, M.gummi, 0, .025, 0, true, .01)); g.add(box(1.0, .052, 1.96, M.holz, 0, .027, 0, false, .004));
+      const ablage = langhantel([[.225, .08], [.225, .08]]); ablage.position.set(0, .275, .1); g.add(ablage); g.userData.ablage = ablage;
+      glanzLeiste(g, 1.9, .02, .02, 0, .06, 1.0);
     },
     kabel(g, t) {
       const R = rahmenMat(t);
-      [-.75, .75].forEach(x => { g.add(box(.16, 2.3, .16, R, x, 1.15, -.2)); g.add(box(.28, .9, .12, M.schwarz, x, .6, -.05)); for (let i = 0; i < 8; i++) g.add(box(.26, .07, .1, M.chrom, x, .25 + i * .09, -.05)); const se = zyl(.008, 1.2, M.chrom, 6); se.position.set(x, 1.6, .12); g.add(se); g.add(box(.14, .04, .04, M.chrom, x, 1.0, .12)); });
-      g.add(box(1.66, .12, .16, R, 0, 2.3, -.2), box(1.9, .05, .8, M.schwarz, 0, .025, 0));
-      glanzLeiste(g, 1.4, .02, .02, 0, 2.37, -.11);
+      g.add(box(1.95, .06, .7, R, 0, .03, -.05));
+      [-.82, .82].forEach(x => {
+        g.add(box(.09, 2.25, .09, lochMat(t), x, 1.125, .12), box(.09, 2.25, .09, R, x, 1.125, -.3));
+        g.add(box(.09, .09, .5, R, x, 2.24, -.09));
+        gewichtsblock(g, x, .06, -.09, .7, t);
+        const wagen = box(.12, .16, .1, R, x, 1.2, .2); g.add(wagen);
+        const ro = rolle(.04); ro.position.set(x, 1.2, .27); g.add(ro);
+        const oben = rolle(.05); oben.position.set(x, 2.15, .02); g.add(oben);
+        const gr = teil(ringGeo(.05, .009), M.schwarz, x, 1.08, .3); g.add(gr);
+        seil(g, [x, 2.15, .04], [x, 1.2, .27]);
+      });
+      g.add(box(1.73, .09, .09, R, 0, 2.24, .12));
+      const zug = zyl(.016, 1.1, M.stange, 10); zug.rotation.z = Math.PI / 2; zug.position.set(0, 2.15, .3); g.add(zug);
+      glanzLeiste(g, 1.6, .02, .02, 0, .065, .3);
+      g.userData.rollen = [[-.82, 1.2, .3], [.82, 1.2, .3]];
     },
     latzug(g, t) {
       const R = rahmenMat(t);
-      g.add(box(.16, 2.3, .16, R, 0, 1.15, -.55), box(.16, .12, 1.0, R, 0, 2.25, -.1), box(.3, 1.0, .14, M.schwarz, 0, .65, -.42));
-      const sitz = box(.5, .1, .4, P(), 0, .5, .25); g.add(sitz); g.add(box(.08, .45, .08, R, 0, .25, .25), box(.4, .12, .12, P(), 0, .75, .1));
-      const bar = stange(1.1); bar.position.set(0, 1.85, .35); g.add(bar);
-      const se = zyl(.008, .4, M.chrom, 6); se.position.set(0, 2.05, .35); g.add(se);
-      glanzLeiste(g, .02, 2.0, .02, .09, 1.15, -.46);
+      g.add(box(.6, .06, 1.35, R, 0, .03, -.05));
+      g.add(box(.11, 2.35, .11, R, 0, 1.175, -.6), box(.11, .11, 1.0, R, 0, 2.3, -.15));
+      gewichtsblock(g, 0, .06, -.48, .75, t);
+      const vorn = rolle(.05); vorn.position.set(0, 2.22, .33); g.add(vorn);
+      g.add(box(.07, .45, .07, R, 0, .27, .2));
+      const sitz = polster(.4, .08, .38); sitz.position.set(0, .52, .22); g.add(sitz);
+      g.add(box(.05, .3, .05, R, 0, .7, -.05));
+      [-.13, .13].forEach(x => { const k = zyl(.05, .16, M.polster, 14); k.rotation.z = Math.PI / 2; k.position.set(x, .78, .02); g.add(k); });
+      const stange = new THREE.Group(), s = zyl(.014, 1.15, M.stange, 10); s.rotation.z = Math.PI / 2; stange.add(s);
+      [-1, 1].forEach(v => { const e = zyl(.014, .18, M.stange, 8); e.rotation.z = Math.PI / 2 + v * .5; e.position.set(v * .62, -.04, 0); stange.add(e); });
+      stange.position.set(0, 1.92, .33); g.add(stange); g.userData.ablage = stange;
+      g.userData.seil = seil(g, [0, 2.18, .33], [0, 1.94, .33]);
+      glanzLeiste(g, .02, .02, 1.25, .31, .065, -.05);
     },
     beinstr(g, t) {
       const R = rahmenMat(t);
-      g.add(box(.6, .1, .6, P(), 0, .5, .1), box(.6, .7, .1, P(), 0, .85, -.2));
-      g.add(box(.1, .45, .9, R, -.32, .25, 0), box(.1, .45, .9, R, .32, .25, 0), box(.5, .06, .06, R, 0, .3, .5));
-      const r = zyl(.07, .5, P(), 12); r.rotation.z = Math.PI / 2; r.position.set(0, .3, .55); g.add(r);
-      g.add(box(.25, .8, .12, M.schwarz, .45, .5, -.35));
-      glanzLeiste(g, .02, .02, .85, -.38, .48, 0);
+      g.add(box(.55, .06, 1.1, R, 0, .03, 0), box(.07, .45, .07, R, 0, .27, -.1));
+      const sitz = polster(.42, .08, .42); sitz.position.set(0, .54, .02); g.add(sitz);
+      const lehne = polster(.42, .55, .08); lehne.position.set(0, .86, -.24); lehne.rotation.x = -.18; g.add(lehne);
+      [-1, 1].forEach(v => { g.add(box(.04, .04, .3, R, v * .26, .62, .02)); g.add(box(.04, .12, .04, M.gummi, v * .26, .68, .14)); });
+      // Hebel dreht um die Achse am Knie, unten die Polsterrolle am Schienbein
+      const hebel = new THREE.Group(); hebel.position.set(.24, .56, .27); g.add(hebel);
+      hebel.add(box(.05, .5, .05, R, 0, -.25, 0));
+      const ro = zyl(.055, .36, M.polster, 14); ro.rotation.z = Math.PI / 2; ro.position.set(-.24, -.42, .03); hebel.add(ro);
+      hebel.add(teil(zylGeo(.012, .36, 8), M.chrom, -.24, -.42, .03).rotateZ(Math.PI / 2));
+      g.userData.hebel = hebel;
+      gewichtsblock(g, .4, .06, -.32, .6, t);
+      g.add(box(.08, 1.3, .08, R, .4, .65, -.2));
+      glanzLeiste(g, .02, .02, 1.0, -.29, .065, 0);
     },
     presse(g, t) {
       const R = rahmenMat(t);
-      g.add(box(.95, .12, 2.0, R, 0, .06, 0));
-      const sch = box(.72, .1, 1.6, R, 0, .78, -.3); sch.rotation.x = -.75; g.add(sch);
-      const sitz = box(.6, .1, .6, P(), 0, .45, .6); sitz.rotation.x = .35; g.add(sitz);
-      const leh = box(.6, .7, .1, P(), 0, .75, .9); leh.rotation.x = -.45; g.add(leh);
-      const pl = box(.72, .6, .06, M.chrom, 0, 1.1, -.58); pl.rotation.x = -.75; g.add(pl);
-      [-.46, .46].forEach(x => { const s = scheibe(.32, .07, SCHEIBE.gruen); s.position.set(x, 1.15, -.78); g.add(s); });
-      glanzLeiste(g, .02, .02, 1.8, .48, .13, 0);
+      [-.38, .38].forEach(x => g.add(box(.08, .08, 1.95, R, x, .04, 0)));
+      g.add(box(.84, .07, .08, R, 0, .04, -.92), box(.84, .07, .08, R, 0, .04, .92));
+      // Schienen im 45-Grad-Winkel, Schlitten mit Fußplatte und Scheiben
+      const schiene = new THREE.Group(); schiene.position.set(0, .3, .2); schiene.rotation.x = -Math.PI / 4; g.add(schiene);
+      [-.3, .3].forEach(x => schiene.add(box(.06, .06, 1.75, R, x, 0, -.75)));
+      const schlitten = new THREE.Group(); schlitten.position.set(0, .08, -.95); schiene.add(schlitten);
+      schlitten.add(box(.72, .08, .5, R, 0, 0, 0), box(.72, .55, .04, M.graphit, 0, .3, .22));
+      [-.42, .42].forEach(x => { const h = zyl(.025, .26, M.chrom, 12); h.rotation.z = Math.PI / 2; h.position.set(x * 1.05, .05, -.05); schlitten.add(h); const s = scheibe(.225, .06); s.position.set(x * 1.1, .05, -.05); schlitten.add(s); });
+      g.userData.schlitten = schlitten; g.userData.schiene = schiene;
+      [-.38, .38].forEach(x => g.add(box(.07, .95, .07, R, x, .5, -.62)));
+      g.add(box(.07, .45, .07, R, 0, .25, .55));
+      const sitz = polster(.46, .08, .42); sitz.position.set(0, .42, .5); sitz.rotation.x = .15; g.add(sitz);
+      const lehne = polster(.46, .08, .7); lehne.position.set(0, .66, .86); lehne.rotation.x = -.95; g.add(lehne);
+      [-1, 1].forEach(v => g.add(box(.04, .04, .26, M.gummi, v * .3, .5, .42)));
+      glanzLeiste(g, .02, .02, 1.85, .43, .085, 0);
     },
     smith(g, t) {
       const R = rahmenMat(t);
-      [[-.85, -.5], [.85, -.5], [-.85, .5], [.85, .5]].forEach(p => g.add(box(.1, 2.3, .1, R, p[0], 1.15, p[1])));
-      g.add(box(1.8, .1, .1, R, 0, 2.28, -.5), box(1.8, .1, .1, R, 0, 2.28, .5), box(.1, .1, 1.1, R, -.85, 2.28, 0), box(.1, .1, 1.1, R, .85, 2.28, 0));
-      [-.7, .7].forEach(x => g.add(box(.04, 2.2, .04, M.chrom, x, 1.15, 0)));
-      const s = stange(2.0); s.position.set(0, 1.3, 0); g.add(s); [-.85, .85].forEach(x => { const a = scheibe(.36, .08, SCHEIBE.blau); a.position.set(x * 1.12, 1.3, 0); g.add(a); });
-      g.add(box(1.9, .05, 1.2, M.schwarz, 0, .025, 0));
-      glanzLeiste(g, 1.7, .02, .02, 0, .06, .6);
+      [[-.85, -.5], [.85, -.5], [-.85, .5], [.85, .5]].forEach(p => g.add(box(.075, 2.3, .075, R, p[0], 1.15, p[1])));
+      [-.5, .5].forEach(z => g.add(box(1.775, .075, .075, R, 0, 2.27, z)));
+      [-.85, .85].forEach(x => { g.add(box(.075, .075, 1.075, R, x, 2.27, 0)); g.add(box(.09, .06, 1.3, R, x, .03, 0)); g.add(teil(zylGeo(.016, 2.2, 10), M.chrom, x * .88, 1.15, 0)); });
+      const bar = langhantel([[.225, .065]], 2.15); bar.position.set(0, 1.35, 0); g.add(bar); g.userData.ablage = bar; g.userData.fuehrung = true;
+      [-.75, .75].forEach(x => bar.add(box(.06, .1, .06, M.schwarz, x, 0, 0)));
+      g.add(box(1.8, .04, 1.1, M.gummi, 0, .02, 0, true, .006));
+      glanzLeiste(g, 1.6, .02, .02, 0, .065, .6);
     },
     pflanze(g) {
-      g.add(zyl(.2, .42, M.topf, 16, .15).translateY(.21));
-      for (let i = 0; i < 7; i++) { const b = new THREE.Mesh(new THREE.ConeGeometry(.09, .7, 6), M.gruen); const a = i / 7 * Math.PI * 2; b.position.set(Math.cos(a) * .1, .7, Math.sin(a) * .1); b.rotation.set(Math.sin(a) * .5, 0, -Math.cos(a) * .5); b.castShadow = true; g.add(b); }
+      g.add(zyl(.19, .44, M.topf, 18, .14).translateY(.22));
+      g.add(teil(zylGeo(.17, .03, 18), M.schwarz, 0, .43, 0, false));
+      for (let i = 0; i < 9; i++) {
+        const a = i / 9 * Math.PI * 2 + (i % 2) * .3, h = .55 + (i % 3) * .14, b = teil(kugelGeo(.11, 10, 8), i % 2 ? M.gruen : M.gruenHell);
+        b.scale.set(1, .25, 2.2); b.position.set(Math.cos(a) * .17, h + .25, Math.sin(a) * .17); b.rotation.set(0, -a + Math.PI / 2, .5); g.add(b);
+        g.add(teil(zylGeo(.007, h, 5), M.gruen, Math.cos(a) * .08, .44 + h / 2 - .1, Math.sin(a) * .08, false));
+      }
     },
     spind(g, t) {
-      const R = rahmenMat(t);
-      for (let i = 0; i < 3; i++) { g.add(box(.46, 1.9, .45, t ? R : lackMat(0x18191d), -.48 + i * .48, .95, 0)); g.add(box(.36, .04, .02, M.schwarz, -.48 + i * .48, 1.7, .23, false)); g.add(box(.36, .04, .02, M.schwarz, -.48 + i * .48, 1.62, .23, false)); g.add(box(.03, .14, .03, M.chrom, -.31 + i * .48, 1.05, .24, false)); }
+      const R = t ? rahmenMat(t) : M.graphit;
+      for (let i = 0; i < 3; i++) {
+        const x = -.48 + i * .48; g.add(box(.46, 1.85, .45, R, x, .95, 0));
+        for (let n = 0; n < 4; n++) g.add(box(.3, .012, .02, M.schwarz, x, 1.62 + n * .04, .228, false, 0));
+        g.add(box(.025, .14, .03, M.chrom, x + .17, 1.05, .235, false));
+        g.add(box(.05, .03, .015, M.chrom, x, 1.45, .232, false, 0));
+      }
+      g.add(box(1.44, .05, .42, M.schwarz, 0, .025, 0));
     },
     kuehl(g) {
-      g.add(box(.46, 1.5, .44, M.schwarz, 0, .75, 0));
-      const tuer = new THREE.MeshStandardMaterial({ color: 0x0a1018, emissive: farbwelt().farbe, emissiveIntensity: .35, transparent: true, opacity: .9 }); g.userData.glanz.push(tuer);
-      g.add(box(.38, 1.3, .02, tuer, 0, .8, .225, false));
-      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) g.add(zyl(.03, .16, j === 1 ? M.platin : M.gruen, 8).translateX(-.11 + j * .11).translateY(.4 + i * .38).translateZ(.12));
+      g.add(box(.5, 1.6, .46, M.graphit, 0, .8, 0));
+      const tuer = new THREE.MeshStandardMaterial({ color: 0x0a1018, emissive: leucht(), emissiveIntensity: .3, transparent: true, opacity: .85, roughness: .05, metalness: .2 }); g.userData.glanz.push(tuer);
+      g.add(box(.42, 1.3, .015, tuer, 0, .85, .235, false, 0), box(.5, .2, .02, M.schwarz, 0, 1.48, .235, false, 0));
+      for (let i = 0; i < 3; i++) { g.add(box(.4, .01, .36, M.glas, 0, .42 + i * .38, .02, false, 0)); for (let j = 0; j < 4; j++) g.add(teil(zylGeo(.028, .19, 10), j % 2 ? M.platin : M.gruen, -.13 + j * .087, .53 + i * .38, .04)); }
     },
     regal(g) {
       g.add(box(.5, .9, .5, M.sockel, 0, .45, 0));
-      g.add(box(.46, .6, .46, M.glas, 0, 1.2, 0, false));
-      const n = Math.max(1, Math.min(7, stand.kristalle));
-      for (let i = 0; i < n; i++) { const k = new THREE.Mesh(new THREE.OctahedronGeometry(.06 + (i % 3) * .015, 0), new THREE.MeshStandardMaterial({ color: 0xf5c04a, emissive: 0x8a5a10, emissiveIntensity: .8, metalness: .3, roughness: .15, flatShading: true })); k.position.set(-.12 + (i % 3) * .12, .98 + Math.floor(i / 3) * .17, (i % 2) * .08 - .04); k.scale.y = 1.5; g.add(k); }
+      g.add(box(.46, .6, .46, M.glas, 0, 1.2, 0, false, 0));
+      const n = Math.max(1, Math.min(7, stand.kristalle)), km = korundMats.vitrine || (korundMats.vitrine = std({ color: 0xf5c04a, emissive: 0x8a5a10, emissiveIntensity: .8, metalness: .3, roughness: .1, flatShading: true }));
+      for (let i = 0; i < n; i++) { const k = teil(geo("okt" + (i % 3), () => new THREE.OctahedronGeometry(.06 + (i % 3) * .015, 0)), km, -.12 + (i % 3) * .12, .98 + Math.floor(i / 3) * .17, (i % 2) * .08 - .04); k.scale.y = 1.5; g.add(k); }
       const l = new THREE.PointLight(0xf5c04a, .5, 1.6); l.position.set(0, 1.3, .2); g.add(l);
     }
   };
   const WAND = {
-    spiegel(g) { g.add(box(2.0, 2.0, .05, M.spiegel, 0, 1.25, 0, false), box(2.08, .06, .08, M.chrom, 0, .22, .01, false), box(2.08, .06, .08, M.chrom, 0, 2.28, .01, false)); },
-    neon(g) { g.add(textTafel("KORUND", 2.3, .58, true, g)); g.children.at(-1).position.y = 2.1; const l = new THREE.PointLight(farbwelt().farbe, .7, 4.5); l.position.set(0, 2.1, .6); g.userData.neonLicht = l; g.add(l); },
-    tafel(g) { const t = wochenTafel(); g.add(t); t.position.y = 1.55; g.add(box(1.38, .92, .03, M.schwarz, 0, 1.55, -.01, false)); },
-    banner(g) { g.add(box(3.2, 1.2, .04, new THREE.MeshStandardMaterial({ color: 0x14161b, roughness: .8 }), 0, 2.2, 0, false)); const t = textTafel("MEIN GYM", 3.0, .7, true, g); t.position.set(0, 2.2, .03); g.add(t); }
+    spiegel(g) { g.add(box(2.0, 2.0, .03, M.spiegel, 0, 1.25, 0, false, 0), box(2.08, .05, .07, M.chrom, 0, .23, .01, false), box(2.08, .05, .07, M.chrom, 0, 2.27, .01, false)); },
+    neon(g) { g.add(textTafel("KORUND", 2.3, .58, true, g)); g.children.at(-1).position.set(0, 2.1, .04); g.add(box(2.4, .66, .03, M.schwarz, 0, 2.1, 0, false, .01)); const l = new THREE.PointLight(leucht(), .6, 4.5); l.position.set(0, 2.1, .6); g.userData.neonLicht = l; g.add(l); },
+    tafel(g) { const t = wochenTafel(); g.add(t); t.position.set(0, 1.55, .02); g.add(box(1.38, .92, .03, M.schwarz, 0, 1.55, -.005, false)); },
+    banner(g) { g.add(box(3.2, 1.2, .04, M.schwarz, 0, 2.2, 0, false)); const t = textTafel("MEIN GYM", 3.0, .7, true, g); t.position.set(0, 2.2, .03); g.add(t); }
   };
   function textTafel(text, w, h, leuchtend, g) {
     const c = document.createElement("canvas"); c.width = 1024; c.height = Math.round(1024 * h / w); const x = c.getContext("2d");
@@ -978,6 +1186,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const g = belegt(ohneId); for (let a = 0; a < f[0]; a++) for (let b = 0; b < f[1]; b++) if (g[i + a][j + b]) return false;
     return true;
   }
+  function naechsterPlatz(k, i0, j0, rot, ohneId) { const N = STUFEN[stand.stufe].S / ZELLE; let best = null, bd = Infinity; for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const d = (i - i0) ** 2 + (j - j0) ** 2; if (d < bd && passt(k, i, j, rot, ohneId)) { bd = d; best = [i, j]; } } return best; }
   function freierPlatz(k, rot) { const N = STUFEN[stand.stufe].S / ZELLE; for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) if (passt(k, i, j, rot)) return [i, j]; return null; }
   function weltPos(k, i, j, rot) { const S = STUFEN[stand.stufe].S, f = fp(k, rot); return new THREE.Vector3(-S / 2 + (i + f[0] / 2) * ZELLE, 0, -S / 2 + (j + f[1] / 2) * ZELLE); }
 
@@ -1077,10 +1286,15 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   function stufeDeko(st, idx, S, H) {
     const wandH = new THREE.MeshStandardMaterial({ map: wandTextur(WANDART[idx], S, H, "hinten"), color: 0x404040, roughness: .9, metalness: .04 });
     const wandL = new THREE.MeshStandardMaterial({ map: wandTextur(WANDART[idx], S, H, "links"), color: 0x404040, roughness: .9, metalness: .04 });
-    raum.add(box(S, H, .16, wandH, 0, H / 2, -S / 2 - .08, false), box(.16, H, S, wandL, -S / 2 - .08, H / 2, 0, false));
-    raum.add(box(S + .16, .07, .22, M.stahl, -.08, H + .035, -S / 2 - .08, false), box(.22, .07, S, M.stahl, -S / 2 - .08, H + .035, 0, false));
+    wandH.envMapIntensity = wandL.envMapIntensity = .25;
+    raum.add(box(S, H, .28, wandH, 0, H / 2, -S / 2 - .14, false, .01), box(.28, H, S, wandL, -S / 2 - .14, H / 2, 0, false, .01));
+    raum.add(box(S + .3, .06, .34, M.kappe, -.15, H + .03, -S / 2 - .14, false, .012), box(.34, .06, S, M.kappe, -S / 2 - .14, H + .03, 0, false, .012));
+    raum.add(box(.36, H + .06, .36, M.kappe, -S / 2 - .16, H / 2 + .03, -S / 2 - .16, false, .02));
+    raum.add(box(S, .09, .025, M.gummi, 0, .045, -S / 2 + .012, false, .004), box(.025, .09, S, M.gummi, -S / 2 + .012, .045, 0, false, .004));
+    const aoH = wandAO(S, .9); aoH.position.set(0, .004, -S / 2 + .45); raum.add(aoH);
+    const aoL = wandAO(S, .9); aoL.rotation.z = -Math.PI / 2; aoL.position.set(-S / 2 + .45, .004, 0); raum.add(aoL);
     const leiste = new THREE.MeshStandardMaterial({ color: 0x0b0d10, emissive: leucht(), emissiveIntensity: .9 }); raum.userData.akzente.push(leiste);
-    raum.add(box(S, .03, .03, leiste, 0, .02, -S / 2 + .02, false), box(.03, .03, S, leiste, -S / 2 + .02, .02, 0, false));
+    raum.add(box(S, .015, .015, leiste, 0, .098, -S / 2 + .03, false, 0), box(.015, .015, S, leiste, -S / 2 + .03, .098, 0, false, 0));
     if (idx === 0) {
       // Rolltor in Stahlblau, Fenster links, Lampe in der Ecke
       const tor = new THREE.MeshStandardMaterial({ color: 0x15161a, metalness: .45, roughness: .45 });
@@ -1114,9 +1328,6 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
       [-S * .25, S * .25].forEach(x => { const s = new THREE.SpotLight(farbwelt().farbe, 1.5, 16, .5, .6, 1.5); s.position.set(x, H + .5, S * .2); s.target.position.set(x * .6, 0, -S * .1); raum.add(s, s.target); raum.userData.spots.push(s); });
     }
     if (idx === 4) {
-      const buehne = box(S * .5, .3, S * .3, new THREE.MeshStandardMaterial({ color: 0x1b1d22, metalness: .3, roughness: .5 }), -S * .18, .15, -S * .28); raum.add(buehne);
-      const kante2 = new THREE.MeshStandardMaterial({ color: 0x0b0d10, emissive: farbwelt().farbe, emissiveIntensity: 1.2 }); raum.userData.akzente.push(kante2);
-      raum.add(box(S * .5, .04, .04, kante2, -S * .18, .3, -S * .28 + S * .15, false));
       [[-S * .35, 0xa98bff], [0, farbwelt().farbe], [S * .3, 0xf5c04a]].forEach(p => { const s = new THREE.SpotLight(p[1], 2.4, 20, .42, .5, 1.4); s.position.set(p[0], H + 1, S * .3); s.target.position.set(p[0] * .5, 0, -S * .15); raum.add(s, s.target); raum.userData.spots.push(s); const h = schein(p[1], 1.6, .6); h.position.copy(s.position); raum.add(h); });
     }
   }
@@ -1141,15 +1352,22 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     g.position.set(x, y, z); raum.add(g); lampen.push({ licht: l, mat: mat, basis: l.intensity, schein: h });
     if (art === "boden") g.userData.lampe = true;
   }
+  // Weicher Schatten am Fuß der Wände: Verlauf von dunkel (Wand) zu hell (Raum)
+  let wandSchatten = null;
+  function wandAO(laenge, tiefe) {
+    if (!wandSchatten) { const c = document.createElement("canvas"); c.width = 4; c.height = 128; const x = c.getContext("2d"); const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, "rgba(0,0,0,.85)"); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, 4, 128); wandSchatten = geteilt(new THREE.CanvasTexture(c)); }
+    const m = new THREE.Mesh(geo("ebene1", () => new THREE.PlaneGeometry(1, 1)), new THREE.MeshBasicMaterial({ map: wandSchatten, transparent: true, opacity: .55, depthWrite: false, color: 0x000000 }));
+    m.scale.set(laenge, tiefe, 1); m.rotation.x = -Math.PI / 2; m.renderOrder = 1; return m;
+  }
   function raumBauen(neu) {
-    if (raum) szene.remove(raum);
-    objekte = []; wandObjekte = []; lampen = []; besucher.forEach(b => b.gruppe.parent && b.gruppe.parent.remove(b.gruppe)); besucher = []; funken = [];
+    if (raum) { besucher.forEach(b => besucherFrei(b)); szene.remove(raum); entsorgen(raum); }
+    objekte = []; wandObjekte = []; lampen = []; besucher = []; funken = [];
     const idx = stand.stufe, st = STUFEN[idx], S = st.S, H = 3.0 + idx * .25;
     raum = new THREE.Group(); raum.userData.akzente = []; raum.userData.spots = []; szene.add(raum);
     Object.assign(sonne.shadow.camera, { left: -S, right: S, top: S, bottom: -S, near: 1, far: 50 }); sonne.shadow.camera.updateProjectionMatrix();
-    raum.add(box(S + .32, .42, S + .32, M.sockel, 0, -.21, 0, false));
+    raum.add(box(S + .32, .42, S + .32, M.sockel, 0, -.21, 0, false, .03));
     const tex = bodenTextur(idx, S);
-    const boden = new THREE.Mesh(new THREE.PlaneGeometry(S, S), new THREE.MeshStandardMaterial({ map: tex, color: 0x5a5a5a, roughness: [.86, .9, .6, .85, .4][idx], metalness: idx === 4 ? .25 : .04 }));
+    const boden = new THREE.Mesh(new THREE.PlaneGeometry(S, S), new THREE.MeshStandardMaterial({ map: tex, color: 0x5a5a5a, roughness: [.86, .9, .6, .85, .4][idx], metalness: idx === 4 ? .25 : .04, envMapIntensity: .3 }));
     boden.rotation.x = -Math.PI / 2; boden.position.y = .002; boden.receiveShadow = true; boden.userData.boden = true; raum.add(boden);
     stufeDeko(st, idx, S, H);
     // Kristall-Sockel vorne links: deine Währung
@@ -1170,16 +1388,17 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   }
   function itemAufbauen(it, animiert) {
     const k = KATALOG.find(x => x.key === it.key), g = new THREE.Group();
-    g.userData = { item: it, glanz: [] }; bauFarbe = k.farbe || null; bauPolster = k.polster || null; BAU[it.key](g, it.tier || 0); bauFarbe = bauPolster = null;
+    g.userData = { item: it, glanz: [] }; BAU[it.key](g, it.tier || 0);
+    const f0 = fp(k, 0); g.add(kontaktSchatten(f0[0] * ZELLE + .2, f0[1] * ZELLE + .2, .55));
     g.position.copy(weltPos(k, it.i, it.j, it.rot)); g.rotation.y = -it.rot * Math.PI / 2;
     raum.add(g); objekte.push(g);
     if (animiert && !ruhig) { g.scale.set(.01, .01, .01); g.userData.wachsen = performance.now(); funkenBei(g.position, 40); }
     zustandSetzen(g);
     return g;
   }
-  function itemNeuBauen(obj) { const it = obj.userData.item; raum.remove(obj); objekte.splice(objekte.indexOf(obj), 1); return itemAufbauen(it, false); }
+  function itemNeuBauen(obj) { const it = obj.userData.item; raum.remove(obj); entsorgen(obj); objekte.splice(objekte.indexOf(obj), 1); return itemAufbauen(it, false); }
   function wandAufbauen() {
-    wandObjekte.forEach(o => raum.remove(o)); wandObjekte = [];
+    wandObjekte.forEach(o => { raum.remove(o); entsorgen(o); }); wandObjekte = [];
     const S = STUFEN[stand.stufe].S;
     // Feste Wand-Plätze: hinten (von rechts nach links), dann links
     const plaetze = [[S * .3, -S / 2 + .05, 0], [-S * .18, -S / 2 + .05, 0], [-S / 2 + .05, -S * .25, Math.PI / 2], [-S / 2 + .05, S * .15, Math.PI / 2]];
@@ -1219,7 +1438,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
       g.userData.glanz.forEach(m => m.emissiveIntensity = .05);
     }
   }
-  const BAU_HOEHE = { rack: 2.35, bank: .6, schraeg: 1.3, kh: .9, kettle: .6, dip: 1.35, plattform: .4, kabel: 2.4, latzug: 2.35, beinstr: 1.2, presse: 1.3, smith: 2.35 };
+  const BAU_HOEHE = { rack: 2.35, bank: .5, schraeg: 1.05, kh: .95, kettle: .55, dip: 2.3, plattform: .55, kabel: 2.3, latzug: 2.4, beinstr: 1.15, presse: 1.4, smith: 2.35, scheiben: 1.15 };
   function statusAktualisieren(feiernd) {
     objekte.forEach(g => { const vor = g.userData.zustand; zustandSetzen(g); if (feiernd && vor === "staubt" && g.userData.zustand === "glaenzt") funkenBei(g.position, 50); });
     wandObjekte.filter(o => o.userData.item.key === "tafel").forEach(o => { const t = wochenTafel(); const alt = o.children.find(c => c.geometry && c.geometry.parameters && c.geometry.parameters.width === 1.3); if (alt) { o.remove(alt); t.position.y = 1.55; o.add(t); } });
@@ -1229,7 +1448,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     objekte.concat(wandObjekte).forEach(g => { g.userData.glanz.forEach(m => m.emissive.setHex(leucht())); if (g.userData.halo) g.userData.halo.material.color.setHex(leucht()); if (g.userData.item.tier === 2) itemNeuBauenWennBoden(g); });
     raum.userData.akzente.forEach(m => m.emissive.setHex(leucht()));
     if (kristallObj) { kristallObj.material.color.setHex(f); kristallObj.material.emissive.setHex(f); raum.userData.kristall.userData.kristallLicht.color.setHex(f); }
-    wandAufbauen(); besucher.forEach(b => b.hemd.color.setHex(b.eigeneFarbe ? b.eigeneFarbe : f));
+    wandAufbauen();
     if (stand.stufe >= 3) raumBauen(false);
   }
   function itemNeuBauenWennBoden(g) { if (objekte.includes(g)) itemNeuBauen(g); }
@@ -1243,60 +1462,205 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     p.userData = { vel: vel, start: performance.now() }; raum.add(p); funken.push(p);
   }
 
-  // ---------- Besucher ----------
+  // ---------- Besucher: Figur mit Gelenken und echten Übungen ----------
   const HEMDEN = [0x2c2f36, 0x3a3d45, 0x23252a, 0x34363c, 0x2a2c32, 0x3e4048];
+  const OS = .45, US = .43, OA = .29, UA = .27; // Ober- und Unterschenkel, Ober- und Unterarm
+  function menschBauen(n) {
+    const haut = M.haut[n % 4], hemd = new THREE.MeshStandardMaterial({ color: HEMDEN[n % HEMDEN.length], roughness: .75 });
+    const w = new THREE.Group(); w.rotation.order = "YXZ";
+    const becken = new THREE.Group(); becken.position.y = .95; w.add(becken);
+    becken.add(box(.32, .17, .19, M.hose, 0, -.02, 0, true, .05));
+    const rumpf = new THREE.Group(); becken.add(rumpf);
+    rumpf.add(box(.34, .3, .2, hemd, 0, .2, 0, true, .07), box(.4, .24, .22, hemd, 0, .4, 0, true, .08));
+    const kopf = new THREE.Group(); kopf.position.y = .53; rumpf.add(kopf);
+    kopf.add(teil(zylGeo(.045, .08, 10), haut, 0, .03, 0), teil(kugelGeo(.1, 18, 14), haut, 0, .15, .005));
+    const haar = teil(kugelGeo(.104, 18, 10), M.haar, 0, .17, -.01); haar.scale.set(1, .75, 1); kopf.add(haar);
+    function arm(s) {
+      const sch = new THREE.Group(); sch.position.set(s * .23, .47, 0); rumpf.add(sch);
+      sch.add(teil(kugelGeo(.065, 12, 10), hemd), box(.09, OA, .1, hemd, 0, -OA / 2, 0, true, .035));
+      const ell = new THREE.Group(); ell.position.y = -OA; sch.add(ell);
+      ell.add(box(.075, UA, .08, haut, 0, -UA / 2, 0, true, .03));
+      const hand = new THREE.Group(); hand.position.y = -UA - .03; ell.add(hand); hand.add(box(.07, .09, .05, haut, 0, 0, 0, true, .02));
+      return { sch, ell, hand };
+    }
+    function bein(s) {
+      const hue = new THREE.Group(); hue.position.set(s * .095, -.05, 0); becken.add(hue);
+      hue.add(box(.14, OS, .15, M.hose, 0, -OS / 2, 0, true, .05));
+      const knie = new THREE.Group(); knie.position.y = -OS; hue.add(knie);
+      knie.add(box(.11, US, .12, M.hose, 0, -US / 2, 0, true, .04));
+      const fuss = new THREE.Group(); fuss.position.y = -US; knie.add(fuss);
+      fuss.add(box(.1, .06, .26, M.schuh, 0, -.02, .05, true, .02));
+      return { hue, knie, fuss };
+    }
+    const m = { w, becken, rumpf, kopf, aL: arm(-1), aR: arm(1), bL: bein(-1), bR: bein(1), hemd, props: [] };
+    m.ist = neutral(); return m;
+  }
+  // Eine Haltung als Zahlen; jede Übung liefert für einen Zeitpunkt eine solche Haltung
+  function neutral() { return { by: .95, bz: 0, rumpf: 0, kopf: 0, sLx: 0, sLz: 0, sRx: 0, sRz: 0, eL: 0, eR: 0, hL: 0, hR: 0, hLz: 0, hRz: 0, kL: 0, kR: 0, rx: 0 }; }
+  // Stehen mit Füßen am Boden: Becken folgt aus Hüft- und Kniewinkel
+  function stehen(p, a, k, aR, kR) {
+    aR = aR === undefined ? a : aR; kR = kR === undefined ? k : kR;
+    p.hL = a; p.kL = k; p.hR = aR; p.kR = kR;
+    p.by = .05 + .02 + OS * Math.cos(a) + US * Math.cos(a - k); p.bz = -(OS * Math.sin(a) + US * Math.sin(a - k)); return p;
+  }
+  const welle = p => (1 - Math.cos(p * Math.PI * 2)) / 2;
+  // Übungen: s läuft 0 → 1 → 0 je Wiederholung
+  const UEBUNG = {
+    kniebeuge: { tempo: .38, haltung(s) { const p = stehen(neutral(), 1.3 * s, 2.05 * s); p.rumpf = .5 * s; p.sLx = 1.05 + .5 * s; p.sRx = 1.05 + .5 * s; p.sLz = -1.3; p.sRz = 1.3; p.eL = 2.35; p.eR = 2.35; p.kopf = -.3 * s; return p; }, stange: "lang" },
+    bankdruecken: { tempo: .42, liegen: -Math.PI / 2, haltung(s) { const p = neutral(); p.hL = p.hR = .45; p.kL = p.kR = 1.7; p.sLx = p.sRx = -.55 - 1.0 * s; p.sLz = -(1.05 - .8 * s); p.sRz = 1.05 - .8 * s; p.eL = p.eR = 1.75 * (1 - s); return p; }, stange: "lang" },
+    schraegdruecken: { tempo: .42, liegen: -.82, haltung(s) { const p = neutral(); p.hL = p.hR = 1.1; p.kL = p.kR = 1.5; p.sLx = p.sRx = -.6 - 1.0 * s; p.sLz = -(1.0 - .75 * s); p.sRz = 1.0 - .75 * s; p.eL = p.eR = 1.7 * (1 - s); return p; }, kurz: true },
+    curls: { tempo: .45, haltung(s, t) { const p = stehen(neutral(), .05, .08); const b = welle((t * .45 + .5) % 1); p.sLx = -.12 * s; p.sRx = -.12 * b; p.eL = 2.25 * s; p.eR = 2.25 * b; p.sLz = -.08; p.sRz = .08; return p; }, kurz: true },
+    kabelfly: { tempo: .4, haltung(s) { const p = stehen(neutral(), .28, .12, -.12, .05); p.rumpf = .18; p.sLx = p.sRx = -.45 - .95 * s; p.sLz = -(1.25 - 1.0 * s); p.sRz = 1.25 - 1.0 * s; p.eL = p.eR = .35; return p; }, seile: true },
+    latzug: { tempo: .4, sitzen: .56, haltung(s) { const p = neutral(); p.hL = p.hR = 1.57; p.kL = p.kR = 1.57; p.rumpf = -.12; p.sLx = p.sRx = -2.85 + 1.25 * s; p.sLz = -(.38 + .55 * s); p.sRz = .38 + .55 * s; p.eL = p.eR = .15 + 1.55 * s; return p; }, stange: "lat" },
+    beinpresse: { tempo: .35, sitzen: .45, haltung(s) { const p = neutral(); p.rumpf = -.95; p.kopf = .5; p.hL = p.hR = 1.75 + .75 * s; p.kL = p.kR = .35 + 1.45 * s; p.sLx = p.sRx = -.1; p.sLz = -.3; p.sRz = .3; p.eL = p.eR = .3; return p; } },
+    beinstrecker: { tempo: .45, sitzen: .58, haltung(s) { const p = neutral(); p.hL = p.hR = 1.57; p.kL = p.kR = 1.5 - 1.35 * s; p.rumpf = -.15; p.sLx = p.sRx = .15; p.sLz = -.35; p.sRz = .35; p.eL = p.eR = .3; return p; } },
+    swing: { tempo: .5, haltung(s) { const a = 1 - s, p = stehen(neutral(), .45 * a, .55 * a); p.rumpf = .95 * a; p.kopf = -.5 * a; const arm = -(1.45 * s) + .1 * a; p.sLx = p.sRx = arm - p.rumpf * .0; p.sLz = .12; p.sRz = -.12; return p; }, stange: "kugel" },
+    dips: { tempo: .45, haltung(s) { const p = neutral(); p.by = 1.38 - .3 * s; p.hL = p.hR = .3; p.kL = p.kR = 1.3; p.rumpf = .15 * s; p.sLx = p.sRx = .1 + .75 * s; p.eL = p.eR = -1.5 * s; p.sLz = -.18; p.sRz = .18; return p; } },
+    kreuzheben: { tempo: .32, haltung(s) { const a = 1 - s, p = stehen(neutral(), .95 * a, 1.05 * a); p.rumpf = 1.0 * a; p.kopf = -.45 * a; p.sLx = p.sRx = -p.rumpf * .98; p.sLz = -.09; p.sRz = .09; return p; }, stange: "lang" },
+    gehen: { tempo: .9, haltung(s, t) { const w = Math.sin(t * 5.6), p = neutral(); p.hL = .42 * w; p.hR = -.42 * w; p.kL = Math.max(0, -w) * .7 + .05; p.kR = Math.max(0, w) * .7 + .05; p.by = .95 - Math.abs(w) * .02; p.sLx = -.35 * w; p.sRx = .35 * w; p.eL = p.eR = .3; p.sLz = -.06; p.sRz = .06; return p; } },
+    stehen: { tempo: .2, haltung(s) { const p = neutral(); p.rumpf = .02 * s; p.sLz = -.08; p.sRz = .08; p.eL = p.eR = .15; return p; } }
+  };
+  // Wo und wie man an einem Gerät trainiert (Koordinaten im Gerät, Blick = Drehung um y)
+  const ANKER = {
+    rack: { uebung: "kniebeuge", pos: [0, 0, .12], blick: 0, nimmt: true },
+    smith: { uebung: "kniebeuge", pos: [0, 0, .08], blick: 0, fuehrt: true },
+    bank: { uebung: "bankdruecken", pos: [0, .53, 1.17], blick: 0, nimmt: "rack" },
+    schraeg: { uebung: "schraegdruecken", pos: [0, -.12, .95], blick: 0 },
+    kh: { uebung: "curls", pos: [0, 0, .78], blick: 0 },
+    kettle: { uebung: "swing", pos: [0, 0, .62], blick: 0 },
+    dip: { uebung: "dips", pos: [0, 0, .02], blick: 0 },
+    plattform: { uebung: "kreuzheben", pos: [0, .052, .0], blick: 0, nimmt: true },
+    kabel: { uebung: "kabelfly", pos: [0, 0, .62], blick: 0 },
+    latzug: { uebung: "latzug", pos: [0, 0, .22], blick: Math.PI, nimmt: true },
+    beinstr: { uebung: "beinstrecker", pos: [0, 0, -.16], blick: 0 },
+    presse: { uebung: "beinpresse", pos: [0, 0, .58], blick: Math.PI }
+  };
+  function haltungSetzen(m, p) {
+    m.becken.position.y = p.by; m.becken.position.z = p.bz; m.rumpf.rotation.x = p.rumpf; m.kopf.rotation.x = p.kopf;
+    m.aL.sch.rotation.x = p.sLx; m.aL.sch.rotation.z = p.sLz; m.aR.sch.rotation.x = p.sRx; m.aR.sch.rotation.z = p.sRz;
+    m.aL.ell.rotation.x = -p.eL; m.aR.ell.rotation.x = -p.eR;
+    m.bL.hue.rotation.x = -p.hL; m.bR.hue.rotation.x = -p.hR; m.bL.hue.rotation.z = p.hLz; m.bR.hue.rotation.z = p.hRz;
+    m.bL.knie.rotation.x = p.kL; m.bR.knie.rotation.x = p.kR;
+    m.bL.fuss.rotation.x = p.hL - p.kL; m.bR.fuss.rotation.x = p.hR - p.kR;
+    m.w.rotation.x = p.rx;
+  }
+  function haltungMischen(ist, soll, q) { for (const k in soll) ist[k] += (soll[k] - ist[k]) * q; }
+
+  // Geräte, die der Besucher mitbringt oder vom Gerät nimmt
+  function propBauen(art) {
+    if (art === "lang") return langhantel([[.225, .065]]);
+    if (art === "lat") { const g = new THREE.Group(), s = zyl(.014, 1.15, M.stange, 10); s.rotation.z = Math.PI / 2; g.add(s); [-1, 1].forEach(v => { const e = zyl(.014, .18, M.stange, 8); e.rotation.z = Math.PI / 2 + v * .5; e.position.set(v * .62, -.04, 0); g.add(e); }); return g; }
+    if (art === "kugel") { const k = kettlebell(.12); k.children.forEach(c => c.position.y -= .2); return k; }
+  }
+  const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpM = new THREE.Matrix4();
+  // Stange zwischen beiden Händen: Mitte und Richtung aus den Handpositionen
+  function zwischenHaenden(m, prop) {
+    m.aL.hand.getWorldPosition(tmpA); m.aR.hand.getWorldPosition(tmpB);
+    raum.worldToLocal(tmpA); raum.worldToLocal(tmpB);
+    prop.position.copy(tmpA).add(tmpB).multiplyScalar(.5);
+    const d = tmpB.clone().sub(tmpA); prop.rotation.set(0, Math.atan2(-d.z, d.x), Math.atan2(d.y, Math.hypot(d.x, d.z)));
+  }
+
   function besucherAnpassen() {
     if (!raum) return;
-    const ziel = Math.min(STUFEN[stand.stufe].plaetze, Math.floor(ausstrahlung() / 110), objekte.filter(o => KATALOG.find(k => k.key === o.userData.item.key).gruppen.length).length);
-    while (besucher.length > ziel) { const b = besucher.pop(); raum.remove(b.gruppe); }
+    const ziel = Math.min(STUFEN[stand.stufe].plaetze, Math.floor(ausstrahlung() / 110), objekte.filter(o => ANKER[o.userData.item.key]).length);
+    while (besucher.length > ziel) { const b = besucher.pop(); besucherFrei(b); raum.remove(b.m.w); entsorgen(b.m.w); }
     while (besucher.length < ziel) besucher.push(besucherBauen(besucher.length));
   }
   function besucherBauen(n) {
-    const g = new THREE.Group(), haut = new THREE.MeshStandardMaterial({ color: [0xc69c7a, 0x8d5f43, 0xe0b896, 0x6b4630][n % 4], roughness: .7 });
-    const eigene = HEMDEN[n % HEMDEN.length];
-    const hemd = new THREE.MeshStandardMaterial({ color: eigene || farbwelt().farbe, roughness: .6 }), hose = new THREE.MeshStandardMaterial({ color: 0x1a1c20, roughness: .8 });
-    const koerper = box(.3, .42, .2, hemd, 0, 1.0, 0); g.add(koerper);
-    const kopf = new THREE.Mesh(new THREE.SphereGeometry(.12, 14, 10), haut); kopf.position.y = 1.35; kopf.castShadow = true; g.add(kopf);
-    const beinL = box(.11, .5, .12, hose, -.08, .5, 0), beinR = box(.11, .5, .12, hose, .08, .5, 0); g.add(beinL, beinR);
-    beinL.geometry.translate(0, -.25, 0); beinL.position.y = .78; beinR.geometry.translate(0, -.25, 0); beinR.position.y = .78;
-    const armL = box(.08, .4, .09, hemd, -.2, 1.18, 0), armR = box(.08, .4, .09, hemd, .2, 1.18, 0); armL.geometry.translate(0, -.18, 0); armR.geometry.translate(0, -.18, 0); g.add(armL, armR);
-    const S = STUFEN[stand.stufe].S, gangZ = S / 2 - GANG * ZELLE / 2;
-    g.position.set(S / 2 + .3, 0, gangZ); raum.add(g);
-    return { gruppe: g, beinL, beinR, armL, armR, hemd, eigeneFarbe: eigene, weg: [], ziel: null, warten: 1 + n * 1.3, phase: Math.random() * 6 };
+    const m = menschBauen(n), S = STUFEN[stand.stufe].S, gangZ = S / 2 - GANG * ZELLE / 2;
+    m.w.position.set(S / 2 + .4, 0, gangZ); raum.add(m.w);
+    return { m, weg: [], ziel: null, zustand: "warten", warten: 1 + n * 1.6, phase: Math.random(), uebung: "stehen", props: [] };
+  }
+  function besucherFrei(b) {
+    if (b.ziel) { const o = b.ziel; if (o.userData.ablage) o.userData.ablage.visible = true; if (o.userData.besetzt === b) o.userData.besetzt = null; }
+    b.props.forEach(p => { p.parent && p.parent.remove(p); }); b.props = []; (b.seile || []).forEach(l => { l.parent && l.parent.remove(l); }); b.seile = null;
+  }
+  // Ablauf: warten → zum Gerät gehen → einsteigen → trainieren → aussteigen → weiter
+  function besucherSchritt(b, dt, t) {
+    const S = STUFEN[stand.stufe].S, gangZ = S / 2 - GANG * ZELLE / 2, m = b.m, w = m.w;
+    if (b.zustand === "warten") {
+      b.warten -= dt; b.uebung = "stehen";
+      if (b.warten <= 0) {
+        const frei = objekte.filter(o => ANKER[o.userData.item.key] && !o.userData.besetzt && o !== (baumodus && baumodus.obj));
+        if (frei.length) {
+          const o = frei[Math.floor(Math.random() * frei.length)], a = ANKER[o.userData.item.key];
+          o.userData.besetzt = b; b.ziel = o; b.anker = a;
+          const ziel = o.localToWorld(tmpA.set(a.pos[0], 0, a.pos[2])).clone(); raum.worldToLocal(ziel);
+          const steh = a.sitzen || a.liegen ? o.localToWorld(tmpB.set(a.pos[0] + .55, 0, a.pos[2])).clone() : ziel.clone(); if (a.sitzen || a.liegen) raum.worldToLocal(steh);
+          b.ankerWelt = ziel; b.weg = [new THREE.Vector3(w.position.x, 0, gangZ), new THREE.Vector3(steh.x, 0, gangZ), steh]; b.zustand = "gehen";
+        } else b.warten = 2;
+      }
+    } else if (b.zustand === "gehen" || b.zustand === "heim") {
+      b.uebung = "gehen";
+      const z = b.weg[0], d = tmpA.set(z.x - w.position.x, 0, z.z - w.position.z), l = d.length();
+      if (l < .05) {
+        b.weg.shift();
+        if (!b.weg.length) {
+          if (b.zustand === "heim") { b.zustand = "warten"; b.warten = 1.5 + Math.random() * 3; }
+          else { b.zustand = "trainieren"; b.dauer = 7 + Math.random() * 6; einsteigen(b); }
+        }
+      } else {
+        const v = Math.min(l, dt * 1.15); d.normalize(); w.position.x += d.x * v; w.position.z += d.z * v;
+        const ziel = Math.atan2(d.x, d.z); let dw = ziel - w.rotation.y; dw = Math.atan2(Math.sin(dw), Math.cos(dw)); w.rotation.y += dw * Math.min(1, dt * 10);
+        w.position.y += (0 - w.position.y) * Math.min(1, dt * 8);
+      }
+    } else if (b.zustand === "trainieren") {
+      b.dauer -= dt; const o = b.ziel, a = b.anker;
+      if (!o || !o.parent) { aussteigen(b); return; }
+      const ziel = o.localToWorld(tmpA.set(a.pos[0], a.pos[1], a.pos[2])).clone(); raum.worldToLocal(ziel);
+      w.position.lerp(ziel, Math.min(1, dt * 6));
+      let dw = o.rotation.y + a.blick - w.rotation.y; dw = Math.atan2(Math.sin(dw), Math.cos(dw)); w.rotation.y += dw * Math.min(1, dt * 6);
+      if (b.dauer <= 0) aussteigen(b);
+    }
+    // Haltung berechnen und weich überblenden
+    const u = UEBUNG[b.uebung], ph = (t * u.tempo + b.phase) % 1, s = ruhig ? .5 : welle(ph), soll = u.haltung(s, t + b.phase / u.tempo);
+    if (b.zustand === "trainieren") { const a = b.anker, ue = UEBUNG[a.uebung]; if (ue.liegen) soll.rx = ue.liegen; if (ue.sitzen) { soll.by = ue.sitzen + .07; soll.bz = 0; } }
+    haltungMischen(m.ist, soll, Math.min(1, dt * 9)); haltungSetzen(m, m.ist);
+    if (b.zustand === "trainieren") geraetMitbewegen(b, s);
+  }
+  function einsteigen(b) {
+    const o = b.ziel, a = b.anker, ue = UEBUNG[a.uebung]; b.uebung = a.uebung;
+    blase(b.ankerWelt, o.userData.zustand === "glaenzt");
+    if ((a.nimmt === true) && o.userData.ablage) o.userData.ablage.visible = false;
+    if (ue.stange && !a.fuehrt) { const p = propBauen(ue.stange); raum.add(p); b.props.push(p); b.stange = p; } else b.stange = null;
+    if (ue.kurz) { [b.m.aL, b.m.aR].forEach(arm => { const h = kurzhantel(.075, .085); h.position.y = -.01; arm.hand.add(h); b.props.push(h); }); }
+    if (ue.seile && o.userData.rollen) { b.seile = o.userData.rollen.map(r => { const l = seil(raum, [0, 0, 0], [0, 0, 0]); l.userData.rolle = r; return l; }); }
+  }
+  function aussteigen(b) {
+    const o = b.ziel; besucherFrei(b);
+    if (o && o.userData.hebel) o.userData.hebel.rotation.x = 0;
+    if (o && o.userData.fuehrung && o.userData.ablage) o.userData.ablage.position.y = 1.35;
+    if (o && o.userData.schlitten) o.userData.schlitten.position.z = -.95;
+    if (o && o.userData.seil && o.userData.ablage) { o.userData.ablage.position.y = 1.92; seilSetzen(o.userData.seil, 1.94); }
+    b.ziel = null; b.anker = null; b.uebung = "gehen";
+    const S = STUFEN[stand.stufe].S, gangZ = S / 2 - GANG * ZELLE / 2, w = b.m.w;
+    b.weg = [new THREE.Vector3(w.position.x + .01, 0, Math.min(gangZ, w.position.z + .5)), new THREE.Vector3(w.position.x, 0, gangZ), new THREE.Vector3(-S / 2 + 1 + Math.random() * (S - 2), 0, gangZ)];
+    b.zustand = "heim"; w.position.y = 0;
+  }
+  function seilSetzen(l, y) { const a = l.geometry.attributes.position; a.setY(1, y); a.needsUpdate = true; }
+  // Maschinenteile laufen mit der Bewegung mit: Hebel, Schlitten, Zugstange, Seile
+  function geraetMitbewegen(b, s) {
+    const o = b.ziel, m = b.m;
+    if (b.stange) zwischenHaenden(m, b.stange);
+    if (o.userData.fuehrung && o.userData.ablage) { m.aL.hand.getWorldPosition(tmpA); m.aR.hand.getWorldPosition(tmpB); const y = (tmpA.y + tmpB.y) / 2; o.userData.ablage.position.y += (y - o.userData.ablage.position.y) * .5; }
+    if (o.userData.hebel) o.userData.hebel.rotation.x = -(1.5 - m.ist.kL) * .95;
+    if (o.userData.schlitten) { m.bL.fuss.getWorldPosition(tmpA); o.userData.schiene.worldToLocal(tmpA); const z = Math.max(-1.45, Math.min(-.6, tmpA.z - .05)); o.userData.schlitten.position.z += (z - o.userData.schlitten.position.z) * .5; }
+    if (o.userData.seil && b.stange) { const y = b.stange.position.y; o.userData.seil.parent.worldToLocal(tmpA.copy(b.stange.position).applyMatrix4(raum.matrixWorld)); seilSetzen(o.userData.seil, tmpA.y + .02); }
+    if (b.seile) b.seile.forEach((l, i) => { const r = l.userData.rolle; o.localToWorld(tmpA.set(r[0], r[1], r[2])); raum.worldToLocal(tmpA); (i ? m.aR : m.aL).hand.getWorldPosition(tmpB); raum.worldToLocal(tmpB); const a = l.geometry.attributes.position; a.setXYZ(0, tmpA.x, tmpA.y, tmpA.z); a.setXYZ(1, tmpB.x, tmpB.y, tmpB.z); a.needsUpdate = true; l.geometry.computeBoundingSphere(); });
   }
   // Besucher zeigen, wie ihnen das Gerät gefällt: Herz bei glänzend, Punkte bei staubig
   const blasenTex = {};
   function blase(pos, gut) {
     if (ruhig || !raum) return;
     const art = gut ? "herz" : "punkte";
-    if (!blasenTex[art]) blasenTex[art] = leinwand(128, 128, x => {
+    if (!blasenTex[art]) blasenTex[art] = geteilt(leinwand(128, 128, x => {
       x.fillStyle = "rgba(14,16,20,.9)"; x.beginPath(); x.arc(64, 60, 46, 0, 7); x.fill(); x.beginPath(); x.moveTo(52, 100); x.lineTo(64, 122); x.lineTo(76, 100); x.fill();
       if (gut) { x.fillStyle = "#FF6F7D"; x.beginPath(); x.moveTo(64, 84); x.bezierCurveTo(30, 62, 40, 30, 64, 46); x.bezierCurveTo(88, 30, 98, 62, 64, 84); x.fill(); }
       else { x.fillStyle = "#A1A4A9"; [44, 64, 84].forEach(xx => { x.beginPath(); x.arc(xx, 60, 7, 0, 7); x.fill(); }); }
-    });
+    }));
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: blasenTex[art], transparent: true, depthTest: false })); sp.scale.set(.38, .38, 1); sp.renderOrder = 11;
-    sp.position.set(pos.x, 1.75, pos.z); sp.userData = { start: performance.now(), blase: true }; raum.add(sp); funken.push(sp);
-  }
-  function besucherSchritt(b, dt, t) {
-    const S = STUFEN[stand.stufe].S, gangZ = S / 2 - GANG * ZELLE / 2;
-    if (!b.weg.length) {
-      b.warten -= dt;
-      if (b.ziel) { const s = Math.sin(t * 5 + b.phase); b.armL.rotation.x = -1.2 + s * .9; b.armR.rotation.x = -1.2 + s * .9; b.gruppe.position.y = Math.max(0, Math.sin(t * 2.5 + b.phase) * .06); }
-      if (b.warten <= 0) {
-        const geraete = objekte.filter(o => KATALOG.find(k => k.key === o.userData.item.key).gruppen.length);
-        if (!geraete.length) return;
-        const o = geraete[Math.floor(Math.random() * geraete.length)], it = o.userData.item, k = KATALOG.find(x => x.key === it.key), f = fp(k, it.rot);
-        const vorne = new THREE.Vector3(o.position.x, 0, Math.min(gangZ - .3, o.position.z + f[1] * ZELLE / 2 + .35));
-        b.weg = [new THREE.Vector3(b.gruppe.position.x, 0, gangZ), new THREE.Vector3(vorne.x, 0, gangZ), vorne];
-        b.ziel = o; b.warten = 4 + Math.random() * 5; b.armL.rotation.x = 0; b.armR.rotation.x = 0; b.gruppe.position.y = 0;
-      }
-      return;
-    }
-    const z = b.weg[0], p = b.gruppe.position, d = new THREE.Vector3(z.x - p.x, 0, z.z - p.z), l = d.length();
-    if (l < .04) { b.weg.shift(); if (!b.weg.length && b.ziel) { b.gruppe.rotation.y = Math.atan2(b.ziel.position.x - p.x, b.ziel.position.z - p.z); blase(p, b.ziel.userData.zustand === "glaenzt"); } return; }
-    const v = Math.min(l, dt * 1.1); d.normalize(); p.x += d.x * v; p.z += d.z * v;
-    b.gruppe.rotation.y = Math.atan2(d.x, d.z);
-    const s = Math.sin(t * 9 + b.phase); b.beinL.rotation.x = s * .55; b.beinR.rotation.x = -s * .55; b.armL.rotation.x = -s * .4; b.armR.rotation.x = s * .4;
+    sp.position.set(pos.x, 2.0, pos.z); sp.userData = { start: performance.now(), blase: true }; raum.add(sp); funken.push(sp);
   }
 
   // ---------- Kamera und Eingabe ----------
@@ -1373,7 +1737,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     auswahl = null; markieren(null); ueberZeigen();
   }
   function markieren(o) {
-    if (ring) { ring.parent && ring.parent.remove(ring); ring = null; }
+    if (ring) { ring.parent && ring.parent.remove(ring); ring.geometry.dispose(); ring.material.dispose(); ring = null; }
     if (!o || !o.userData.item) return;
     const k = KATALOG.find(x => x.key === o.userData.item.key);
     const f = k.fp ? fp(k, 0) : [4, 1]; const r = Math.max(f[0], f[1]) * ZELLE * .62 + .15;
@@ -1387,11 +1751,12 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     auswahl = null; markieren(null);
     const it = obj.userData.item;
     baumodus = { obj: obj, it: it, neu: neu, alt: { i: it.i, j: it.j, rot: it.rot }, i: it.i, j: it.j, rot: it.rot };
+    blick.neigungZiel = .86; letzte = null; rueckZeigen(); if (zeigeEl) zeigeEl.hidden = true;
     rasterZeigen(true); geistAktualisieren(); ueberZeigen();
     toast(KATALOG.find(k => k.key === it.key).name, "Ziehen zum Verschieben");
   }
   function rasterZeigen(an) {
-    if (rasterLinien) { raum.remove(rasterLinien); rasterLinien = null; }
+    if (rasterLinien) { raum.remove(rasterLinien); rasterLinien.geometry.dispose(); rasterLinien.material.dispose(); rasterLinien = null; }
     if (!an) return;
     const S = STUFEN[stand.stufe].S, N = S / ZELLE, pts = [];
     for (let i = 0; i <= N; i++) { const p = -S / 2 + i * ZELLE; pts.push(p, .02, -S / 2, p, .02, S / 2 - GANG * ZELLE); }
@@ -1411,7 +1776,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     b.i = Math.max(0, Math.min(N - f[0], b.i)); b.j = Math.max(0, Math.min(N - GANG - f[1], b.j));
     b.ok = passt(k, b.i, b.j, b.rot, b.it.id);
     b.obj.position.copy(weltPos(k, b.i, b.j, b.rot)); b.obj.rotation.y = -b.rot * Math.PI / 2;
-    if (geist) raum.remove(geist);
+    if (geist) { raum.remove(geist); geist.geometry.dispose(); geist.material.dispose(); }
     geist = new THREE.Mesh(new THREE.PlaneGeometry(f[0] * ZELLE, f[1] * ZELLE), new THREE.MeshBasicMaterial({ color: b.ok ? 0x3ddc84 : 0xff7a70, transparent: true, opacity: .32, depthWrite: false }));
     geist.rotation.x = -Math.PI / 2; geist.position.set(b.obj.position.x, .025, b.obj.position.z); raum.add(geist);
     const fertig = document.getElementById("bau-fertig"); if (fertig) fertig.disabled = !b.ok;
@@ -1419,11 +1784,16 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   function bauleisteBauen() {
     const l = document.createElement("div"); l.className = "bauleiste";
     const d = document.createElement("button"); d.type = "button"; d.innerHTML = ICON.drehen + "Drehen";
-    d.onclick = () => { baumodus.rot = (baumodus.rot + 1) % 4; geistAktualisieren(); };
+    d.onclick = () => {
+      // Nach dem Drehen auf den nächsten freien Platz rutschen, statt rot stehen zu bleiben
+      const bm = baumodus, k = KATALOG.find(x => x.key === bm.it.key); bm.rot = (bm.rot + 1) % 4;
+      if (!passt(k, bm.i, bm.j, bm.rot, bm.it.id)) { const p = naechsterPlatz(k, bm.i, bm.j, bm.rot, bm.it.id); if (p) { bm.i = p[0]; bm.j = p[1]; } }
+      geistAktualisieren();
+    };
     const z = document.createElement("button"); z.type = "button"; z.innerHTML = baumodus.neu ? ICON.lager + "Lager" : "Abbrechen";
     z.onclick = () => {
       const b = baumodus;
-      if (b.neu) { stand.items = stand.items.filter(x => x.id !== b.it.id); delete b.it.i; delete b.it.j; stand.lager.push(b.it); raum.remove(b.obj); objekte.splice(objekte.indexOf(b.obj), 1); toast("Im Lager", "Später aufstellen unter Bauen"); }
+      if (b.neu) { stand.items = stand.items.filter(x => x.id !== b.it.id); delete b.it.i; delete b.it.j; stand.lager.push(b.it); raum.remove(b.obj); entsorgen(b.obj); objekte.splice(objekte.indexOf(b.obj), 1); toast("Im Lager", "Später aufstellen unter Bauen"); }
       else { b.i = b.alt.i; b.j = b.alt.j; b.rot = b.alt.rot; geistAktualisieren(); }
       bauEnde(false);
     };
@@ -1434,11 +1804,70 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     return l;
   }
   function bauEnde(gespeichert) {
-    if (geist) { raum.remove(geist); geist = null; }
+    if (geist) { raum.remove(geist); geist.geometry.dispose(); geist.material.dispose(); geist = null; }
     rasterZeigen(false);
     if (gespeichert && !ruhig) funkenBei(baumodus.obj.position, 30);
-    baumodus = null; merken(); kopfZeigen(); ueberZeigen(); besucherAnpassen();
+    blick.neigungZiel = .7;
+    if (gespeichert && (baumodus.neu || baumodus.alt.i !== baumodus.it.i || baumodus.alt.j !== baumodus.it.j || baumodus.alt.rot !== baumodus.it.rot)) { letzte = { id: baumodus.it.id, neu: baumodus.neu, alt: baumodus.alt }; }
+    baumodus = null; merken(); kopfZeigen(); ueberZeigen(); besucherAnpassen(); rueckZeigen();
   }
+
+  // ---------- Vorschaubilder für den Shop: jedes Gerät einmal fotografiert, ein Bild pro Frame ----------
+  const vorschau = { bilder: {}, warte: [], r: null };
+  function vorschauBild(key) { if (vorschau.bilder[key]) return vorschau.bilder[key] === "x" ? null : vorschau.bilder[key]; if (!vorschau.warte.includes(key)) vorschau.warte.push(key); return null; }
+  function vorschauSchritt() {
+    const key = vorschau.warte.shift(); if (!key) return;
+    try {
+      if (!vorschau.r) {
+        const r = new THREE.WebGLRenderer({ canvas: document.createElement("canvas"), antialias: true, alpha: true, preserveDrawingBuffer: true });
+        r.setPixelRatio(1); r.setSize(320, 240, false); r.outputEncoding = THREE.sRGBEncoding;
+        const sz = new THREE.Scene(); sz.environment = umgebungBauen(r);
+        sz.add(new THREE.HemisphereLight(0x9aa0c0, 0x15141a, .7)); const l = new THREE.DirectionalLight(0xffffff, .9); l.position.set(3, 6, 4); sz.add(l);
+        vorschau.r = { r, sz, k: new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 100) };
+      }
+      const { r, sz, k } = vorschau.r, kat = KATALOG.find(x => x.key === key), g = new THREE.Group(); g.userData = { glanz: [] };
+      (kat.kat === "wand" ? WAND : BAU)[key](g, 0); sz.add(g); g.updateMatrixWorld(true);
+      const bb = new THREE.Box3().setFromObject(g), mitte = bb.getCenter(new THREE.Vector3()), gross = bb.getSize(new THREE.Vector3()).length();
+      k.position.copy(mitte).add(new THREE.Vector3(1, .75, 1).normalize().multiplyScalar(30)); k.lookAt(mitte);
+      const h = gross * .42; k.left = -h * 4 / 3; k.right = h * 4 / 3; k.top = h; k.bottom = -h; k.updateProjectionMatrix();
+      r.render(sz, k); vorschau.bilder[key] = r.domElement.toDataURL("image/png");
+      sz.remove(g); entsorgen(g);
+      document.querySelectorAll('img[data-vorschau="' + key + '"]').forEach(i => { i.src = vorschau.bilder[key]; i.classList.add("da"); });
+    } catch (e) { vorschau.bilder[key] = "x"; }
+  }
+  // Rückgängig: die letzte Platzierung zurücknehmen (ein Schritt, ein paar Sekunden lang)
+  let letzte = null, rueckZeit = 0;
+  function rueckZeigen() {
+    const platz = $("rueck-platz"); platz.innerHTML = ""; clearTimeout(rueckZeit);
+    if (!letzte) return;
+    const k = document.createElement("button"); k.type = "button"; k.className = "rueck"; k.id = "rueckgaengig"; k.innerHTML = ICON.drehen + "Rückgängig";
+    k.onclick = () => {
+      const l = letzte, it = stand.items.find(x => x.id === l.id), obj = objekte.find(o => o.userData.item.id === l.id); letzte = null; rueckZeigen();
+      if (!it || !obj) return;
+      const kat = KATALOG.find(x => x.key === it.key);
+      if (l.neu) { stand.items = stand.items.filter(x => x.id !== it.id); delete it.i; delete it.j; stand.lager.push(it); raum.remove(obj); entsorgen(obj); objekte.splice(objekte.indexOf(obj), 1); toast(kat.name, "zurück im Lager"); }
+      else if (passt(kat, l.alt.i, l.alt.j, l.alt.rot, it.id)) { Object.assign(it, l.alt); obj.position.copy(weltPos(kat, it.i, it.j, it.rot)); obj.rotation.y = -it.rot * Math.PI / 2; toast(kat.name, "steht wieder am alten Platz"); }
+      else toast("Geht nicht", "Am alten Platz steht jetzt etwas anderes");
+      merken(); kopfZeigen(); besucherAnpassen();
+    };
+    platz.appendChild(k); rueckZeit = setTimeout(() => { letzte = null; rueckZeigen(); }, 6000);
+  }
+  // Zeigen mit der Maus: Name des Geräts und Zeiger als Hand
+  let zeigeZeit = 0, zeigeEl = null;
+  canvas.addEventListener("pointermove", e => {
+    if (e.pointerType !== "mouse" || zeiger.size || baumodus) return;
+    const jetzt = performance.now(); if (jetzt - zeigeZeit < 70) return; zeigeZeit = jetzt;
+    strahl(e); const t = ray.intersectObjects(objekte.concat(wandObjekte), true)[0];
+    let o = t && t.object; while (o && !(o.userData && o.userData.item)) o = o.parent;
+    canvas.style.cursor = o ? "pointer" : "grab";
+    if (!o) { if (zeigeEl) zeigeEl.hidden = true; return; }
+    if (!zeigeEl) { zeigeEl = document.createElement("div"); zeigeEl.className = "zeige-name"; $("app").appendChild(zeigeEl); }
+    const k = KATALOG.find(x => x.key === o.userData.item.key), z = itemZustand(k.key);
+    zeigeEl.innerHTML = k.name + "<span>" + (z === "glaenzt" ? "glänzt" : z === "staubt" ? "staubt" : TIERS[o.userData.item.tier || 0].name) + "</span>";
+    zeigeEl.style.left = e.clientX + "px"; zeigeEl.style.top = e.clientY + "px"; zeigeEl.hidden = false;
+    zeigeEl.style.transform = e.clientX > innerWidth - 200 ? "translate(calc(-100% - 14px), 14px)" : "";
+  });
+  canvas.addEventListener("pointerleave", () => { if (zeigeEl) zeigeEl.hidden = true; });
 
   // ---------- Schleife ----------
   const uhr = new THREE.Clock();
@@ -1447,7 +1876,8 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     blick.winkel += (blick.ziel - blick.winkel) * .12;
     if (!zug && !ruhig && !baumodus) blick.ziel *= .996;
     if (blick.soll) { const q = ruhig ? 1 : .14; ['wpp', 'mx', 'my', 'dy'].forEach(k => blick.ist[k] += (blick.soll[k] - blick.ist[k]) * q); }
-    kameraSetzen(); frustum();
+    if (Math.abs(blick.neigung - blick.neigungZiel) > .002) { blick.neigung += (blick.neigungZiel - blick.neigung) * (ruhig ? 1 : .1); kameraAnpassen(); }
+    kameraSetzen(); frustum(); vorschauSchritt();
     if (raum && raum.userData.wachsen) { const s = raum.scale.x + (1 - raum.scale.x) * .1; raum.scale.set(s, s, s); if (s > .999) { raum.scale.set(1, 1, 1); raum.userData.wachsen = false; } }
     if (!ruhig && raum) {
       objekte.concat(wandObjekte).forEach((g, n) => {
@@ -1455,13 +1885,13 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
         if (g.userData.plakette) g.userData.plakette.position.y = (BAU_HOEHE[g.userData.item.key] || 1.4) + .45 + Math.sin(t * 2.2 + n) * .07;
         if (g.userData.wachsen) { const p = Math.min(1, (jetzt - g.userData.wachsen) / 650), e = 1 + 2.4 * Math.pow(p - 1, 3) + 1.4 * Math.pow(p - 1, 2), s = Math.max(.01, e); g.scale.set(s, s, s); if (p >= 1) { g.scale.set(1, 1, 1); delete g.userData.wachsen; } }
         g.children.forEach(c => { if (!c.isPoints || !c.userData.staub) return; const a = c.geometry.attributes.position; c.userData.seed.forEach((s, i) => { a.array[i * 3] = s[0] + Math.sin(t * .3 + i) * .05; a.array[i * 3 + 1] = (s[1] + t * s[3] * .25) % 2.4; a.array[i * 3 + 2] = s[2] + Math.cos(t * .27 + i) * .05; }); a.needsUpdate = true; });
-        if (g.userData.neonLicht) g.userData.neonLicht.intensity = .6 + (Math.random() < .015 ? -.5 : 0);
+        if (g.userData.neonLicht) g.userData.neonLicht.intensity = .6 + Math.sin(t * 1.3 + n) * .04;
       });
-      lampen.forEach((l, n) => { const f = l.basis * (1 + Math.sin(t * 9 + n) * .06 + Math.sin(t * 23.7 + n) * .05) - (Math.random() < .015 ? .5 : 0); l.licht.intensity = (istNacht() ? 1.3 : 1) * f; l.mat.emissiveIntensity = 1.6 + (f - l.basis) * 2; });
+      lampen.forEach((l, n) => { const f = l.basis * (1 + Math.sin(t * 2.1 + n) * .03 + Math.sin(t * 5.3 + n * 2) * .015); l.licht.intensity = (istNacht() ? 1.3 : 1) * f; l.mat.emissiveIntensity = 1.6 + (f - l.basis) * 2; });
       if (kristallObj) { kristallObj.rotation.y = t * .6; kristallObj.position.y = 1.0 + Math.sin(t * 1.4) * .05; }
       raum.userData.spots.forEach((s, n) => { s.target.position.x += Math.sin(t * .4 + n * 2) * .01; });
       besucher.forEach(b => besucherSchritt(b, dt, t));
-      funken = funken.filter(f => { const d = (jetzt - f.userData.start) / 1000; if (f.userData.blase) { if (d > 1.8) { raum.remove(f); return false; } f.position.y = 1.75 + d * .35; f.material.opacity = d < 1.3 ? 1 : 1 - (d - 1.3) / .5; const sc = .38 * Math.min(1, d * 6); f.scale.set(sc, sc, 1); return true; } const a = f.geometry.attributes.position; if (d > 1.3) { raum.remove(f); return false; } f.userData.vel.forEach((v, i) => { a.array[i * 3] += v[0] * .016; a.array[i * 3 + 1] += (v[1] - d * 6) * .016; a.array[i * 3 + 2] += v[2] * .016; }); a.needsUpdate = true; f.material.opacity = 1 - d / 1.3; return true; });
+      funken = funken.filter(f => { const d = (jetzt - f.userData.start) / 1000; if (f.userData.blase) { if (d > 1.8) { raum.remove(f); return false; } f.position.y = 2.0 + d * .35; f.material.opacity = d < 1.3 ? 1 : 1 - (d - 1.3) / .5; const sc = .38 * Math.min(1, d * 6); f.scale.set(sc, sc, 1); return true; } const a = f.geometry.attributes.position; if (d > 1.3) { raum.remove(f); return false; } f.userData.vel.forEach((v, i) => { a.array[i * 3] += v[0] * .016; a.array[i * 3 + 1] += (v[1] - d * 6) * .016; a.array[i * 3 + 2] += v[2] * .016; }); a.needsUpdate = true; f.material.opacity = 1 - d / 1.3; return true; });
       if (ring) ring.material.opacity = .55 + Math.sin(t * 4) * .25;
       if (geist) geist.material.opacity = .26 + Math.sin(t * 5) * .1;
     }
@@ -1479,7 +1909,14 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   farbeAnwenden(); tageszeit(); kopfZeigen(); reiterZeigen(); raumBauen(false); ueberZeigen();
   $("laden").remove();
   $("pille-splitter").onclick = $("pille-kristalle").onclick = () => { auswahl = null; markieren(null); reiter = "auftraege"; reiterZeigen(); ueberZeigen(); };
-  window.__gym = { zustaende: () => objekte.map(o => [o.userData.item.key, o.userData.zustand, !!o.userData.halo, o.userData.halo && o.userData.halo.material.opacity]), stand: () => stand, eintragen: (g, r) => trainingEintragen(heute(), g, r, null), importieren: importieren };
+  // Nur für Tests: alle Besucher sofort an je ein Gerät setzen
+  function alleUeben() {
+    const liste = objekte.filter(o => ANKER[o.userData.item.key]);
+    while (besucher.length < liste.length) besucher.push(besucherBauen(besucher.length));
+    liste.forEach((o, i) => { const b = besucher[i], a = ANKER[o.userData.item.key]; besucherFrei(b); o.userData.besetzt = b; b.ziel = o; b.anker = a; b.ankerWelt = raum.worldToLocal(o.localToWorld(new THREE.Vector3(a.pos[0], a.pos[1], a.pos[2]))); b.m.w.position.copy(b.ankerWelt); b.m.w.rotation.y = o.rotation.y + a.blick; b.zustand = "trainieren"; b.dauer = 1e9; einsteigen(b); });
+    return liste.length;
+  }
+  window.__gym = { alleUeben, blick, kameraAnpassen, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), zustaende: () => objekte.map(o => [o.userData.item.key, o.userData.zustand, !!o.userData.halo, o.userData.halo && o.userData.halo.material.opacity]), stand: () => stand, eintragen: (g, r) => trainingEintragen(heute(), g, r, null), importieren: importieren };
   requestAnimationFrame(bild);
 })();
 </script>

@@ -2760,7 +2760,11 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
 
   // ---------- Schleife ----------
   const uhr = new THREE.Clock();
+  let bilderGezeichnet = 0;
   function bild() {
+    // Unsichtbar (Gym-Tab der App zu, Seite im Hintergrund): nicht zeichnen, nur alle 0,4 s nachsehen. Spart Akku auf dem Handy
+    if (document.hidden || !canvas.clientWidth) { uhr.getDelta(); setTimeout(() => requestAnimationFrame(bild), 400); return; }
+    bilderGezeichnet++;
     const dt = Math.min(.05, uhr.getDelta()), t = uhr.elapsedTime, jetzt = performance.now();
     blick.winkel += (blick.ziel - blick.winkel) * .12;
     if (!zug && !ruhig && !baumodus) blick.ziel *= .996;
@@ -2808,7 +2812,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     return liste.length;
   }
   window.__gym = { alleUeben, blick, kameraAnpassen, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), zustaende: () => objekte.map(o => [o.userData.item.key, o.userData.zustand, !!o.userData.halo, o.userData.halo && o.userData.halo.material.opacity]), stand: () => stand, eintragen: (g, r) => trainingEintragen(heute(), g, r, null), importieren: importieren, neuBauen: () => { raumBauen(false); kopfZeigen(); ueberZeigen(); }, phase: v => { testPhase = v; }, fokus: () => { const v = new THREE.Vector3(); besucher[0].m.becken.getWorldPosition(v); v.y = Math.max(.5, v.y); blick.fokus = v; },
-    objekt: () => objekte[0],
+    objekt: () => objekte[0], bilder: () => bilderGezeichnet,
     fokusGehend: () => { const b = besucher.find(x => x.zustand === "gehen" || x.zustand === "heim" || x.zustand === "warten") || besucher[0]; if (!b) return; const v = new THREE.Vector3(); b.m.becken.getWorldPosition(v); blick.fokus = v; blick.winkel = blick.ziel = b.m.w.rotation.y + Math.PI / 4 + .6; },
     bildschirm: id => { const o = objekte.find(x => x.userData.item.id === id); if (!o) return null; const v = new THREE.Vector3(); o.getWorldPosition(v); v.y = .6; v.project(kamera); const r = canvas.getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; },
     imWeg: () => { const S = STUFEN[stand.stufe].S, N = Math.round(S / ZELLE); let n = 0, geh = 0; besucher.forEach(b => { if (b.zustand !== "gehen" && b.zustand !== "heim") return; geh++; const g = belegt(b.ziel ? b.ziel.userData.item.id : undefined), i = Math.floor((b.m.w.position.x + S / 2) / ZELLE), j = Math.floor((b.m.w.position.z + S / 2) / ZELLE); if (g[i] && g[i][j]) n++; }); return [n, geh]; }, nah: () => { kamera.near = 36.8; kamera.updateProjectionMatrix(); },

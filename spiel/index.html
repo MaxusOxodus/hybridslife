@@ -421,7 +421,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   const wechsel = p => (1 - Math.cos(p * Math.PI * 2)) / 2;
   const L = -1, Rr = 1; // Seiten: links ist -x
   const BEWEGUNG = {
-    kniebeuge: { name: "Langhantel-Kniebeuge", familie: "kniebeuge", tempo: .3, stange: "nacken", h(s) { const p = stehen(neutral(), 1.32 * s, 2.1 * s); p.rumpf = .6 * s; nackenGriff(p); p.hLz = -(.13 + .2 * s); p.hRz = .13 + .2 * s; p.kopf = -.35 * s; return p; } },
+    // Kniebeuge: Füße bleiben schulterbreit stehen, die Knie gehen nach außen über die Zehen (Abspreizen so, dass der Knöchel an seinem Platz bleibt)
+    kniebeuge: { name: "Langhantel-Kniebeuge", familie: "kniebeuge", tempo: .3, stange: "nacken", h(s) { const p = stehen(neutral(), 1.32 * s, 2.1 * s); p.rumpf = .6 * s; nackenGriff(p); const hz = Math.asin(.105 / (OS + US * Math.cos(2.1 * s))); p.hLz = -hz; p.hRz = hz; p.kopf = -.35 * s; return p; } },
     frontsquat: { name: "Multipresse-Kniebeuge", familie: "kniebeuge", tempo: .3, h(s) { return BEWEGUNG.kniebeuge.h(s); } },
     // Ausfallschritt: vorderer Fuß flach, hinterer auf dem Ballen, unten fast 90 Grad im vorderen Knie
     ausfall: { name: "Ausfallschritte mit Kurzhanteln", familie: "ausfall", tempo: .32, kurz: true, h(s, t, satz) { const vorn = satz % 2 ? "R" : "L", hinten = vorn === "L" ? "R" : "L", p = neutral(), hy = .5 + .34 * (1 - s); p.by = hy + .05; p.bz = 0; beinZiel(p, hy, 0, .07, .32, vorn); beinZiel(p, hy, 0, .15, -.46, hinten); p["fx" + hinten] = .75; p.rumpf = .06; p.sLz = -.1; p.sRz = .1; p.eL = p.eR = .08; return p; } },

@@ -1442,7 +1442,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
       g.add(box(1.29, .06, .09, R, 0, .03, -.55));
       const zug = zyl(.016, 1.3, M.stange, 10); zug.rotation.z = Math.PI / 2; zug.position.set(0, 2.24, .56); g.add(zug);
       [-.6, .6].forEach(x => {
-        g.add(box(.06, .1, .09, M.schwarz, x, 1.33, .575), box(.05, .04, .05, M.schwarz, x, 1.38, .61));
+        // J-Haken: Platte am Pfosten, Arm nach vorn mit schwarzer Auflage, vorn eine Lippe, damit die Stange nicht rollt
+        g.add(box(.08, .16, .02, R, x, 1.36, .548), box(.05, .02, .1, R, x, 1.37, .6), box(.052, .012, .09, M.schwarz, x, 1.385, .6, false, .003), box(.05, .05, .02, R, x, 1.4, .652));
         g.add(box(.05, .05, 1.0, R, x * .93, .62, 0));
         const pin = zyl(.024, .28, M.chrom, 12); pin.rotation.x = Math.PI / 2; pin.position.set(x, .6, -.68); g.add(pin);
         [0, 1].forEach(n => { const s = scheibe(.225, .06); s.rotation.y = Math.PI / 2; s.position.set(x, .6, -.6 - n * .064); g.add(s); });

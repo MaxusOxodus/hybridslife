@@ -425,7 +425,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     frontsquat: { name: "Multipresse-Kniebeuge", familie: "kniebeuge", tempo: .3, h(s) { return BEWEGUNG.kniebeuge.h(s); } },
     // Ausfallschritt: vorderer Fuß flach, hinterer auf dem Ballen, unten fast 90 Grad im vorderen Knie
     ausfall: { name: "Ausfallschritte mit Kurzhanteln", familie: "ausfall", tempo: .32, kurz: true, h(s, t, satz) { const vorn = satz % 2 ? "R" : "L", hinten = vorn === "L" ? "R" : "L", p = neutral(), hy = .5 + .34 * (1 - s); p.by = hy + .05; p.bz = 0; beinZiel(p, hy, 0, .07, .32, vorn); beinZiel(p, hy, 0, .15, -.46, hinten); p["fx" + hinten] = .75; p.rumpf = .06; p.sLz = -.1; p.sRz = .1; p.eL = p.eR = .08; return p; } },
-    kreuzheben: { name: "Kreuzheben", familie: "kreuzheben", tempo: .28, stange: "lang", h(s) { s = 1 - s; const a = 1 - s, p = stehen(neutral(), 1.25 * a, 1.35 * a); p.rumpf = 1.15 * a; p.kopf = -.45 * a; p.sLx = p.sRx = -p.rumpf * .98; p.sLz = -.09; p.sRz = .09; return p; } },
+    kreuzheben: { name: "Kreuzheben", familie: "kreuzheben", tempo: .28, stange: "lang", h(s) { s = 1 - s; const a = 1 - s, p = stehen(neutral(), 1.38 * a, 1.62 * a); p.rumpf = 1.2 * a; p.kopf = -.45 * a; p.sLx = p.sRx = -p.rumpf * .98; p.sLz = -.09; p.sRz = .09; return p; } },
     // Hip Thrust nach Beschreibung: oberer Rücken an der Bankkante, Füße fest am Boden, oben Schienbeine senkrecht und Rumpf waagerecht
     hipthrust: { name: "Hip Thrust", familie: "hipthrust", tempo: .32, stange: "becken", h(s) { const p = neutral(), cy = .47, cz = -.4, hy = .45 - .28 * s, hz = cz + Math.sqrt(Math.max(0, .4 * .4 - (cy - hy) ** 2)); p.by = hy + .05; p.bz = hz; p.rumpf = Math.atan2(cz - hz, cy - hy); beinZiel(p, hy, hz, .07, .45); p.kopf = .35 * (1 - s); return p; } },
     // Beinpresse 45 Grad: Hüfte im Sitz, die Füße laufen auf einer Linie parallel zu den Schienen, Sohlen flach auf der Platte
@@ -440,7 +440,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     bankdruecken: { name: "Bankdrücken", familie: "bankdruecken", tempo: .32, liegen: -Math.PI / 2, stange: "lang", h(s) { const p = neutral(); beinZiel(p, .9, 0, .4, -.475); p.hLz = -.2; p.hRz = .2; p.fx = Math.PI / 2; return p; } },
     schraegdruecken: { name: "Schrägbankdrücken mit Kurzhanteln", familie: "schraegdruecken", tempo: .32, liegen: -.82, kurz: true, h(s) { const p = neutral(), o = 1 - s; beinZiel(p, .9, 0, .316, -.028); p.hLz = -.22; p.hRz = .22; p.fx = .82; p.sLx = p.sRx = -.6 - 1.0 * o; p.sLz = -(1.0 - .75 * o); p.sRz = 1.0 - .75 * o; p.eL = p.eR = 1.7 * s; return p; } },
     kabelfly: { name: "Kabelzug-Fliegende", familie: "fly", tempo: .32, seile: "rollen", h(s) { const p = stehen(neutral(), .28, .12, -.12, .05), o = 1 - s; p.rumpf = .18; p.sLx = p.sRx = -.45 - .95 * o; p.sLz = -(1.25 - 1.0 * o); p.sRz = 1.25 - 1.0 * o; p.eL = p.eR = .35; return p; } },
-    dips: { name: "Dips", familie: "dips", tempo: .32, h(s) { const p = neutral(); p.by = 1.38 - .3 * s; p.hL = p.hR = .3; p.kL = p.kR = 1.3; p.rumpf = .15 * s; p.sLx = p.sRx = .12 + .72 * s; p.eL = p.eR = 1.0 * s; p.sLz = -.18; p.sRz = .18; return p; } },
+    dips: { name: "Dips", familie: "dips", tempo: .32, h(s) { const p = neutral(); p.by = 1.35 - .27 * s; p.hL = p.hR = .3; p.kL = p.kR = 1.3; p.rumpf = .15 * s; p.sLx = p.sRx = .12 + .72 * s; p.eL = p.eR = 1.0 * s; p.sLz = -.18; p.sRz = .18; return p; } },
     liegestuetz: { name: "Liegestütze", familie: "liegestuetz", tempo: .34, h(s) { const p = neutral(), rx = 1.24 + .26 * s; p.by = 1; p.rx = rx; p.fx = 1.2 - rx; p.kopf = -.2; return p; } },
     // Schulterdrücken nach Beschreibung: sitzend, Rücken an der fast senkrechten Lehne, Füße flach vor dem Sitz, Hände von Ohrhöhe nach oben
     schulterdruecken: { name: "Schulterdrücken sitzend", familie: "schulterdruecken", tempo: .32, kurz: true, sitzen: .53, lehne: 1.42, h(s) { const p = neutral(); beinZiel(p, .55, 0, .07, .42); p.hLz = -.1; p.hRz = .1; p.rumpf = -.05; return p; } },
@@ -453,8 +453,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     // Kurzhantelrudern: linkes Knie und linke Hand auf der Bank, rechter Fuß am Boden, Rücken waagerecht
     khrudern: { name: "Kurzhantel-Rudern", familie: "rudern", tempo: .32, kurzR: true, h(s) { s = 1 - s; const p = neutral(); p.by = .93; p.bz = 0; beinZiel(p, .88, 0, .07, -.04, "R"); p.hL = .5; p.kL = 2.07; p.fxL = Math.PI; p.hRz = .12; p.rumpf = 1.42; p.kopf = -1.05; p.sRx = -1.4 + 1.65 * s; p.eR = .08 + 1.9 * s; p.sRz = .08 - .05 * s; return p; } },
     latzug: { name: "Latziehen", familie: "latziehen", tempo: .32, sitzen: .48, stange: "lat", h(s) { const p = neutral(); p.hL = p.hR = 1.57; p.kL = p.kR = 1.57; p.rumpf = -.12 - .08 * (1 - s); return p; } },
-    klimmzug: { name: "Klimmzüge", familie: "klimmzug", tempo: .3, h(s) { s = 1 - s; const p = neutral(); p.by = 1.17 + .42 * s; p.sLx = p.sRx = -2.95 + .8 * s; p.sLz = -(.38 + .45 * s); p.sRz = .38 + .45 * s; p.eL = p.eR = .1 + 1.9 * s; p.hL = p.hR = .25; p.kL = p.kR = .9; p.kopf = .1 * s; return p; } },
-    knieheben: { name: "Knieheben hängend", familie: "bauch", tempo: .34, h(s) { s = 1 - s; const p = neutral(); p.by = 1.17; p.sLx = p.sRx = -2.95; p.sLz = -.38; p.sRz = .38; p.eL = p.eR = .1; p.hL = p.hR = .1 + 1.55 * s; p.kL = p.kR = .25 + 1.25 * s; p.rumpf = -.15 * s; return p; } },
+    klimmzug: { name: "Klimmzüge", familie: "klimmzug", tempo: .3, h(s) { s = 1 - s; const p = neutral(); p.by = 1.19 + .4 * s; p.sLx = p.sRx = -2.95 + .8 * s; p.sLz = -(.38 + .45 * s); p.sRz = .38 + .45 * s; p.eL = p.eR = .1 + 1.9 * s; p.hL = p.hR = .25; p.kL = p.kR = .9; p.kopf = .1 * s; return p; } },
+    knieheben: { name: "Knieheben hängend", familie: "bauch", tempo: .34, h(s) { s = 1 - s; const p = neutral(); p.by = 1.19; p.sLx = p.sRx = -2.95; p.sLz = -.38; p.sRz = .38; p.eL = p.eR = .1; p.hL = p.hR = .1 + 1.55 * s; p.kL = p.kR = .25 + 1.25 * s; p.rumpf = -.15 * s; return p; } },
     curls: { name: "Kurzhantel-Curls", familie: "curls", tempo: .36, kurz: true, h(s, t, satz, ph) { s = 1 - s; const p = stehen(neutral(), .05, .08), b = 1 - profil((ph + .5) % 1); p.sLx = -.1 * s; p.sRx = -.1 * b; p.eL = .1 + 2.15 * s; p.eR = .1 + 2.15 * b; p.sLz = -.08; p.sRz = .08; return p; } },
     pushdown: { name: "Trizepsdrücken am Kabel", familie: "trizeps", tempo: .36, seile: "mitte", h(s) { s = 1 - s; const p = stehen(neutral(), .12, .16); p.rumpf = .18; p.sLx = p.sRx = -.2; p.sLz = -.12; p.sRz = .12; p.eL = p.eR = 1.85 - 1.65 * s; return p; } },
     farmer: { name: "Farmer's Walk", familie: "unterarme", tempo: .9, gehen: true, kugelHaende: true, h(s, t) { const w = Math.sin(t * 5.2), p = neutral(); p.by = 1; p.hL = .38 * w; p.hR = -.38 * w; p.kL = Math.max(0, -w) * .6 + .05; p.kR = Math.max(0, w) * .6 + .05; p.sLz = -.14; p.sRz = .14; p.eL = p.eR = .04; p.wx = Math.sin(t * .55) * .9; return p; } },
@@ -473,16 +473,16 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   const seiten = (p, f) => ({ L: [-p[0], p[1], p[2]], R: p.slice(), ...f });
   const NACKEN_GRIFF = seiten([.38, .5, -.12], { bezug: "rumpf", pol: [.16, -.27, -.12] });
   BEWEGUNG.kniebeuge.griff = BEWEGUNG.frontsquat.griff = () => NACKEN_GRIFF;
-  BEWEGUNG.bankdruecken.griff = s => seiten(zw([.4, .44, .6], [.42, .3, .13], s), { bezug: "rumpf", pol: [.2, -.3, -.08] });
+  BEWEGUNG.bankdruecken.griff = s => seiten(zw([.38, .44, .56], [.42, .3, .13], s), { bezug: "rumpf", pol: [.2, -.3, -.08] });
   BEWEGUNG.schraegdruecken.griff = s => seiten(zw([.17, .46, .6], [.3, .4, .06], s), { bezug: "rumpf", pol: [.28, -.15, -.05] });
   BEWEGUNG.khrudern.griff = () => ({ L: [.0, .46, -.28], pol: "hinten" });
-  BEWEGUNG.kabelrudern.griff = s => seiten(zw([.13, .12, .22], [.12, .3, .58], s), { bezug: "rumpf", pol: [.12, -.16, -.22] });
+  BEWEGUNG.kabelrudern.griff = s => seiten(zw([.13, .12, .22], [.12, .3, .55], s), { bezug: "rumpf", pol: [.12, -.16, -.22] });
   BEWEGUNG.schulterdruecken.griff = s => seiten(zw([.19, 1.0, .05], [.27, .64, .05], s), { bezug: "rumpf", pol: [.32, -.1, 0] });
   BEWEGUNG.dips.griff = () => seiten([.27, 1.25, .1], { pol: "hintenAussen" });
   BEWEGUNG.klimmzug.griff = BEWEGUNG.knieheben.griff = () => seiten([.42, 2.22, -.1], { pol: "aussen" });
   BEWEGUNG.latzug.griff = s => seiten(zw([.42, 1.06, .04], [.42, 1.55, .12], s), { pol: "untenAussen" });
-  BEWEGUNG.kreuzheben.griff = s => seiten(zw([.24, .89, .07], [.24, .277, .07], s), { pol: "unten" });
-  BEWEGUNG.beinstrecker.griff = () => seiten([.27, .51, -.13], { pol: "aussen" });
+  BEWEGUNG.kreuzheben.griff = (s, ph, b) => { const v = new THREE.Vector3(), r = {}; [["L", b.m.aL], ["R", b.m.aR]].forEach(([k, a]) => { a.sch.getWorldPosition(v); v.y -= .575; const y = b.m.w.rotation.y; v.x += Math.sin(y) * .03; v.z += Math.cos(y) * .03; r[k] = [v.x, v.y, v.z]; }); return { bezug: "welt", L: r.L, R: r.R, pol: "hinten" }; };
+  BEWEGUNG.beinstrecker.griff = () => seiten([.27, .55, -.13], { pol: "aussen" });
   BEWEGUNG.beincurl.griff = () => seiten([.24, .49, .68], { pol: "aussen" });
   BEWEGUNG.abduktion.griff = BEWEGUNG.adduktion.griff = () => seiten([.29, .48, -.13], { pol: "aussen" });
   BEWEGUNG.beinpresse.griff = BEWEGUNG.wadenpresse.griff = () => seiten([.31, .36, .4], { pol: "aussen" });
@@ -677,7 +677,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
 
   function ueberZeigen() {
     const platz = $("ueber-reiter"); platz.innerHTML = "";
-    $("hinweis").style.display = baumodus ? "none" : "";
+    // Der Bedienhinweis gilt nur, solange der Raum frei zu sehen ist (kein Sheet, keine Info, kein Baumodus)
+    $("hinweis").style.display = baumodus || auswahl || reiter ? "none" : "";
     if (baumodus) { platz.appendChild(bauleisteBauen()); $("reiter").style.display = "none"; einpassen(); return; }
     $("reiter").style.display = "";
     if (auswahl) { platz.appendChild(infoBauen(auswahl)); einpassen(); return; }
@@ -1244,7 +1245,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     naht: std({ color: 0x24262c, metalness: 0, roughness: .6 }),
     sockel: std({ color: 0x0c0d10, metalness: .3, roughness: .6, envMapIntensity: .4 }),
     kappe: std({ color: 0x24262b, metalness: .5, roughness: .45, envMapIntensity: .6 }),
-    holz: std({ color: 0x6b4b2f, metalness: 0, roughness: .62, envMapIntensity: .5 }),
+    holz: std({ color: new THREE.Color(0x8a6642).convertSRGBToLinear(), metalness: 0, roughness: .55, envMapIntensity: .5 }),
     gruen: std({ color: 0x2f6b46, roughness: .7 }),
     gruenHell: std({ color: 0x3f8a58, roughness: .7 }),
     topf: std({ color: 0x23262c, roughness: .5, metalness: .3 }),
@@ -1564,14 +1565,14 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
       const lehne = polster(.44, .62, .08); lehne.position.set(0, .99, -.37); lehne.rotation.x = -.15; g.add(lehne);
       rohr(g, [0, .44, -.2], [0, .75, -.43], .06, R);
       // Griffe neben dem Sitz
-      [-1, 1].forEach(v => { rohr(g, [v * .2, .44, -.12], [v * .27, .5, -.12], .04, R); griffRohr(g, [v * .27, .5, -.02], [v * .27, .5, -.24], R); });
+      [-1, 1].forEach(v => { rohr(g, [v * .2, .44, -.12], [v * .27, .54, -.12], .04, R); griffRohr(g, [v * .27, .54, -.02], [v * .27, .54, -.24], R); });
       // Hebel dreht genau in der Kniehöhe, die Rolle liegt vorn am Schienbein über dem Knöchel
       rohr(g, [.27, .06, .25], [.27, .6, .29], .08, R); const nabe = zyl(.09, .04, R, 20); nabe.rotation.z = Math.PI / 2; nabe.position.set(.31, .6, .29); g.add(nabe);
       const hebel = new THREE.Group(); hebel.position.set(.27, .6, .29); g.add(hebel);
       hebel.add(box(.05, .46, .05, R, .06, -.23, .05));
       polsterRolle(hebel, -.21, -.4, .095, .36, .05); hebel.add(box(.42, .03, .03, R, -.15, -.4, .095));
       g.userData.hebel = hebel; g.userData.hebelArt = "strecker";
-      stapelTurm(g, .38, -.5, .6, t, -Math.PI / 2);
+      stapelTurm(g, .38, -.5, .6, t, Math.PI / 2);
       glanzLeiste(g, .02, .02, 1.05, -.29, .065, -.05);
     },
     presse(g, t) {
@@ -1630,7 +1631,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
       hebel.add(box(.05, .05, .44, R, .06, .04, -.22));
       polsterRolle(hebel, -.26, .095, -.41, .36, .05); hebel.add(box(.42, .03, .03, R, -.2, .095, -.41));
       g.userData.hebel = hebel; g.userData.hebelArt = "beuger";
-      stapelTurm(g, .37, -.12, .5, t, -Math.PI / 2);
+      stapelTurm(g, .37, -.12, .5, t, Math.PI / 2);
       glanzLeiste(g, .02, .02, 1.7, -.27, .065, -.05);
     },
     abadd(g, t) {
@@ -2206,7 +2207,9 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     const kopf = new THREE.Group(); kopf.position.y = .53; rumpf.add(kopf);
     kopf.add(teil(gliedGeo(KOERPER.hals, .1), haut, 0, .1, 0));
     const schaedel = teil(kugelGeo(.098, 18, 14), haut, 0, .155, .008); schaedel.scale.set(.92, 1.08, 1); kopf.add(schaedel);
-    const kinn = teil(kugelGeo(.06, 12, 8), haut, 0, .1, .04); kinn.scale.set(1, .8, .9); kopf.add(kinn);
+    // Kiefer sitzt im Schädel und rundet ihn nach unten ab, dazu zwei Ohren
+    const kinn = teil(kugelGeo(.072, 14, 10), haut, 0, .118, .022); kinn.scale.set(.95, .78, .95); kopf.add(kinn);
+    [-1, 1].forEach(v => { const ohr = teil(kugelGeo(.024, 8, 6), haut, v * .089, .152, -.004, false); ohr.scale.set(.45, 1, .75); kopf.add(ohr); });
     const haar = teil(kugelGeo(.104, 18, 12), M.haar, 0, .19, -.004); haar.scale.set(.96, .8, 1.04); kopf.add(haar);
     function arm(s) {
       const sch = new THREE.Group(); sch.rotation.order = "XZY"; sch.position.set(s * .23, .47, 0); rumpf.add(sch);
@@ -2214,8 +2217,11 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
       sch.add(glied(KOERPER.aermel, OA * .55, hemd), glied(KOERPER.oberarm, OA, haut));
       const ell = new THREE.Group(); ell.position.y = -OA; sch.add(ell);
       ell.add(glied(KOERPER.unterarm, UA, haut), teil(kugelGeo(.04, 10, 8), haut));
+      // Hand als Faust: Handrücken zum Handgelenk hin, die Finger legen sich als Bogen um den Griff (Griffachse = x), dazu der Daumen
       const hand = new THREE.Group(); hand.position.y = -UA - .03; ell.add(hand);
-      hand.add(box(.06, .085, .04, haut, 0, 0, 0, true, .018));
+      hand.add(box(.07, .06, .034, haut, 0, .032, -.004, true, .014));
+      const finger = teil(geo("faust", () => { const t = new THREE.TorusGeometry(.027, .0135, 6, 12, Math.PI * 1.45); t.rotateY(Math.PI / 2); t.rotateX(Math.PI * .78); return t; }), haut, 0, 0, 0, false); finger.scale.set(1.25, 1, 1); hand.add(finger);
+      const daumen = teil(kugelGeo(.013, 8, 6), haut, s * -.034, .018, .02, false); daumen.scale.set(1, 1.7, 1); daumen.rotation.z = s * .5; hand.add(daumen);
       return { sch, ell, hand };
     }
     function bein(s) {
@@ -2278,7 +2284,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   // Ziele aus griff(): Punkte im Gerät ("geraet", Standard), am Rumpf ("rumpf") oder fest dort, wo die Hände in der Endstellung waren ("fest")
   function griffeSetzen(b, g) {
     const m = b.m, o = b.ziel; m.w.updateMatrixWorld(true);
-    m.ik = m.ik || {};
+    m.ik = m.ik || {}; m.ikFehler = 0;
     // Ziele im Rumpf: Steht der Besucher andersherum am Gerät, gehört der linke Griff zur rechten Hand
     const imRumpf = {};
     ["L", "R"].forEach(k => { const z = g[k]; if (!z) return; const v = new THREE.Vector3(z[0], z[1], z[2]); if (g.bezug !== "rumpf") { if (g.bezug !== "welt") o.localToWorld(v); m.rumpf.worldToLocal(v); } imRumpf[k] = v; });
@@ -2305,7 +2311,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
         });
       }
       const q2 = best; q.splice(0, 4, ...q2); [0, 1, 3].forEach(i => { q[i] = Math.atan2(Math.sin(q[i]), Math.cos(q[i])); });
-      m.ik[k] = q;
+      m.ik[k] = q; armFK(q, Sr, ikE, ikH); m.ikFehler = Math.max(m.ikFehler || 0, Math.hypot(ikH[0] - Tr[0], ikH[1] - Tr[1], ikH[2] - Tr[2]));
       m.ist[ax] = q[0]; m.ist[az] = v * q[1]; m.ist[ae] = q[2]; m.ist[aez] = v * q[3];
       m.ist[ax.replace("x", "") === "sL" ? "eLz" : "eRz"] = 0;
       arm.sch.rotation.set(q[0], v * q[3], v * q[1]); arm.ell.rotation.x = -q[2]; arm.ell.rotation.z = 0;
@@ -2758,8 +2764,9 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   }
   window.__gym = { alleUeben, blick, kameraAnpassen, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), zustaende: () => objekte.map(o => [o.userData.item.key, o.userData.zustand, !!o.userData.halo, o.userData.halo && o.userData.halo.material.opacity]), stand: () => stand, eintragen: (g, r) => trainingEintragen(heute(), g, r, null), importieren: importieren, neuBauen: () => { raumBauen(false); kopfZeigen(); ueberZeigen(); }, phase: v => { testPhase = v; }, fokus: () => { const v = new THREE.Vector3(); besucher[0].m.becken.getWorldPosition(v); v.y = Math.max(.5, v.y); blick.fokus = v; },
     objekt: () => objekte[0],
+    bildschirm: id => { const o = objekte.find(x => x.userData.item.id === id); if (!o) return null; const v = new THREE.Vector3(); o.getWorldPosition(v); v.y = .6; v.project(kamera); const r = canvas.getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; },
     imWeg: () => { const S = STUFEN[stand.stufe].S, N = Math.round(S / ZELLE); let n = 0, geh = 0; besucher.forEach(b => { if (b.zustand !== "gehen" && b.zustand !== "heim") return; geh++; const g = belegt(b.ziel ? b.ziel.userData.item.id : undefined), i = Math.floor((b.m.w.position.x + S / 2) / ZELLE), j = Math.floor((b.m.w.position.z + S / 2) / ZELLE); if (g[i] && g[i][j]) n++; }); return [n, geh]; }, nah: () => { kamera.near = 36.8; kamera.updateProjectionMatrix(); },
-    koerper: () => { const b = besucher[0], o = b.ziel, m = b.m, r = {}, v = new THREE.Vector3(), lok = x => { o.worldToLocal(x); return [x.x, x.y, x.z].map(n => +n.toFixed(3)); }; m.w.updateMatrixWorld(true); [["L", m.bL], ["R", m.bR]].forEach(([k, bn]) => { r["ferse" + k] = lok(bn.fuss.localToWorld(v.set(0, -.053, -.08))); r["zehe" + k] = lok(bn.fuss.localToWorld(v.set(0, -.053, .18))); r["knie" + k] = lok(bn.knie.getWorldPosition(v)); }); r.becken = lok(m.becken.getWorldPosition(v)); r.sitz = lok(m.becken.localToWorld(v.set(0, -.13, 0))); r.kopf = lok(m.kopf.localToWorld(v.set(0, .16, 0))); [["L", m.aL], ["R", m.aR]].forEach(([k, a]) => { r["hand" + k] = lok(a.hand.getWorldPosition(v)); }); const box = new THREE.Box3().setFromObject(m.w); r.tief = +(box.min.y - o.getWorldPosition(v).y).toFixed(3); return r; },
+    koerper: () => { const b = besucher[0], o = b.ziel, m = b.m, r = {}, v = new THREE.Vector3(), lok = x => { o.worldToLocal(x); return [x.x, x.y, x.z].map(n => +n.toFixed(3)); }; m.w.updateMatrixWorld(true); [["L", m.bL], ["R", m.bR]].forEach(([k, bn]) => { r["ferse" + k] = lok(bn.fuss.localToWorld(v.set(0, -.053, -.08))); r["zehe" + k] = lok(bn.fuss.localToWorld(v.set(0, -.053, .18))); r["knie" + k] = lok(bn.knie.getWorldPosition(v)); }); r.becken = lok(m.becken.getWorldPosition(v)); r.sitz = lok(m.becken.localToWorld(v.set(0, -.13, 0))); r.kopf = lok(m.kopf.localToWorld(v.set(0, .16, 0))); [["L", m.aL], ["R", m.aR]].forEach(([k, a]) => { r["hand" + k] = lok(a.hand.getWorldPosition(v)); }); r.ikFehler = +(m.ikFehler || 0).toFixed(3); const box = new THREE.Box3().setFromObject(m.w); r.tief = +(box.min.y - o.getWorldPosition(v).y).toFixed(3); return r; },
     haende: () => { const b = besucher[0], o = b.ziel, r = {}; [["L", b.m.aL], ["R", b.m.aR]].forEach(([k, arm]) => { const v = new THREE.Vector3(); arm.hand.getWorldPosition(v); o.worldToLocal(v); r[k] = [v.x, v.y, v.z].map(x => +x.toFixed(3)); arm.sch.getWorldPosition(v); o.worldToLocal(v); r["S" + k] = [v.x, v.y, v.z].map(x => +x.toFixed(3)); }); r.ik = b.m.ik; r.griff = !!BEWEGUNG[b.anker.b].griff; return r; },
     ansicht: art => { const f = besucher[0].m.w.rotation.y; window.__gym.fokus(); blick.winkel = blick.ziel = art === "seite" ? f + Math.PI / 4 + .5 : art === "vorn" ? f - Math.PI / 4 : -.5; blick.neigung = blick.neigungZiel = art === "iso" ? .7 : .18; kameraAnpassen(true); kamera.near = art === "iso" ? 1 : 37.6; kamera.updateProjectionMatrix(); } };
   // In Korund (gleiche Adresse): die Trainings der App direkt lesen, nur lesen, nie schreiben

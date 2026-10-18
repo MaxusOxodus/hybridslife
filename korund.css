@@ -8466,3 +8466,11 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.erreicht .statistik-kachel-ziel { color: var(--fw-erfolg); }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .kachel-delta .plus { color: var(--fw-erfolg); }
 }
+
+
+/* ---------- Knöpfe „+ Neue Routine“ und „Vorlagen“ kleiner (seit Version 156) ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .routinen-knoepfe .zweit-btn { min-height: 48px; font-size: 15px; }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-knoepfe .zweit-btn { min-height: 48px; font-size: 15px; }
+}

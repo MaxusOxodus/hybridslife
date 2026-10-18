@@ -989,8 +989,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   function fotomodusEnde() { if (!foto) return; foto.ebene.remove(); document.body.classList.remove("foto"); blick.ziel = 0; foto = null; kameraAnpassen(); }
 
   let demoGruppen = ["brust"], demoRekord = false;
-  // Läuft das Spiel im Gym-Tab der App (als eingebettete Seite)?
-  const IN_KORUND = (() => { try { return window.parent !== window; } catch (e) { return true; } })();
+  // Läuft das Spiel im Gym-Tab der App? Nur dann hat die Seite darüber das iframe #gym-spiel (andere Einbettungen, z. B. eine fremde Vorschau, zählen nicht)
+  const IN_KORUND = (() => { try { return window.parent !== window && !!window.parent.document.getElementById("gym-spiel"); } catch (e) { return false; } })();
   function trainingSheet(kopf, inhalt) {
     const w = wochenDaten(heute()), heuteSchon = !!stand.tage[heute()];
     kopf.innerHTML = "<b>Training</b><span class='label'>" + (stand.demo ? "Demo · " + ausIso(heute()).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "numeric" }) : "Echte Daten") + "</span>";

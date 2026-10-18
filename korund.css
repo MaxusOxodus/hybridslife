@@ -8474,3 +8474,82 @@
 @media (prefers-color-scheme: dark) {
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .routinen-knoepfe .zweit-btn { min-height: 48px; font-size: 15px; }
 }
+
+
+/* ---------- Animationen (seit Version 157): Geschafft, Rang, Rekord, Pause, Serie, Meldung. Je Moment eine Farbe, jede läuft einmal ---------- */
+@keyframes korund-bogen { from { stroke-dashoffset: 302; } to { stroke-dashoffset: 0; } }
+@keyframes korund-haken { from { stroke-dashoffset: 70; } to { stroke-dashoffset: 0; } }
+@keyframes korund-sprung-gruen { 0% { transform: scale(1); } 40% { transform: scale(1.1); filter: drop-shadow(0 0 16px rgba(61, 220, 132, 0.55)); } 100% { transform: scale(1); } }
+@keyframes korund-sprung-lila { 0% { transform: scale(1); } 40% { transform: scale(1.15); filter: drop-shadow(0 0 16px rgba(169, 139, 255, 0.7)); } 100% { transform: scale(1); } }
+@keyframes korund-welle { from { opacity: 0.9; transform: scale(0.8); } to { opacity: 0; transform: scale(1.8); } }
+@keyframes korund-hoch { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes korund-pokal { 0% { opacity: 0; transform: scale(0.3) rotate(-25deg); } 70% { opacity: 1; transform: scale(1.15) rotate(6deg); } 100% { opacity: 1; transform: none; } }
+@keyframes korund-ring-rein { from { opacity: 0.4; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes korund-flackern { 0%, 100% { transform: none; } 30% { transform: scale(1.06, 0.95) skewX(-3deg); } 60% { transform: scale(0.97, 1.05) skewX(3deg); } }
+@keyframes korund-strich { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes korund-drehen { from { transform: rotateY(-180deg); } to { transform: none; } }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fertig-haken { display: grid; place-items: center; margin: 4px 0 6px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fertig-haken svg { width: 92px; height: 92px; overflow: visible; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fertig-haken .spur { fill: none; stroke: rgba(var(--fw-erfolg-rgb), 0.14); stroke-width: 8; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fertig-haken .bogen { fill: none; stroke: var(--fw-erfolg); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 302; transform: rotate(-90deg); transform-origin: 60px 60px; animation: korund-bogen 0.8s cubic-bezier(0.3, 0.7, 0.2, 1) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fertig-haken .haken { fill: none; stroke: var(--fw-erfolg); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 70; animation: korund-haken 0.4s 0.65s ease-out both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #fertig-haken svg { animation: korund-sprung-gruen 0.55s 0.9s cubic-bezier(0.2, 0.8, 0.2, 1.3) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-fertig > .ansicht-titel { text-align: center; animation: korund-hoch 0.4s 0.85s ease-out both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-fertig > #fertig-text { text-align: center; animation: korund-hoch 0.4s 0.95s ease-out both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-karte.aufgestiegen .rang-bild { position: relative; animation: korund-sprung-lila 0.65s 1.1s cubic-bezier(0.2, 0.8, 0.2, 1.3) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-karte.aufgestiegen .rang-bild::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(169, 139, 255, 0.7); opacity: 0; animation: korund-welle 0.9s 1.2s ease-out both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .fertig-rekord-symbol { display: inline-grid; place-items: center; width: 24px; height: 24px; margin-right: 8px; border-radius: 50%; background: rgba(245, 192, 74, 0.15); color: #F5C04A; vertical-align: -6px; animation: korund-pokal 0.6s 1.25s cubic-bezier(0.2, 0.8, 0.2, 1.5) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .fertig-rekord-symbol svg { width: 14px; height: 14px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .fertig-rekord { animation: korund-hoch 0.35s ease-out both; animation-delay: 1.35s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-pause:not(.versteckt) #modus-countdown { animation: korund-ring-rein 0.4s cubic-bezier(0.2, 0.8, 0.2, 1.2) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-gespeichert::before { display: inline-block; margin-right: 5px; animation: korund-pop 0.45s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1.5) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-held .serie-symbol { animation: korund-pop 0.5s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1.5) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-held .serie-symbol svg { transform-origin: 50% 90%; animation: korund-flackern 1.6s 0.7s ease-in-out 3; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-held .serie-zahl { animation: korund-hoch 0.4s 0.3s ease-out both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-striche i.an, .serie-striche i.frei { transform-origin: left; animation: korund-strich 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.2) both; animation-delay: 0.35s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-woche:nth-child(2) .serie-striche i { animation-delay: 0.42s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-woche:nth-child(3) .serie-striche i { animation-delay: 0.49s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-woche:nth-child(4) .serie-striche i { animation-delay: 0.56s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-woche:nth-child(5) .serie-striche i { animation-delay: 0.63s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-woche:nth-child(6) .serie-striche i { animation-delay: 0.7s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .serie-woche:nth-child(n+7) .serie-striche i { animation-delay: 0.77s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-hinweis-symbol { display: grid; place-items: center; flex: none; width: 30px; height: 30px; margin-right: 8px; border-radius: 50%; perspective: 200px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-hinweis-symbol svg { width: 17px; height: 17px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-hinweis-symbol.rang { background: rgba(169, 139, 255, 0.16); color: #A98BFF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-hinweis-symbol.rang svg { animation: korund-pop 0.5s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1.5) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rang-hinweis-symbol.abzeichen { background: rgba(110, 168, 255, 0.15); color: #7EB0FF; animation: korund-drehen 0.8s 0.15s cubic-bezier(0.3, 0.7, 0.2, 1.15) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #rang-hinweis:has(.rang-hinweis-symbol) { padding-left: 8px; }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fertig-haken { display: grid; place-items: center; margin: 4px 0 6px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fertig-haken svg { width: 92px; height: 92px; overflow: visible; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fertig-haken .spur { fill: none; stroke: rgba(var(--fw-erfolg-rgb), 0.14); stroke-width: 8; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fertig-haken .bogen { fill: none; stroke: var(--fw-erfolg); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 302; transform: rotate(-90deg); transform-origin: 60px 60px; animation: korund-bogen 0.8s cubic-bezier(0.3, 0.7, 0.2, 1) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fertig-haken .haken { fill: none; stroke: var(--fw-erfolg); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 70; animation: korund-haken 0.4s 0.65s ease-out both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #fertig-haken svg { animation: korund-sprung-gruen 0.55s 0.9s cubic-bezier(0.2, 0.8, 0.2, 1.3) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-fertig > .ansicht-titel { text-align: center; animation: korund-hoch 0.4s 0.85s ease-out both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-fertig > #fertig-text { text-align: center; animation: korund-hoch 0.4s 0.95s ease-out both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-karte.aufgestiegen .rang-bild { position: relative; animation: korund-sprung-lila 0.65s 1.1s cubic-bezier(0.2, 0.8, 0.2, 1.3) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-karte.aufgestiegen .rang-bild::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(169, 139, 255, 0.7); opacity: 0; animation: korund-welle 0.9s 1.2s ease-out both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .fertig-rekord-symbol { display: inline-grid; place-items: center; width: 24px; height: 24px; margin-right: 8px; border-radius: 50%; background: rgba(245, 192, 74, 0.15); color: #F5C04A; vertical-align: -6px; animation: korund-pokal 0.6s 1.25s cubic-bezier(0.2, 0.8, 0.2, 1.5) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .fertig-rekord-symbol svg { width: 14px; height: 14px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .fertig-rekord { animation: korund-hoch 0.35s ease-out both; animation-delay: 1.35s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-pause:not(.versteckt) #modus-countdown { animation: korund-ring-rein 0.4s cubic-bezier(0.2, 0.8, 0.2, 1.2) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-gespeichert::before { display: inline-block; margin-right: 5px; animation: korund-pop 0.45s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1.5) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-held .serie-symbol { animation: korund-pop 0.5s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1.5) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-held .serie-symbol svg { transform-origin: 50% 90%; animation: korund-flackern 1.6s 0.7s ease-in-out 3; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-held .serie-zahl { animation: korund-hoch 0.4s 0.3s ease-out both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-striche i.an, .serie-striche i.frei { transform-origin: left; animation: korund-strich 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.2) both; animation-delay: 0.35s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-woche:nth-child(2) .serie-striche i { animation-delay: 0.42s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-woche:nth-child(3) .serie-striche i { animation-delay: 0.49s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-woche:nth-child(4) .serie-striche i { animation-delay: 0.56s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-woche:nth-child(5) .serie-striche i { animation-delay: 0.63s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-woche:nth-child(6) .serie-striche i { animation-delay: 0.7s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .serie-woche:nth-child(n+7) .serie-striche i { animation-delay: 0.77s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-hinweis-symbol { display: grid; place-items: center; flex: none; width: 30px; height: 30px; margin-right: 8px; border-radius: 50%; perspective: 200px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-hinweis-symbol svg { width: 17px; height: 17px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-hinweis-symbol.rang { background: rgba(169, 139, 255, 0.16); color: #A98BFF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-hinweis-symbol.rang svg { animation: korund-pop 0.5s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1.5) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-hinweis-symbol.abzeichen { background: rgba(110, 168, 255, 0.15); color: #7EB0FF; animation: korund-drehen 0.8s 0.15s cubic-bezier(0.3, 0.7, 0.2, 1.15) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #rang-hinweis:has(.rang-hinweis-symbol) { padding-left: 8px; }
+}

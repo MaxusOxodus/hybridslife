@@ -6677,6 +6677,12 @@
     document.getElementById("fertig-uebungen").textContent = t.erledigt.length;
     document.getElementById("fertig-saetze").textContent = anzahlSaetze;
     document.getElementById("fertig-gewicht").textContent = volumenText(bewegt);
+    // Look Korund (seit Version 157): die drei Zahlen zählen nach dem Haken kurz hoch
+    if (lookKorund()) {
+      hochzaehlen(document.getElementById("fertig-uebungen"), t.erledigt.length, String, BERICHT_ZAEHLEN_AB_MS);
+      hochzaehlen(document.getElementById("fertig-saetze"), anzahlSaetze, String, BERICHT_ZAEHLEN_AB_MS + 100);
+      hochzaehlen(document.getElementById("fertig-gewicht"), bewegt, volumenText, BERICHT_ZAEHLEN_AB_MS + 200);
+    }
     berichtAnzeigen(t, trainingStand().eintraege);
 
     trainingseinheitSpeichern(t);
@@ -6696,6 +6702,49 @@
     rangPruefen(true);
   }
 
+  // ---------- Animationen im Look Korund (seit Version 157) ----------
+  // Die Bewegungen selbst stehen in der korund.css (Abschnitt „Animationen“), hier nur, was Zahlen oder Elemente braucht.
+  // „Bewegung reduzieren“: keine Bewegung, die Zahl steht sofort da.
+  const BERICHT_ZAEHLEN_AB_MS = 650;
+  const HOCHZAEHLEN_MS = 800;
+
+  function bewegungReduziert() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  // Zählt die Zahl in el von 0 auf bis hoch (nach verzoegerung ms, mit Abbremsen am Ende). format macht aus der Zahl den Text.
+  function hochzaehlen(el, bis, format, verzoegerung) {
+    el.textContent = format(bis);
+    if (bewegungReduziert() || !bis) {
+      return;
+    }
+    const ganz = Number.isInteger(bis);
+    const start = performance.now() + verzoegerung;
+    el.textContent = format(0);
+    function schritt(jetzt) {
+      const p = Math.min(1, Math.max(0, (jetzt - start) / HOCHZAEHLEN_MS));
+      const wert = bis * (1 - Math.pow(1 - p, 3));
+      el.textContent = format(p === 1 ? bis : ganz ? Math.round(wert) : wert);
+      if (p < 1) {
+        requestAnimationFrame(schritt);
+      }
+    }
+    requestAnimationFrame(schritt);
+  }
+
+  // Der grüne Ring mit Haken über „Geschafft!“. Einmal angelegt, in den anderen Looks ausgeblendet (style.css).
+  function fertigHakenAnlegen() {
+    if (document.getElementById("fertig-haken")) {
+      return;
+    }
+    const haken = element("div", "fertig-haken");
+    haken.id = "fertig-haken";
+    haken.setAttribute("aria-hidden", "true");
+    haken.innerHTML = '<svg viewBox="0 0 120 120"><circle class="spur" cx="60" cy="60" r="48"/><circle class="bogen" cx="60" cy="60" r="48"/><path class="haken" d="M40 61l14 14 27-29"/></svg>';
+    const ansicht = document.getElementById("ansicht-fertig");
+    ansicht.insertBefore(haken, ansicht.firstChild);
+  }
+
   // Der Bericht nach dem Training (seit Version 131), unter "Geschafft!" in dieser Reihenfolge: die Dauer,
   // der Gesamt-Kraftrang (mit Schild, wenn er mit diesem Training eine Stufe gestiegen ist), die neuen Rekorde
   // und was bis zur nächsten Stufe fehlt. Die Kacheln Übungen, Sätze und Bewegtes Gewicht darunter füllt
@@ -6707,6 +6756,7 @@
       minuten = einheitMinuten({ start: t.gestartet, ende: new Date().toISOString() });
     }
     document.getElementById("fertig-dauer").textContent = minuten === null ? "" : dauerText(minuten);
+    fertigHakenAnlegen();
     document.getElementById("fertig-dauer-karte").classList.toggle("versteckt", minuten === null);
 
     const ids = [];
@@ -6726,6 +6776,8 @@
     }
     if (neueStufen(alt, { gesamt: gesamt }).length > 0) {
       kopf.querySelector(".rang-kopf-text").appendChild(element("span", "letztes-bestes fertig-aufstieg", txt("fertig.aufstieg")));
+      // Seit Version 157: Das Abzeichen springt im Look Korund einmal mit einer lila Welle (korund.css)
+      karte.classList.add("aufgestiegen");
     }
     karte.appendChild(kopf);
 
@@ -6733,7 +6785,12 @@
     const rekordListe = berichtRekorde(stand, liste);
     if (rekordListe.length > 0) {
       const block = element("div", "rang-schritt fertig-rekorde");
-      block.appendChild(element("div", "kachel-titel", txt("fertig.rekorde")));
+      const titel = element("div", "kachel-titel", txt("fertig.rekorde"));
+      // Seit Version 157: goldener Pokal vor dem Titel, nur im Look Korund zu sehen (style.css blendet ihn aus)
+      const pokal = element("span", "fertig-rekord-symbol");
+      pokal.innerHTML = symbolSvg("pokal");
+      titel.insertBefore(pokal, titel.firstChild);
+      block.appendChild(titel);
       for (let i = 0; i < rekordListe.length; i++) {
         block.appendChild(element("div", "fertig-rekord", rekordListe[i].name + " · " + kgText(rekordListe[i].wert)));
       }
@@ -13971,9 +14028,25 @@
       zeilen.push(txtAnzahl("abzeichen.neu", abzeichen.length, { text: meldungNamen(namen) }));
     }
     document.getElementById("rang-hinweis-text").textContent = zeilen.join("\n");
+    rangHinweisSymbol(aufstiege.length > 0 ? "rang" : "abzeichen");
     document.getElementById("rang-hinweis").classList.add("sichtbar");
     clearTimeout(rangMeldungUhr);
     rangMeldungUhr = setTimeout(rangMeldungSchliessen, RANG_MELDUNG_SEKUNDEN * 1000);
+  }
+
+  // Seit Version 157: links in der Meldung ein Symbol, das sich einmal bewegt (lila Sechseck bei einem Rang,
+  // blaue Medaille, die sich umdreht, bei Abzeichen). Jedes Mal neu gebaut, damit die Bewegung neu startet.
+  // In den anderen Looks ausgeblendet (style.css).
+  function rangHinweisSymbol(art) {
+    const meldung = document.getElementById("rang-hinweis");
+    let symbol = meldung.querySelector(".rang-hinweis-symbol");
+    if (symbol) {
+      symbol.remove();
+    }
+    symbol = element("span", "rang-hinweis-symbol " + art);
+    symbol.setAttribute("aria-hidden", "true");
+    symbol.innerHTML = symbolSvg(art === "rang" ? "sechseck" : "medaille");
+    meldung.insertBefore(symbol, meldung.firstChild);
   }
 
   function rangMeldungSchliessen() {
@@ -15928,6 +16001,8 @@
     pfeilHoch: '<path d="M12 19V5M6 11l6-6 6 6"/>',
     wiederholen: '<path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5"/><path d="M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5"/><path d="M4 20v-4.5h4.5"/>',
     gewicht: '<path d="M6 8h12l2 12H4L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+    medaille: '<circle cx="12" cy="14" r="6"/><path d="M8.5 9.2L6 3h4l2 4 2-4h4l-2.5 6.2"/><path d="M10.5 14l1 1 2-2"/>',
+    sechseck: '<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9L12 3z"/><path d="M9 13l3 2.2 3-2.2"/>',
     pokal: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
     daumenHoch: '<path d="M7 11v9H4v-9h3z"/><path d="M7 11l4-7a2 2 0 0 1 3 2l-1 4h5a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 16.8 20H7"/>',
     daumenRunter: '<path d="M7 13V4H4v9h3z"/><path d="M7 13l4 7a2 2 0 0 0 3-2l-1-4h5a2 2 0 0 0 2-2.3l-1.2-6A2 2 0 0 0 16.8 4H7"/>'

@@ -470,6 +470,14 @@ h1 {
   backdrop-filter: var(--glas-filter);
 }
 
+/* Seit Version 157: Elemente der Animationen im Look Korund (Haken über „Geschafft!“, Pokal bei den Rekorden,
+   Symbol in der Meldung). Nur die korund.css zeigt sie. */
+#fertig-haken,
+.fertig-rekord-symbol,
+.rang-hinweis-symbol {
+  display: none;
+}
+
 #rang-hinweis.sichtbar {
   display: flex;
   animation: seite-einblenden 0.3s ease-out;

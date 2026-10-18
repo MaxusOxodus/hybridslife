@@ -496,7 +496,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     rack: [{ b: "kniebeuge", pos: [0, 0, .12], blick: 0, nimmt: true }],
     smith: [{ b: "frontsquat", pos: [0, 0, .08], blick: 0, fuehrt: true }],
     bank: [{ b: "bankdruecken", pos: [0, .55, 1.17], blick: 0 }, { b: "hipthrust", pos: [.52, 0, 0], blick: Math.PI / 2 }, { b: "khrudern", pos: [-.2, 0, .28], blick: Math.PI, kurzR: true }],
-    schraeg: [{ b: "schraegdruecken", pos: [0, -.12, .95], blick: 0 }, { b: "schulterdruecken", pos: [0, 0, .3], blick: 0 }],
+    schraeg: [{ b: "schraegdruecken", pos: [0, -.12, .95], blick: 0 }, { b: "schulterdruecken", pos: [0, 0, .23], blick: 0 }],
     kh: [{ b: "curls", pos: [0, 0, .78], blick: 0 }, { b: "seitheben", pos: [-.45, 0, .8], blick: 0 }, { b: "shrugs", pos: [0, 0, .82], blick: 0 }, { b: "ausfall", pos: [-.2, 0, 1.05], blick: 0 }, { b: "waden", pos: [.35, 0, .75], blick: 0 }],
     kettle: [{ b: "swing", pos: [0, 0, .62], blick: 0 }, { b: "farmer", pos: [0, 0, .8], blick: Math.PI / 2 }],
     dip: [{ b: "dips", pos: [0, 0, .02], blick: 0 }, { b: "klimmzug", pos: [0, 0, -.12], blick: 0 }, { b: "knieheben", pos: [0, 0, -.12], blick: 0 }],
@@ -1460,7 +1460,6 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
       const lehne = polster(.29, .08, .86); lehneStellen(lehne, .75); g.add(lehne); g.userData.lehne = lehne;
       // Rahmen: Mittelholm, Stütze unter der Lehne, Raster zum Verstellen, breite Füße vorn und hinten
       g.add(box(.08, .06, 1.05, R, 0, .3, 0)); rohr(g, [0, .3, .3], [0, .38, .32], .05, R); rohr(g, [0, .3, .1], [0, .38, .14], .06, R);
-      rohr(g, [0, .3, -.12], [0, .64, -.3], .05, R);
       const leiter = box(.08, .03, .5, R, 0, .38, -.2); leiter.rotation.x = .5; g.add(leiter);
       for (let i = 0; i < 6; i++) g.add(box(.085, .012, .012, M.schwarz, 0, .29 + i * .039, -.37 + i * .069, false, 0));
       [-1, 1].forEach(v => { rohr(g, [0, .3, v * .4], [0, .06, v * .5], .06, R); g.add(box(.46, .05, .07, R, 0, .03, v * .52)); [-1, 1].forEach(w => g.add(box(.03, .055, .075, M.gummi, w * .235, .03, v * .52, false, .004))); });
@@ -2165,7 +2164,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
       g.userData.glanz.forEach(m => m.emissiveIntensity = .05);
     }
   }
-  const BAU_HOEHE = { beincurl: .95, abadd: 1.2, hyper: 1.05, matte: .35, rack: 2.35, bank: .5, schraeg: 1.05, kh: .95, kettle: .55, dip: 2.3, plattform: .55, kabel: 2.3, latzug: 2.4, beinstr: 1.15, presse: 1.4, smith: 2.35, scheiben: 1.15 };
+  const BAU_HOEHE = { beincurl: .95, abadd: 1.2, hyper: 1.05, matte: .75, rack: 2.35, bank: .5, schraeg: 1.05, kh: .95, kettle: .55, dip: 2.3, plattform: .55, kabel: 2.3, latzug: 2.4, beinstr: 1.15, presse: 1.4, smith: 2.35, scheiben: 1.15 };
   function statusAktualisieren(feiernd) {
     objekte.forEach(g => { const vor = g.userData.zustand; zustandSetzen(g); if (feiernd && vor === "staubt" && g.userData.zustand === "glaenzt") funkenBei(g.position, 50); });
     wandObjekte.filter(o => o.userData.item.key === "tafel").forEach(o => { const t = wochenTafel(); const alt = o.children.find(c => c.geometry && c.geometry.parameters && c.geometry.parameters.width === 1.3); if (alt) { o.remove(alt); t.position.y = 1.55; o.add(t); } });
@@ -2211,6 +2210,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     rumpf: [[0, .09], [.05, .15], [.16, .19], [.36, .19], [.58, .16], [.8, .143], [.94, .15], [1, .12]],
     hals: [[0, .046], [1, .05]]
   };
+  const HAARE = [0x1a1512, 0x3b2a1e, 0x0e0e10, 0x7a5a34].map(c => std({ color: c, roughness: .8 }));
   function menschBauen(n) {
     const haut = M.haut[n % 4], hemd = new THREE.MeshStandardMaterial({ color: HEMDEN[n % HEMDEN.length], roughness: .82 });
     const w = new THREE.Group(); w.rotation.order = "YXZ";
@@ -2226,7 +2226,11 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     // Kiefer sitzt im Schädel und rundet ihn nach unten ab, dazu zwei Ohren
     const kinn = teil(kugelGeo(.072, 14, 10), haut, 0, .118, .022); kinn.scale.set(.95, .78, .95); kopf.add(kinn);
     [-1, 1].forEach(v => { const ohr = teil(kugelGeo(.024, 8, 6), haut, v * .089, .152, -.004, false); ohr.scale.set(.45, 1, .75); kopf.add(ohr); });
-    const haar = teil(kugelGeo(.104, 18, 12), M.haar, 0, .19, -.004); haar.scale.set(.96, .8, 1.04); kopf.add(haar);
+    // Frisuren und Haarfarben wechseln je Besucher: normal, kurz rasiert, Dutt, Zopf
+    const haarMat = HAARE[(n * 3 + 1) % HAARE.length], frisur = n % 4;
+    const haar = teil(kugelGeo(.104, 18, 12), haarMat, 0, frisur === 1 ? .2 : .19, -.004); haar.scale.set(frisur === 1 ? .94 : .96, frisur === 1 ? .64 : .8, 1.04); kopf.add(haar);
+    if (frisur === 2) kopf.add(teil(kugelGeo(.045, 10, 8), haarMat, 0, .25, -.085));
+    if (frisur === 3) { const zopf = teil(zylGeo(.022, .16, 8, .012), haarMat, 0, .13, -.115); zopf.rotation.x = -.35; kopf.add(zopf); }
     function arm(s) {
       const sch = new THREE.Group(); sch.rotation.order = "XZY"; sch.position.set(s * .23, .47, 0); rumpf.add(sch);
       const delta = teil(kugelGeo(.068, 12, 10), hemd); delta.scale.set(1, .95, 1.05); sch.add(delta);

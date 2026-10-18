@@ -99,7 +99,7 @@ function umgebung(inhalt) {
     + "let coach = {}; let importCoach = null; function coachSpeichern() {}"
     + konstanteHolen("COACH_ZIELE") + konstanteHolen("COACH_TAGE") + konstanteHolen("COACH_MINUTEN")
     + konstanteHolen("COACH_ERFAHRUNG") + konstanteHolen("COACH_SCHWERPUNKTE") + konstanteHolen("COACH_MAX_SCHWERPUNKT")
-    + funktionHolen("coachBereinigen")
+    + funktionHolen("coachBereinigen") + funktionHolen("coachZahl")
     // Eine Rückfrage gilt sofort als bestätigt: Der erste Knopf wird gedrückt
     + "function frageZeigen(titel, text, knoepfe) { if (knoepfe[0].aktion) { knoepfe[0].aktion(); } }"
     + "function rirLesen() { return null; }"

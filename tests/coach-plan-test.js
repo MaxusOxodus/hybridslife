@@ -40,7 +40,7 @@ const KONSTANTEN = ["COACH_ZIELE", "COACH_TAGE", "COACH_MINUTEN", "COACH_ERFAHRU
   "COACH_MAX_SAETZE", "COACH_MAX_ANFAENGER", "COACH_MIN_SAETZE", "COACH_MIN_PLAETZE", "COACH_KRAFT_PAUSE", "COACH_SATZ_SEKUNDEN",
   "COACH_ZEIT_DRUEBER", "COACH_ZEIT_DRUNTER", "COACH_GRUNDUEBUNGEN", "COACH_AUFTEILUNG", "COACH_AUFTEILUNG_ANFAENGER",
   "COACH_AUFTEILUNG_ARME", "ERHOLUNG_PARTIEN"];
-const FUNKTIONEN = ["coachBereinigen", "coachBasis", "coachPasst", "coachSlotUebung", "coachSlotWerte", "coachDauer",
+const FUNKTIONEN = ["coachBereinigen", "coachZahl", "coachBasis", "coachPasst", "coachSlotUebung", "coachSlotWerte", "coachDauer",
   "coachZeitAnpassen", "coachPlanBauen", "erholungPartie", "uebungGruppe"];
 const f = new Function(lesen("uebungen.js") + lesen("vorlagen.js")
   + "const UEBUNG_NACH_ID = {}; UEBUNGEN.forEach(function (u) { UEBUNG_NACH_ID[u.id] = u; });"

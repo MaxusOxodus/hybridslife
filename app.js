@@ -3518,8 +3518,13 @@
       return;
     }
     // Look Korund (seit Version 144): oben der Rückblick, wenn er fällig ist, und an Tagen ohne Plan die Karte Ruhetag
+    // Seit Version 150 sonst eine Karte des Coachs (Entlastung oder Stillstand), höchstens eine Karte
     if (lookKorund()) {
-      rueckblickKarteAnzeigen(bereich);
+      if (rueckblickFaellig()) {
+        rueckblickKarteAnzeigen(bereich);
+      } else {
+        coachKarteAnzeigen(bereich);
+      }
     }
     const routine = routineFinden(wochenplan[(new Date().getDay() + 6) % 7]);
     if (!routine) {
@@ -4569,6 +4574,15 @@
         getauscht: []
       });
       zaehlweiseKopieren(u, laufendesTraining.uebungen[i]);
+      // Entlastungswoche (seit Version 150): halb so viele Ziel-Sätze, aufgerundet, mindestens 1. Die Routine bleibt gleich.
+      // Der Merker an der Übung sorgt auch für das leichtere Gewicht (steigerungVorschlag).
+      if (entlastungAktiv()) {
+        const neu = laufendesTraining.uebungen[i];
+        if (neu.zielSaetze) {
+          neu.zielSaetze = Math.max(1, Math.ceil(neu.zielSaetze / 2));
+        }
+        neu.entlastung = true;
+      }
     }
     gemerkteTrainingWerte = null;
     trainingMerken();
@@ -5042,6 +5056,13 @@
     const arbeit = saetze.filter(function (s) { return s.gewicht === alt; });
     const vorschlag = { art: "halten", gewicht: alt, wdh: arbeit[0].wdh, alt: alt, ziel: wdhBis(u) || u.zielWdh };
 
+    // Entlastungswoche (seit Version 150, Merker an der Übung im Training): leichteres Gewicht, keine Steigerung
+    if (u.entlastung) {
+      vorschlag.art = "entlastung";
+      vorschlag.gewicht = entlastungGewicht(alt, u);
+      return vorschlag;
+    }
+
     if (!u.zielWdh) {
       vorschlag.art = "ohneZiel";
       return vorschlag;
@@ -5067,10 +5088,13 @@
   // Der Hinweis unter dem Ziel im Trainingsmodus zum Vorschlag, z. B. "+2,5 kg: …" oder "Gleiches Gewicht: …".
   // Ohne Vorschlag und ohne Wdh.-Ziel ist er leer.
   function steigerungText(u) {
-    if (!steigernAn()) {
+    if (!steigernAn() && !u.entlastung) {
       return "";
     }
     const v = steigerungVorschlag(u);
+    if (u.entlastung) {
+      return txt("modus.entlastung", { n: entlastungRestTage() });
+    }
     if (!v || v.art === "ohneZiel") {
       return "";
     }
@@ -5157,7 +5181,7 @@
       };
       behaelter.appendChild(seiten);
     }
-    const v = steigernAn() ? steigerungVorschlag(u) : null;
+    const v = steigernAn() || u.entlastung ? steigerungVorschlag(u) : null;
     if (v && v.art !== "ohneZiel" && v.gewicht > 0) {
       const chip = element("span", "modus-chip vorschlag", gewichtText(v.gewicht));
       chip.setAttribute("aria-label", txt("chip.vorschlag", { gewicht: gewichtText(v.gewicht) }));
@@ -5336,7 +5360,7 @@
       gewicht = davor.gewicht;
       wdh = davor.wdh;
     } else {
-      const vorschlag = steigernAn() ? steigerungVorschlag(naechste) : null;
+      const vorschlag = steigernAn() || naechste.entlastung ? steigerungVorschlag(naechste) : null;
       if (vorschlag) {
         gewicht = vorschlag.gewicht;
         wdh = vorschlag.wdh;
@@ -5384,7 +5408,7 @@
       return [davor.gewicht, davor.wdh];
     }
 
-    if (steigernAn()) {
+    if (steigernAn() || u.entlastung) {
       const vorschlag = steigerungVorschlag(u);
       if (vorschlag) {
         return [vorschlag.gewicht, vorschlag.wdh];
@@ -6518,7 +6542,7 @@
     } else if (arbeit.length > 0) {
       stand = txt("uebersicht.angefangen", { n: satzNummer(arbeit.length, zaehltSeiten(u)), ziel: u.zielSaetze || "–", gewicht: gewichtText(arbeit[arbeit.length - 1].gewicht) });
     } else {
-      const vorschlag = steigernAn() ? steigerungVorschlag(u) : null;
+      const vorschlag = steigernAn() || u.entlastung ? steigerungVorschlag(u) : null;
       if (u.zielSaetze && vorschlag) {
         stand = u.zielSaetze + " × " + gewichtText(vorschlag.gewicht);
       } else {
@@ -15549,7 +15573,33 @@
         return COACH_SCHWERPUNKTE.indexOf(p) !== -1 && c.schwerpunkt.indexOf(p) === i;
       }).slice(0, COACH_MAX_SCHWERPUNKT);
     }
+    // Seit Version 150: Entlastungswoche, Antworten des letzten Rückblicks und ausgeblendete Karten (alles in ms)
+    if (c.entlastung && coachZahl(c.entlastung.von) && coachZahl(c.entlastung.bis) && c.entlastung.bis > c.entlastung.von) {
+      sauber.entlastung = { von: c.entlastung.von, bis: c.entlastung.bis };
+    }
+    if (coachZahl(c.letzteEntlastung)) {
+      sauber.letzteEntlastung = c.letzteEntlastung;
+    }
+    if (c.rueckblick && coachZahl(c.rueckblick.am)) {
+      sauber.rueckblick = { am: c.rueckblick.am, energie: String(c.rueckblick.energie || ""), menge: String(c.rueckblick.menge || "") };
+    }
+    if (c.ausgeblendet && typeof c.ausgeblendet === "object") {
+      const aus = {};
+      ["entlastung", "stillstand"].forEach(function (art) {
+        if (coachZahl(c.ausgeblendet[art])) {
+          aus[art] = c.ausgeblendet[art];
+        }
+      });
+      if (Object.keys(aus).length > 0) {
+        sauber.ausgeblendet = aus;
+      }
+    }
     return sauber;
+  }
+
+  // Eine gültige Zeit in ms (nach 2020)
+  function coachZahl(wert) {
+    return typeof wert === "number" && isFinite(wert) && wert > 1577836800000;
   }
 
   function coachSpeichern() {
@@ -15908,6 +15958,258 @@
     vorschauOeffnen(plan);
   }
 
+  // ---------- Coach (seit Version 150): Stillstand und Entlastungswoche ----------
+  // Feste Regeln, keine KI. Gemerkt wird im Schlüssel "coach": entlastung { von, bis } (läuft gerade), letzteEntlastung (ms),
+  // rueckblick { am, energie, menge } (Antworten des letzten Rückblicks) und ausgeblendet { entlastung, stillstand } (ms, „Nicht jetzt“).
+  // Stillstand: in den letzten STILLSTAND_FENSTER_TAGE mindestens STILLSTAND_MIN_EINHEITEN Trainingstage der Übung und
+  // in den letzten STILLSTAND_LETZTE Einheiten (über mindestens STILLSTAND_MIN_TAGE) kein neuer Bestwert beim 1RM
+  const STILLSTAND_FENSTER_TAGE = 42;
+  const STILLSTAND_MIN_EINHEITEN = 4;
+  const STILLSTAND_LETZTE = 3;
+  const STILLSTAND_MIN_TAGE = 14;
+  // Entlastung vorschlagen bei so vielen Stillständen, oder wenn in so vielen Übungen das letzte 1RM höchstens
+  // ENTLASTUNG_ABFALL des Bestwerts im Fenster ist, oder nach ENTLASTUNG_ABSTAND_TAGE mit „Müde“ / „Zu viel“ im Rückblick
+  const ENTLASTUNG_STILLSTAENDE = 3;
+  const ENTLASTUNG_ABFALL = 0.95;
+  const ENTLASTUNG_ABFALL_UEBUNGEN = 2;
+  const ENTLASTUNG_ABSTAND_TAGE = 42;
+  // Wie alt die Antworten des Rückblicks höchstens sein dürfen, damit sie zählen
+  const ENTLASTUNG_RUECKBLICK_TAGE = 14;
+  const ENTLASTUNG_DAUER_TAGE = 7;
+  const ENTLASTUNG_GEWICHT = 0.9;
+  // „Nicht jetzt“ blendet eine Karte so viele Tage aus
+  const COACH_AUSBLENDEN_TAGE = 7;
+
+  // Läuft gerade eine Entlastungswoche?
+  function entlastungAktiv() {
+    const e = coach.entlastung;
+    return Boolean(e) && Date.now() >= e.von && Date.now() < e.bis;
+  }
+
+  // Wie viele Tage die Entlastungswoche noch läuft (heute mitgezählt)
+  function entlastungRestTage() {
+    return entlastungAktiv() ? Math.max(1, Math.ceil((coach.entlastung.bis - Date.now()) / TAG_MS)) : 0;
+  }
+
+  // Das Gewicht in der Entlastungswoche: ENTLASTUNG_GEWICHT des Arbeitsgewichts, gerundet auf den Schritt der Übung
+  function entlastungGewicht(alt, u) {
+    if (!(alt > 0)) {
+      return alt;
+    }
+    const schritt = steigerungSchritt(u);
+    return zuKg(Math.round(ausKg(alt) * ENTLASTUNG_GEWICHT / schritt) * schritt);
+  }
+
+  // Die Übungen im Stillstand als Liste { name, id }. heute: ms
+  function coachStillstaende(heute) {
+    const grenze = heute - STILLSTAND_FENSTER_TAGE * TAG_MS;
+    const liste = [];
+    trainierteUebungen().forEach(function (u) {
+      const punkte = verlaufPunkte(u.name, u.id, "rang");
+      const fenster = punkte.filter(function (p) {
+        return p.zeit >= grenze;
+      });
+      if (fenster.length < STILLSTAND_MIN_EINHEITEN || punkte.length <= STILLSTAND_LETZTE) {
+        return;
+      }
+      const letzte = punkte.slice(-STILLSTAND_LETZTE);
+      if (letzte[letzte.length - 1].zeit - letzte[0].zeit < STILLSTAND_MIN_TAGE * TAG_MS) {
+        return;
+      }
+      const vorher = Math.max.apply(null, punkte.slice(0, -STILLSTAND_LETZTE).map(function (p) {
+        return p.wert;
+      }));
+      const jetzt = Math.max.apply(null, letzte.map(function (p) {
+        return p.wert;
+      }));
+      if (jetzt <= vorher) {
+        liste.push({ name: u.name, id: u.id });
+      }
+    });
+    return liste;
+  }
+
+  // Wie viele Übungen beim letzten Mal deutlich unter ihrem Bestwert der letzten Wochen lagen
+  function coachAbfall(heute) {
+    const grenze = heute - STILLSTAND_FENSTER_TAGE * TAG_MS;
+    let anzahl = 0;
+    trainierteUebungen().forEach(function (u) {
+      const fenster = verlaufPunkte(u.name, u.id, "rang").filter(function (p) {
+        return p.zeit >= grenze;
+      });
+      if (fenster.length < 2) {
+        return;
+      }
+      const bester = Math.max.apply(null, fenster.slice(0, -1).map(function (p) {
+        return p.wert;
+      }));
+      if (fenster[fenster.length - 1].wert <= bester * ENTLASTUNG_ABFALL) {
+        anzahl++;
+      }
+    });
+    return anzahl;
+  }
+
+  // Warum eine Entlastungswoche dran ist: "stillstand", "abfall", "rueckblick" oder "" (nicht dran)
+  function entlastungGrund(heute, stillstaende) {
+    if (entlastungAktiv()) {
+      return "";
+    }
+    if (coach.letzteEntlastung && heute - coach.letzteEntlastung < ENTLASTUNG_ABSTAND_TAGE * TAG_MS) {
+      return "";
+    }
+    if (stillstaende.length >= ENTLASTUNG_STILLSTAENDE) {
+      return "stillstand";
+    }
+    if (coachAbfall(heute) >= ENTLASTUNG_ABFALL_UEBUNGEN) {
+      return "abfall";
+    }
+    const r = coach.rueckblick;
+    const seit = coach.letzteEntlastung || rueckblickStart();
+    if (r && heute - r.am < ENTLASTUNG_RUECKBLICK_TAGE * TAG_MS && (r.energie === "muede" || r.menge === "viel")
+      && heute - seit >= ENTLASTUNG_ABSTAND_TAGE * TAG_MS) {
+      return "rueckblick";
+    }
+    return "";
+  }
+
+  function coachAusgeblendet(art) {
+    const am = coach.ausgeblendet && coach.ausgeblendet[art];
+    return typeof am === "number" && Date.now() - am < COACH_AUSBLENDEN_TAGE * TAG_MS;
+  }
+
+  function coachAusblenden(art) {
+    coach.ausgeblendet = Object.assign({}, coach.ausgeblendet, { [art]: Date.now() });
+    coachSpeichern();
+    korundSeitenSchliessen();
+    trainingAnzeigen();
+  }
+
+  function entlastungStarten() {
+    const heute = new Date();
+    const von = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate()).getTime();
+    coach.entlastung = { von: von, bis: von + ENTLASTUNG_DAUER_TAGE * TAG_MS };
+    coachSpeichern();
+    korundSeitenSchliessen();
+    trainingAnzeigen();
+  }
+
+  // Beendet die Entlastungswoche (vorzeitig oder weil sie um ist). Ein laufendes Training behält seine Werte.
+  function entlastungBeenden() {
+    if (coach.entlastung) {
+      coach.letzteEntlastung = Math.min(Date.now(), coach.entlastung.bis);
+    }
+    delete coach.entlastung;
+    coachSpeichern();
+    korundSeitenSchliessen();
+    trainingAnzeigen();
+  }
+
+  // Eine Karte des Coachs im Training-Tab (Look Korund), höchstens eine: laufende Entlastung, Entlastung vorschlagen, Stillstand
+  function coachKarteAnzeigen(bereich) {
+    if (coach.entlastung && !entlastungAktiv() && Date.now() >= coach.entlastung.bis) {
+      coach.letzteEntlastung = coach.entlastung.bis;
+      delete coach.entlastung;
+      coachSpeichern();
+    }
+    let titel = "";
+    let text = "";
+    let symbol = "puls";
+    let oeffnen = null;
+    if (entlastungAktiv()) {
+      titel = txt("entlastung.laeuft");
+      text = txt("entlastung.noch", { n: entlastungRestTage() });
+      oeffnen = entlastungSeiteOeffnen;
+    } else {
+      const heute = Date.now();
+      const stillstaende = coachStillstaende(heute);
+      const grund = entlastungGrund(heute, stillstaende);
+      if (grund && !coachAusgeblendet("entlastung")) {
+        titel = txt("entlastung.karte");
+        text = txt("entlastung.grund." + grund, { n: stillstaende.length });
+        oeffnen = function () {
+          entlastungSeiteOeffnen(grund, stillstaende);
+        };
+      } else if (stillstaende.length > 0 && !coachAusgeblendet("stillstand")) {
+        titel = stillstaende.length === 1 ? txt("stillstand.karteEins", { name: anzeigeName(stillstaende[0].name, stillstaende[0].id) }) : txt("stillstand.karteViele", { n: stillstaende.length });
+        text = txt("stillstand.karteText");
+        symbol = "steigern";
+        oeffnen = function () {
+          stillstandSeiteOeffnen(stillstaende);
+        };
+      }
+    }
+    if (!oeffnen) {
+      return false;
+    }
+    const karte = element("button", "karte seiten-karte rueckblick-karte coach-hinweis");
+    karte.type = "button";
+    const zeichen = element("span", "rueckblick-symbol");
+    zeichen.innerHTML = iconSvg(symbol);
+    karte.appendChild(zeichen);
+    const stapel = element("span", "seiten-stapel");
+    stapel.appendChild(element("span", "seiten-titel", titel));
+    stapel.appendChild(element("span", "seiten-klein", text));
+    karte.appendChild(stapel);
+    karte.appendChild(element("span", "seiten-pfeil", "›"));
+    karte.onclick = function () {
+      oeffnen();
+    };
+    bereich.appendChild(karte);
+    return true;
+  }
+
+  function entlastungSeiteOeffnen(grund, stillstaende) {
+    korundSeiteOeffnen({
+      titel: txt("entlastung.titel"),
+      bauen: function (inhalt, unten) {
+        if (entlastungAktiv()) {
+          inhalt.appendChild(element("div", "seiten-gross", txt("entlastung.noch", { n: entlastungRestTage() })));
+        } else {
+          inhalt.appendChild(element("div", "seiten-gross", txt("entlastung.karte")));
+          inhalt.appendChild(element("p", "seiten-text", txt("entlastung.grund." + grund, { n: (stillstaende || []).length })));
+        }
+        const liste = element("div", "karte seiten-liste coach-liste");
+        liste.appendChild(seitenZeile(txt("entlastung.regel.gewicht"), Math.round(ENTLASTUNG_GEWICHT * 100) + " %", null, { leise: true }));
+        liste.appendChild(seitenZeile(txt("entlastung.regel.saetze"), txt("entlastung.regel.halb"), null, { leise: true }));
+        liste.appendChild(seitenZeile(txt("entlastung.regel.dauer"), txt("entlastung.regel.tage", { n: ENTLASTUNG_DAUER_TAGE }), null, { leise: true }));
+        inhalt.appendChild(liste);
+        inhalt.appendChild(element("p", "seiten-text", txt("entlastung.text")));
+        if (entlastungAktiv()) {
+          unten.appendChild(seitenKnopf(txt("entlastung.beenden"), false, entlastungBeenden));
+        } else {
+          unten.appendChild(seitenKnopf(txt("coach.nichtJetzt"), false, function () {
+            coachAusblenden("entlastung");
+          }));
+          unten.appendChild(seitenKnopf(txt("entlastung.starten"), true, entlastungStarten));
+        }
+      }
+    });
+  }
+
+  function stillstandSeiteOeffnen(stillstaende) {
+    korundSeiteOeffnen({
+      titel: txt("stillstand.titel"),
+      bauen: function (inhalt, unten) {
+        inhalt.appendChild(element("p", "seiten-text", txt("stillstand.text", { n: STILLSTAND_LETZTE, tage: STILLSTAND_MIN_TAGE })));
+        const liste = element("div", "karte seiten-liste coach-liste");
+        stillstaende.forEach(function (s) {
+          liste.appendChild(seitenZeile(anzeigeName(s.name, s.id), undefined, null));
+        });
+        inhalt.appendChild(liste);
+        inhalt.appendChild(seitenLabel(txt("stillstand.tippsTitel")));
+        const tipps = element("div", "karte seiten-liste coach-liste");
+        ["wdh", "tauschen", "entlastung"].forEach(function (t) {
+          tipps.appendChild(seitenZeile(txt("stillstand.tipp." + t), undefined, null));
+        });
+        inhalt.appendChild(tipps);
+        unten.appendChild(seitenKnopf(txt("coach.verstanden"), true, function () {
+          coachAusblenden("stillstand");
+        }));
+      }
+    });
+  }
+
   // ---------- Ruhetag im Training-Tab ----------
 
   // Die nächste geplante Routine nach heute (bis zu sechs Tage weiter) als { routine, tag } oder null
@@ -16245,6 +16547,9 @@
     einstellungen.rueckblickAm = Date.now();
     einstellungen.rueckblickAnzahl = nummer - 1;
     einstellungenSpeichern();
+    // Der Coach (seit Version 150) merkt sich Energie und Menge für die Entlastungswoche
+    coach.rueckblick = { am: einstellungen.rueckblickAm, energie: rueckblick.energie, menge: rueckblick.menge };
+    coachSpeichern();
     korundSeitenSchliessen();
     trainingAnzeigen();
     frageZeigen(txt("rueckblick.fertigTitel"), neu.length > 0 ? txtAnzahl("rueckblick.fertigText", neu.length, {

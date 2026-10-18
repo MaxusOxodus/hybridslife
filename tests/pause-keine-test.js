@@ -79,6 +79,8 @@ function umgebung(einstellungen) {
     + "function element(art, klasse, text) { return { art: art, kinder: [], appendChild: function (k) { this.kinder.push(k); } }; }"
     + "function feldWert() { return 10; } function gewichtFeldWert() { return 50; }"
     + "function txt(schluessel) { return schluessel; }"
+    // Seit Version 150 fragt trainingBeginnen nach der Entlastungswoche: hier läuft keine
+    + "function entlastungAktiv() { return false; }"
     + "function pauseStarten(s) { protokoll.pausen.push(s); }"
     + "function modusZustandAnzeigen(neu) { protokoll.zustand.push(neu); }"
     + "function trainingMerken() { protokoll.gemerkt++; }";

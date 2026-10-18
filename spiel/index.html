@@ -6,6 +6,8 @@
 <title>Korund Gym</title>
 </head>
 <body>
+<title>Korund Gym</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout: ein Bildschirm wie ein Spiel-Tab. 3D-Gym füllt alles; oben Stufe, Ruf und Währung; unten vier Reiter (Bauen, Aufträge, Gym, Training) mit Sheets darüber; im Baumodus eine eigene Leiste */
 :root {
@@ -69,6 +71,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
 .sheet-inhalt > * { flex: none; }
 .sheet-inhalt { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 0 2px 4px; -webkit-overflow-scrolling: touch; }
 .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: none; }
+@media (max-width: 360px) { .chips.eng { gap: 4px; } .chips.eng .chip { padding: 0 9px; font-size: 12.5px; } }
 .chip { flex: none; height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid var(--kante); background: rgba(255,255,255,.03); color: var(--leise); font-size: 13px; font-weight: 650; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .chip[aria-pressed="true"] { color: var(--text); border-color: rgba(var(--akzent-rgb), .55); background: rgba(var(--akzent-rgb), .15); }
 .raster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -118,6 +121,25 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
 .farbe-rot { background: rgba(255,122,112,.14); color: var(--rot); }
 
 .stufen-liste { display: flex; flex-direction: column; gap: 8px; }
+.namenszeile { display: flex; align-items: center; gap: 10px; padding: 4px 12px; height: 46px; border-radius: 14px; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.07); }
+.namenszeile span { color: var(--leise); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.namenszeile input { flex: 1; min-width: 0; height: 100%; border: none; background: transparent; color: var(--text); font: inherit; font-size: 15px; font-weight: 650; outline: none; }
+.stufen-punkte { display: flex; gap: 5px; margin-top: 7px; }
+.stufen-punkte i { width: 22px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); }
+.stufen-punkte i.an { background: var(--akzent); }
+body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition: opacity .3s; }
+.foto-ebene { position: absolute; inset: 0; pointer-events: none; z-index: 6; display: flex; flex-direction: column; justify-content: space-between; padding: calc(18px + env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); animation: einblenden .4s ease; }
+.foto-titel { display: flex; flex-direction: column; gap: 4px; }
+.foto-titel b { font-size: 30px; letter-spacing: -.02em; }
+.foto-knoepfe { display: flex; gap: 8px; justify-content: center; pointer-events: auto; }
+.foto-bild { max-height: 58vh; object-fit: contain; width: 100%; border-radius: 16px; border: 1px solid var(--kante); }
+.abdeckung { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.mg { min-height: 34px; border-radius: 12px; border: 1px solid var(--kante); background: rgba(255,255,255,.03); color: var(--aus); font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; padding: 4px 10px; text-align: left; cursor: pointer; }
+.mg i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.14); }
+.mg.da { color: var(--text); }
+.mg.da i { background: var(--gruen); box-shadow: 0 0 8px rgba(61,220,132,.5); }
+.abdeckung-balken { height: 5px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; margin: 0 4px; }
+.abdeckung-balken span { display: block; height: 100%; background: linear-gradient(90deg, rgba(61,220,132,.6), var(--gruen)); border-radius: 3px; }
 .farben { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .farbe-knopf { aspect-ratio: 1; border-radius: 16px; border: 1px solid var(--kante); background: rgba(255,255,255,.03); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; font-size: 11px; color: var(--leise); font-weight: 650; position: relative; }
 .farbe-knopf i { width: 22px; height: 22px; border-radius: 50%; display: block; box-shadow: 0 0 14px currentColor; }
@@ -247,6 +269,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     sonne: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
     hantel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>',
     maschine: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 21V4h3v17M16 21V4h3v17M8 6h8M10 10h4v6h-4z"/></svg>',
+    kamera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
     deko: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-7M12 14c-4 0-6-3-6-7 4 0 6 3 6 7zM12 14c4 0 6-3 6-7-4 0-6 3-6 7z"/></svg>'
   };
   $("icon-splitter").innerHTML = ICON.splitter; $("icon-splitter").style.color = "var(--akzent)";
@@ -281,7 +304,11 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     { key: "latzug", name: "Latzug", kat: "maschine", preis: 420, fp: [2, 3], gruppen: ["ruecken"], wert: 65, stufe: 1, text: "Latziehen" },
     { key: "beinstr", name: "Beinstrecker", kat: "maschine", preis: 360, fp: [2, 3], gruppen: ["beine"], wert: 50, stufe: 1, text: "Beinstrecker, Beinbeuger" },
     { key: "presse", name: "Beinpresse", kat: "maschine", preis: 640, fp: [2, 4], gruppen: ["beine"], wert: 90, stufe: 1, text: "Beinpresse, Wadenheben" },
+    { key: "beincurl", name: "Beinbeuger-Maschine", kat: "maschine", preis: 380, fp: [2, 4], gruppen: [], wert: 55, stufe: 1, text: "" },
+    { key: "abadd", name: "Abduktoren-Maschine", kat: "maschine", preis: 340, fp: [2, 3], gruppen: [], wert: 45, stufe: 1, text: "" },
     { key: "smith", name: "Multipresse", kat: "maschine", preis: 900, fp: [5, 3], gruppen: ["beine", "brust", "schultern"], wert: 120, stufe: 2, text: "Geführte Kniebeuge, Bank" },
+    { key: "hyper", name: "Rückenstrecker", kat: "frei", preis: 160, fp: [2, 3], gruppen: [], wert: 25, text: "" },
+    { key: "matte", name: "Trainingsmatte", kat: "frei", preis: 60, fp: [2, 4], gruppen: [], wert: 15, text: "" },
     { key: "pflanze", name: "Pflanze", kat: "deko", preis: 90, fp: [1, 1], gruppen: [], wert: 15, text: "Etwas Grün" },
     { key: "spind", name: "Spinde", kat: "deko", preis: 150, fp: [3, 1], gruppen: [], wert: 25, text: "Platz für die Taschen" },
     { key: "kuehl", name: "Getränke-Kühlschrank", kat: "deko", preis: 200, fp: [1, 1], gruppen: [], wert: 30, stufe: 2, text: "Wasser und Shakes" },
@@ -291,6 +318,160 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     { key: "tafel", name: "Wochentafel", kat: "wand", preis: 110, gruppen: [], wert: 20, text: "Zeigt deine Trainingstage" },
     { key: "banner", name: "Banner mit Namen", kat: "wand", preis: 500, gruppen: [], wert: 80, stufe: 4, text: "Nur in der Arena" }
   ];
+  // ---------- Übungsfamilien: jede Übung der App gehört zu genau einer Bewegung ----------
+  // gruppen = Muskelgruppen der App (dieselben 20 ids wie in uebungen.js)
+  const MUSKELGRUPPEN = [["brust", "Brust"], ["lat", "Latissimus"], ["ruecken-oben", "Oberer Rücken"], ["ruecken-unten", "Unterer Rücken"], ["trapez", "Trapez"], ["schulter-hinten", "Hintere Schulter"], ["schulter-vorn", "Vordere Schulter"], ["schulter-seite", "Seitliche Schulter"], ["bizeps", "Bizeps"], ["trizeps", "Trizeps"], ["quadrizeps", "Quadrizeps"], ["beinbeuger", "Beinbeuger"], ["po", "Po"], ["adduktoren", "Adduktoren"], ["abduktoren", "Abduktoren"], ["waden", "Waden"], ["bauch", "Bauch"], ["bauch-schraeg", "Schräger Bauch"], ["unterarme", "Unterarme"], ["ganzkoerper", "Ganzkörper"]];
+  const PARTIE_VON = { brust: "brust", lat: "ruecken", "ruecken-oben": "ruecken", "ruecken-unten": "ruecken", trapez: "ruecken", "schulter-hinten": "schultern", "schulter-vorn": "schultern", "schulter-seite": "schultern", bizeps: "arme", trizeps: "arme", unterarme: "arme", quadrizeps: "beine", beinbeuger: "beine", po: "beine", adduktoren: "beine", abduktoren: "beine", waden: "beine", bauch: "rumpf", "bauch-schraeg": "rumpf", ganzkoerper: "rumpf" };
+  const FAMILIEN = {
+    kniebeuge: { name: "Kniebeuge", gruppen: ["quadrizeps", "po"] },
+    ausfall: { name: "Ausfallschritte", gruppen: ["quadrizeps", "po"] },
+    kreuzheben: { name: "Kreuzheben", gruppen: ["ruecken-unten", "beinbeuger", "po"] },
+    hipthrust: { name: "Hip Thrust", gruppen: ["po"] },
+    beinpresse: { name: "Beinpresse", gruppen: ["quadrizeps", "po"] },
+    beinstrecker: { name: "Beinstrecker", gruppen: ["quadrizeps"] },
+    beincurl: { name: "Beinbeuger", gruppen: ["beinbeuger"] },
+    waden: { name: "Wadenheben", gruppen: ["waden"] },
+    abduktion: { name: "Abduktion", gruppen: ["abduktoren"] },
+    adduktion: { name: "Adduktion", gruppen: ["adduktoren"] },
+    bankdruecken: { name: "Bankdrücken", gruppen: ["brust", "trizeps", "schulter-vorn"] },
+    schraegdruecken: { name: "Schrägdrücken", gruppen: ["brust", "schulter-vorn"] },
+    fly: { name: "Fliegende", gruppen: ["brust"] },
+    dips: { name: "Dips", gruppen: ["brust", "trizeps"] },
+    liegestuetz: { name: "Liegestütze", gruppen: ["brust", "trizeps"] },
+    schulterdruecken: { name: "Schulterdrücken", gruppen: ["schulter-vorn", "trizeps"] },
+    seitheben: { name: "Seitheben", gruppen: ["schulter-seite", "schulter-vorn"] },
+    facepull: { name: "Face Pull", gruppen: ["schulter-hinten", "trapez"] },
+    shrugs: { name: "Shrugs", gruppen: ["trapez"] },
+    rudern: { name: "Rudern", gruppen: ["ruecken-oben", "lat"] },
+    latziehen: { name: "Latziehen", gruppen: ["lat"] },
+    klimmzug: { name: "Klimmzüge", gruppen: ["lat", "bizeps"] },
+    curls: { name: "Curls", gruppen: ["bizeps"] },
+    trizeps: { name: "Trizeps", gruppen: ["trizeps"] },
+    unterarme: { name: "Unterarme", gruppen: ["unterarme"] },
+    rueckenstrecker: { name: "Rückenstrecker", gruppen: ["ruecken-unten", "po"] },
+    bauch: { name: "Bauch", gruppen: ["bauch"] },
+    rotation: { name: "Rotation", gruppen: ["bauch-schraeg"] },
+    ganzkoerper: { name: "Ganzkörper", gruppen: ["ganzkoerper", "po"] }
+  };
+  // Zuordnung nach Namen (Deutsch oder Englisch), sonst nach Muskelgruppe. Reihenfolge zählt.
+  const FAMILIE_REGELN = [
+    [/hollow|rkc plank/, "bauch"],
+    [/seitstütz|seitstuetz|side plank|pallof|holzhack|woodchop|russian twist|windscreen|windshield|scheibenwisch/, "rotation"],
+    [/hip ?thrust|glute ?bridge|beckenheb|hüftheb|hueftheb|frog pump|glute.?kick|cable.?kickback|po-kickback/, "hipthrust"],
+    [/rückenstreck|rueckenstreck|hyperext|back ext|reverse hyper|superman/, "rueckenstrecker"],
+    [/kreuzheb|deadlift|\brdl\b|rumän|ruman|good ?morning|rack pull|pull.?through/, "kreuzheben"],
+    [/beinbeug|leg curl|hamstring curl|nordic|glute.?ham|razor/, "beincurl"],
+    [/beinstreck|leg ext/, "beinstrecker"],
+    [/waden|calf|calves/, "waden"],
+    [/abdukt|abduct|seitlage|side.?lying|clam|fire hydrant|monster walk|band walk|lateral walk|seitwärtsgehen|seitwaertsgehen/, "abduktion"],
+    [/addukt|adduct|copenhagen|cossack|sumo|breiten stand|wide.?stance|seitliche ausfall|lateral lunge/, "adduktion"],
+    [/beinpresse|leg press|hackenschmidt|hack squat|pendel/, "beinpresse"],
+    [/ausfall|lunge|split squat|bulgar|step.?up|aufsteig|pistol|skater/, "ausfall"],
+    [/kniebeuge|squat|goblet|sissy|wall sit/, "kniebeuge"],
+    [/klimmz|pull.?up|chin.?up|muscle.?up/, "klimmzug"],
+    [/latzug|lat.?pull|latzieh|pulldown|überzüge|ueberzuege|pull.?over|straight.?arm/, "latziehen"],
+    [/face ?pull|reverse fly|reverse pec|reverse butterfly|hintere schulter|rear delt|vorgebeugt.*seitheb|bent.?over lateral|pull.?apart|y-?raise|t-?raise|y-t-w|snow angel|innenrotation|außenrotation|aussenrotation|internal rotation|external rotation/, "facepull"],
+    [/shrug|schulterheb|nackenheb/, "shrugs"],
+    [/aufrecht|upright|seitheb|lateral raise|frontheb|front raise/, "seitheben"],
+    [/rudern|\brow\b|rows\b|t-bar|seal|inverted|australian/, "rudern"],
+    [/schulterdr|overhead press|military|arnold|nackendr|push press|landmine press|pike|handstand|schulterpresse|shoulder press/, "schulterdruecken"],
+    [/liegestütz|liegestuetz|push.?up/, "liegestuetz"],
+    [/\bdips?\b|dip-?/, "dips"],
+    [/fliegende|\bfly\b|flyes|flys|butterfly|pec deck|crossover|cross.?over/, "fly"],
+    [/farmer|handgelenk|wrist|unterarm|forearm|griffkraft|grip strength|pinch|dead hang|hängen|haengen|fingertip|halten\b|\bhold\b|carry|zottman/, "unterarme"],
+    [/curl/, "curls"],
+    [/schräg.*(drück|press)|schraeg.*(druck|press)|incline/, "schraegdruecken"],
+    [/bankdr|brustpresse|bench|chest press|floor press|brustdr/, "bankdruecken"],
+    [/trizeps|tricep|pushdown|push.?down|french|skull|kickback|stirn|overhead extension|close.?grip|enges/, "trizeps"],
+    [/twist|rotation|oblique|seitbeug|side bend/, "rotation"],
+    [/crunch|sit.?up|beinheb|knieheb|leg raise|knee raise|plank|unterarmstütz|ab.?wheel|rollout|hollow|v-?up|mountain|dead.?bug|flutter|toes to bar|bauchpresse/, "bauch"],
+    [/swing|clean|snatch|reißen|reissen|umsetz|thruster|burpee|turkish|get.?up|wall ball|sled|schlitten|sprawl|battle|kettlebell/, "ganzkoerper"]
+  ];
+
+  const FAMILIE_NACH_GRUPPE = { brust: "bankdruecken", lat: "latziehen", "ruecken-oben": "rudern", "ruecken-unten": "rueckenstrecker", trapez: "shrugs", "schulter-hinten": "facepull", "schulter-vorn": "schulterdruecken", "schulter-seite": "seitheben", bizeps: "curls", trizeps: "trizeps", quadrizeps: "kniebeuge", beinbeuger: "beincurl", po: "hipthrust", adduktoren: "adduktion", abduktoren: "abduktion", waden: "waden", bauch: "bauch", "bauch-schraeg": "rotation", unterarme: "unterarme", ganzkoerper: "ganzkoerper" };
+  function familieVon(name, gruppe) {
+    const n = String(name || "").toLowerCase();
+    for (const r of FAMILIE_REGELN) if (r[0].test(n)) return r[1];
+    return FAMILIE_NACH_GRUPPE[gruppe] || null;
+  }
+
+  // ---------- Bewegungen: Haltung je Zeitpunkt ----------
+  const OS = .45, US = .43, OA = .29, UA = .27; // Ober-, Unterschenkel, Ober-, Unterarm in Metern
+  function neutral() { return { by: .95, bz: 0, wy: 0, wz: 0, wx: 0, rumpf: 0, rumpfY: 0, kopf: 0, sLx: 0, sLz: 0, sRx: 0, sRz: 0, eL: 0, eR: 0, eLz: 0, eRz: 0, hL: 0, hR: 0, hLz: 0, hRz: 0, kL: 0, kR: 0, fx: 0, schY: 0, rx: 0 }; }
+  // Stehen mit Füßen am Boden: das Becken folgt aus Hüft- und Kniewinkel
+  function stehen(p, a, k, aR, kR) {
+    aR = aR === undefined ? a : aR; kR = kR === undefined ? k : kR;
+    p.hL = a; p.kL = k; p.hR = aR; p.kR = kR;
+    p.by = .07 + OS * Math.cos(a) + US * Math.cos(a - k); p.bz = -(OS * Math.sin(a) + US * Math.sin(a - k)); return p;
+  }
+  const weich = x => x * x * (3 - 2 * x);
+  // Tempo wie im Training: 40 % ablassen, kurz halten, 35 % kräftig zurück, kurz halten
+  function profil(p) { if (p < .4) return weich(p / .4); if (p < .48) return 1; if (p < .83) return 1 - weich((p - .48) / .35); return 0; }
+  const wechsel = p => (1 - Math.cos(p * Math.PI * 2)) / 2;
+  const L = -1, Rr = 1; // Seiten: links ist -x
+  const BEWEGUNG = {
+    kniebeuge: { name: "Langhantel-Kniebeuge", familie: "kniebeuge", tempo: .3, stange: "lang", h(s) { const p = stehen(neutral(), 1.32 * s, 2.1 * s); p.rumpf = .55 * s; p.sLx = p.sRx = 1.05 + .45 * s; p.sLz = -1.3; p.sRz = 1.3; p.eL = p.eR = 2.35; p.kopf = -.35 * s; return p; } },
+    frontsquat: { name: "Multipresse-Kniebeuge", familie: "kniebeuge", tempo: .3, h(s) { return BEWEGUNG.kniebeuge.h(s); } },
+    ausfall: { name: "Ausfallschritte mit Kurzhanteln", familie: "ausfall", tempo: .32, kurz: true, h(s, t, satz) { const v = satz % 2 ? 1 : -1, p = neutral(); const vorn = { a: .25 + 1.15 * s, k: .1 + 1.45 * s }, hinten = { a: -.3 - .1 * s, k: .15 + 1.55 * s }; const l = v < 0 ? vorn : hinten, r = v < 0 ? hinten : vorn; p.hL = l.a; p.kL = l.k; p.hR = r.a; p.kR = r.k; p.by = .95 - .42 * s; p.bz = -.05; p.rumpf = .08; p.sLz = -.1; p.sRz = .1; p.eL = p.eR = .08; return p; } },
+    kreuzheben: { name: "Kreuzheben", familie: "kreuzheben", tempo: .28, stange: "lang", h(s) { s = 1 - s; const a = 1 - s, p = stehen(neutral(), .95 * a, 1.05 * a); p.rumpf = 1.02 * a; p.kopf = -.45 * a; p.sLx = p.sRx = -p.rumpf * .98; p.sLz = -.09; p.sRz = .09; return p; } },
+    hipthrust: { name: "Hip Thrust", familie: "hipthrust", tempo: .32, stange: "becken", h(s) { s = 1 - s; const p = neutral(), rx = -1.0 - .57 * s; p.rx = rx; p.by = 0; p.wy = .52 - .47 * Math.cos(rx); p.wz = .47 * Math.sin(rx) * -1 - .47; p.hL = p.hR = .95 - .95 * s; p.kL = p.kR = 1.9 - .35 * s; p.sLx = p.sRx = -.9; p.sLz = -.35; p.sRz = .35; p.eL = p.eR = .3; return p; } },
+    beinpresse: { name: "Beinpresse", familie: "beinpresse", tempo: .3, sitzen: .45, h(s) { const p = neutral(); p.rumpf = -.95; p.kopf = .5; p.hL = p.hR = 1.75 + .75 * s; p.kL = p.kR = .35 + 1.45 * s; p.sLx = p.sRx = -.1; p.sLz = -.3; p.sRz = .3; p.eL = p.eR = .3; return p; } },
+    wadenpresse: { name: "Wadendrücken an der Beinpresse", familie: "waden", tempo: .5, sitzen: .45, h(s) { s = 1 - s; const p = neutral(); p.rumpf = -.95; p.kopf = .5; p.hL = p.hR = 1.75; p.kL = p.kR = .3; p.fx = .55 * s; p.sLx = p.sRx = -.1; p.sLz = -.3; p.sRz = .3; return p; } },
+    beinstrecker: { name: "Beinstrecker", familie: "beinstrecker", tempo: .38, sitzen: .58, h(s) { const p = neutral(); p.hL = p.hR = 1.57; p.kL = p.kR = 1.5 - 1.38 * (1 - s); p.rumpf = -.15; p.sLx = p.sRx = .15; p.sLz = -.35; p.sRz = .35; p.eL = p.eR = .3; return p; } },
+    beincurl: { name: "Beinbeuger liegend", familie: "beincurl", tempo: .35, liegen: Math.PI / 2, h(s) { const p = neutral(); p.kL = p.kR = .08 + 1.75 * (1 - s); p.sLx = p.sRx = -2.9; p.sLz = -.25; p.sRz = .25; p.eL = p.eR = .5; p.kopf = -.4; p.fx = -.3; return p; } },
+    waden: { name: "Wadenheben mit Kurzhanteln", familie: "waden", tempo: .5, kurz: true, h(s) { const p = stehen(neutral(), 0, 0); p.fx = .55 * (1 - s); p.by += .1 * (1 - s); p.sLz = -.1; p.sRz = .1; p.eL = p.eR = .05; return p; } },
+    abduktion: { name: "Abduktoren-Maschine", familie: "abduktion", tempo: .4, sitzen: .52, h(s) { const p = neutral(); p.hL = p.hR = 1.5; p.kL = p.kR = 1.5; p.hLz = -(.08 + .5 * (1 - s)); p.hRz = .08 + .5 * (1 - s); p.rumpf = -.12; p.sLx = p.sRx = .2; p.sLz = -.3; p.sRz = .3; p.eL = p.eR = .3; return p; } },
+    adduktion: { name: "Adduktoren-Maschine", familie: "adduktion", tempo: .4, sitzen: .52, h(s) { const p = neutral(); p.hL = p.hR = 1.5; p.kL = p.kR = 1.5; p.hLz = -(.08 + .5 * s); p.hRz = .08 + .5 * s; p.rumpf = -.12; p.sLx = p.sRx = .2; p.sLz = -.3; p.sRz = .3; p.eL = p.eR = .3; return p; } },
+    bankdruecken: { name: "Bankdrücken", familie: "bankdruecken", tempo: .32, liegen: -Math.PI / 2, stange: "lang", h(s) { const p = neutral(), o = 1 - s; p.hL = p.hR = .45; p.kL = p.kR = 1.7; p.sLx = p.sRx = -.55 - 1.0 * o; p.sLz = -(1.05 - .8 * o); p.sRz = 1.05 - .8 * o; p.eL = p.eR = 1.75 * s; return p; } },
+    schraegdruecken: { name: "Schrägbankdrücken mit Kurzhanteln", familie: "schraegdruecken", tempo: .32, liegen: -.82, kurz: true, h(s) { const p = neutral(), o = 1 - s; p.hL = p.hR = 1.1; p.kL = p.kR = 1.5; p.sLx = p.sRx = -.6 - 1.0 * o; p.sLz = -(1.0 - .75 * o); p.sRz = 1.0 - .75 * o; p.eL = p.eR = 1.7 * s; return p; } },
+    kabelfly: { name: "Kabelzug-Fliegende", familie: "fly", tempo: .32, seile: "rollen", h(s) { const p = stehen(neutral(), .28, .12, -.12, .05), o = 1 - s; p.rumpf = .18; p.sLx = p.sRx = -.45 - .95 * o; p.sLz = -(1.25 - 1.0 * o); p.sRz = 1.25 - 1.0 * o; p.eL = p.eR = .35; return p; } },
+    dips: { name: "Dips", familie: "dips", tempo: .32, h(s) { const p = neutral(); p.by = 1.38 - .3 * s; p.hL = p.hR = .3; p.kL = p.kR = 1.3; p.rumpf = .15 * s; p.sLx = p.sRx = .12 + .72 * s; p.eL = p.eR = 1.0 * s; p.sLz = -.18; p.sRz = .18; return p; } },
+    liegestuetz: { name: "Liegestütze", familie: "liegestuetz", tempo: .34, h(s) { const p = neutral(), rx = 1.14 + .2 * s; p.rx = rx; p.sLx = p.sRx = -rx + .55 * s; p.eL = p.eR = -1.35 * s; p.sLz = -.25; p.sRz = .25; p.fx = -1.0; p.kopf = -.2; return p; } },
+    schulterdruecken: { name: "Schulterdrücken mit Kurzhanteln", familie: "schulterdruecken", tempo: .32, kurz: true, h(s) { const p = stehen(neutral(), .02, .04), o = 1 - s; p.sLz = -(1.3 + 1.55 * o); p.sRz = 1.3 + 1.55 * o; p.eLz = -1.84 * s; p.eRz = 1.84 * s; p.sLx = p.sRx = -.15; return p; } },
+    seitheben: { name: "Seitheben", familie: "seitheben", tempo: .36, kurz: true, h(s) { s = 1 - s; const p = stehen(neutral(), .04, .08), o = 1 - s; p.sLz = -(.12 + 1.38 * s); p.sRz = .12 + 1.38 * s; p.sLx = p.sRx = -.15; p.eL = p.eR = .25; p.rumpf = .05; return p; } },
+    facepull: { name: "Face Pull", familie: "facepull", tempo: .34, seile: "oben", h(s) { s = 1 - s; const p = stehen(neutral(), .2, .2, -.15, .1); p.rumpf = -.08; p.sLx = p.sRx = -1.65 + .1 * s; p.sLz = -(.15 + .95 * s); p.sRz = .15 + .95 * s; p.eL = p.eR = .15 + 1.7 * s; return p; } },
+    shrugs: { name: "Shrugs mit Kurzhanteln", familie: "shrugs", tempo: .45, kurz: true, h(s) { s = 1 - s; const p = stehen(neutral(), .03, .06); p.schY = .07 * s; p.sLz = -.1; p.sRz = .1; p.eL = p.eR = .05; p.kopf = -.05 * s; return p; } },
+    kabelrudern: { name: "Kabelrudern stehend", familie: "rudern", tempo: .32, seile: "rollen", h(s) { s = 1 - s; const p = stehen(neutral(), .35, .4); p.rumpf = .3; p.sLx = p.sRx = -1.45 + 1.5 * s; p.sLz = -(.15 + .25 * s); p.sRz = .15 + .25 * s; p.eL = p.eR = 1.75 * s; return p; } },
+    khrudern: { name: "Kurzhantel-Rudern", familie: "rudern", tempo: .32, kurzR: true, h(s) { s = 1 - s; const p = stehen(neutral(), .55, .45, -.1, .2); p.rumpf = 1.25; p.kopf = -.9; p.sLx = -1.2; p.eL = .1; p.sLz = -.05; p.sRx = -1.25 + 1.55 * s; p.eR = 1.85 * s; p.sRz = .08; return p; } },
+    latzug: { name: "Latziehen", familie: "latziehen", tempo: .32, sitzen: .56, stange: "lat", h(s) { s = 1 - s; const p = neutral(); p.hL = p.hR = 1.57; p.kL = p.kR = 1.57; p.rumpf = -.12 - .08 * s; p.sLx = p.sRx = -2.85 + 1.25 * s; p.sLz = -(.38 + .55 * s); p.sRz = .38 + .55 * s; p.eL = p.eR = .15 + 1.55 * s; return p; } },
+    klimmzug: { name: "Klimmzüge", familie: "klimmzug", tempo: .3, h(s) { s = 1 - s; const p = neutral(); p.by = 1.17 + .42 * s; p.sLx = p.sRx = -2.95 + .8 * s; p.sLz = -(.38 + .45 * s); p.sRz = .38 + .45 * s; p.eL = p.eR = .1 + 1.9 * s; p.hL = p.hR = .25; p.kL = p.kR = .9; p.kopf = .1 * s; return p; } },
+    knieheben: { name: "Knieheben hängend", familie: "bauch", tempo: .34, h(s) { s = 1 - s; const p = neutral(); p.by = 1.17; p.sLx = p.sRx = -2.95; p.sLz = -.38; p.sRz = .38; p.eL = p.eR = .1; p.hL = p.hR = .1 + 1.55 * s; p.kL = p.kR = .25 + 1.25 * s; p.rumpf = -.15 * s; return p; } },
+    curls: { name: "Kurzhantel-Curls", familie: "curls", tempo: .36, kurz: true, h(s, t, satz, ph) { s = 1 - s; const p = stehen(neutral(), .05, .08), b = 1 - profil((ph + .5) % 1); p.sLx = -.1 * s; p.sRx = -.1 * b; p.eL = .1 + 2.15 * s; p.eR = .1 + 2.15 * b; p.sLz = -.08; p.sRz = .08; return p; } },
+    pushdown: { name: "Trizepsdrücken am Kabel", familie: "trizeps", tempo: .36, seile: "mitte", h(s) { s = 1 - s; const p = stehen(neutral(), .12, .16); p.rumpf = .18; p.sLx = p.sRx = -.2; p.sLz = -.12; p.sRz = .12; p.eL = p.eR = 1.85 - 1.65 * s; return p; } },
+    farmer: { name: "Farmer's Walk", familie: "unterarme", tempo: .9, gehen: true, kugelHaende: true, h(s, t) { const w = Math.sin(t * 5.2), p = neutral(); p.hL = .38 * w; p.hR = -.38 * w; p.kL = Math.max(0, -w) * .6 + .05; p.kR = Math.max(0, w) * .6 + .05; p.sLz = -.14; p.sRz = .14; p.eL = p.eR = .04; p.wx = Math.sin(t * .55) * .9; return p; } },
+    rueckenstrecker: { name: "Rückenstrecker", familie: "rueckenstrecker", tempo: .32, h(s) { s = 1 - s; const p = neutral(); p.rx = .8; p.rumpf = 1.05 * (1 - s); p.kopf = -.3; p.sLx = p.sRx = -1.3; p.sLz = -.45; p.sRz = .45; p.eL = p.eR = 2.4; p.fx = -.8; return p; } },
+    crunch: { name: "Crunches", familie: "bauch", tempo: .38, liegen: -Math.PI / 2, h(s) { s = 1 - s; const p = neutral(); p.hL = p.hR = 1.15; p.kL = p.kR = 2.05; p.rumpf = .6 * s; p.kopf = .25 * s; p.sLx = p.sRx = -2.6; p.sLz = -1.0; p.sRz = 1.0; p.eL = p.eR = 2.3; p.fx = -.5; return p; } },
+    twist: { name: "Russian Twist", familie: "rotation", tempo: .3, stange: "kugel", h(s, t, satz, ph) { const p = neutral(); p.by = .13; p.hL = p.hR = 1.15; p.kL = p.kR = 1.55; p.rumpf = -.55; p.rumpfY = Math.sin(ph * Math.PI * 2) * .65; p.sLx = p.sRx = -1.05; p.eL = p.eR = .9; p.sLz = .25; p.sRz = -.25; return p; } },
+    holzhacker: { name: "Holzhacker am Kabel", familie: "rotation", tempo: .32, seile: "rolleL", h(s) { s = 1 - s; const p = stehen(neutral(), .2, .3); p.rumpfY = .75 - 1.4 * s; p.rumpf = .2 * s; p.sLx = p.sRx = -(2.4 - 1.5 * s); p.sLz = -.55 + .4 * s; p.sRz = .2 + .3 * s; p.eL = p.eR = .3; return p; } },
+    swing: { name: "Kettlebell-Swings", familie: "ganzkoerper", tempo: .45, stange: "kugel", h(s, t, satz, ph) { const x = wechsel(ph), a = 1 - x, p = stehen(neutral(), .45 * a, .55 * a); p.rumpf = .95 * a; p.kopf = -.5 * a; p.sLx = p.sRx = -(1.45 * x) + .1 * a; p.sLz = .12; p.sRz = -.12; return p; }, eigenesTempo: true },
+    gehen: { tempo: .9, h(s, t) { const w = Math.sin(t * 5.6), p = neutral(); p.hL = .42 * w; p.hR = -.42 * w; p.kL = Math.max(0, -w) * .7 + .05; p.kR = Math.max(0, w) * .7 + .05; p.by = .95 - Math.abs(w) * .02; p.sLx = -.35 * w; p.sRx = .35 * w; p.eL = p.eR = .3; p.sLz = -.06; p.sRz = .06; return p; } },
+    stehen: { tempo: .2, h(s) { const p = neutral(); p.rumpf = .02 * s; p.sLz = -.08; p.sRz = .08; p.eL = p.eR = .15; return p; } },
+    pause: { tempo: .25, h(s) { const p = neutral(); p.sLz = -.25; p.sRz = .25; p.sLx = .25; p.sRx = .25; p.eL = p.eR = 1.6; p.kopf = .1 * s; return p; } }
+  };
+  // Wo man an einem Gerät welche Bewegung macht (Koordinaten im Gerät, Blick = Drehung um y)
+  const ANKER = {
+    rack: [{ b: "kniebeuge", pos: [0, 0, .12], blick: 0, nimmt: true }],
+    smith: [{ b: "frontsquat", pos: [0, 0, .08], blick: 0, fuehrt: true }],
+    bank: [{ b: "bankdruecken", pos: [0, .53, 1.17], blick: 0 }, { b: "hipthrust", pos: [.62, 0, 0], blick: Math.PI / 2 }, { b: "khrudern", pos: [-.55, 0, .2], blick: Math.PI, kurzR: true }],
+    schraeg: [{ b: "schraegdruecken", pos: [0, -.12, .95], blick: 0 }],
+    kh: [{ b: "curls", pos: [0, 0, .78], blick: 0 }, { b: "seitheben", pos: [-.45, 0, .8], blick: 0 }, { b: "schulterdruecken", pos: [.45, 0, .8], blick: 0 }, { b: "shrugs", pos: [0, 0, .82], blick: 0 }, { b: "ausfall", pos: [-.2, 0, 1.05], blick: 0 }, { b: "waden", pos: [.35, 0, .75], blick: 0 }],
+    kettle: [{ b: "swing", pos: [0, 0, .62], blick: 0 }, { b: "farmer", pos: [0, 0, .8], blick: Math.PI / 2 }],
+    dip: [{ b: "dips", pos: [0, 0, .02], blick: 0 }, { b: "klimmzug", pos: [0, 0, -.12], blick: 0 }, { b: "knieheben", pos: [0, 0, -.12], blick: 0 }],
+    plattform: [{ b: "kreuzheben", pos: [0, .052, 0], blick: 0, nimmt: true }],
+    kabel: [{ b: "kabelfly", pos: [0, 0, .62], blick: 0 }, { b: "kabelrudern", pos: [0, 0, .95], blick: Math.PI }, { b: "facepull", pos: [0, 0, 1.0], blick: Math.PI }, { b: "pushdown", pos: [0, 0, .62], blick: Math.PI }, { b: "holzhacker", pos: [-.3, 0, .75], blick: Math.PI / 2 }],
+    latzug: [{ b: "latzug", pos: [0, 0, .22], blick: Math.PI, nimmt: true }],
+    beinstr: [{ b: "beinstrecker", pos: [0, 0, -.16], blick: 0 }],
+    presse: [{ b: "beinpresse", pos: [0, 0, .58], blick: Math.PI }, { b: "wadenpresse", pos: [0, 0, .58], blick: Math.PI }],
+    beincurl: [{ b: "beincurl", pos: [0, .7, -.95], blick: 0 }],
+    abadd: [{ b: "abduktion", pos: [0, 0, -.12], blick: 0 }, { b: "adduktion", pos: [0, 0, -.12], blick: 0 }],
+    hyper: [{ b: "rueckenstrecker", pos: [0, .2, .55], blick: Math.PI }],
+    matte: [{ b: "crunch", pos: [0, .1, .6], blick: 0 }, { b: "liegestuetz", pos: [0, .03, .7], blick: Math.PI }, { b: "twist", pos: [0, 0, .05], blick: 0 }]
+  };
+  // Welche Familien und Partien ein Gerät abdeckt, folgt aus seinen Übungen
+  function geraetFamilien(key) { return [...new Set((ANKER[key] || []).map(a => BEWEGUNG[a.b].familie))]; }
+  function geraetGruppen(key) { const g = new Set(); geraetFamilien(key).forEach(f => FAMILIEN[f].gruppen.forEach(x => g.add(x))); return [...g]; }
+  // Partien und Text der Trainingsgeräte folgen aus ihren Übungen
+  KATALOG.forEach(k => { if (ANKER[k.key]) { k.gruppen = [...new Set(geraetGruppen(k.key).map(g => PARTIE_VON[g]))]; k.familien = geraetFamilien(k.key); k.text = k.familien.map(f => FAMILIEN[f].name).join(", "); } });
   const KAT_NAME = { frei: "Freie Gewichte", maschine: "Maschinen", deko: "Deko", wand: "Wand" };
   const KAT_ICON = { frei: "hantel", maschine: "maschine", deko: "deko", wand: "stern" };
   const TIERS = [
@@ -298,7 +479,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     { name: "Platin", faktor: 1.6, splitter: 250, kristalle: 1 },
     { name: "Korund", faktor: 2.5, splitter: 500, kristalle: 3 }
   ];
-  const GRUPPEN = [["brust", "Brust"], ["ruecken", "Rücken"], ["beine", "Beine"], ["schultern", "Schultern"], ["arme", "Arme"]];
+  const GRUPPEN = [["brust", "Brust"], ["ruecken", "Rücken"], ["beine", "Beine"], ["schultern", "Schultern"], ["arme", "Arme"], ["rumpf", "Rumpf"]];
   const REGEL = { tag: 40, serieJeWoche: 5, serieMax: 30, rufTag: 10, rufRekord: 5, truheSplitter: 80, truheKristalle: 1, truheTage: 3 };
   const AUFTRAEGE = [
     { id: "drei", name: "3 Trainings diese Woche", ziel: w => w.tage, soll: 3, lohn: { splitter: 60 } },
@@ -307,7 +488,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     { id: "ruecken", name: "Einmal Rücken", ziel: w => w.gruppen.ruecken ? 1 : 0, soll: 1, lohn: { splitter: 40 } },
     { id: "schultern", name: "Einmal Schultern", ziel: w => w.gruppen.schultern ? 1 : 0, soll: 1, lohn: { splitter: 40 } },
     { id: "rekord", name: "Ein neuer Rekord", ziel: w => w.rekorde, soll: 1, lohn: { kristalle: 1 } },
-    { id: "alle", name: "Alle 5 Partien", ziel: w => Object.keys(w.gruppen).length, soll: 5, lohn: { splitter: 120, kristalle: 1 } }
+    { id: "alle", name: "Alle 5 Partien", ziel: w => Object.keys(w.gruppen).filter(g => g !== "rumpf").length, soll: 5, lohn: { splitter: 120, kristalle: 1 } }
   ];
 
   // ---------- Zeit ----------
@@ -331,7 +512,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
         { id: 2, key: "bank", i: 6, j: 4, rot: 0, tier: 0 },
         { id: 3, key: "kh", i: 0, j: 2, rot: 3, tier: 0 }
       ],
-      wand: [], lager: [], naechsteId: 10, tage: tage, verarbeitet: Object.keys(tage), demoTage: 0, abgeholt: {}, truhen: {}
+      wand: [], lager: [], naechsteId: 10, tage: tage, verarbeitet: Object.keys(tage), demoTage: 0, abgeholt: {}, truhen: {}, familien: {}
     };
   }
   let stand = startStand();
@@ -349,7 +530,9 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     r.naechsteId = Math.max(zahlOk(s.naechsteId, 10), 10, ...[...ids].map(i => i + 1));
     r.tage = s.tage && typeof s.tage === "object" ? s.tage : {}; Object.keys(r.tage).forEach(t => { const d = r.tage[t]; if (!/^\d{4}-\d\d-\d\d$/.test(t) || !d || !Array.isArray(d.gruppen)) delete r.tage[t]; });
     r.verarbeitet = Array.isArray(s.verarbeitet) ? s.verarbeitet.filter(t => typeof t === "string") : Object.keys(r.tage);
-    ["abgeholt", "truhen", "rekordWochen"].forEach(k => { r[k] = s[k] && typeof s[k] === "object" ? s[k] : {}; });
+    ["abgeholt", "truhen", "rekordWochen", "familien", "erfolge", "ausbau"].forEach(k => { r[k] = s[k] && typeof s[k] === "object" ? s[k] : {}; });
+    Object.keys(r.ausbau).forEach(i => { const a = r.ausbau[i] || {}; r.ausbau[i] = { boden: Math.min(2, zahlOk(a.boden, 0)), licht: Math.min(2, zahlOk(a.licht, 0)), wand: Math.min(2, zahlOk(a.wand, 0)) }; });
+    r.name = typeof s.name === "string" ? s.name.slice(0, 22) : ""; r.tageszeit = ["auto", "tag", "nacht"].includes(s.tageszeit) ? s.tageszeit : "auto";
     return r;
   }
   try { const s = standPruefen(JSON.parse(localStorage.getItem(SPEICHER) || "null")); if (s) stand = s; } catch (e) {}
@@ -360,9 +543,12 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     let best = null; Object.keys(stand.tage).forEach(t => { if (t <= heute() && stand.tage[t].gruppen.indexOf(gruppe) >= 0 && (!best || t > best)) best = t; });
     return best;
   }
+  // Ein Gerät glänzt, wenn eine seiner Übungsfamilien trainiert wurde; ältere Tage ohne Familien zählen über die Hauptpartie
   function itemTage(key) {
     const k = KATALOG.find(x => x.key === key); if (!k.gruppen.length) return null;
-    let min = Infinity; k.gruppen.forEach(g => { const z = zuletzt(g); if (z) min = Math.min(min, tageZwischen(z, heute())); });
+    const fam = k.familien || [], haupt = fam.length ? FAMILIEN[fam[0]].gruppen.map(g => PARTIE_VON[g]) : k.gruppen, h = heute();
+    let min = Infinity;
+    Object.keys(stand.tage).forEach(t => { if (t > h) return; const d = stand.tage[t], treffer = d.familien && d.familien.length ? d.familien.some(f => fam.includes(f)) : d.gruppen.some(g => haupt.includes(g)); if (treffer) min = Math.min(min, tageZwischen(t, h)); });
     return min;
   }
   function itemZustand(key) { const t = itemTage(key); if (t === null) return "deko"; return t <= 7 ? "glaenzt" : "staubt"; }
@@ -403,7 +589,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   function kopfZeigen(knall) {
     const st = STUFEN[stand.stufe];
     $("raum-name").textContent = st.name;
-    $("kopf-label").textContent = "Dein Gym · Stufe " + (stand.stufe + 1) + (stand.demo ? " · Demo" : "");
+    $("kopf-label").textContent = gymName() + " · Stufe " + (stand.stufe + 1) + (stand.demo ? " · Demo" : "");
     $("splitter").textContent = zahl(stand.splitter); $("kristalle").textContent = zahl(stand.kristalle);
     const naechste = STUFEN[stand.freiStufe + 1];
     $("ruf-text").textContent = "Ruf " + zahl(stand.ruf);
@@ -416,9 +602,9 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const serie = serieWochen(), w = wochenDaten(heute());
     $("wetter").innerHTML = (nacht ? ICON.mond : ICON.sonne).replace("<svg", '<svg width="14" height="14"') + "<span><b>" + w.tage + "/" + REGEL.truheTage + "</b> diese Woche · Serie <b>" + serie + "</b> · " + ICON.glanz.replace("<svg", '<svg width="13" height="13" style="vertical-align:-2px"') + " <b>" + zahl(ausstrahlung()) + "</b></span>";
     if (knall) ["pille-splitter", "pille-kristalle"].forEach(id => { const p = $(id); p.classList.remove("knall"); void p.offsetWidth; p.classList.add("knall"); });
-    punkteZeigen();
+    erfolgePruefen();
   }
-  function istNacht() { const h = new Date().getHours(); return h >= 19 || h < 7; }
+  function istNacht() { if (stand.tageszeit === "tag") return false; if (stand.tageszeit === "nacht") return true; const h = new Date().getHours(); return h >= 19 || h < 7; }
 
   // ---------- Reiter und Sheets ----------
   const REITER = [["bauen", "Bauen"], ["auftraege", "Aufträge"], ["gym", "Gym"], ["training", "Training"]];
@@ -438,7 +624,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const w = wochenDaten(heute()); let n = 0;
     wochenAuftraege().forEach(a => { if (a.ziel(w) >= a.soll && !(stand.abgeholt[w.montag] || []).includes(a.id)) n++; });
     if (w.tage >= REGEL.truheTage && !stand.truhen[w.montag]) n++;
-    return n;
+    return n + ERFOLGE.filter(erfolgOffen).length;
   }
   function punkteZeigen() {
     const b = $("reiter-auftraege"); if (!b) return;
@@ -472,6 +658,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const src = vorschauBild(k.key);
     return '<span class="k-bild">' + ICON[KAT_ICON[k.kat]] + '<img alt="" data-vorschau="' + k.key + '"' + (src ? ' src="' + src + '" class="da"' : "") + ">" + (marke ? '<span class="k-marke">' + marke + "</span>" : "") + "</span>";
   }
+  function abdeckung() { const da = new Set(); stand.items.forEach(it => geraetGruppen(it.key).forEach(g => da.add(g))); return da; }
   function anzahlBesitz(key) { return stand.items.concat(stand.wand, stand.lager).filter(x => x.key === key).length; }
   let bauenKat = "frei";
   function bauenSheet(kopf, inhalt, sheet) {
@@ -539,8 +726,14 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     return wahl;
   }
   function lohnText(l) { const t = []; if (l.splitter) t.push("+" + l.splitter + " Splitter"); if (l.kristalle) t.push("+" + l.kristalle + " Kristall" + (l.kristalle > 1 ? "e" : "")); return t.join(" · "); }
-  function auftraegeSheet(kopf, inhalt) {
+  let auftragTab = "woche";
+  function auftraegeSheet(kopf, inhalt, sheet) {
     const w = wochenDaten(heute());
+    const chips = document.createElement("div"); chips.className = "chips";
+    const offenE = ERFOLGE.filter(erfolgOffen).length;
+    [["woche", "Diese Woche"], ["erfolge", "Erfolge" + (offenE ? " · " + offenE : "")]].forEach(c => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.setAttribute("aria-pressed", String(auftragTab === c[0])); b.textContent = c[1]; b.onclick = () => { auftragTab = c[0]; ueberZeigen(); }; chips.appendChild(b); });
+    sheet.insertBefore(chips, inhalt);
+    if (auftragTab === "erfolge") { kopf.innerHTML = "<b>Erfolge</b><span class='label'>" + Object.keys(stand.erfolge || {}).length + " / " + ERFOLGE.length + "</span>"; erfolgeZeigen(inhalt); return; }
     const ende = new Date(ausIso(w.montag)); ende.setDate(ende.getDate() + 7);
     kopf.innerHTML = "<b>Aufträge</b><span class='label'>" + (n => n === 1 ? "letzter Tag" : "noch " + n + " Tage")(Math.max(1, tageZwischen(heute(), iso(ende)))) + "</span>";
     // Wochen-Truhe
@@ -576,40 +769,174 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     toast(lohnText(l).replace(" · ", " "), "abgeholt");
   }
 
-  function gymSheet(kopf, inhalt) {
-    kopf.innerHTML = "<b>Dein Gym</b><span class='label'>" + zahl(ausstrahlung()) + " Ausstrahlung</span>";
-    const l = document.createElement("div"); l.className = "stufen-liste";
-    STUFEN.forEach((st, i) => {
-      const frei = i <= stand.freiStufe, hier = i === stand.stufe;
-      const z = document.createElement("div"); z.className = "zeile";
-      z.innerHTML = '<span class="z-symbol ' + (hier ? "farbe-akzent" : frei ? "farbe-gruen" : "") + '" style="' + (frei || hier ? "" : "background:rgba(255,255,255,.05);color:var(--aus)") + '">' + (frei ? ICON.gym : ICON.schloss) + '</span><div class="z-text"><div class="z-name">' + (i + 1) + " · " + st.name + '</div><div class="z-info">' + (frei ? st.satz : "Ab " + zahl(st.ruf) + " Ruf · " + st.S + " × " + st.S + " m · " + st.plaetze + " Besucher") + "</div></div>";
-      const k = document.createElement("button"); k.type = "button"; k.className = "klein-knopf" + (hier ? " leise" : ""); k.disabled = hier || !frei;
-      k.innerHTML = hier ? "Hier" : frei ? ICON.umzug + "Umziehen" : zahl(st.ruf);
-      k.onclick = () => umziehen(i);
-      z.appendChild(k); l.appendChild(z);
-    });
-    inhalt.appendChild(l);
-    const ab = document.createElement("div"); ab.className = "abschnitt"; ab.textContent = "Farbwelt"; inhalt.appendChild(ab);
-    const fb = document.createElement("div"); fb.className = "farben";
-    FARBWELTEN.forEach(f => {
-      const hat = stand.farben.includes(f.id), gesperrt = (f.stufe || 0) > stand.freiStufe;
-      const b = document.createElement("button"); b.type = "button"; b.className = "farbe-knopf"; b.setAttribute("aria-pressed", String(stand.farbwelt === f.id));
-      b.innerHTML = '<i style="background:' + f.css + ";color:" + f.css + '"></i>' + f.name + (hat ? "" : '<span class="preis">' + (gesperrt ? "🔒" : f.preis + "◆") + "</span>");
-      b.onclick = () => {
-        if (!hat) {
-          if (gesperrt) return toast("Gesperrt", f.name + " ab " + STUFEN[f.stufe].name);
-          if (stand.kristalle < f.preis) return toast("Noch " + (f.preis - stand.kristalle) + " Kristalle", "Für die Farbwelt " + f.name);
-          stand.kristalle -= f.preis; stand.farben.push(f.id); toast(f.name, "freigeschaltet");
-        }
-        stand.farbwelt = f.id; merken(); farbeAnwenden(); farbeIn3D(); kopfZeigen(); ueberZeigen();
-      };
-      fb.appendChild(b);
-    });
-    inhalt.appendChild(fb);
-    const t = document.createElement("div"); t.className = "text-klein";
-    t.textContent = "Ruf bekommst du für Trainingstage, Rekorde, Aufträge und neue Geräte. Mehr Ausstrahlung lockt mehr Besucher an.";
-    inhalt.appendChild(t);
+  // ---------- Reiter „Gym“: Übersicht, Ausbau, Stufen, Stil ----------
+  let gymTab = "uebersicht";
+  const AUSBAU = {
+    boden: { name: "Boden", stufen: ["Standard", "Gummiplatten", "Premium-Boden"], info: ["", "Dunkle Platten mit Fugen und Leuchtkante", "Glänzender Boden mit Logo-Ring"] },
+    licht: { name: "Licht", stufen: ["Standard", "LED-Leisten", "Studio-Licht"], info: ["", "Leisten oben an beiden Wänden", "Strahler von oben, warmes Licht an den Wänden"] },
+    wand: { name: "Wand", stufen: ["Rohwand", "Holz-Lamellen", "Akustik-Paneele"], info: ["", "Holz auf der unteren Hälfte der Rückwand", "Paneele mit Hinterleuchtung an beiden Wänden"] }
+  };
+  function ausbauPreis(stufe) { return stufe === 1 ? { splitter: 150 * (stand.stufe + 1) } : { splitter: 300 * (stand.stufe + 1), kristalle: 1 }; }
+  function ausbau() { stand.ausbau = stand.ausbau || {}; return stand.ausbau[stand.stufe] = stand.ausbau[stand.stufe] || { boden: 0, licht: 0, wand: 0 }; }
+  function gymSheet(kopf, inhalt, sheet) {
+    kopf.innerHTML = "<b>" + gymName() + "</b><span class='label'>" + zahl(ausstrahlung()) + " Ausstrahlung</span>";
+    const chips = document.createElement("div"); chips.className = "chips eng";
+    [["uebersicht", "Übersicht"], ["ausbau", "Ausbau"], ["stufen", "Stufen"], ["stil", "Stil"]].forEach(c => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.setAttribute("aria-pressed", String(gymTab === c[0])); b.textContent = c[1]; b.onclick = () => { gymTab = c[0]; ueberZeigen(); }; chips.appendChild(b); });
+    sheet.insertBefore(chips, inhalt);
+    const abschnitt = t => { const a = document.createElement("div"); a.className = "abschnitt"; a.textContent = t; inhalt.appendChild(a); };
+    const text = t => { const x = document.createElement("div"); x.className = "text-klein"; x.textContent = t; inhalt.appendChild(x); };
+    if (gymTab === "uebersicht") {
+      const nz = document.createElement("label"); nz.className = "namenszeile";
+      nz.innerHTML = '<span>Name</span><input id="gym-name" maxlength="22" autocomplete="off" placeholder="Mein Gym">';
+      const inp = nz.querySelector("input"); inp.value = stand.name || "";
+      inp.addEventListener("change", () => { stand.name = inp.value.trim().slice(0, 22); merken(); kopfZeigen(); wandAufbauen(); ueberZeigen(); toast(gymName(), "So heißt dein Gym jetzt"); });
+      inhalt.appendChild(nz);
+      const da = abdeckung();
+      abschnitt("Muskelgruppen im Gym · " + da.size + " / " + MUSKELGRUPPEN.length);
+      const bal = document.createElement("div"); bal.className = "abdeckung-balken"; bal.innerHTML = '<span style="width:' + (da.size / MUSKELGRUPPEN.length * 100) + '%"></span>'; inhalt.appendChild(bal);
+      const gr = document.createElement("div"); gr.className = "abdeckung";
+      MUSKELGRUPPEN.forEach(m => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "mg" + (da.has(m[0]) ? " da" : ""); b.innerHTML = "<i></i>" + m[1];
+        b.onclick = () => {
+          if (da.has(m[0])) { const n = [...new Set(stand.items.filter(it => geraetGruppen(it.key).includes(m[0])).map(it => KATALOG.find(k => k.key === it.key).name))]; return toast(m[1], "im Gym: " + n.join(", ")); }
+          const k = KATALOG.filter(k => k.familien && geraetGruppen(k.key).includes(m[0])).sort((a, b) => ((a.stufe || 0) > stand.freiStufe) - ((b.stufe || 0) > stand.freiStufe) || a.preis - b.preis)[0];
+          toast(m[1] + " fehlt noch", k ? "Dafür: " + k.name + ((k.stufe || 0) > stand.freiStufe ? " (ab " + STUFEN[k.stufe].name + ")" : "") : "");
+        };
+        gr.appendChild(b);
+      });
+      inhalt.appendChild(gr);
+      const foto = document.createElement("button"); foto.type = "button"; foto.className = "gross-knopf leise"; foto.id = "fotomodus"; foto.innerHTML = ICON.kamera + "Fotomodus"; foto.onclick = fotomodusStarten; inhalt.appendChild(foto);
+      text("Jede Muskelgruppe aus Korund hat im Spiel mindestens ein Gerät. Tippe eine graue an, um zu sehen, was dir fehlt.");
+    }
+    if (gymTab === "ausbau") {
+      const a = ausbau();
+      abschnitt(STUFEN[stand.stufe].name + " ausbauen");
+      Object.keys(AUSBAU).forEach(key => {
+        const def = AUSBAU[key], lv = a[key], naechst = lv + 1, preis = naechst <= 2 ? ausbauPreis(naechst) : null;
+        const z = document.createElement("div"); z.className = "zeile";
+        z.innerHTML = '<span class="z-symbol farbe-akzent">' + ICON[{ boden: "gym", licht: "glanz", wand: "bauen" }[key]] + '</span><div class="z-text"><div class="z-name">' + def.name + " · " + def.stufen[lv] + '</div><div class="z-info">' + (preis ? "Als Nächstes: " + def.stufen[naechst] + " · " + def.info[naechst] : "Voll ausgebaut") + '</div><div class="stufen-punkte">' + [0, 1, 2].map(i => '<i class="' + (i <= lv ? "an" : "") + '"></i>').join("") + "</div></div>";
+        const k = document.createElement("button"); k.type = "button"; k.className = "klein-knopf"; k.disabled = !preis;
+        k.innerHTML = preis ? (preis.kristalle ? preis.splitter + " + " + preis.kristalle + "◆" : zahl(preis.splitter)) : ICON.haken;
+        k.onclick = () => {
+          if (stand.splitter < preis.splitter || stand.kristalle < (preis.kristalle || 0)) return toast("Fehlt noch", (stand.splitter < preis.splitter ? zahl(preis.splitter - stand.splitter) + " Splitter " : "") + (stand.kristalle < (preis.kristalle || 0) ? (preis.kristalle - stand.kristalle) + " Kristall" : ""));
+          stand.splitter -= preis.splitter; stand.kristalle -= preis.kristalle || 0; a[key] = naechst; stand.ruf += 20; merken();
+          raumBauen(false); kopfZeigen(true); ueberZeigen(); rufPruefen(); erfolgePruefen();
+          if (!ruhig) funkenBei(new THREE.Vector3(0, 0, 0), 80);
+          toast(def.name + ": " + def.stufen[naechst], "im " + STUFEN[stand.stufe].name);
+        };
+        z.appendChild(k); inhalt.appendChild(z);
+      });
+      text("Jede Stufe hat ihren eigenen Ausbau. Er bleibt, auch wenn du umziehst und zurückkommst.");
+    }
+    if (gymTab === "stufen") {
+      const l = document.createElement("div"); l.className = "stufen-liste";
+      STUFEN.forEach((st, i) => {
+        const frei = i <= stand.freiStufe, hier = i === stand.stufe;
+        const z = document.createElement("div"); z.className = "zeile";
+        z.innerHTML = '<span class="z-symbol ' + (hier ? "farbe-akzent" : frei ? "farbe-gruen" : "") + '" style="' + (frei || hier ? "" : "background:rgba(255,255,255,.05);color:var(--aus)") + '">' + (frei ? ICON.gym : ICON.schloss) + '</span><div class="z-text"><div class="z-name">' + (i + 1) + " · " + st.name + '</div><div class="z-info">' + (frei ? st.satz : "Ab " + zahl(st.ruf) + " Ruf · " + st.S + " × " + st.S + " m · " + st.plaetze + " Besucher") + "</div></div>";
+        const k = document.createElement("button"); k.type = "button"; k.className = "klein-knopf" + (hier ? " leise" : ""); k.disabled = hier || !frei;
+        k.innerHTML = hier ? "Hier" : frei ? ICON.umzug + "Umziehen" : zahl(st.ruf);
+        k.onclick = () => umziehen(i);
+        z.appendChild(k); l.appendChild(z);
+      });
+      inhalt.appendChild(l);
+      text("Ruf bekommst du für Trainingstage, Rekorde, Aufträge, Erfolge und neue Geräte. Mehr Ausstrahlung lockt mehr Besucher an.");
+    }
+    if (gymTab === "stil") {
+      abschnitt("Farbwelt");
+      const fb = document.createElement("div"); fb.className = "farben";
+      FARBWELTEN.forEach(f => {
+        const hat = stand.farben.includes(f.id), gesperrt = (f.stufe || 0) > stand.freiStufe;
+        const b = document.createElement("button"); b.type = "button"; b.className = "farbe-knopf"; b.setAttribute("aria-pressed", String(stand.farbwelt === f.id));
+        b.innerHTML = '<i style="background:' + f.css + ";color:" + f.css + '"></i>' + f.name + (hat ? "" : '<span class="preis">' + (gesperrt ? "🔒" : f.preis + "◆") + "</span>");
+        b.onclick = () => {
+          if (!hat) {
+            if (gesperrt) return toast("Gesperrt", f.name + " ab " + STUFEN[f.stufe].name);
+            if (stand.kristalle < f.preis) return toast("Noch " + (f.preis - stand.kristalle) + " Kristalle", "Für die Farbwelt " + f.name);
+            stand.kristalle -= f.preis; stand.farben.push(f.id); toast(f.name, "freigeschaltet");
+          }
+          stand.farbwelt = f.id; merken(); farbeAnwenden(); farbeIn3D(); kopfZeigen(); ueberZeigen();
+        };
+        fb.appendChild(b);
+      });
+      inhalt.appendChild(fb);
+      abschnitt("Tageszeit");
+      const tz = document.createElement("div"); tz.className = "chips";
+      [["auto", "Wie draußen"], ["tag", "Tag"], ["nacht", "Nacht"]].forEach(c => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.setAttribute("aria-pressed", String((stand.tageszeit || "auto") === c[0])); b.textContent = c[1]; b.onclick = () => { stand.tageszeit = c[0]; merken(); tageszeit(); raumBauen(false); kopfZeigen(); ueberZeigen(); }; tz.appendChild(b); });
+      inhalt.appendChild(tz);
+      text("„Wie draußen“ folgt deiner Uhrzeit: ab 19 Uhr wird es Nacht im Gym.");
+    }
   }
+  function gymName() { return stand.name || "Dein Gym"; }
+
+  // ---------- Erfolge: einmalige Ziele mit Belohnung ----------
+  const ERFOLGE = [
+    { id: "start", name: "Eingerichtet", text: "4 Geräte aufstellen", wert: () => stand.items.length, soll: 4, lohn: { splitter: 60 } },
+    { id: "voll", name: "Volles Haus", text: "10 Geräte im Gym", wert: () => stand.items.length + stand.wand.length, soll: 10, lohn: { kristalle: 1 } },
+    { id: "muskel10", name: "Halber Körper", text: "10 Muskelgruppen abdecken", wert: () => abdeckung().size, soll: 10, lohn: { splitter: 80 } },
+    { id: "muskel20", name: "Komplett", text: "Alle 20 Muskelgruppen abdecken", wert: () => abdeckung().size, soll: 20, lohn: { kristalle: 3 } },
+    { id: "platin", name: "Platin-Sammler", text: "3 Geräte in Platin oder besser", wert: () => stand.items.concat(stand.wand).filter(i => i.tier >= 1).length, soll: 3, lohn: { kristalle: 1 } },
+    { id: "korund", name: "Korund", text: "Ein Gerät in Korund", wert: () => stand.items.concat(stand.wand).filter(i => i.tier >= 2).length, soll: 1, lohn: { kristalle: 2 } },
+    { id: "ausbau", name: "Handwerker", text: "Einen Ausbau voll machen", wert: () => Math.max(0, ...Object.values(stand.ausbau || {}).flatMap(a => Object.values(a))), soll: 2, lohn: { kristalle: 1 } },
+    { id: "keller", name: "Umzug", text: "Kellergym freischalten", wert: () => stand.freiStufe, soll: 1, lohn: { splitter: 100 } },
+    { id: "studio", name: "Studio", text: "Studio freischalten", wert: () => stand.freiStufe, soll: 2, lohn: { kristalle: 1 } },
+    { id: "arena", name: "Arena", text: "Arena freischalten", wert: () => stand.freiStufe, soll: 4, lohn: { kristalle: 3 } },
+    { id: "tage10", name: "Dranbleiben", text: "10 Trainingstage", wert: () => Object.keys(stand.tage).length, soll: 10, lohn: { splitter: 100 } },
+    { id: "tage50", name: "Gewohnheit", text: "50 Trainingstage", wert: () => Object.keys(stand.tage).length, soll: 50, lohn: { kristalle: 2 } },
+    { id: "serie4", name: "Ein Monat", text: "4 Wochen Serie", wert: () => serieWochen(), soll: 4, lohn: { kristalle: 1 } }
+  ];
+  let erfolgeGemeldet = null;
+  function erfolgOffen(e) { return !(stand.erfolge || {})[e.id] && e.wert() >= e.soll; }
+  function erfolgePruefen() {
+    const neu = ERFOLGE.filter(erfolgOffen).map(e => e.id);
+    if (erfolgeGemeldet && neu.some(id => !erfolgeGemeldet.includes(id))) { const e = ERFOLGE.find(x => x.id === neu.find(id => !erfolgeGemeldet.includes(id))); setTimeout(() => toast("Erfolg: " + e.name, "unter Aufträge abholen"), 600); }
+    erfolgeGemeldet = neu; punkteZeigen();
+  }
+  function erfolgeZeigen(inhalt) {
+    const rang = e => (stand.erfolge || {})[e.id] ? 3 : erfolgOffen(e) ? 0 : 1 - Math.min(1, e.wert() / e.soll) + 1;
+    ERFOLGE.slice().sort((a, b) => rang(a) - rang(b)).forEach(e => {
+      const geholt = (stand.erfolge || {})[e.id], ist = Math.min(e.soll, e.wert()), fertig = ist >= e.soll;
+      const z = document.createElement("div"); z.className = "zeile" + (fertig ? " fertig" : "");
+      z.innerHTML = '<span class="z-symbol ' + (geholt ? "farbe-gruen" : fertig ? "farbe-gold" : "farbe-akzent") + '">' + (geholt ? ICON.haken : ICON.pokal) + '</span><div class="z-text"><div class="z-name">' + e.name + '</div><div class="z-info">' + e.text + " · " + lohnText(e.lohn) + '</div><div class="z-balken"><span style="width:' + (ist / e.soll * 100) + '%"></span></div></div>';
+      const k = document.createElement("button"); k.type = "button"; k.className = "klein-knopf" + (geholt ? " leise" : ""); k.disabled = !fertig || geholt;
+      k.innerHTML = geholt ? ICON.haken + "Geholt" : fertig ? "Holen" : ist + "/" + e.soll;
+      k.onclick = () => { stand.erfolge = stand.erfolge || {}; stand.erfolge[e.id] = true; belohnen(e.lohn, k); stand.ruf += 30; merken(); rufPruefen(); kopfZeigen(true); erfolgePruefen(); ueberZeigen(); };
+      z.appendChild(k); inhalt.appendChild(z);
+    });
+  }
+
+  // ---------- Fotomodus: ohne Leiste, Kamera dreht langsam, Bild zum Sichern ----------
+  let foto = null;
+  function fotomodusStarten() {
+    reiter = null; auswahl = null; markieren(null); reiterZeigen(); ueberZeigen();
+    document.body.classList.add("foto");
+    const o = document.createElement("div"); o.className = "foto-ebene";
+    o.innerHTML = '<div class="foto-titel"><span class="label">' + STUFEN[stand.stufe].name + " · " + abdeckung().size + ' / 20 Muskelgruppen</span><b>' + gymName() + '</b></div><div class="foto-knoepfe"><button type="button" class="klein-knopf" id="foto-bild">' + ICON.kamera + 'Bild</button><button type="button" class="klein-knopf leise" id="foto-ende">Fertig</button></div>';
+    $("app").appendChild(o); foto = { start: performance.now(), ebene: o, zoom: blick.zoom };
+    o.querySelector("#foto-ende").onclick = fotomodusEnde;
+    o.querySelector("#foto-bild").onclick = () => {
+      const url = fotoBild();
+      const s = document.createElement("div"); s.className = "schleier"; s.innerHTML = '<div class="feier"><img class="foto-bild" alt="Foto deines Gyms" src="' + url + '"><p>Lange drücken oder Rechtsklick, um das Bild zu sichern.</p><button class="gross-knopf" type="button">Schließen</button></div>';
+      s.querySelector("button").onclick = () => s.remove(); $("app").appendChild(s);
+    };
+    kameraAnpassen();
+  }
+  // Bild im Format 4:5 mit Name, Stufe und Abdeckung, damit man es so teilen kann
+  function fotoBild() {
+    renderer.render(szene, kamera);
+    const w = canvas.width, h = canvas.height, d = w / canvas.clientWidth, pm = platzMessen();
+    const ch = Math.min(h, Math.round(w * 1.25)), y0 = Math.max(0, Math.min(h - ch, (pm.oben + pm.unten) / 2 * d - ch / 2));
+    const o = document.createElement("canvas"); o.width = w; o.height = ch; const x = o.getContext("2d");
+    const g = x.createLinearGradient(0, 0, 0, ch); g.addColorStop(0, "#15171c"); g.addColorStop(1, "#08090c"); x.fillStyle = g; x.fillRect(0, 0, w, ch);
+    x.drawImage(canvas, 0, y0, w, ch, 0, 0, w, ch);
+    const r = w * .065; x.textBaseline = "alphabetic";
+    x.fillStyle = "rgba(240,242,246,.55)"; x.font = "700 " + Math.round(w * .03) + "px system-ui, -apple-system, sans-serif"; x.fillText((STUFEN[stand.stufe].name + " · Stufe " + (stand.stufe + 1)).toUpperCase(), r, r + w * .03);
+    x.fillStyle = "#F0F2F6"; x.font = "800 " + Math.round(w * .075) + "px system-ui, -apple-system, sans-serif"; x.fillText(gymName(), r, r + w * .115);
+    x.fillStyle = farbwelt().css; x.font = "700 " + Math.round(w * .028) + "px system-ui, -apple-system, sans-serif"; x.fillText("KORUND GYM", r, ch - r);
+    x.textAlign = "right"; x.fillStyle = "rgba(240,242,246,.7)"; x.fillText(abdeckung().size + " / 20 Muskelgruppen · " + zahl(ausstrahlung()) + " Ausstrahlung", w - r, ch - r);
+    return o.toDataURL("image/png");
+  }
+  function fotomodusEnde() { if (!foto) return; foto.ebene.remove(); document.body.classList.remove("foto"); blick.ziel = 0; foto = null; kameraAnpassen(); }
 
   let demoGruppen = ["brust"], demoRekord = false;
   function trainingSheet(kopf, inhalt) {
@@ -640,7 +967,15 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   }
 
   function trainingEintragen(datum, gruppen, rekord, vonEl) {
-    stand.tage[datum] = { gruppen: gruppen, rekord: rekord };
+    // Demo: je Partie eine passende Übungsfamilie, damit die Besucher genau das nachmachen
+    // bevorzugt Familien, die ein Gerät im Gym hat, zuerst eines, das gerade staubt
+    const imGym = stand.items.map(it => KATALOG.find(k => k.key === it.key)).filter(k => k.familien);
+    const fam = gruppen.map(g => {
+      const passt = f => FAMILIEN[f].gruppen.some(x => PARTIE_VON[x] === g);
+      const staub = imGym.filter(k => itemZustand(k.key) === "staubt").flatMap(k => k.familien).filter(passt), da = imGym.flatMap(k => k.familien).filter(passt), alle = Object.keys(FAMILIEN).filter(passt);
+      const l = staub.length ? staub : da.length ? da : alle; return l[Math.floor(Math.random() * l.length)];
+    }).filter(Boolean);
+    stand.tage[datum] = { gruppen: gruppen, familien: fam, rekord: rekord }; stand.familien = stand.familien || {}; fam.forEach(f => stand.familien[f] = datum);
     const vorher = KATALOG.filter(k => k.gruppen.length).map(k => [k.key, itemZustand(k.key)]);
     const lohn = tagVerbuchen(datum); merken();
     fliegen("splitter", vonEl, 9); if (lohn.kristalle) fliegen("kristall", vonEl, 3);
@@ -659,14 +994,16 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     r.onload = () => { try { importieren(JSON.parse(r.result)); } catch (err) { toast("Datei nicht lesbar", "Bitte ein Korund-Backup wählen"); } e.target.value = ""; };
     r.readAsText(f);
   });
+  // Muskelgruppe eines Eintrags: Korund speichert den deutschen Namen („Oberer Rücken“), ältere Daten auch die id
+  function gruppeId(x) {
+    const n = String(x || "").toLowerCase().trim(); if (!n) return null;
+    const g = MUSKELGRUPPEN.find(m => m[0] === n || m[1].toLowerCase() === n || n.startsWith(m[1].toLowerCase()));
+    return g ? g[0] : null;
+  }
   function gruppeAus(e) {
-    const s = ((e.muskelgruppe || "") + " " + (e.uebung || "")).toLowerCase();
-    if (/brust|bankdr|fly|butterfly|dips/.test(s)) return "brust";
-    if (/lat|rücken|ruecken|trapez|ruder|klimm|kreuzheb|nacken/.test(s)) return "ruecken";
-    if (/quadri|beinbeug|bein|po\b|gesäß|waden|adduk|abduk|kniebeug|squat|ausfall|hip/.test(s)) return "beine";
-    if (/schulter|delt|seitheb|military|überkopf/.test(s)) return "schultern";
-    if (/bizeps|trizeps|unterarm|curl|arm/.test(s)) return "arme";
-    return null;
+    const grp = gruppeId(e.muskelgruppe), f = familieVon(e.uebung || e.name || "", grp);
+    const g = grp || (f ? FAMILIEN[f].gruppen[0] : null);
+    return { familie: f, partie: g ? PARTIE_VON[g] : null };
   }
   function importieren(daten) {
     const eintraege = Array.isArray(daten) ? daten : daten && daten.eintraege;
@@ -674,8 +1011,8 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const tage = {}, best = {};
     eintraege.slice().sort((a, b) => String(a.datum).localeCompare(String(b.datum))).forEach(e => {
       const d = new Date(e.datum); if (isNaN(d)) return; const t = iso(d);
-      const tg = tage[t] = tage[t] || { gruppen: [], rekord: false };
-      const g = gruppeAus(e); if (g && !tg.gruppen.includes(g)) tg.gruppen.push(g);
+      const tg = tage[t] = tage[t] || { gruppen: [], familien: [], rekord: false };
+      const g = gruppeAus(e); if (g.partie && !tg.gruppen.includes(g.partie)) tg.gruppen.push(g.partie); if (g.familie && !tg.familien.includes(g.familie)) tg.familien.push(g.familie);
       // Rekord wie in Korund: bestes geschätztes 1RM (1–10 Wdh., ohne Aufwärmsätze), die erste Ausführung zählt nicht
       const saetze = Array.isArray(e.einzelsaetze) && e.einzelsaetze.length ? e.einzelsaetze : [{ gewicht: e.gewicht, wdh: e.wdh }];
       let rm = 0; saetze.forEach(s => { if (s.aufwaermen) return; const w = +s.wdh, kg = +s.gewicht; if (w >= 1 && w <= 10 && kg > 0) rm = Math.max(rm, w > 1 ? kg * (1 + w / 30) : kg); });
@@ -686,10 +1023,12 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const warDemo = stand.demo;
     if (warDemo) { const neu = startStand(); neu.demo = false; neu.tage = {}; neu.verarbeitet = []; neu.splitter = 300; neu.kristalle = 1; neu.ruf = 0; stand = neu; }
     let summe = { splitter: 0, kristalle: 0, tage: 0, rekorde: 0 };
+    stand.familien = stand.familien || {}; const famZahl = new Set();
+    Object.keys(tage).sort().forEach(t => { tage[t].familien.forEach(f => { stand.familien[f] = t; famZahl.add(f); }); });
     Object.keys(tage).sort().forEach(t => { stand.tage[t] = tage[t]; const l = tagVerbuchen(t); if (l) { summe.splitter += l.splitter; summe.kristalle += l.kristalle; summe.tage++; if (tage[t].rekord) summe.rekorde++; } });
     stand.demo = false; stand.demoTage = 0; merken();
     raumBauen(); kopfZeigen(true); reiter = null; reiterZeigen(); ueberZeigen();
-    feiern({ symbol: "datei", farbe: "farbe-akzent", titel: summe.tage ? summe.tage + " Trainingstage gefunden" : "Schon alles verbucht", text: summe.tage ? (warDemo ? "Dein echtes Gym ist aufgebaut. " : "") + summe.rekorde + " Tage mit Rekord dabei." : "Neue Trainings kommen mit dem nächsten Backup dazu.", lohn: summe.tage ? { splitter: summe.splitter, kristalle: summe.kristalle } : null, danach: rufPruefen });
+    feiern({ symbol: "datei", farbe: "farbe-akzent", titel: summe.tage ? summe.tage + " Trainingstage gefunden" : "Schon alles verbucht", text: summe.tage ? (warDemo ? "Dein echtes Gym ist aufgebaut. " : "") + summe.rekorde + " Tage mit Rekord, " + famZahl.size + " Übungsfamilien. Die Besucher machen deine Übungen nach." : "Neue Trainings kommen mit dem nächsten Backup dazu.", lohn: summe.tage ? { splitter: summe.splitter, kristalle: summe.kristalle } : null, danach: rufPruefen });
   }
 
   function infoBauen(obj) {
@@ -698,7 +1037,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     let zeilen;
     if (z === "deko") zeilen = [k.text + ". Bringt Ausstrahlung, keine Splitter."];
     else if (z === "glaenzt") zeilen = ["Glänzt · " + (t === 0 ? "heute" : t === 1 ? "gestern" : "vor " + t + " Tagen") + " trainiert.", k.text];
-    else zeilen = [isFinite(t) ? "Staubt · seit " + t + " Tagen nicht trainiert." : "Staubt · noch nie trainiert.", "Ein Training mit " + k.gruppen.map(g => GRUPPEN.find(x => x[0] === g)[1]).join(" oder ") + " poliert es."];
+    else zeilen = [isFinite(t) ? "Staubt · seit " + t + " Tagen nicht trainiert." : "Staubt · noch nie trainiert.", "Ein Training mit " + (k.familien || []).map(f => FAMILIEN[f].name).join(", ").replace(/, ([^,]*)$/, " oder $1") + " poliert es."];
     const tier = TIERS[it.tier || 0], naechst = TIERS[(it.tier || 0) + 1];
     box.innerHTML = '<div class="info-kopf"><span class="z-symbol ' + (z === "glaenzt" ? "farbe-akzent" : z === "staubt" ? "farbe-orange" : "farbe-gold") + '">' + (z === "glaenzt" ? ICON.glanz : z === "staubt" ? ICON.staub : ICON.stern) + '</span><div style="flex:1;min-width:0"><div class="name">' + k.name + ' <span class="stufe-marke t' + (it.tier || 0) + '">' + tier.name + "</span></div>" + zeilen.map(x => '<div class="zeile-text">' + x + "</div>").join("") + '</div><button class="zu" type="button" aria-label="Schließen">✕</button></div>';
     box.querySelector(".zu").onclick = () => { auswahl = null; markieren(null); ueberZeigen(); };
@@ -1113,6 +1452,52 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
       g.add(box(1.8, .04, 1.1, M.gummi, 0, .02, 0, true, .006));
       glanzLeiste(g, 1.6, .02, .02, 0, .065, .6);
     },
+    beincurl(g, t) {
+      const R = rahmenMat(t);
+      g.add(box(.5, .06, 1.9, R, 0, .03, 0), box(.07, .58, .07, R, 0, .32, -.55), box(.07, .58, .07, R, 0, .32, .2));
+      const pad = polster(.36, .09, .95); pad.position.set(0, .64, -.34); pad.rotation.x = -.05; g.add(pad);
+      const buckel = polster(.36, .08, .22); buckel.position.set(0, .71, -.02); g.add(buckel);
+      [-1, 1].forEach(v => { g.add(box(.04, .26, .04, R, v * .24, .66, -.86)); const gr = zyl(.018, .14, M.gummi, 8); gr.rotation.z = Math.PI / 2; gr.position.set(v * .3, .8, -.86); g.add(gr); });
+      const hebel = new THREE.Group(); hebel.position.set(.24, .67, .5); g.add(hebel);
+      hebel.add(box(.05, .05, .5, R, 0, 0, .25));
+      const ro = zyl(.055, .36, M.polster, 14); ro.rotation.z = Math.PI / 2; ro.position.set(-.24, .06, .45); hebel.add(ro);
+      g.userData.hebel = hebel;
+      gewichtsblock(g, .42, .06, -.3, .55, t); g.add(box(.08, 1.2, .08, R, .42, .6, -.16));
+      glanzLeiste(g, .02, .02, 1.8, -.26, .065, 0);
+    },
+    abadd(g, t) {
+      const R = rahmenMat(t);
+      g.add(box(.7, .06, 1.25, R, 0, .03, 0), box(.07, .45, .07, R, 0, .27, -.15));
+      const sitz = polster(.46, .08, .45); sitz.position.set(0, .5, -.1); g.add(sitz);
+      const lehne = polster(.46, .6, .08); lehne.position.set(0, .86, -.38); lehne.rotation.x = -.2; g.add(lehne);
+      ["polsterL", "polsterR"].forEach((n, i) => {
+        const v = i ? 1 : -1, arm = new THREE.Group(); arm.position.set(v * .1, .5, .12); g.add(arm);
+        arm.add(box(.04, .04, .42, R, v * .02, -.06, .2));
+        const aussen = polster(.06, .16, .2); aussen.position.set(v * .13, .04, .33); arm.add(aussen);
+        const innen = polster(.05, .14, .18); innen.position.set(v * -.03, .04, .33); arm.add(innen);
+        g.userData[n] = arm;
+      });
+      gewichtsblock(g, 0, .06, -.52, .6, t);
+      glanzLeiste(g, .02, .02, 1.15, .36, .065, 0);
+    },
+    hyper(g, t) {
+      const R = rahmenMat(t);
+      g.add(box(.6, .06, 1.35, R, 0, .03, 0));
+      const holm = box(.08, .08, 1.05, R, 0, .52, .2); holm.rotation.x = .68; g.add(holm);
+      const pad = polster(.42, .08, .38); pad.position.set(0, .84, -.2); pad.rotation.x = .78; g.add(pad);
+      const platte = box(.36, .03, .26, M.gummi, 0, .19, .62, true, .006); platte.rotation.x = -.6; g.add(platte);
+      [-1, 1].forEach(v => { const r = zyl(.045, .16, M.polster, 12); r.rotation.z = Math.PI / 2; r.position.set(v * .1, .36, .66); g.add(r); });
+      g.add(box(.05, .38, .05, R, 0, .2, .66));
+      glanzLeiste(g, .02, .02, 1.25, .28, .065, 0);
+    },
+    matte(g) {
+      const m = korundMats.matte || (korundMats.matte = std({ color: 0x1b1d23, roughness: .85, metalness: 0 }));
+      g.add(box(.92, .014, 1.86, m, 0, .007, 0, false, .005));
+      [-.4, .4].forEach(x => g.add(box(.012, .002, 1.7, M.naht, x, .015, 0, false, 0)));
+      const rolle = zyl(.075, .6, M.polster, 18); rolle.rotation.z = Math.PI / 2; rolle.position.set(.18, .075, -.84); g.add(rolle);
+      const k = kettlebell(.09); k.position.set(-.34, 0, -.84); g.add(k);
+      glanzLeiste(g, .9, .006, .012, 0, .016, .92);
+    },
     pflanze(g) {
       g.add(zyl(.19, .44, M.topf, 18, .14).translateY(.22));
       g.add(teil(zylGeo(.17, .03, 18), M.schwarz, 0, .43, 0, false));
@@ -1150,7 +1535,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     spiegel(g) { g.add(box(2.0, 2.0, .03, M.spiegel, 0, 1.25, 0, false, 0), box(2.08, .05, .07, M.chrom, 0, .23, .01, false), box(2.08, .05, .07, M.chrom, 0, 2.27, .01, false)); },
     neon(g) { g.add(textTafel("KORUND", 2.3, .58, true, g)); g.children.at(-1).position.set(0, 2.1, .04); g.add(box(2.4, .66, .03, M.schwarz, 0, 2.1, 0, false, .01)); const l = new THREE.PointLight(leucht(), .6, 4.5); l.position.set(0, 2.1, .6); g.userData.neonLicht = l; g.add(l); },
     tafel(g) { const t = wochenTafel(); g.add(t); t.position.set(0, 1.55, .02); g.add(box(1.38, .92, .03, M.schwarz, 0, 1.55, -.005, false)); },
-    banner(g) { g.add(box(3.2, 1.2, .04, M.schwarz, 0, 2.2, 0, false)); const t = textTafel("MEIN GYM", 3.0, .7, true, g); t.position.set(0, 2.2, .03); g.add(t); }
+    banner(g) { g.add(box(3.2, 1.2, .04, M.schwarz, 0, 2.2, 0, false)); const t = textTafel(gymName().toUpperCase(), 3.0, .7, true, g); t.position.set(0, 2.2, .03); g.add(t); }
   };
   function textTafel(text, w, h, leuchtend, g) {
     const c = document.createElement("canvas"); c.width = 1024; c.height = Math.round(1024 * h / w); const x = c.getContext("2d");
@@ -1359,6 +1744,85 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const m = new THREE.Mesh(geo("ebene1", () => new THREE.PlaneGeometry(1, 1)), new THREE.MeshBasicMaterial({ map: wandSchatten, transparent: true, opacity: .55, depthWrite: false, color: 0x000000 }));
     m.scale.set(laenge, tiefe, 1); m.rotation.x = -Math.PI / 2; m.renderOrder = 1; return m;
   }
+  // ---------- Raum-Ausbau: Boden, Licht und Wand je Stufe ----------
+  // Freie Abschnitte einer Wand (von -S/2 bis S/2) ohne die gesperrten Bereiche
+  function freieStuecke(S, sperren) {
+    let stuecke = [[-S / 2 + .35, S / 2 - .2]];
+    sperren.forEach(s => { stuecke = stuecke.flatMap(([a, b]) => s[1] <= a || s[0] >= b ? [[a, b]] : [[a, s[0]], [s[1], b]].filter(([x, y]) => y - x > .5)); });
+    return stuecke;
+  }
+  function ausbauDeko(boden, tex, idx, S, H) {
+    const a = (stand.ausbau || {})[idx]; if (!a) return;
+    const N = S / ZELLE, W = tex.image.width, gangY = (N - GANG) / N * W, px = W / S, x = tex.image.getContext("2d");
+    const leiste = () => { const m = new THREE.MeshStandardMaterial({ color: 0x0b0d10, emissive: leucht(), emissiveIntensity: 1.3 }); raum.userData.akzente.push(m); return m; };
+    // Boden
+    if (a.boden >= 1) {
+      const r = zufall(31 + idx);
+      x.fillStyle = a.boden === 2 ? "#101215" : "#141619"; x.fillRect(0, 0, W, gangY);
+      rauschen(x, W, gangY, 9000, ["rgba(255,255,255,.025)", "rgba(0,0,0,.12)"], 2, r);
+      const kachel = a.boden === 2 ? px * 2 : px;
+      for (let i = 0; i * kachel < W; i++) for (let j = 0; j * kachel < gangY; j++) { x.fillStyle = "rgba(255,255,255," + (r() * .025) + ")"; x.fillRect(i * kachel + 2, j * kachel + 2, kachel - 4, kachel - 4); }
+      x.strokeStyle = a.boden === 2 ? "rgba(255,255,255,.05)" : "rgba(0,0,0,.75)"; x.lineWidth = a.boden === 2 ? 2 : 5;
+      for (let p = kachel; p < W; p += kachel) { x.beginPath(); x.moveTo(p, 0); x.lineTo(p, gangY); x.stroke(); }
+      for (let p = kachel; p < gangY; p += kachel) { x.beginPath(); x.moveTo(0, p); x.lineTo(W, p); x.stroke(); }
+      if (a.boden === 2) {
+        const c = "#" + new THREE.Color(leucht()).getHexString(), mx = W / 2, my = gangY / 2, rr = Math.min(W, gangY) * .24;
+        x.strokeStyle = c; x.globalAlpha = .35; x.lineWidth = 6; x.beginPath(); x.arc(mx, my, rr, 0, 7); x.stroke();
+        x.globalAlpha = .18; x.lineWidth = 2; x.beginPath(); x.arc(mx, my, rr * .82, 0, 7); x.stroke();
+        x.globalAlpha = .22; x.fillStyle = c; x.font = "800 " + Math.round(rr * .28) + "px system-ui, sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(gymName().toUpperCase(), mx, my); x.globalAlpha = 1;
+        Object.assign(boden.material, { roughness: .26, metalness: .3, envMapIntensity: .9 });
+      } else boden.material.roughness = .95;
+      tex.needsUpdate = true;
+      const z = S / 2 - GANG * ZELLE; raum.add(box(S, .008, .03, leiste(), 0, .006, z, false, 0));
+      const h = bodenSchein(leucht(), S, .5, .22); h.position.set(0, .011, z); raum.add(h);
+    }
+    // Licht
+    if (a.licht >= 1) {
+      const m = leiste();
+      raum.add(box(S, .03, .05, m, 0, H - .04, -S / 2 + .04, false, 0), box(.05, .03, S, m, -S / 2 + .04, H - .04, 0, false, 0));
+      [-S * .3, S * .2].forEach(p => { const l = new THREE.PointLight(leucht(), .45, 6, 2); l.position.set(p, H - .3, -S / 2 + .5); raum.add(l); });
+    }
+    if (a.licht >= 2) {
+      const warm = 0xffe2bd;
+      [[-S * .26, -S * .12], [S * .1, -S * .18], [-S * .05, S * .14]].forEach(p => {
+        const s = new THREE.SpotLight(warm, 1.25, 14, .5, .75, 1.6); s.position.set(p[0], H + .6, p[1] + S * .1); s.target.position.set(p[0], 0, p[1]); raum.add(s, s.target);
+        const f = bodenSchein(warm, 2.8, 2.8, .09); f.position.set(p[0], .012, p[1]); raum.add(f);
+      });
+      // Strahler an der Rückwand mit warmem Schein nach oben
+      [-S * .36, -S * .12, S * .12, S * .36].forEach(p => {
+        const kopf = zyl(.07, .16, M.schwarz, 12); kopf.rotation.x = Math.PI / 2.6; kopf.position.set(p, H - .3, -S / 2 + .16); raum.add(kopf);
+        const g = schein(warm, 1.6, .32); g.position.set(p, H - .55, -S / 2 + .08); g.scale.set(1.1, 1.9, 1); raum.add(g);
+      });
+    }
+    // Wand
+    if (a.wand >= 1) {
+      const sperrH = idx === 0 ? [[S * .15 - 1.6, S * .15 + 1.6]] : idx === 2 ? [[S * .12 - S * .3, S * .12 + S * .3]] : [];
+      const lamellen = leinwand(256, 128, (c, w, h) => { c.fillStyle = "#3a2a1c"; c.fillRect(0, 0, w, h); for (let i = 0; i < w; i += 16) { const g = c.createLinearGradient(i, 0, i + 12, 0); g.addColorStop(0, "#6e4d31"); g.addColorStop(.5, "#87603d"); g.addColorStop(1, "#5a3d26"); c.fillStyle = g; c.fillRect(i + 2, 0, 11, h); } });
+      lamellen.wrapS = THREE.RepeatWrapping;
+      const holz = (laenge) => { const t = lamellen.clone(); t.needsUpdate = true; t.repeat.set(laenge / 1.0, 1); return new THREE.MeshStandardMaterial({ map: t, roughness: .65, metalness: 0, envMapIntensity: .35 }); };
+      const hoehe = 1.05;
+      freieStuecke(S, sperrH).forEach(([p, q]) => { const l = q - p; raum.add(box(l, hoehe, .035, holz(l), (p + q) / 2, .1 + hoehe / 2, -S / 2 + .02, false, .004), box(l, .03, .05, M.kappe, (p + q) / 2, .1 + hoehe + .015, -S / 2 + .03, false, .004)); });
+      freieStuecke(S, []).forEach(([p, q]) => { const l = q - p; const b = box(l, hoehe, .035, holz(l), -S / 2 + .02, .1 + hoehe / 2, (p + q) / 2, false, .004); b.rotation.y = Math.PI / 2; raum.add(b); const k = box(l, .03, .05, M.kappe, -S / 2 + .03, .1 + hoehe + .015, (p + q) / 2, false, .004); k.rotation.y = Math.PI / 2; raum.add(k); });
+    }
+    if (a.wand >= 2) {
+      const sperrH = idx === 0 ? [[S * .15 - 1.6, S * .15 + 1.6]] : idx === 2 ? [[S * .12 - S * .3, S * .12 + S * .3]] : idx === 3 ? [0, 1, 2, 3].map(i => [-S / 2 + 1.6 + i * 2.6 - 1.0, -S / 2 + 1.6 + i * 2.6 + 1.0]) : [];
+      const sperrL = idx === 0 ? [[-S * .05 - .8, -S * .05 + .8]] : idx === 1 ? [[S * .1 - .7, S * .1 + .7]] : idx === 2 ? [[S * .05 - 1.4, S * .05 + 1.4]] : [];
+      const rillen = leinwand(64, 128, (c, w, h) => { c.fillStyle = "#23262c"; c.fillRect(0, 0, w, h); c.fillStyle = "#15171b"; for (let i = 6; i < w; i += 12) c.fillRect(i, 0, 4, h); });
+      const filz = new THREE.MeshStandardMaterial({ map: rillen, color: 0x9a9a9a, roughness: .95, metalness: 0, envMapIntensity: .15 });
+      const glow = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: leucht(), emissiveIntensity: .32 }); raum.userData.akzente.push(glow);
+      const y = 1.3 + (H - 1.3) * .42, ph = Math.min(1.05, H - 2.0), pw = .46, abst = .62;
+      const setze = (stuecke, links) => stuecke.forEach(([p, q]) => {
+        const n = Math.floor((q - p + .28) / abst); const start = (p + q) / 2 - (n - 1) * abst / 2;
+        for (let i = 0; i < n; i++) {
+          const m = start + i * abst, gl = box(pw + .05, ph + .05, .01, glow, 0, 0, 0, false, 0), pa = box(pw, ph, .07, filz, 0, 0, .045, false, .012);
+          const g = new THREE.Group(); g.add(gl, pa);
+          if (links) { g.rotation.y = Math.PI / 2; g.position.set(-S / 2 + .025, y, m); } else g.position.set(m, y, -S / 2 + .025);
+          raum.add(g);
+        }
+      });
+      setze(freieStuecke(S, sperrH), false); setze(freieStuecke(S, sperrL), true);
+    }
+  }
   function raumBauen(neu) {
     if (raum) { besucher.forEach(b => besucherFrei(b)); szene.remove(raum); entsorgen(raum); }
     objekte = []; wandObjekte = []; lampen = []; besucher = []; funken = [];
@@ -1370,6 +1834,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const boden = new THREE.Mesh(new THREE.PlaneGeometry(S, S), new THREE.MeshStandardMaterial({ map: tex, color: 0x5a5a5a, roughness: [.86, .9, .6, .85, .4][idx], metalness: idx === 4 ? .25 : .04, envMapIntensity: .3 }));
     boden.rotation.x = -Math.PI / 2; boden.position.y = .002; boden.receiveShadow = true; boden.userData.boden = true; raum.add(boden);
     stufeDeko(st, idx, S, H);
+    ausbauDeko(boden, tex, idx, S, H);
     // Kristall-Sockel vorne links: deine Währung
     const kg = new THREE.Group();
     kg.add(zyl(.24, .55, M.sockel, 6).translateY(.275));
@@ -1438,7 +1903,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
       g.userData.glanz.forEach(m => m.emissiveIntensity = .05);
     }
   }
-  const BAU_HOEHE = { rack: 2.35, bank: .5, schraeg: 1.05, kh: .95, kettle: .55, dip: 2.3, plattform: .55, kabel: 2.3, latzug: 2.4, beinstr: 1.15, presse: 1.4, smith: 2.35, scheiben: 1.15 };
+  const BAU_HOEHE = { beincurl: .95, abadd: 1.2, hyper: 1.05, matte: .35, rack: 2.35, bank: .5, schraeg: 1.05, kh: .95, kettle: .55, dip: 2.3, plattform: .55, kabel: 2.3, latzug: 2.4, beinstr: 1.15, presse: 1.4, smith: 2.35, scheiben: 1.15 };
   function statusAktualisieren(feiernd) {
     objekte.forEach(g => { const vor = g.userData.zustand; zustandSetzen(g); if (feiernd && vor === "staubt" && g.userData.zustand === "glaenzt") funkenBei(g.position, 50); });
     wandObjekte.filter(o => o.userData.item.key === "tafel").forEach(o => { const t = wochenTafel(); const alt = o.children.find(c => c.geometry && c.geometry.parameters && c.geometry.parameters.width === 1.3); if (alt) { o.remove(alt); t.position.y = 1.55; o.add(t); } });
@@ -1449,7 +1914,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     raum.userData.akzente.forEach(m => m.emissive.setHex(leucht()));
     if (kristallObj) { kristallObj.material.color.setHex(f); kristallObj.material.emissive.setHex(f); raum.userData.kristall.userData.kristallLicht.color.setHex(f); }
     wandAufbauen();
-    if (stand.stufe >= 3) raumBauen(false);
+    if (stand.stufe >= 3 || ausbau().boden || ausbau().licht || ausbau().wand > 1) raumBauen(false);
   }
   function itemNeuBauenWennBoden(g) { if (objekte.includes(g)) itemNeuBauen(g); }
 
@@ -1464,13 +1929,12 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
 
   // ---------- Besucher: Figur mit Gelenken und echten Übungen ----------
   const HEMDEN = [0x2c2f36, 0x3a3d45, 0x23252a, 0x34363c, 0x2a2c32, 0x3e4048];
-  const OS = .45, US = .43, OA = .29, UA = .27; // Ober- und Unterschenkel, Ober- und Unterarm
   function menschBauen(n) {
     const haut = M.haut[n % 4], hemd = new THREE.MeshStandardMaterial({ color: HEMDEN[n % HEMDEN.length], roughness: .75 });
     const w = new THREE.Group(); w.rotation.order = "YXZ";
     const becken = new THREE.Group(); becken.position.y = .95; w.add(becken);
     becken.add(box(.32, .17, .19, M.hose, 0, -.02, 0, true, .05));
-    const rumpf = new THREE.Group(); becken.add(rumpf);
+    const rumpf = new THREE.Group(); rumpf.rotation.order = "YXZ"; becken.add(rumpf);
     rumpf.add(box(.34, .3, .2, hemd, 0, .2, 0, true, .07), box(.4, .24, .22, hemd, 0, .4, 0, true, .08));
     const kopf = new THREE.Group(); kopf.position.y = .53; rumpf.add(kopf);
     kopf.add(teil(zylGeo(.045, .08, 10), haut, 0, .03, 0), teil(kugelGeo(.1, 18, 14), haut, 0, .15, .005));
@@ -1495,70 +1959,36 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const m = { w, becken, rumpf, kopf, aL: arm(-1), aR: arm(1), bL: bein(-1), bR: bein(1), hemd, props: [] };
     m.ist = neutral(); return m;
   }
-  // Eine Haltung als Zahlen; jede Übung liefert für einen Zeitpunkt eine solche Haltung
-  function neutral() { return { by: .95, bz: 0, rumpf: 0, kopf: 0, sLx: 0, sLz: 0, sRx: 0, sRz: 0, eL: 0, eR: 0, hL: 0, hR: 0, hLz: 0, hRz: 0, kL: 0, kR: 0, rx: 0 }; }
-  // Stehen mit Füßen am Boden: Becken folgt aus Hüft- und Kniewinkel
-  function stehen(p, a, k, aR, kR) {
-    aR = aR === undefined ? a : aR; kR = kR === undefined ? k : kR;
-    p.hL = a; p.kL = k; p.hR = aR; p.kR = kR;
-    p.by = .05 + .02 + OS * Math.cos(a) + US * Math.cos(a - k); p.bz = -(OS * Math.sin(a) + US * Math.sin(a - k)); return p;
-  }
-  const welle = p => (1 - Math.cos(p * Math.PI * 2)) / 2;
-  // Übungen: s läuft 0 → 1 → 0 je Wiederholung
-  const UEBUNG = {
-    kniebeuge: { tempo: .38, haltung(s) { const p = stehen(neutral(), 1.3 * s, 2.05 * s); p.rumpf = .5 * s; p.sLx = 1.05 + .5 * s; p.sRx = 1.05 + .5 * s; p.sLz = -1.3; p.sRz = 1.3; p.eL = 2.35; p.eR = 2.35; p.kopf = -.3 * s; return p; }, stange: "lang" },
-    bankdruecken: { tempo: .42, liegen: -Math.PI / 2, haltung(s) { const p = neutral(); p.hL = p.hR = .45; p.kL = p.kR = 1.7; p.sLx = p.sRx = -.55 - 1.0 * s; p.sLz = -(1.05 - .8 * s); p.sRz = 1.05 - .8 * s; p.eL = p.eR = 1.75 * (1 - s); return p; }, stange: "lang" },
-    schraegdruecken: { tempo: .42, liegen: -.82, haltung(s) { const p = neutral(); p.hL = p.hR = 1.1; p.kL = p.kR = 1.5; p.sLx = p.sRx = -.6 - 1.0 * s; p.sLz = -(1.0 - .75 * s); p.sRz = 1.0 - .75 * s; p.eL = p.eR = 1.7 * (1 - s); return p; }, kurz: true },
-    curls: { tempo: .45, haltung(s, t) { const p = stehen(neutral(), .05, .08); const b = welle((t * .45 + .5) % 1); p.sLx = -.12 * s; p.sRx = -.12 * b; p.eL = 2.25 * s; p.eR = 2.25 * b; p.sLz = -.08; p.sRz = .08; return p; }, kurz: true },
-    kabelfly: { tempo: .4, haltung(s) { const p = stehen(neutral(), .28, .12, -.12, .05); p.rumpf = .18; p.sLx = p.sRx = -.45 - .95 * s; p.sLz = -(1.25 - 1.0 * s); p.sRz = 1.25 - 1.0 * s; p.eL = p.eR = .35; return p; }, seile: true },
-    latzug: { tempo: .4, sitzen: .56, haltung(s) { const p = neutral(); p.hL = p.hR = 1.57; p.kL = p.kR = 1.57; p.rumpf = -.12; p.sLx = p.sRx = -2.85 + 1.25 * s; p.sLz = -(.38 + .55 * s); p.sRz = .38 + .55 * s; p.eL = p.eR = .15 + 1.55 * s; return p; }, stange: "lat" },
-    beinpresse: { tempo: .35, sitzen: .45, haltung(s) { const p = neutral(); p.rumpf = -.95; p.kopf = .5; p.hL = p.hR = 1.75 + .75 * s; p.kL = p.kR = .35 + 1.45 * s; p.sLx = p.sRx = -.1; p.sLz = -.3; p.sRz = .3; p.eL = p.eR = .3; return p; } },
-    beinstrecker: { tempo: .45, sitzen: .58, haltung(s) { const p = neutral(); p.hL = p.hR = 1.57; p.kL = p.kR = 1.5 - 1.35 * s; p.rumpf = -.15; p.sLx = p.sRx = .15; p.sLz = -.35; p.sRz = .35; p.eL = p.eR = .3; return p; } },
-    swing: { tempo: .5, haltung(s) { const a = 1 - s, p = stehen(neutral(), .45 * a, .55 * a); p.rumpf = .95 * a; p.kopf = -.5 * a; const arm = -(1.45 * s) + .1 * a; p.sLx = p.sRx = arm - p.rumpf * .0; p.sLz = .12; p.sRz = -.12; return p; }, stange: "kugel" },
-    dips: { tempo: .45, haltung(s) { const p = neutral(); p.by = 1.38 - .3 * s; p.hL = p.hR = .3; p.kL = p.kR = 1.3; p.rumpf = .15 * s; p.sLx = p.sRx = .1 + .75 * s; p.eL = p.eR = -1.5 * s; p.sLz = -.18; p.sRz = .18; return p; } },
-    kreuzheben: { tempo: .32, haltung(s) { const a = 1 - s, p = stehen(neutral(), .95 * a, 1.05 * a); p.rumpf = 1.0 * a; p.kopf = -.45 * a; p.sLx = p.sRx = -p.rumpf * .98; p.sLz = -.09; p.sRz = .09; return p; }, stange: "lang" },
-    gehen: { tempo: .9, haltung(s, t) { const w = Math.sin(t * 5.6), p = neutral(); p.hL = .42 * w; p.hR = -.42 * w; p.kL = Math.max(0, -w) * .7 + .05; p.kR = Math.max(0, w) * .7 + .05; p.by = .95 - Math.abs(w) * .02; p.sLx = -.35 * w; p.sRx = .35 * w; p.eL = p.eR = .3; p.sLz = -.06; p.sRz = .06; return p; } },
-    stehen: { tempo: .2, haltung(s) { const p = neutral(); p.rumpf = .02 * s; p.sLz = -.08; p.sRz = .08; p.eL = p.eR = .15; return p; } }
-  };
-  // Wo und wie man an einem Gerät trainiert (Koordinaten im Gerät, Blick = Drehung um y)
-  const ANKER = {
-    rack: { uebung: "kniebeuge", pos: [0, 0, .12], blick: 0, nimmt: true },
-    smith: { uebung: "kniebeuge", pos: [0, 0, .08], blick: 0, fuehrt: true },
-    bank: { uebung: "bankdruecken", pos: [0, .53, 1.17], blick: 0, nimmt: "rack" },
-    schraeg: { uebung: "schraegdruecken", pos: [0, -.12, .95], blick: 0 },
-    kh: { uebung: "curls", pos: [0, 0, .78], blick: 0 },
-    kettle: { uebung: "swing", pos: [0, 0, .62], blick: 0 },
-    dip: { uebung: "dips", pos: [0, 0, .02], blick: 0 },
-    plattform: { uebung: "kreuzheben", pos: [0, .052, .0], blick: 0, nimmt: true },
-    kabel: { uebung: "kabelfly", pos: [0, 0, .62], blick: 0 },
-    latzug: { uebung: "latzug", pos: [0, 0, .22], blick: Math.PI, nimmt: true },
-    beinstr: { uebung: "beinstrecker", pos: [0, 0, -.16], blick: 0 },
-    presse: { uebung: "beinpresse", pos: [0, 0, .58], blick: Math.PI }
-  };
   function haltungSetzen(m, p) {
-    m.becken.position.y = p.by; m.becken.position.z = p.bz; m.rumpf.rotation.x = p.rumpf; m.kopf.rotation.x = p.kopf;
+    m.becken.position.y = p.by; m.becken.position.z = p.bz; m.rumpf.rotation.x = p.rumpf; m.rumpf.rotation.y = p.rumpfY; m.kopf.rotation.x = p.kopf;
+    m.aL.sch.position.y = m.aR.sch.position.y = .47 + p.schY;
     m.aL.sch.rotation.x = p.sLx; m.aL.sch.rotation.z = p.sLz; m.aR.sch.rotation.x = p.sRx; m.aR.sch.rotation.z = p.sRz;
-    m.aL.ell.rotation.x = -p.eL; m.aR.ell.rotation.x = -p.eR;
+    m.aL.ell.rotation.x = -p.eL; m.aR.ell.rotation.x = -p.eR; m.aL.ell.rotation.z = p.eLz; m.aR.ell.rotation.z = p.eRz;
     m.bL.hue.rotation.x = -p.hL; m.bR.hue.rotation.x = -p.hR; m.bL.hue.rotation.z = p.hLz; m.bR.hue.rotation.z = p.hRz;
     m.bL.knie.rotation.x = p.kL; m.bR.knie.rotation.x = p.kR;
-    m.bL.fuss.rotation.x = p.hL - p.kL; m.bR.fuss.rotation.x = p.hR - p.kR;
+    m.bL.fuss.rotation.x = p.hL - p.kL + p.fx; m.bR.fuss.rotation.x = p.hR - p.kR + p.fx;
     m.w.rotation.x = p.rx;
   }
   function haltungMischen(ist, soll, q) { for (const k in soll) ist[k] += (soll[k] - ist[k]) * q; }
 
   // Geräte, die der Besucher mitbringt oder vom Gerät nimmt
   function propBauen(art) {
-    if (art === "lang") return langhantel([[.225, .065]]);
+    if (art === "lang" || art === "becken") return langhantel([[.225, .065]]);
     if (art === "lat") { const g = new THREE.Group(), s = zyl(.014, 1.15, M.stange, 10); s.rotation.z = Math.PI / 2; g.add(s); [-1, 1].forEach(v => { const e = zyl(.014, .18, M.stange, 8); e.rotation.z = Math.PI / 2 + v * .5; e.position.set(v * .62, -.04, 0); g.add(e); }); return g; }
     if (art === "kugel") { const k = kettlebell(.12); k.children.forEach(c => c.position.y -= .2); return k; }
   }
-  const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpM = new THREE.Matrix4();
+  const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
   // Stange zwischen beiden Händen: Mitte und Richtung aus den Handpositionen
   function zwischenHaenden(m, prop) {
     m.aL.hand.getWorldPosition(tmpA); m.aR.hand.getWorldPosition(tmpB);
     raum.worldToLocal(tmpA); raum.worldToLocal(tmpB);
     prop.position.copy(tmpA).add(tmpB).multiplyScalar(.5);
     const d = tmpB.clone().sub(tmpA); prop.rotation.set(0, Math.atan2(-d.z, d.x), Math.atan2(d.y, Math.hypot(d.x, d.z)));
+  }
+  // Stange auf dem Becken (Hip Thrust): quer zur Blickrichtung über den Hüften
+  function aufBecken(m, prop) {
+    m.becken.getWorldPosition(tmpA); raum.worldToLocal(tmpA); prop.position.copy(tmpA); prop.position.y += .14;
+    prop.rotation.set(0, m.w.rotation.y, 0);
   }
 
   function besucherAnpassen() {
@@ -1569,85 +1999,113 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   }
   function besucherBauen(n) {
     const m = menschBauen(n), S = STUFEN[stand.stufe].S, gangZ = S / 2 - GANG * ZELLE / 2;
-    m.w.position.set(S / 2 + .4, 0, gangZ); raum.add(m.w);
-    return { m, weg: [], ziel: null, zustand: "warten", warten: 1 + n * 1.6, phase: Math.random(), uebung: "stehen", props: [] };
+    m.w.position.set(S / 2 + .4, 0, gangZ); m.w.userData.besucher = true; raum.add(m.w);
+    const b = { m, weg: [], ziel: null, zustand: "warten", warten: 1 + n * 1.6, phase: Math.random(), bewegung: "stehen", props: [], satz: 0, satzZeit: 0, pause: 0 };
+    m.w.userData.b = b; return b;
   }
   function besucherFrei(b) {
     if (b.ziel) { const o = b.ziel; if (o.userData.ablage) o.userData.ablage.visible = true; if (o.userData.besetzt === b) o.userData.besetzt = null; }
-    b.props.forEach(p => { p.parent && p.parent.remove(p); }); b.props = []; (b.seile || []).forEach(l => { l.parent && l.parent.remove(l); }); b.seile = null;
+    b.props.forEach(p => { p.parent && p.parent.remove(p); }); b.props = []; (b.seile || []).forEach(l => { l.parent && l.parent.remove(l); l.geometry.dispose(); }); b.seile = null; b.stange = null;
   }
-  // Ablauf: warten → zum Gerät gehen → einsteigen → trainieren → aussteigen → weiter
+  // Übung wählen: was du in den letzten 14 Tagen selbst trainiert hast, kommt dreimal so oft dran
+  function ankerWaehlen(key) {
+    const liste = ANKER[key], heuteT = heute(), gewicht = a => { const d = (stand.familien || {})[BEWEGUNG[a.b].familie]; return d && tageZwischen(d, heuteT) <= 14 ? 3 : 1; };
+    let summe = liste.reduce((x, a) => x + gewicht(a), 0), r = Math.random() * summe;
+    for (const a of liste) { r -= gewicht(a); if (r <= 0) return a; } return liste[0];
+  }
+  // Ablauf: warten → zum Gerät gehen → einsteigen → Sätze mit Pausen → aussteigen → weiter
   function besucherSchritt(b, dt, t) {
     const S = STUFEN[stand.stufe].S, gangZ = S / 2 - GANG * ZELLE / 2, m = b.m, w = m.w;
     if (b.zustand === "warten") {
-      b.warten -= dt; b.uebung = "stehen";
+      b.warten -= dt; b.bewegung = "stehen";
       if (b.warten <= 0) {
         const frei = objekte.filter(o => ANKER[o.userData.item.key] && !o.userData.besetzt && o !== (baumodus && baumodus.obj));
         if (frei.length) {
-          const o = frei[Math.floor(Math.random() * frei.length)], a = ANKER[o.userData.item.key];
+          const o = frei[Math.floor(Math.random() * frei.length)], a = ankerWaehlen(o.userData.item.key), ue = BEWEGUNG[a.b];
           o.userData.besetzt = b; b.ziel = o; b.anker = a;
           const ziel = o.localToWorld(tmpA.set(a.pos[0], 0, a.pos[2])).clone(); raum.worldToLocal(ziel);
-          const steh = a.sitzen || a.liegen ? o.localToWorld(tmpB.set(a.pos[0] + .55, 0, a.pos[2])).clone() : ziel.clone(); if (a.sitzen || a.liegen) raum.worldToLocal(steh);
+          const seitlich = ue.sitzen || ue.liegen || a.b === "hipthrust" || a.b === "crunch" || a.b === "liegestuetz";
+          const steh = seitlich ? raum.worldToLocal(o.localToWorld(tmpB.set(a.pos[0] + .55, 0, a.pos[2]))).clone() : ziel.clone();
           b.ankerWelt = ziel; b.weg = [new THREE.Vector3(w.position.x, 0, gangZ), new THREE.Vector3(steh.x, 0, gangZ), steh]; b.zustand = "gehen";
         } else b.warten = 2;
       }
     } else if (b.zustand === "gehen" || b.zustand === "heim") {
-      b.uebung = "gehen";
+      b.bewegung = "gehen";
       const z = b.weg[0], d = tmpA.set(z.x - w.position.x, 0, z.z - w.position.z), l = d.length();
       if (l < .05) {
         b.weg.shift();
         if (!b.weg.length) {
           if (b.zustand === "heim") { b.zustand = "warten"; b.warten = 1.5 + Math.random() * 3; }
-          else { b.zustand = "trainieren"; b.dauer = 7 + Math.random() * 6; einsteigen(b); }
+          else { b.zustand = "trainieren"; b.saetze = 2 + Math.floor(Math.random() * 2); b.satz = 0; b.satzZeit = 0; b.pause = 0; einsteigen(b); }
         }
       } else {
         const v = Math.min(l, dt * 1.15); d.normalize(); w.position.x += d.x * v; w.position.z += d.z * v;
-        const ziel = Math.atan2(d.x, d.z); let dw = ziel - w.rotation.y; dw = Math.atan2(Math.sin(dw), Math.cos(dw)); w.rotation.y += dw * Math.min(1, dt * 10);
+        let dw = Math.atan2(d.x, d.z) - w.rotation.y; dw = Math.atan2(Math.sin(dw), Math.cos(dw)); w.rotation.y += dw * Math.min(1, dt * 10);
         w.position.y += (0 - w.position.y) * Math.min(1, dt * 8);
       }
     } else if (b.zustand === "trainieren") {
-      b.dauer -= dt; const o = b.ziel, a = b.anker;
+      const o = b.ziel, a = b.anker, ue = BEWEGUNG[a.b];
       if (!o || !o.parent) { aussteigen(b); return; }
-      const ziel = o.localToWorld(tmpA.set(a.pos[0], a.pos[1], a.pos[2])).clone(); raum.worldToLocal(ziel);
-      w.position.lerp(ziel, Math.min(1, dt * 6));
-      let dw = o.rotation.y + a.blick - w.rotation.y; dw = Math.atan2(Math.sin(dw), Math.cos(dw)); w.rotation.y += dw * Math.min(1, dt * 6);
-      if (b.dauer <= 0) aussteigen(b);
+      // Satz: etwa 6 bis 8 Wiederholungen, dann 3 Sekunden Pause in der Ausgangsstellung
+      if (b.pause > 0) { b.pause -= dt; if (b.pause <= 0) { b.satz++; b.satzZeit = 0; if (b.satz >= b.saetze) { aussteigen(b); return; } } }
+      else { b.satzZeit += dt; if (b.satzZeit > 6.5 / ue.tempo * .45 + 2) b.pause = 3; }
     }
     // Haltung berechnen und weich überblenden
-    const u = UEBUNG[b.uebung], ph = (t * u.tempo + b.phase) % 1, s = ruhig ? .5 : welle(ph), soll = u.haltung(s, t + b.phase / u.tempo);
-    if (b.zustand === "trainieren") { const a = b.anker, ue = UEBUNG[a.uebung]; if (ue.liegen) soll.rx = ue.liegen; if (ue.sitzen) { soll.by = ue.sitzen + .07; soll.bz = 0; } }
+    const name = b.zustand === "trainieren" ? b.anker.b : b.bewegung, ue = BEWEGUNG[name];
+    if (b.zustand === "trainieren" && b.pause <= 0) b.ph = ((b.ph || 0) + dt * ue.tempo) % 1;
+    const ph = b.zustand === "trainieren" ? (b.pause > 0 ? 0 : b.ph) : (t * ue.tempo + b.phase) % 1;
+    const s = ruhig ? .5 : (ue.eigenesTempo ? 0 : profil(ph)), soll = ue.h(s, t + b.phase * 3, b.satz || 0, ph);
+    if (b.zustand === "trainieren") {
+      if (ue.liegen !== undefined) soll.rx = ue.liegen; if (ue.sitzen) { soll.by = ue.sitzen + .07; soll.bz = 0; }
+      const o = b.ziel, a = b.anker, ziel = o.localToWorld(tmpA.set(a.pos[0] + soll.wx, a.pos[1] + soll.wy, a.pos[2] + soll.wz)); raum.worldToLocal(ziel);
+      w.position.lerp(ziel, Math.min(1, dt * 7));
+      let blick = o.rotation.y + a.blick; if (ue.gehen) blick += Math.cos(t * .55) > 0 ? Math.PI / 2 : -Math.PI / 2;
+      let dw = blick - w.rotation.y; dw = Math.atan2(Math.sin(dw), Math.cos(dw)); w.rotation.y += dw * Math.min(1, dt * 6);
+    }
     haltungMischen(m.ist, soll, Math.min(1, dt * 9)); haltungSetzen(m, m.ist);
-    if (b.zustand === "trainieren") geraetMitbewegen(b, s);
+    if (b.zustand === "trainieren") geraetMitbewegen(b);
   }
   function einsteigen(b) {
-    const o = b.ziel, a = b.anker, ue = UEBUNG[a.uebung]; b.uebung = a.uebung;
+    const o = b.ziel, a = b.anker, ue = BEWEGUNG[a.b];
     blase(b.ankerWelt, o.userData.zustand === "glaenzt");
-    if ((a.nimmt === true) && o.userData.ablage) o.userData.ablage.visible = false;
-    if (ue.stange && !a.fuehrt) { const p = propBauen(ue.stange); raum.add(p); b.props.push(p); b.stange = p; } else b.stange = null;
-    if (ue.kurz) { [b.m.aL, b.m.aR].forEach(arm => { const h = kurzhantel(.075, .085); h.position.y = -.01; arm.hand.add(h); b.props.push(h); }); }
-    if (ue.seile && o.userData.rollen) { b.seile = o.userData.rollen.map(r => { const l = seil(raum, [0, 0, 0], [0, 0, 0]); l.userData.rolle = r; return l; }); }
+    if (a.nimmt && o.userData.ablage) o.userData.ablage.visible = false;
+    if (ue.stange && !a.fuehrt) { const p = propBauen(ue.stange); raum.add(p); b.props.push(p); b.stange = p; b.stangeArt = ue.stange; }
+    const hand = (arm, art) => { const h = art === "kugel" ? propBauen("kugel") : kurzhantel(.075, .085); if (art === "kugel") h.position.y = .05; else h.position.y = -.01; arm.hand.add(h); b.props.push(h); };
+    if (ue.kurz) { hand(b.m.aL); hand(b.m.aR); }
+    if (ue.kurzR || a.kurzR) hand(b.m.aR);
+    if (ue.kugelHaende) { hand(b.m.aL, "kugel"); hand(b.m.aR, "kugel"); }
+    if (ue.seile && o.userData.rollen) {
+      const r = o.userData.rollen, punkte = ue.seile === "rollen" ? [[r[0], "L"], [r[1], "R"]] : ue.seile === "rolleL" ? [[r[0], "M"]] : ue.seile === "oben" ? [[[0, 1.75, .3], "M"]] : [[[0, 2.12, .3], "M"]];
+      b.seile = punkte.map(pk => { const l = seil(raum, [0, 0, 0], [0, 0, 0]); l.userData.rolle = pk[0]; l.userData.hand = pk[1]; return l; });
+    }
   }
   function aussteigen(b) {
     const o = b.ziel; besucherFrei(b);
     if (o && o.userData.hebel) o.userData.hebel.rotation.x = 0;
     if (o && o.userData.fuehrung && o.userData.ablage) o.userData.ablage.position.y = 1.35;
     if (o && o.userData.schlitten) o.userData.schlitten.position.z = -.95;
+    if (o && o.userData.polsterL) { o.userData.polsterL.rotation.y = 0; o.userData.polsterR.rotation.y = 0; }
     if (o && o.userData.seil && o.userData.ablage) { o.userData.ablage.position.y = 1.92; seilSetzen(o.userData.seil, 1.94); }
-    b.ziel = null; b.anker = null; b.uebung = "gehen";
+    b.ziel = null; b.anker = null; b.bewegung = "gehen"; b.ph = 0;
     const S = STUFEN[stand.stufe].S, gangZ = S / 2 - GANG * ZELLE / 2, w = b.m.w;
     b.weg = [new THREE.Vector3(w.position.x + .01, 0, Math.min(gangZ, w.position.z + .5)), new THREE.Vector3(w.position.x, 0, gangZ), new THREE.Vector3(-S / 2 + 1 + Math.random() * (S - 2), 0, gangZ)];
     b.zustand = "heim"; w.position.y = 0;
   }
   function seilSetzen(l, y) { const a = l.geometry.attributes.position; a.setY(1, y); a.needsUpdate = true; }
-  // Maschinenteile laufen mit der Bewegung mit: Hebel, Schlitten, Zugstange, Seile
-  function geraetMitbewegen(b, s) {
-    const o = b.ziel, m = b.m;
-    if (b.stange) zwischenHaenden(m, b.stange);
+  // Maschinenteile laufen mit der Bewegung mit: Hebel, Schlitten, Polster, Zugstange, Seile
+  function geraetMitbewegen(b) {
+    const o = b.ziel, m = b.m, p = m.ist;
+    if (b.stange) (b.stangeArt === "becken" ? aufBecken : zwischenHaenden)(m, b.stange);
     if (o.userData.fuehrung && o.userData.ablage) { m.aL.hand.getWorldPosition(tmpA); m.aR.hand.getWorldPosition(tmpB); const y = (tmpA.y + tmpB.y) / 2; o.userData.ablage.position.y += (y - o.userData.ablage.position.y) * .5; }
-    if (o.userData.hebel) o.userData.hebel.rotation.x = -(1.5 - m.ist.kL) * .95;
+    if (o.userData.hebel) o.userData.hebel.rotation.x = o.userData.item.key === "beincurl" ? -p.kL : -(1.5 - p.kL) * .95;
+    if (o.userData.polsterL) { o.userData.polsterL.rotation.y = p.hLz * .9; o.userData.polsterR.rotation.y = p.hRz * .9; }
     if (o.userData.schlitten) { m.bL.fuss.getWorldPosition(tmpA); o.userData.schiene.worldToLocal(tmpA); const z = Math.max(-1.45, Math.min(-.6, tmpA.z - .05)); o.userData.schlitten.position.z += (z - o.userData.schlitten.position.z) * .5; }
-    if (o.userData.seil && b.stange) { const y = b.stange.position.y; o.userData.seil.parent.worldToLocal(tmpA.copy(b.stange.position).applyMatrix4(raum.matrixWorld)); seilSetzen(o.userData.seil, tmpA.y + .02); }
-    if (b.seile) b.seile.forEach((l, i) => { const r = l.userData.rolle; o.localToWorld(tmpA.set(r[0], r[1], r[2])); raum.worldToLocal(tmpA); (i ? m.aR : m.aL).hand.getWorldPosition(tmpB); raum.worldToLocal(tmpB); const a = l.geometry.attributes.position; a.setXYZ(0, tmpA.x, tmpA.y, tmpA.z); a.setXYZ(1, tmpB.x, tmpB.y, tmpB.z); a.needsUpdate = true; l.geometry.computeBoundingSphere(); });
+    if (o.userData.seil && b.stange) { o.userData.seil.parent.worldToLocal(tmpA.copy(b.stange.position).applyMatrix4(raum.matrixWorld)); seilSetzen(o.userData.seil, tmpA.y + .02); }
+    if (b.seile) b.seile.forEach(l => {
+      const r = l.userData.rolle; o.localToWorld(tmpA.set(r[0], r[1], r[2])); raum.worldToLocal(tmpA);
+      if (l.userData.hand === "M") { m.aL.hand.getWorldPosition(tmpB); const c = new THREE.Vector3(); m.aR.hand.getWorldPosition(c); tmpB.add(c).multiplyScalar(.5); } else (l.userData.hand === "L" ? m.aL : m.aR).hand.getWorldPosition(tmpB);
+      raum.worldToLocal(tmpB); const a = l.geometry.attributes.position; a.setXYZ(0, tmpA.x, tmpA.y, tmpA.z); a.setXYZ(1, tmpB.x, tmpB.y, tmpB.z); a.needsUpdate = true; l.geometry.computeBoundingSphere();
+    });
   }
   // Besucher zeigen, wie ihnen das Gerät gefällt: Herz bei glänzend, Punkte bei staubig
   const blasenTex = {};
@@ -1667,6 +2125,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   // Der Raum passt sich immer in den freien Platz zwischen Kopf und Leiste bzw. Sheet ein
   function platzMessen() {
     const h = canvas.clientHeight || innerHeight;
+    if (foto) return { oben: h * .2, unten: h * .86 };
     const oben = document.querySelector(".kopf").getBoundingClientRect().bottom + 30;
     const ue = $("ueber-reiter").getBoundingClientRect(), re = $("reiter").getBoundingClientRect();
     let unten = (ue.height > 0 ? ue.top + 30 : re.height > 0 ? re.top - 24 : h - 20);
@@ -1728,8 +2187,9 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     if (baumodus) { const p = new THREE.Vector3(); if (ray.ray.intersectPlane(ebene, p)) geistBewegen(p); return; }
     const treffer = ray.intersectObjects(raum.children, true);
     for (const t of treffer) {
-      let o = t.object; while (o && o !== raum && !(o.userData && (o.userData.item || o.userData.kristall || o.userData.lampe))) o = o.parent;
+      let o = t.object; while (o && o !== raum && !(o.userData && (o.userData.item || o.userData.kristall || o.userData.lampe || o.userData.besucher))) o = o.parent;
       if (!o || o === raum) continue;
+      if (o.userData.besucher) { const b = o.userData.b; if (b.zustand === "trainieren") { const ue = BEWEGUNG[b.anker.b], fam = FAMILIEN[ue.familie]; toast(ue.name, "Satz " + Math.min(b.satz + 1, b.saetze) + " von " + b.saetze + " · " + fam.gruppen.map(g => MUSKELGRUPPEN.find(m => m[0] === g)[1]).join(", ")); } else toast("Besucher", b.zustand === "warten" ? "macht kurz Pause" : "sucht sich ein Gerät"); return; }
       if (o.userData.kristall) { auswahl = null; markieren(null); reiter = "auftraege"; reiterZeigen(); ueberZeigen(); toast(zahl(stand.splitter) + " Splitter", stand.kristalle + " Kristalle · fürs Training"); return; }
       if (o.userData.lampe) { toast("Lampe", "brennt, solange deine Serie läuft"); return; }
       reiter = null; reiterZeigen(); auswahl = o; markieren(o); ueberZeigen(); return;
@@ -1875,6 +2335,7 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
     const dt = Math.min(.05, uhr.getDelta()), t = uhr.elapsedTime, jetzt = performance.now();
     blick.winkel += (blick.ziel - blick.winkel) * .12;
     if (!zug && !ruhig && !baumodus) blick.ziel *= .996;
+    if (foto && !zug && !ruhig) blick.ziel = Math.sin((jetzt - foto.start) / 4200) * .6;
     if (blick.soll) { const q = ruhig ? 1 : .14; ['wpp', 'mx', 'my', 'dy'].forEach(k => blick.ist[k] += (blick.soll[k] - blick.ist[k]) * q); }
     if (Math.abs(blick.neigung - blick.neigungZiel) > .002) { blick.neigung += (blick.neigungZiel - blick.neigung) * (ruhig ? 1 : .1); kameraAnpassen(); }
     kameraSetzen(); frustum(); vorschauSchritt();
@@ -1910,13 +2371,13 @@ h1 { margin: 3px 0 0; font-size: 27px; font-weight: 750; letter-spacing: -.015em
   $("laden").remove();
   $("pille-splitter").onclick = $("pille-kristalle").onclick = () => { auswahl = null; markieren(null); reiter = "auftraege"; reiterZeigen(); ueberZeigen(); };
   // Nur für Tests: alle Besucher sofort an je ein Gerät setzen
-  function alleUeben() {
+  function alleUeben(bew) {
     const liste = objekte.filter(o => ANKER[o.userData.item.key]);
     while (besucher.length < liste.length) besucher.push(besucherBauen(besucher.length));
-    liste.forEach((o, i) => { const b = besucher[i], a = ANKER[o.userData.item.key]; besucherFrei(b); o.userData.besetzt = b; b.ziel = o; b.anker = a; b.ankerWelt = raum.worldToLocal(o.localToWorld(new THREE.Vector3(a.pos[0], a.pos[1], a.pos[2]))); b.m.w.position.copy(b.ankerWelt); b.m.w.rotation.y = o.rotation.y + a.blick; b.zustand = "trainieren"; b.dauer = 1e9; einsteigen(b); });
+    liste.forEach((o, i) => { const b = besucher[i], l = ANKER[o.userData.item.key], a = l.find(x => x.b === bew) || l[0]; besucherFrei(b); o.userData.besetzt = b; b.ziel = o; b.anker = a; b.ankerWelt = raum.worldToLocal(o.localToWorld(new THREE.Vector3(a.pos[0], a.pos[1], a.pos[2]))); b.m.w.position.copy(b.ankerWelt); b.m.w.rotation.y = o.rotation.y + a.blick; b.zustand = "trainieren"; b.saetze = 99; b.satz = 0; b.satzZeit = -999; b.pause = 0; einsteigen(b); });
     return liste.length;
   }
-  window.__gym = { alleUeben, blick, kameraAnpassen, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), zustaende: () => objekte.map(o => [o.userData.item.key, o.userData.zustand, !!o.userData.halo, o.userData.halo && o.userData.halo.material.opacity]), stand: () => stand, eintragen: (g, r) => trainingEintragen(heute(), g, r, null), importieren: importieren };
+  window.__gym = { alleUeben, blick, kameraAnpassen, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), zustaende: () => objekte.map(o => [o.userData.item.key, o.userData.zustand, !!o.userData.halo, o.userData.halo && o.userData.halo.material.opacity]), stand: () => stand, eintragen: (g, r) => trainingEintragen(heute(), g, r, null), importieren: importieren, neuBauen: () => { raumBauen(false); kopfZeigen(); ueberZeigen(); } };
   requestAnimationFrame(bild);
 })();
 </script>

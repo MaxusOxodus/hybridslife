@@ -36,7 +36,7 @@ pruefe("Bereinigen: leer und keine Texte fallen weg", !("b" in b) && !("c" in b)
 pruefe("Bereinigen: höchstens 300 Zeichen", b.d.length === 300);
 pruefe("Bereinigen: kaputt gibt leer", JSON.stringify(f.notizenBereinigen([1, 2])) === "{}" && JSON.stringify(f.notizenBereinigen(null)) === "{}");
 pruefe("Im Backup", /notizen: notizen,/.test(funktionHolen("backupText")));
-pruefe("Backup-Version bleibt 12", /version: 12,/.test(funktionHolen("backupText")));
+pruefe("Backup-Version 13 (seit Version 149)", /version: 13,/.test(funktionHolen("backupText")));
 pruefe("Import: Ersetzen und Hinzufügen", /if \(art === "ersetzen"\) \{\n\s+notizen = importNotizen;/.test(quelle) && /if \(!notizen\[schluessel\]\)/.test(quelle));
 pruefe("Schlüssel in EINFUEHRUNG_APP_SCHLUESSEL", /"einfuehrungVariante", "notizen"[,\]]/.test(einfuehrung));
 pruefe("Feld in der index.html", index.indexOf('id="modus-notiz-feld"') !== -1 && index.indexOf('oninput="notizSpeichern()"') !== -1);

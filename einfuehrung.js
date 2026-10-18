@@ -968,7 +968,7 @@ function einfuehrungLaeuft() {
 // Gezählt wird nicht localStorage.length: Auf GitHub Pages teilen sich alle Projekte unter einer Adresse einen Speicher.
 const EINFUEHRUNG_APP_SCHLUESSEL = ["eintraege", "eintraegeKaputt", "eintraegeKaputt2", "routinen", "wochenplan", "laufendesTraining",
   "einstellungen", "profil", "pause", "trainings", "koerpergewicht", "eigeneUebungen", "geloeschteEigengewicht", "letztesBackup",
-  "backupHinweisWeg", "einfuehrungGesehen", "einfuehrungDiagnose", "einfuehrungVariante", "notizen", "korundCloud", "cloudZuletzt"];
+  "backupHinweisWeg", "einfuehrungGesehen", "einfuehrungDiagnose", "einfuehrungVariante", "notizen", "korundCloud", "cloudZuletzt", "coach"];
 
 // Ist die App neu (allererster Start, noch nichts im Speicher)? Einmal beim Laden festgehalten, denn die einfuehrung.js
 // lädt vor der app.js, und deren Start schreibt sofort etwas in den Speicher (z. B. den Merker der Ränge).

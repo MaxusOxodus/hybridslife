@@ -23,7 +23,7 @@ const dateien = fs.readdirSync(wurzel).filter(function (name) {
 });
 pruefe("Dateien gefunden", dateien.indexOf("texte.js") !== -1 && dateien.indexOf("index.html") !== -1 && dateien.indexOf("app.js") !== -1);
 
-const VERBOTEN = /keine cloud|no cloud|kein konto|nothing is sent|no account|gibt es noch nicht\. bis dahin/i;
+const VERBOTEN = /keine cloud|no cloud|kein konto|nothing is sent|no account|gibt es noch nicht\. bis dahin|bleiben auf deinem gerät|stays on your device/i;
 dateien.forEach(function (datei) {
   const treffer = [];
   lesen(datei).split("\n").forEach(function (zeile, i) {

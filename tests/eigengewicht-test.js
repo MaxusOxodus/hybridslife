@@ -95,6 +95,11 @@ function umgebung(inhalt) {
     + "let importGeloeschte = null;"
     // Seit Version 141: Notizen je Übung im Backup, Auszeiten in den Einstellungen
     + "let notizen = {}; let importNotizen = null;" + konstanteHolen("AUSZEIT_ARTEN")
+    // Seit Version 149: Antworten des Coachs im Backup (Backup-Version 13)
+    + "let coach = {}; let importCoach = null; function coachSpeichern() {}"
+    + konstanteHolen("COACH_ZIELE") + konstanteHolen("COACH_TAGE") + konstanteHolen("COACH_MINUTEN")
+    + konstanteHolen("COACH_ERFAHRUNG") + konstanteHolen("COACH_SCHWERPUNKTE") + konstanteHolen("COACH_MAX_SCHWERPUNKT")
+    + funktionHolen("coachBereinigen")
     // Eine Rückfrage gilt sofort als bestätigt: Der erste Knopf wird gedrückt
     + "function frageZeigen(titel, text, knoepfe) { if (knoepfe[0].aktion) { knoepfe[0].aktion(); } }"
     + "function rirLesen() { return null; }"

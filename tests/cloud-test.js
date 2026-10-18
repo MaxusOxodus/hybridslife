@@ -45,7 +45,7 @@ pruefe("SQL: Row Level Security an", /alter table public\.backups enable row lev
 });
 pruefe("SQL: kein Zugriff für anon", /revoke all on public\.backups from anon;/.test(sql));
 
-pruefe("Backup-Version bleibt 12", /version: 12,/.test(app));
+pruefe("Backup-Version 13 (seit Version 149)", /version: 13,/.test(app));
 pruefe("Bibliothek in der index.html vor der app.js", index.indexOf('<script src="supabase-2.117.2.js"></script>') !== -1 && index.indexOf("supabase-2.117.2.js") < index.indexOf("app.js?v="));
 pruefe("Bibliothek in DATEIEN", sw.indexOf('"supabase-2.117.2.js",') !== -1 && fs.existsSync(path.join(wurzel, "supabase-2.117.2.js")));
 pruefe("Schlüssel der Anmeldung in EINFUEHRUNG_APP_SCHLUESSEL", /"korundCloud", "cloudZuletzt"/.test(einfuehrung));

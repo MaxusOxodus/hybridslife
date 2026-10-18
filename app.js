@@ -3807,6 +3807,13 @@
     document.getElementById("varianten-titel").textContent = txt("training.vorlagen");
     const liste = document.getElementById("varianten-liste");
     liste.innerHTML = "";
+    // Coach (seit Version 149): ein Plan nach deinen Antworten, vor den festen Vorlagen
+    const coachKarte = vorlageKarte(coachPlanOeffnen);
+    coachKarte.classList.add("vorlage-variante-korund", "passt", "coach-karte");
+    coachKarte.firstChild.appendChild(element("span", "vorlage-passt", txt("coach.titel")));
+    coachKarte.firstChild.appendChild(element("span", "routine-name", txt("coach.kartenTitel")));
+    coachKarte.firstChild.appendChild(element("span", "routine-info", txt("coach.kartenText")));
+    liste.appendChild(coachKarte);
     liste.appendChild(element("div", "vorlagen-seite-frage", txt("vorlage.frageKurz")));
     vorlagenKorundAnzeigen(liste);
   }
@@ -3861,6 +3868,12 @@
   }
 
   function vorschauZurueck() {
+    // Ein Plan des Coachs (seit Version 149) geht zurück zu seiner Ergebnisseite
+    if (vorlageVariante && vorlageVariante.korund) {
+      trainingAnsichtZeigen("uebersicht");
+      korundSeiteOeffnen({ titel: txt("coach.ergebnis"), bauen: coachErgebnisBauen });
+      return;
+    }
     trainingAnsichtZeigen("varianten");
   }
 
@@ -4043,7 +4056,8 @@
           zielSaetze: zielLesen(slot.saetze, 10),
           zielWdh: slot.wdhVon,
           zielWdhMax: slot.wdhBis,
-          pause: null
+          // Pläne des Coachs (seit Version 149) bringen bei Ziel Kraft eine eigene Pause mit, Vorlagen nicht
+          pause: slot.pause ? uebungPauseLesen(slot.pause) : null
         };
         wdhZielBereinigen(neu);
         routine.uebungen.push(neu);
@@ -11078,6 +11092,7 @@
   // Die ids gelöschter Eigengewicht-Übungen aus der Datei. null heißt: Das Backup enthält keine (Backup vor Version 11).
   let importGeloeschte = null;
   let importNotizen = null;
+  let importCoach = null;
 
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
@@ -11338,13 +11353,14 @@
   function backupText() {
     const backup = {
       app: "korund",
-      version: 12,
+      version: 13,
       exportiert: new Date().toISOString(),
       profil: profil,
       eintraege: eintraege,
       eigeneUebungen: eigeneUebungen,
       geloeschteEigengewicht: geloeschteEigengewicht,
       notizen: notizen,
+      coach: coach,
       routinen: routinen,
       wochenplan: wochenplan,
       trainings: trainings,
@@ -11476,6 +11492,12 @@
       importGeloeschte = daten.geloeschteEigengewicht;
     }
 
+    // Antworten des Coachs gibt es seit Version 149 (Backup-Version 13, ältere Versionen lassen das Feld liegen)
+    importCoach = null;
+    if (daten && !Array.isArray(daten) && daten.coach && typeof daten.coach === "object") {
+      importCoach = coachBereinigen(daten.coach);
+    }
+
     // Notizen je Übung gibt es seit Version 141 (Backup-Version bleibt 12, ältere Versionen lassen das Feld liegen)
     importNotizen = null;
     if (daten && !Array.isArray(daten) && daten.notizen && typeof daten.notizen === "object") {
@@ -11603,6 +11625,12 @@
         });
       }
       sicherSpeichern("notizen", notizen);
+    }
+
+    // Coach: Beim Ersetzen gelten die Antworten aus dem Backup, beim Hinzufügen nur, wenn hier noch keine stehen
+    if (importCoach !== null && (art === "ersetzen" || Object.keys(coach).length === 0)) {
+      coach = importCoach;
+      coachSpeichern();
     }
 
     let meldung;
@@ -15240,6 +15268,8 @@
   const VORSCHLAG_AUSWAHL = 4;
   // Wdh. je Platz: die ersten zwei schwer, dann mittel, dann leichter
   const VORSCHLAG_WDH = [[8, 12], [8, 12], [10, 12], [12, 15]];
+  // Mit einem Ziel im Coach (seit Version 149): Kraft schwerer, Beides dazwischen, Muskelaufbau wie bisher
+  const VORSCHLAG_WDH_ZIEL = { kraft: [[4, 6], [5, 8], [8, 12], [10, 12]], beides: [[6, 10], [6, 10], [8, 12], [10, 15]] };
 
   // Nur für diese Sitzung, nie im Speicher
   let generator = { minuten: 45, fokus: "ganzkoerper", uebungen: [], wurf: 0 };
@@ -15361,7 +15391,8 @@
       const kandidaten = vorschlagKandidaten(fokus.plaetze[i], schonDa);
       if (kandidaten.length > 0) {
         const u = vorschlagWaehlen(kandidaten, i);
-        const wdh = VORSCHLAG_WDH[Math.min(liste.length, VORSCHLAG_WDH.length - 1)];
+        const reihe = VORSCHLAG_WDH_ZIEL[coach.ziel] || VORSCHLAG_WDH;
+        const wdh = reihe[Math.min(liste.length, reihe.length - 1)];
         schonDa.push(u.id);
         liste.push({ id: u.id, gruppe: fokus.plaetze[i], platz: i, wdh: wdh[0], wdhMax: wdh[1] });
       }
@@ -15379,6 +15410,26 @@
         return { name: anzeigeName(u.de, u.id), uebungId: u.id, muskelgruppe: GRUPPE_NACH_ID[uebungGruppe(u)][sprache], zielSaetze: 3, zielWdh: v.wdh, zielWdhMax: v.wdhMax, pause: null };
       })
     };
+  }
+
+  // Speichert den Vorschlag als neue Routine (seit Version 149). Der Name ist der Fokus, gibt es ihn schon, mit " (2)" usw.
+  function vorschlagSpeichern() {
+    const vergeben = {};
+    routinen.forEach(function (r) {
+      vergeben[String(r.name).trim().toLowerCase()] = true;
+    });
+    const routine = vorschlagRoutine();
+    routine.id = neueId();
+    routine.name = vorlageRoutineName(routine.name, vergeben);
+    routine.uebungen.forEach(function (u) {
+      u.muskelgruppe = GRUPPE_NACH_ID[uebungGruppe(UEBUNG_NACH_ID[u.uebungId])].de;
+      u.name = UEBUNG_NACH_ID[u.uebungId].de;
+    });
+    routinen.push(routine);
+    routinenSpeichern();
+    trainingAnzeigen();
+    korundSeitenSchliessen();
+    frageZeigen(txt("vorschlag.gespeichertTitel"), txt("vorschlag.gespeichert", { name: routine.name }), [{ text: txt("ok"), art: "haupt" }]);
   }
 
   function vorschlagSeiteBauen(inhalt, unten) {
@@ -15435,12 +15486,426 @@
       korundSeiteZeichnen();
     }));
     if (generator.uebungen.length > 0) {
+      unten.appendChild(seitenKnopf(txt("vorschlag.speichern"), false, vorschlagSpeichern));
       unten.appendChild(seitenKnopf("▶ " + txt("routine.starten"), true, function () {
         const routine = vorschlagRoutine();
         korundSeitenSchliessen();
         routineStarten(routine);
       }));
     }
+  }
+
+  // ---------- Coach (seit Version 149): Plan mit Korund ----------
+  // Der Coach fragt Ziel, Tage, Zeit, Erfahrung, Geräte, Einschränkungen und Schwerpunkt und baut daraus nach festen Regeln
+  // einen Plan aus den Vorlagen (vorlagen.js). Keine KI, kein Netz. Die Antworten stehen unter dem Schlüssel "coach"
+  // (im Backup seit Backup-Version 13), Geräte und Einschränkungen wie bisher in den Einstellungen.
+  const COACH_ZIELE = ["kraft", "muskel", "beides"];
+  const COACH_TAGE = [2, 3, 4, 5, 6];
+  const COACH_MINUTEN = [45, 60, 75, 90];
+  const COACH_ERFAHRUNG = ["anfaenger", "fortgeschritten", "erfahren"];
+  const COACH_SCHWERPUNKTE = ["brust", "ruecken", "schultern", "arme", "beine"];
+  const COACH_MAX_SCHWERPUNKT = 2;
+  // Höchstens so viele Sätze an einem Platz, Anfänger höchstens COACH_MAX_ANFAENGER, nie unter COACH_MIN_SAETZE
+  const COACH_MAX_SAETZE = 5;
+  const COACH_MAX_ANFAENGER = 4;
+  const COACH_MIN_SAETZE = 2;
+  // So viele Plätze bleiben an einem Tag mindestens stehen, wenn die Zeit nicht reicht
+  const COACH_MIN_PLAETZE = 4;
+  // Pause bei Ziel Kraft auf den ersten zwei Plätzen eines Tages (Sekunden)
+  const COACH_KRAFT_PAUSE = 180;
+  // Ein Satz dauert ohne Pause etwa so lange (Sekunden), wie bei routineDauerMinuten
+  const COACH_SATZ_SEKUNDEN = 45;
+  // Spielraum der Zeit in Minuten: zu lang ab Zeit + 5, zu kurz unter Zeit − 10
+  const COACH_ZEIT_DRUEBER = 5;
+  const COACH_ZEIT_DRUNTER = 10;
+  // Die Bewegungsmuster mit großen Grundübungen. Alle anderen Plätze sind Isolation und fallen bei Zeitmangel zuerst weg.
+  const COACH_GRUNDUEBUNGEN = ["HD", "VD", "SD", "DIPS", "HZB", "HZE", "VZB", "VZE", "KB", "KBP", "BP", "KH", "HUEFT"];
+  // Welche Aufteilung der Coach je Tageszahl nimmt (ids aus VORLAGEN_PLAENE)
+  const COACH_AUFTEILUNG = { 2: "2-ganzkoerper", 3: "3-ok-uk-gk", 4: "4-ok-uk", 5: "5-ppl-ok-uk", 6: "6-ppl" };
+  const COACH_AUFTEILUNG_ANFAENGER = { 3: "3-ganzkoerper" };
+  const COACH_AUFTEILUNG_ARME = { 5: "5-brust-ruecken" };
+
+  // Die gespeicherten Antworten, siehe coachBereinigen
+  let coach = coachBereinigen(gespeichertLesen("coach", {}));
+
+  // Prüft gespeicherte oder importierte Antworten. Unbekanntes fällt weg.
+  function coachBereinigen(roh) {
+    const c = roh && typeof roh === "object" && !Array.isArray(roh) ? roh : {};
+    const sauber = {};
+    if (COACH_ZIELE.indexOf(c.ziel) !== -1) {
+      sauber.ziel = c.ziel;
+    }
+    if (COACH_TAGE.indexOf(c.tage) !== -1) {
+      sauber.tage = c.tage;
+    }
+    if (COACH_MINUTEN.indexOf(c.minuten) !== -1) {
+      sauber.minuten = c.minuten;
+    }
+    if (COACH_ERFAHRUNG.indexOf(c.erfahrung) !== -1) {
+      sauber.erfahrung = c.erfahrung;
+    }
+    if (Array.isArray(c.schwerpunkt)) {
+      sauber.schwerpunkt = c.schwerpunkt.filter(function (p, i) {
+        return COACH_SCHWERPUNKTE.indexOf(p) !== -1 && c.schwerpunkt.indexOf(p) === i;
+      }).slice(0, COACH_MAX_SCHWERPUNKT);
+    }
+    return sauber;
+  }
+
+  function coachSpeichern() {
+    sicherSpeichern("coach", coach);
+  }
+
+  // Die Antworten mit Standardwerten für alles, was noch fehlt
+  function coachAntworten() {
+    return {
+      ziel: coach.ziel || "beides",
+      tage: coach.tage || vorlagenGeplant() || 3,
+      minuten: coach.minuten || 60,
+      erfahrung: coach.erfahrung || "fortgeschritten",
+      schwerpunkt: coach.schwerpunkt || []
+    };
+  }
+
+  // Die Vorlage, auf der der Plan aufbaut. aufteilung ist eine Wahl auf der Ergebnisseite (nur für die Sitzung).
+  function coachBasis(a, aufteilung) {
+    const plan = VORLAGEN_PLAENE.filter(function (p) {
+      return p.tage === a.tage;
+    })[0];
+    let id = COACH_AUFTEILUNG[a.tage];
+    if (a.erfahrung === "anfaenger" && COACH_AUFTEILUNG_ANFAENGER[a.tage]) {
+      id = COACH_AUFTEILUNG_ANFAENGER[a.tage];
+    }
+    if (COACH_AUFTEILUNG_ARME[a.tage] && (a.schwerpunkt.indexOf("arme") !== -1 || a.schwerpunkt.indexOf("schultern") !== -1)) {
+      id = COACH_AUFTEILUNG_ARME[a.tage];
+    }
+    if (aufteilung) {
+      id = aufteilung;
+    }
+    const passend = plan.varianten.filter(function (v) {
+      return v.id === id;
+    });
+    return passend[0] || plan.varianten[0];
+  }
+
+  // Passt eine Übung zu den Geräten und den Einschränkungen?
+  function coachPasst(u, vorhanden) {
+    return Boolean(u) && !uebungEingeschraenkt(u) && uebungGeraete(u).every(function (g) {
+      return vorhanden.indexOf(g) !== -1;
+    });
+  }
+
+  // Die Übung für einen Platz: die Standard-Übung, sonst die erste passende Alternative des Musters,
+  // sonst eine passende Übung derselben Muskelgruppe. Passt nichts, null.
+  function coachSlotUebung(slot, schonDa, vorhanden) {
+    const ids = [slot.uebungId].concat(VORLAGEN_MUSTER[slot.muster].alternativen);
+    for (let i = 0; i < ids.length; i++) {
+      const u = UEBUNG_NACH_ID[ids[i]];
+      if (u && schonDa.indexOf(u.id) === -1 && coachPasst(u, vorhanden)) {
+        return u;
+      }
+    }
+    const standard = UEBUNG_NACH_ID[slot.uebungId];
+    if (standard) {
+      const kandidaten = vorschlagKandidaten(uebungGruppe(standard), schonDa);
+      if (kandidaten.length > 0) {
+        return kandidaten[0];
+      }
+    }
+    return null;
+  }
+
+  // Sätze, Wdh. und Pause eines Platzes nach Erfahrung, Schwerpunkt und Ziel. platz ist die Stelle am Tag (0 = erster).
+  function coachSlotWerte(slot, platz, a, u) {
+    const anfaenger = a.erfahrung === "anfaenger";
+    let saetze = slot.saetze;
+    if (anfaenger && saetze >= 3) {
+      saetze = Math.max(COACH_MIN_SAETZE, saetze - 1);
+    }
+    if (a.erfahrung === "erfahren" && platz < 2) {
+      saetze++;
+    }
+    if (a.schwerpunkt.indexOf(erholungPartie(uebungGruppe(u))) !== -1) {
+      saetze++;
+    }
+    saetze = Math.min(anfaenger ? COACH_MAX_ANFAENGER : COACH_MAX_SAETZE, saetze);
+    let von = slot.wdhVon;
+    let bis = slot.wdhBis;
+    let pause = null;
+    if (a.ziel === "kraft" && platz < 2) {
+      von = anfaenger ? 5 : 4;
+      bis = anfaenger ? 8 : 6;
+      pause = COACH_KRAFT_PAUSE;
+    } else if (a.ziel === "muskel") {
+      if (platz < 2) {
+        von = 6;
+        bis = 10;
+      } else if (bis < 10) {
+        von = 8;
+        bis = 12;
+      }
+    }
+    return { saetze: saetze, wdhVon: von, wdhBis: bis, pause: pause };
+  }
+
+  // Geschätzte Dauer eines Tages in Minuten: je Satz 45 s plus Pause
+  function coachDauer(slots) {
+    let sekunden = 0;
+    for (let i = 0; i < slots.length; i++) {
+      sekunden += slots[i].saetze * (COACH_SATZ_SEKUNDEN + (slots[i].pause === null ? pauseStandard() : slots[i].pause));
+    }
+    return Math.round(sekunden / 60);
+  }
+
+  // Passt einen Tag an die Zeit an. Zu lang: erst Isolation von hinten streichen (mindestens COACH_MIN_PLAETZE bleiben),
+  // dann von hinten je einen Satz weniger. Zu kurz: von vorn je einen Satz mehr, bis zur Grenze.
+  function coachZeitAnpassen(slots, a) {
+    const max = a.erfahrung === "anfaenger" ? COACH_MAX_ANFAENGER : COACH_MAX_SAETZE;
+    let weg = 0;
+    while (coachDauer(slots) > a.minuten + COACH_ZEIT_DRUEBER && slots.length > COACH_MIN_PLAETZE) {
+      let stelle = -1;
+      for (let i = slots.length - 1; i >= 0; i--) {
+        if (COACH_GRUNDUEBUNGEN.indexOf(slots[i].muster) === -1) {
+          stelle = i;
+          break;
+        }
+      }
+      if (stelle === -1) {
+        break;
+      }
+      slots.splice(stelle, 1);
+      weg++;
+    }
+    let geaendert = true;
+    while (coachDauer(slots) > a.minuten + COACH_ZEIT_DRUEBER && geaendert) {
+      geaendert = false;
+      for (let i = slots.length - 1; i >= 0 && coachDauer(slots) > a.minuten + COACH_ZEIT_DRUEBER; i--) {
+        if (slots[i].saetze > COACH_MIN_SAETZE) {
+          slots[i].saetze--;
+          geaendert = true;
+        }
+      }
+    }
+    geaendert = true;
+    while (coachDauer(slots) < a.minuten - COACH_ZEIT_DRUNTER && geaendert) {
+      geaendert = false;
+      for (let i = 0; i < slots.length && coachDauer(slots) < a.minuten - COACH_ZEIT_DRUNTER; i++) {
+        if (slots[i].saetze < max) {
+          slots[i].saetze++;
+          geaendert = true;
+        }
+      }
+    }
+    return weg;
+  }
+
+  // Der ganze Plan als Variante wie in der vorlagen.js (id "korund"), so zeigen Vorschau, Tauschen und Übernehmen ihn
+  // wie eine Vorlage. fehlt zählt die Plätze, für die keine Übung passt, weg die aus Zeitgründen gestrichenen.
+  function coachPlanBauen(a, aufteilung) {
+    const basis = coachBasis(a, aufteilung);
+    const vorhanden = geraeteVorhanden();
+    let fehlt = 0;
+    let weg = 0;
+    const tage = basis.tage.map(function (tag) {
+      const schonDa = [];
+      const slots = [];
+      tag.slots.forEach(function (slot) {
+        const u = coachSlotUebung(slot, schonDa, vorhanden);
+        if (!u) {
+          fehlt++;
+          return;
+        }
+        schonDa.push(u.id);
+        const werte = coachSlotWerte(slot, slots.length, a, u);
+        slots.push({ muster: slot.muster, uebungId: u.id, saetze: werte.saetze, wdhVon: werte.wdhVon, wdhBis: werte.wdhBis, pause: werte.pause });
+      });
+      weg += coachZeitAnpassen(slots, a);
+      return { name: tag.name, slots: slots };
+    });
+    return { id: "korund", korund: true, basis: basis.id, wochentage: basis.wochentage, tage: tage, fehlt: fehlt, weg: weg };
+  }
+
+  // ---------- Coach: die Seiten des Plan-Assistenten ----------
+
+  const COACH_SCHRITTE = 6;
+  // Nur für diese Sitzung: die gewählte Aufteilung auf der Ergebnisseite
+  let coachAufteilung = "";
+
+  function coachPlanOeffnen() {
+    if (!lookKorund()) {
+      return;
+    }
+    coachAufteilung = "";
+    coachSchrittOeffnen(1);
+  }
+
+  function coachSchrittOeffnen(n) {
+    const bauer = [null, coachZielBauen, coachTageBauen, coachZeitBauen, coachErfahrungBauen, coachGeraeteBauen, coachSchwerpunktBauen][n];
+    korundSeiteOeffnen({
+      titel: txt("coach.titel"),
+      rechts: function () {
+        return txt("coach.schritt", { n: n, von: COACH_SCHRITTE });
+      },
+      bauen: bauer
+    });
+  }
+
+  // Eine Frage mit Antworten als Liste: Tippen wählt und geht weiter
+  function coachAuswahlBauen(inhalt, frage, auswahl, aktiv, beimWaehlen) {
+    inhalt.appendChild(element("div", "seiten-gross", frage));
+    const liste = element("div", "karte seiten-liste coach-liste");
+    auswahl.forEach(function (o) {
+      const zeile = seitenZeile(o.text, o.id === aktiv ? "✓" : (o.wert || ""), function () {
+        beimWaehlen(o.id);
+      }, { leise: o.id !== aktiv, klasse: o.id === aktiv ? "gewaehlt" : "" });
+      zeile.setAttribute("aria-pressed", o.id === aktiv ? "true" : "false");
+      liste.appendChild(zeile);
+    });
+    inhalt.appendChild(liste);
+  }
+
+  function coachZielBauen(inhalt) {
+    coachAuswahlBauen(inhalt, txt("coach.frage.ziel"), COACH_ZIELE.map(function (z) {
+      return { id: z, text: txt("coach.ziel." + z), wert: txt("coach.ziel." + z + ".kurz") };
+    }), coach.ziel, function (z) {
+      coach.ziel = z;
+      coachSpeichern();
+      coachSchrittOeffnen(2);
+    });
+  }
+
+  function coachTageBauen(inhalt) {
+    coachAuswahlBauen(inhalt, txt("coach.frage.tage"), COACH_TAGE.map(function (t) {
+      return { id: t, text: txt("vorlage.tage", { n: t }) };
+    }), coach.tage, function (t) {
+      coach.tage = t;
+      coachSpeichern();
+      coachSchrittOeffnen(3);
+    });
+  }
+
+  function coachZeitBauen(inhalt) {
+    coachAuswahlBauen(inhalt, txt("coach.frage.zeit"), COACH_MINUTEN.map(function (m) {
+      return { id: m, text: txt("generator.minuten", { m: m }) };
+    }), coach.minuten, function (m) {
+      coach.minuten = m;
+      coachSpeichern();
+      coachSchrittOeffnen(4);
+    });
+  }
+
+  function coachErfahrungBauen(inhalt) {
+    coachAuswahlBauen(inhalt, txt("coach.frage.erfahrung"), COACH_ERFAHRUNG.map(function (e) {
+      return { id: e, text: txt("coach.erfahrung." + e), wert: txt("coach.erfahrung." + e + ".kurz") };
+    }), coach.erfahrung, function (e) {
+      coach.erfahrung = e;
+      coachSpeichern();
+      coachSchrittOeffnen(5);
+    });
+  }
+
+  function coachGeraeteBauen(inhalt, unten) {
+    inhalt.appendChild(element("div", "seiten-gross", txt("coach.frage.geraete")));
+    const stand = geraeteStand();
+    const liste = element("div", "karte seiten-liste coach-liste");
+    liste.appendChild(seitenZeile(txt("geraete.titel"), txt("geraete.ort." + stand.ort) + " · " + stand[stand.ort].length, geraeteSeiteOeffnen, { klasse: "beschriftet" }));
+    liste.appendChild(seitenZeile(txt("einschraenkung.titel"), einschraenkungKurz(), einschraenkungenSeiteOeffnen, { klasse: "beschriftet" }));
+    inhalt.appendChild(liste);
+    inhalt.appendChild(element("p", "seiten-text", txt("coach.geraeteText")));
+    unten.appendChild(seitenKnopf(txt("rueckblick.weiter"), true, function () {
+      coachSchrittOeffnen(6);
+    }));
+  }
+
+  function coachSchwerpunktBauen(inhalt, unten) {
+    const gewaehlt = coach.schwerpunkt || [];
+    inhalt.appendChild(element("div", "seiten-gross", txt("coach.frage.schwerpunkt")));
+    inhalt.appendChild(element("p", "seiten-text", txt("coach.schwerpunktText", { n: COACH_MAX_SCHWERPUNKT })));
+    const liste = element("div", "karte seiten-liste coach-liste");
+    COACH_SCHWERPUNKTE.forEach(function (p) {
+      const an = gewaehlt.indexOf(p) !== -1;
+      const zeile = seitenZeile(txt("partie." + p), an ? "✓" : "", function () {
+        let neu = gewaehlt.filter(function (x) {
+          return x !== p;
+        });
+        if (!an) {
+          neu.push(p);
+          neu = neu.slice(-COACH_MAX_SCHWERPUNKT);
+        }
+        coach.schwerpunkt = neu;
+        coachSpeichern();
+        korundSeiteZeichnen();
+      }, { klasse: an ? "gewaehlt" : "" });
+      zeile.setAttribute("aria-pressed", an ? "true" : "false");
+      liste.appendChild(zeile);
+    });
+    inhalt.appendChild(liste);
+    unten.appendChild(seitenKnopf(txt("coach.erstellen"), true, function () {
+      if (!coach.schwerpunkt) {
+        coach.schwerpunkt = [];
+        coachSpeichern();
+      }
+      korundSeiteOeffnen({ titel: txt("coach.ergebnis"), bauen: coachErgebnisBauen });
+    }));
+  }
+
+  // Die Ergebnisseite: Zusammenfassung, Aufteilung zum Umschalten, je Tag eine Zeile, unten Ansehen und Übernehmen
+  function coachErgebnisBauen(inhalt, unten) {
+    const a = coachAntworten();
+    const plan = coachPlanBauen(a, coachAufteilung);
+    inhalt.appendChild(element("div", "seiten-gross", txt("vorlage.tageProWoche", { n: a.tage })));
+    inhalt.appendChild(element("p", "seiten-text", [txt("vorlage.variante." + plan.basis), txt("generator.minuten", { m: a.minuten }), txt("coach.ziel." + a.ziel)].join(" · ")));
+    const varianten = VORLAGEN_PLAENE.filter(function (p) {
+      return p.tage === a.tage;
+    })[0].varianten;
+    inhalt.appendChild(seitenLabel(txt("coach.woche")));
+    const liste = element("div", "karte seiten-liste coach-plan");
+    plan.tage.forEach(function (tag, t) {
+      liste.appendChild(seitenZeile(wochentag(plan.wochentage[t]) + " · " + txt("vorlage.tag." + tag.name),
+        txt("generator.minuten", { m: coachDauer(tag.slots) }), null, { leise: true }));
+    });
+    inhalt.appendChild(liste);
+    // Andere Aufteilungen derselben Tageszahl als Liste (die Namen sind für einen Umschalter zu lang)
+    if (varianten.length > 1) {
+      inhalt.appendChild(seitenLabel(txt("coach.aufteilung")));
+      const wahl = element("div", "karte seiten-liste coach-liste");
+      varianten.forEach(function (v) {
+        const an = v.id === plan.basis;
+        const zeile = seitenZeile(txt("vorlage.variante." + v.id), an ? "✓" : "", function () {
+          coachAufteilung = v.id;
+          korundSeiteZeichnen();
+        }, { klasse: an ? "gewaehlt" : "" });
+        zeile.setAttribute("aria-pressed", an ? "true" : "false");
+        wahl.appendChild(zeile);
+      });
+      inhalt.appendChild(wahl);
+    }
+    if (plan.fehlt > 0) {
+      inhalt.appendChild(element("p", "seiten-text", txt("coach.fehlt", { n: plan.fehlt })));
+    }
+    if (plan.weg > 0) {
+      inhalt.appendChild(element("p", "seiten-text", txt("coach.weg", { n: plan.weg })));
+    }
+    inhalt.appendChild(element("p", "seiten-text", txt("coach.regelnText")));
+    unten.appendChild(seitenKnopf(txt("coach.ansehen"), false, function () {
+      coachPlanZeigen(plan);
+    }));
+    unten.appendChild(seitenKnopf(txt("coach.uebernehmen"), true, function () {
+      coachPlanZeigen(plan);
+      vorlageUebernehmen();
+    }));
+  }
+
+  // Öffnet den Plan in der Vorschau der Vorlagen im Training-Tab (Tauschen je Übung, Übernehmen)
+  function coachPlanZeigen(plan) {
+    Object.keys(vorlageGetauscht).forEach(function (schluessel) {
+      if (schluessel.indexOf("korund/") === 0) {
+        delete vorlageGetauscht[schluessel];
+      }
+    });
+    korundSeitenSchliessen();
+    seiteZeigen("training");
+    vorschauOeffnen(plan);
   }
 
   // ---------- Ruhetag im Training-Tab ----------
@@ -15479,6 +15944,10 @@
     bereich.appendChild(karte);
     const liste = element("div", "karte seiten-liste ruhetag-liste");
     liste.appendChild(seitenZeile(txt("zusatz.titel"), undefined, zusatzTrainingOeffnen, { icon: "plus", klasse: "signal" }));
+    // Ohne eigene Routine bietet der Coach (seit Version 149) einen ganzen Plan an
+    if (routinen.length === 0) {
+      liste.appendChild(seitenZeile(txt("coach.kartenTitel"), undefined, coachPlanOeffnen, { icon: "kalender", klasse: "signal" }));
+    }
     // Ohne geplante Routine in der Woche gibt es nichts zu verschieben, dann heißt die Zeile „Woche planen“
     const geplant = wochenplan.some(function (id) {
       return routineFinden(id);

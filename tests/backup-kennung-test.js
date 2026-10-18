@@ -96,6 +96,11 @@ function umgebung(inhalt) {
     + "let importGeloeschte = null;"
     // Seit Version 141: Notizen je Übung im Backup, Auszeiten in den Einstellungen
     + "let notizen = {}; let importNotizen = null;" + konstanteHolen("AUSZEIT_ARTEN")
+    // Seit Version 149: Antworten des Coachs im Backup (Backup-Version 13)
+    + "let coach = {}; let importCoach = null; function coachSpeichern() {}"
+    + konstanteHolen("COACH_ZIELE") + konstanteHolen("COACH_TAGE") + konstanteHolen("COACH_MINUTEN")
+    + konstanteHolen("COACH_ERFAHRUNG") + konstanteHolen("COACH_SCHWERPUNKTE") + konstanteHolen("COACH_MAX_SCHWERPUNKT")
+    + funktionHolen("coachBereinigen")
     // Eine Rückfrage gilt sofort als bestätigt: Der erste Knopf wird gedrückt
     + "function frageZeigen(titel, text, knoepfe) { if (knoepfe[0].aktion) { knoepfe[0].aktion(); } }"
     + "function rirLesen() { return null; }"
@@ -215,7 +220,7 @@ function gefuellt() {
 const app = gefuellt();
 const neu = JSON.parse(app.backup());
 pruefe("neues Backup: Kennung korund", neu.app, "korund");
-pruefe("neues Backup: Backup-Version 12", neu.version, 12);
+pruefe("neues Backup: Backup-Version 13", neu.version, 13);
 
 // ---------- Alle vier Arten importieren, ersetzen und ergänzen ----------
 
@@ -289,7 +294,7 @@ for (let i = 0; i < VERSIONEN.length; i++) {
 
     // Ein neues Backup aus diesem Stand ist Version 12 und trägt die Zeiten weiter (oder keine, wo keine waren)
     const wieder = JSON.parse(ziel.backup());
-    pruefe(v.name + ", " + arten[k] + ": erneutes Backup ist Version 12", wieder.version, 12);
+    pruefe(v.name + ", " + arten[k] + ": erneutes Backup ist Version 13", wieder.version, 13);
     pruefe(v.name + ", " + arten[k] + ": erneutes Backup enthält dieselben Einträge", JSON.stringify(wieder.eintraege), JSON.stringify(soll));
   }
 }

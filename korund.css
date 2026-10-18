@@ -8225,3 +8225,118 @@
   }
 
 }
+
+
+/* ---------- Erlebnis (seit Version 151): kleinere Schrift, Auswahl mit Symbolen, Animationen ----------
+   Kleinere Schrift für große Titel und Seiten, Auswahl-Karten mit festen Symbolen (auswahlKarten, symbolReihe in der app.js,
+   Farben farbe-… unabhängig von der Farbwelt), Balken über den Fragen des Coachs, Seiten fahren ein und zurück,
+   Knöpfe und Karten geben beim Drücken nach. „Bewegung reduzieren“ schaltet alle Animationen ab (style.css). Jede Regel steht
+   zweimal da wie im Rest der Datei: für „Dunkel“ und im @media-Block für „System“ mit dunklem Gerät. */
+@keyframes korund-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes korund-karte-rein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes korund-seite-rein { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes korund-seite-zurueck { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@keyframes korund-balken { from { width: var(--von); } to { width: var(--bis); } }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] h1 { font-size: 30px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-gross { margin-top: 10px; font-size: 23px; line-height: 1.2; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite-titel { font-size: 16px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .seiten-titel { font-size: 16px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte-name { font-size: 15px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte-info { font-size: 12.5px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte { transition: transform 0.16s ease, border-color 0.2s ease, background-color 0.2s ease; -webkit-tap-highlight-color: transparent; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte:active { transform: scale(0.97); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte .status-kreis { transition: border-width 0.22s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .status-karte[aria-checked="true"] .status-kreis { animation: korund-pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-liste { display: flex; flex-direction: column; gap: 10px; margin: 16px 0 6px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-liste.gesperrt { pointer-events: none; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-liste > .auswahl-karte { animation: korund-karte-rein 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-liste > .auswahl-karte:nth-child(2) { animation-delay: 0.04s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-liste > .auswahl-karte:nth-child(3) { animation-delay: 0.08s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-liste > .auswahl-karte:nth-child(4) { animation-delay: 0.12s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-liste > .auswahl-karte:nth-child(5) { animation-delay: 0.16s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-liste > .auswahl-karte:nth-child(n+6) { animation-delay: 0.2s; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite:not(.einfahren):not(.zurueckfahren) .auswahl-liste > .auswahl-karte { animation: none; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-karte .status-symbol.zahl { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-karte .status-symbol .seiten-figur { width: 42px; height: 42px; border: 0; border-radius: 50%; background: transparent; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .auswahl-karte.farbe-signal .status-symbol .seiten-figur { background: transparent; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.auswahl-karte, .symbol-kachel).farbe-blau .status-symbol { background: rgba(110, 168, 255, 0.15); color: #7EB0FF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.auswahl-karte, .symbol-kachel).farbe-orange .status-symbol { background: rgba(255, 159, 69, 0.15); color: #FF9F45; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.auswahl-karte, .symbol-kachel).farbe-lila .status-symbol { background: rgba(169, 139, 255, 0.16); color: #A98BFF; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.auswahl-karte, .symbol-kachel).farbe-gruen .status-symbol { background: rgba(80, 214, 143, 0.15); color: #5FD68F; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.auswahl-karte, .symbol-kachel).farbe-gold .status-symbol { background: rgba(245, 192, 74, 0.15); color: #F5C04A; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.auswahl-karte, .symbol-kachel).farbe-tuerkis .status-symbol { background: rgba(95, 212, 196, 0.15); color: #5FD4C4; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.auswahl-karte, .symbol-kachel).farbe-rot .status-symbol { background: rgba(255, 112, 112, 0.15); color: #FF8A80; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-balken { height: 4px; margin: 2px 0 4px; overflow: hidden; border-radius: 2px; background: rgba(255, 255, 255, 0.08); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-balken > span { display: block; width: var(--bis); height: 100%; border-radius: 2px; background: var(--fw-signal); box-shadow: 0 0 10px rgba(var(--fw-signal-rgb), 0.6); animation: korund-balken 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite:not(.einfahren) .coach-balken > span { animation: none; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite.einfahren :is(#korund-seite-inhalt, #korund-seite-unten) { animation: korund-seite-rein 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #korund-seite.zurueckfahren :is(#korund-seite-inhalt, #korund-seite-unten) { animation: korund-seite-zurueck 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .symbol-reihe { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0 6px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .symbol-kachel { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; padding: 14px 6px 12px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; background: rgba(var(--fw-glas-rgb), 0.55); color: var(--text-leise); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform 0.16s ease, border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease; -webkit-tap-highlight-color: transparent; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .symbol-kachel:active { transform: scale(0.95); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .symbol-kachel .status-symbol { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; opacity: 0.55; transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .symbol-kachel .status-symbol svg { width: 22px; height: 22px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .symbol-kachel[aria-checked="true"] { border-color: rgba(var(--fw-signal-rgb), 0.7); background: rgba(var(--fw-signal-rgb), 0.1); color: var(--text); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .symbol-kachel[aria-checked="true"] .status-symbol { opacity: 1; transform: scale(1.08); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .symbol-wort { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-frage { margin-top: 18px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.speichern-btn, .zweit-btn, .seiten-zeile, .rueckblick-karte, .generator-kachel) { -webkit-tap-highlight-color: transparent; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.speichern-btn, .zweit-btn) { transition: transform 0.14s ease, filter 0.2s ease; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] :is(.speichern-btn, .zweit-btn):active { transform: scale(0.97); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] button.seiten-zeile { transition: background-color 0.15s ease; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] button.seiten-zeile:active { background-color: rgba(255, 255, 255, 0.05); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-karte { transition: transform 0.16s ease; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-karte:active { transform: scale(0.98); }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) h1 { font-size: 30px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-gross { margin-top: 10px; font-size: 23px; line-height: 1.2; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite-titel { font-size: 16px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .seiten-titel { font-size: 16px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte-name { font-size: 15px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte-info { font-size: 12.5px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte { transition: transform 0.16s ease, border-color 0.2s ease, background-color 0.2s ease; -webkit-tap-highlight-color: transparent; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte:active { transform: scale(0.97); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte .status-kreis { transition: border-width 0.22s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .status-karte[aria-checked="true"] .status-kreis { animation: korund-pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-liste { display: flex; flex-direction: column; gap: 10px; margin: 16px 0 6px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-liste.gesperrt { pointer-events: none; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-liste > .auswahl-karte { animation: korund-karte-rein 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-liste > .auswahl-karte:nth-child(2) { animation-delay: 0.04s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-liste > .auswahl-karte:nth-child(3) { animation-delay: 0.08s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-liste > .auswahl-karte:nth-child(4) { animation-delay: 0.12s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-liste > .auswahl-karte:nth-child(5) { animation-delay: 0.16s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-liste > .auswahl-karte:nth-child(n+6) { animation-delay: 0.2s; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite:not(.einfahren):not(.zurueckfahren) .auswahl-liste > .auswahl-karte { animation: none; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-karte .status-symbol.zahl { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-karte .status-symbol .seiten-figur { width: 42px; height: 42px; border: 0; border-radius: 50%; background: transparent; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .auswahl-karte.farbe-signal .status-symbol .seiten-figur { background: transparent; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.auswahl-karte, .symbol-kachel).farbe-blau .status-symbol { background: rgba(110, 168, 255, 0.15); color: #7EB0FF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.auswahl-karte, .symbol-kachel).farbe-orange .status-symbol { background: rgba(255, 159, 69, 0.15); color: #FF9F45; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.auswahl-karte, .symbol-kachel).farbe-lila .status-symbol { background: rgba(169, 139, 255, 0.16); color: #A98BFF; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.auswahl-karte, .symbol-kachel).farbe-gruen .status-symbol { background: rgba(80, 214, 143, 0.15); color: #5FD68F; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.auswahl-karte, .symbol-kachel).farbe-gold .status-symbol { background: rgba(245, 192, 74, 0.15); color: #F5C04A; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.auswahl-karte, .symbol-kachel).farbe-tuerkis .status-symbol { background: rgba(95, 212, 196, 0.15); color: #5FD4C4; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.auswahl-karte, .symbol-kachel).farbe-rot .status-symbol { background: rgba(255, 112, 112, 0.15); color: #FF8A80; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-balken { height: 4px; margin: 2px 0 4px; overflow: hidden; border-radius: 2px; background: rgba(255, 255, 255, 0.08); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-balken > span { display: block; width: var(--bis); height: 100%; border-radius: 2px; background: var(--fw-signal); box-shadow: 0 0 10px rgba(var(--fw-signal-rgb), 0.6); animation: korund-balken 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite:not(.einfahren) .coach-balken > span { animation: none; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite.einfahren :is(#korund-seite-inhalt, #korund-seite-unten) { animation: korund-seite-rein 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #korund-seite.zurueckfahren :is(#korund-seite-inhalt, #korund-seite-unten) { animation: korund-seite-zurueck 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .symbol-reihe { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0 6px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .symbol-kachel { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; padding: 14px 6px 12px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; background: rgba(var(--fw-glas-rgb), 0.55); color: var(--text-leise); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform 0.16s ease, border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease; -webkit-tap-highlight-color: transparent; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .symbol-kachel:active { transform: scale(0.95); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .symbol-kachel .status-symbol { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; opacity: 0.55; transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .symbol-kachel .status-symbol svg { width: 22px; height: 22px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .symbol-kachel[aria-checked="true"] { border-color: rgba(var(--fw-signal-rgb), 0.7); background: rgba(var(--fw-signal-rgb), 0.1); color: var(--text); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .symbol-kachel[aria-checked="true"] .status-symbol { opacity: 1; transform: scale(1.08); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .symbol-wort { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-frage { margin-top: 18px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.speichern-btn, .zweit-btn, .seiten-zeile, .rueckblick-karte, .generator-kachel) { -webkit-tap-highlight-color: transparent; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.speichern-btn, .zweit-btn) { transition: transform 0.14s ease, filter 0.2s ease; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) :is(.speichern-btn, .zweit-btn):active { transform: scale(0.97); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) button.seiten-zeile { transition: background-color 0.15s ease; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) button.seiten-zeile:active { background-color: rgba(255, 255, 255, 0.05); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-karte { transition: transform 0.16s ease; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-karte:active { transform: scale(0.98); }
+}

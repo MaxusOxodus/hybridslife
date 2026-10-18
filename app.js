@@ -14730,8 +14730,12 @@
     korundSeiteZeichnen();
   }
 
+  // Seit Version 151: Die Seiten fahren beim Öffnen von rechts und beim Zurück von links ein (nur Look Korund, korund.css)
+  let korundSeiteRichtung = "";
+
   function korundSeiteZurueck() {
     korundSeiten.pop();
+    korundSeiteRichtung = "zurueck";
     korundSeiteZeichnen();
   }
 
@@ -14763,6 +14767,13 @@
     unten.innerHTML = "";
     seite.bauen(inhalt, unten);
     ebene.classList.toggle("mit-unten", unten.childElementCount > 0);
+    const richtung = !seite.gezeichnet ? "einfahren" : (korundSeiteRichtung === "zurueck" ? "zurueckfahren" : "");
+    korundSeiteRichtung = "";
+    ebene.classList.remove("einfahren", "zurueckfahren");
+    if (richtung) {
+      void ebene.offsetWidth;
+      ebene.classList.add(richtung);
+    }
     ebene.scrollTop = seite.gezeichnet ? scroll : 0;
     seite.gezeichnet = true;
   }
@@ -15775,6 +15786,113 @@
     return { id: "korund", korund: true, basis: basis.id, wochentage: basis.wochentage, tage: tage, fehlt: fehlt, weg: weg };
   }
 
+  // ---------- Auswahl mit Symbolen (seit Version 151, nur in den Seiten des Looks Korund) ----------
+  // Feste Symbole (Linien, 24 × 24), unabhängig von Look und Farbwelt. Die Farbe kommt aus der Klasse farbe-… (korund.css).
+  const SYMBOLE = {
+    hantel: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>',
+    flamme: '<path d="M12 22c4 0 7-2.7 7-6.7 0-3.3-2.2-5.6-4-7.8-.6 2-1.6 3.2-3 3.8.4-3.2-.8-6.4-3.5-9.3C8 6 5 9 5 15.3 5 19.3 8 22 12 22z"/>',
+    ebenen: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
+    uhr: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    spross: '<path d="M12 21v-8"/><path d="M12 13c0-4 3-6 7-6 0 4-3 6-7 6z"/><path d="M12 15c0-3-2.5-5-6-5 0 3 2.5 5 6 5z"/>',
+    trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    krone: '<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5L3 8z"/>',
+    raster: '<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/>',
+    mondWolke: '<path d="M14 4a6 6 0 1 0 6 8 5 5 0 0 1-6-8z"/><path d="M6 20h9a3 3 0 0 0 0-6 4 4 0 0 0-7.5-1A3.5 3.5 0 0 0 6 20z"/>',
+    mond: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+    mondStern: '<path d="M18 15.5A7 7 0 1 1 8.5 6a5.5 5.5 0 0 0 9.5 9.5z"/><path d="M18 3v4M16 5h4"/>',
+    batterieLeer: '<rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2"/><path d="M5 10v4"/>',
+    batterieHalb: '<rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2"/><path d="M5 10v4M8.5 10v4M12 10v4"/>',
+    blitz: '<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/>',
+    pfeilRunter: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+    haken: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    pfeilHoch: '<path d="M12 19V5M6 11l6-6 6 6"/>'
+  };
+
+  function symbolSvg(name) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + SYMBOLE[name] + "</svg>";
+  }
+
+  // Wartet kurz, damit man die Wahl sieht (Kreis füllt sich), bevor die nächste Seite kommt
+  const AUSWAHL_WEITER_MS = 220;
+
+  // Eine Auswahl als Karten wie im Status-Sheet: links ein Symbol (symbol), eine Figur (figur) oder eine Zahl (zahl),
+  // daneben Name und Info, rechts der Kreis. optionen: { id, name, info, symbol | figur | zahl, farbe }.
+  // gewaehlt(id) sagt, ob eine Karte gewählt ist, beimWaehlen(id) läuft nach dem Tipp.
+  function auswahlKarten(optionen, gewaehlt, beimWaehlen, mehrfach) {
+    const liste = element("div", "auswahl-liste");
+    liste.setAttribute("role", mehrfach ? "group" : "radiogroup");
+    optionen.forEach(function (o) {
+      const an = gewaehlt(o.id);
+      const karte = element("button", "status-karte auswahl-karte farbe-" + (o.farbe || "signal"));
+      karte.type = "button";
+      karte.setAttribute("role", mehrfach ? "checkbox" : "radio");
+      karte.setAttribute("aria-checked", an ? "true" : "false");
+      const symbol = element("span", "status-symbol" + (o.zahl ? " zahl" : ""));
+      if (o.figur) {
+        symbol.appendChild(seitenFigur(o.figur));
+      } else if (o.zahl) {
+        symbol.textContent = o.zahl;
+      } else {
+        symbol.innerHTML = symbolSvg(o.symbol);
+      }
+      karte.appendChild(symbol);
+      const text = element("span", "status-karte-text");
+      text.appendChild(element("span", "status-karte-name", o.name));
+      if (o.info) {
+        text.appendChild(element("span", "status-karte-info", o.info));
+      }
+      karte.appendChild(text);
+      karte.appendChild(element("span", "status-kreis"));
+      karte.onclick = function () {
+        if (mehrfach) {
+          beimWaehlen(o.id);
+          return;
+        }
+        liste.querySelectorAll(".auswahl-karte").forEach(function (k) {
+          k.setAttribute("aria-checked", k === karte ? "true" : "false");
+        });
+        liste.classList.add("gesperrt");
+        setTimeout(function () {
+          beimWaehlen(o.id);
+        }, AUSWAHL_WEITER_MS);
+      };
+      liste.appendChild(karte);
+    });
+    return liste;
+  }
+
+  // Drei Antworten nebeneinander als Kacheln mit Symbol und Wort (Rückblick)
+  function symbolReihe(optionen, aktiv, beimWaehlen) {
+    const reihe = element("div", "symbol-reihe");
+    reihe.setAttribute("role", "radiogroup");
+    optionen.forEach(function (o) {
+      const kachel = element("button", "symbol-kachel farbe-" + (o.farbe || "signal"));
+      kachel.type = "button";
+      kachel.setAttribute("role", "radio");
+      kachel.setAttribute("aria-checked", o.id === aktiv ? "true" : "false");
+      const symbol = element("span", "status-symbol");
+      symbol.innerHTML = symbolSvg(o.symbol);
+      kachel.appendChild(symbol);
+      kachel.appendChild(element("span", "symbol-wort", o.name));
+      kachel.onclick = function () {
+        beimWaehlen(o.id);
+      };
+      reihe.appendChild(kachel);
+    });
+    return reihe;
+  }
+
+  // Der Balken über den Fragen des Coachs: füllt sich von der letzten zur aktuellen Frage
+  function coachBalken(n) {
+    const balken = element("div", "coach-balken");
+    const fuellung = element("span");
+    fuellung.style.setProperty("--von", Math.round((n - 1) / COACH_SCHRITTE * 100) + "%");
+    fuellung.style.setProperty("--bis", Math.round(n / COACH_SCHRITTE * 100) + "%");
+    balken.appendChild(fuellung);
+    return balken;
+  }
+
   // ---------- Coach: die Seiten des Plan-Assistenten ----------
 
   const COACH_SCHRITTE = 6;
@@ -15796,27 +15914,27 @@
       rechts: function () {
         return txt("coach.schritt", { n: n, von: COACH_SCHRITTE });
       },
-      bauen: bauer
+      bauen: function (inhalt, unten) {
+        inhalt.appendChild(coachBalken(n));
+        bauer(inhalt, unten);
+      }
     });
   }
 
-  // Eine Frage mit Antworten als Liste: Tippen wählt und geht weiter
+  // Eine Frage mit Antworten als Karten (seit Version 151 mit Symbolen): Tippen wählt und geht weiter
   function coachAuswahlBauen(inhalt, frage, auswahl, aktiv, beimWaehlen) {
     inhalt.appendChild(element("div", "seiten-gross", frage));
-    const liste = element("div", "karte seiten-liste coach-liste");
-    auswahl.forEach(function (o) {
-      const zeile = seitenZeile(o.text, o.id === aktiv ? "✓" : (o.wert || ""), function () {
-        beimWaehlen(o.id);
-      }, { leise: o.id !== aktiv, klasse: o.id === aktiv ? "gewaehlt" : "" });
-      zeile.setAttribute("aria-pressed", o.id === aktiv ? "true" : "false");
-      liste.appendChild(zeile);
-    });
-    inhalt.appendChild(liste);
+    inhalt.appendChild(auswahlKarten(auswahl, function (id) {
+      return id === aktiv;
+    }, beimWaehlen));
   }
+
+  const COACH_ZIEL_SYMBOL = { kraft: ["hantel", "blau"], muskel: ["flamme", "orange"], beides: ["ebenen", "lila"] };
+  const COACH_ERFAHRUNG_SYMBOL = { anfaenger: ["spross", "gruen"], fortgeschritten: ["trend", "blau"], erfahren: ["krone", "gold"] };
 
   function coachZielBauen(inhalt) {
     coachAuswahlBauen(inhalt, txt("coach.frage.ziel"), COACH_ZIELE.map(function (z) {
-      return { id: z, text: txt("coach.ziel." + z), wert: txt("coach.ziel." + z + ".kurz") };
+      return { id: z, name: txt("coach.ziel." + z), info: txt("coach.ziel." + z + ".info"), symbol: COACH_ZIEL_SYMBOL[z][0], farbe: COACH_ZIEL_SYMBOL[z][1] };
     }), coach.ziel, function (z) {
       coach.ziel = z;
       coachSpeichern();
@@ -15825,8 +15943,9 @@
   }
 
   function coachTageBauen(inhalt) {
+    const a = coachAntworten();
     coachAuswahlBauen(inhalt, txt("coach.frage.tage"), COACH_TAGE.map(function (t) {
-      return { id: t, text: txt("vorlage.tage", { n: t }) };
+      return { id: t, name: txt("vorlage.tage", { n: t }), info: txt("vorlage.variante." + coachBasis(Object.assign({}, a, { tage: t })).id), zahl: t + "×" };
     }), coach.tage, function (t) {
       coach.tage = t;
       coachSpeichern();
@@ -15836,7 +15955,7 @@
 
   function coachZeitBauen(inhalt) {
     coachAuswahlBauen(inhalt, txt("coach.frage.zeit"), COACH_MINUTEN.map(function (m) {
-      return { id: m, text: txt("generator.minuten", { m: m }) };
+      return { id: m, name: txt("generator.minuten", { m: m }), info: txt("coach.zeit.info." + m), symbol: "uhr", farbe: "tuerkis" };
     }), coach.minuten, function (m) {
       coach.minuten = m;
       coachSpeichern();
@@ -15846,7 +15965,7 @@
 
   function coachErfahrungBauen(inhalt) {
     coachAuswahlBauen(inhalt, txt("coach.frage.erfahrung"), COACH_ERFAHRUNG.map(function (e) {
-      return { id: e, text: txt("coach.erfahrung." + e), wert: txt("coach.erfahrung." + e + ".kurz") };
+      return { id: e, name: txt("coach.erfahrung." + e), info: txt("coach.erfahrung." + e + ".kurz"), symbol: COACH_ERFAHRUNG_SYMBOL[e][0], farbe: COACH_ERFAHRUNG_SYMBOL[e][1] };
     }), coach.erfahrung, function (e) {
       coach.erfahrung = e;
       coachSpeichern();
@@ -15871,25 +15990,25 @@
     const gewaehlt = coach.schwerpunkt || [];
     inhalt.appendChild(element("div", "seiten-gross", txt("coach.frage.schwerpunkt")));
     inhalt.appendChild(element("p", "seiten-text", txt("coach.schwerpunktText", { n: COACH_MAX_SCHWERPUNKT })));
-    const liste = element("div", "karte seiten-liste coach-liste");
-    COACH_SCHWERPUNKTE.forEach(function (p) {
-      const an = gewaehlt.indexOf(p) !== -1;
-      const zeile = seitenZeile(txt("partie." + p), an ? "✓" : "", function () {
-        let neu = gewaehlt.filter(function (x) {
-          return x !== p;
-        });
-        if (!an) {
-          neu.push(p);
-          neu = neu.slice(-COACH_MAX_SCHWERPUNKT);
-        }
-        coach.schwerpunkt = neu;
-        coachSpeichern();
-        korundSeiteZeichnen();
-      }, { klasse: an ? "gewaehlt" : "" });
-      zeile.setAttribute("aria-pressed", an ? "true" : "false");
-      liste.appendChild(zeile);
-    });
-    inhalt.appendChild(liste);
+    inhalt.appendChild(auswahlKarten(COACH_SCHWERPUNKTE.map(function (p) {
+      const partie = ERHOLUNG_PARTIEN.filter(function (x) {
+        return x.id === p;
+      })[0];
+      return { id: p, name: txt("partie." + p), figur: ERHOLUNG_FIGUR[p] || partie.gruppen[0] };
+    }), function (p) {
+      return gewaehlt.indexOf(p) !== -1;
+    }, function (p) {
+      let neu = gewaehlt.filter(function (x) {
+        return x !== p;
+      });
+      if (gewaehlt.indexOf(p) === -1) {
+        neu.push(p);
+        neu = neu.slice(-COACH_MAX_SCHWERPUNKT);
+      }
+      coach.schwerpunkt = neu;
+      coachSpeichern();
+      korundSeiteZeichnen();
+    }, true));
     unten.appendChild(seitenKnopf(txt("coach.erstellen"), true, function () {
       if (!coach.schwerpunkt) {
         coach.schwerpunkt = [];
@@ -15918,17 +16037,14 @@
     // Andere Aufteilungen derselben Tageszahl als Liste (die Namen sind für einen Umschalter zu lang)
     if (varianten.length > 1) {
       inhalt.appendChild(seitenLabel(txt("coach.aufteilung")));
-      const wahl = element("div", "karte seiten-liste coach-liste");
-      varianten.forEach(function (v) {
-        const an = v.id === plan.basis;
-        const zeile = seitenZeile(txt("vorlage.variante." + v.id), an ? "✓" : "", function () {
-          coachAufteilung = v.id;
-          korundSeiteZeichnen();
-        }, { klasse: an ? "gewaehlt" : "" });
-        zeile.setAttribute("aria-pressed", an ? "true" : "false");
-        wahl.appendChild(zeile);
-      });
-      inhalt.appendChild(wahl);
+      inhalt.appendChild(auswahlKarten(varianten.map(function (v) {
+        return { id: v.id, name: txt("vorlage.variante." + v.id), info: vorlageTageText(v.wochentage), symbol: "raster" };
+      }), function (id) {
+        return id === plan.basis;
+      }, function (id) {
+        coachAufteilung = id;
+        korundSeiteZeichnen();
+      }));
     }
     if (plan.fehlt > 0) {
       inhalt.appendChild(element("p", "seiten-text", txt("coach.fehlt", { n: plan.fehlt })));
@@ -16347,9 +16463,9 @@
   }
 
   const RUECKBLICK_FRAGEN = [
-    { id: "schlaf", werte: ["schlecht", "okay", "gut"] },
-    { id: "energie", werte: ["muede", "normal", "stark"] },
-    { id: "menge", werte: ["wenig", "passt", "viel"] }
+    { id: "schlaf", werte: ["schlecht", "okay", "gut"], symbole: ["mondWolke", "mond", "mondStern"], farben: ["rot", "lila", "blau"] },
+    { id: "energie", werte: ["muede", "normal", "stark"], symbole: ["batterieLeer", "batterieHalb", "blitz"], farben: ["rot", "gold", "gruen"] },
+    { id: "menge", werte: ["wenig", "passt", "viel"], symbole: ["pfeilRunter", "haken", "pfeilHoch"], farben: ["tuerkis", "gruen", "orange"] }
   ];
 
   function rueckblickFragenBauen(inhalt, unten) {
@@ -16371,8 +16487,9 @@
     inhalt.appendChild(kacheln);
     RUECKBLICK_FRAGEN.forEach(function (f) {
       inhalt.appendChild(element("div", "seiten-titel rueckblick-frage", txt("rueckblick.frage." + f.id)));
-      inhalt.appendChild(seitenUmschalter(f.werte.map(function (w) {
-        return { id: w, text: txt("rueckblick." + f.id + "." + w) };
+      // Seit Version 151 als drei Kacheln mit Symbol
+      inhalt.appendChild(symbolReihe(f.werte.map(function (w, i) {
+        return { id: w, name: txt("rueckblick." + f.id + "." + w), symbol: f.symbole[i], farbe: f.farben[i] };
       }), rueckblick[f.id], function (w) {
         rueckblick[f.id] = w;
         korundSeiteZeichnen();

@@ -1076,11 +1076,17 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     let summe = { splitter: 0, kristalle: 0, tage: 0, rekorde: 0 };
     stand.familien = stand.familien || {}; const famZahl = new Set();
     Object.keys(tage).sort().forEach(t => { tage[t].familien.forEach(f => { stand.familien[f] = t; famZahl.add(f); }); });
-    Object.keys(tage).sort().forEach(t => { stand.tage[t] = tage[t]; const l = tagVerbuchen(t); if (l) { summe.splitter += l.splitter; summe.kristalle += l.kristalle; summe.tage++; if (tage[t].rekord) summe.rekorde++; } });
+    const famNeu = new Set();
+    Object.keys(tage).sort().forEach(t => { stand.tage[t] = tage[t]; const l = tagVerbuchen(t); if (l) { summe.splitter += l.splitter; summe.kristalle += l.kristalle; summe.tage++; if (tage[t].rekord) summe.rekorde++; tage[t].familien.forEach(f => famNeu.add(f)); } });
     if (leise && !summe.tage && !warDemo) return null;
     stand.demo = false; stand.demoTage = 0; merken();
     raumBauen(); kopfZeigen(true); reiter = null; reiterZeigen(); ueberZeigen();
-    feiern({ symbol: "datei", farbe: "farbe-akzent", titel: summe.tage ? summe.tage + " Trainingstage gefunden" : "Schon alles verbucht", text: summe.tage ? (warDemo ? "Dein echtes Gym ist aufgebaut. " : "") + summe.rekorde + " Tage mit Rekord, " + famZahl.size + " Übungsfamilien. Die Besucher machen deine Übungen nach." : "Neue Trainings kommen mit dem nächsten Backup dazu.", lohn: summe.tage ? { splitter: summe.splitter, kristalle: summe.kristalle } : null, danach: rufPruefen });
+    // Meldung: beim ersten Mal alle gefundenen Tage, danach nur, was neu dazugekommen ist (Einzahl und Mehrzahl richtig)
+    const n = summe.tage, r = summe.rekorde, f = famNeu.size;
+    const titel = !n ? "Schon alles verbucht" : warDemo ? (n === 1 ? "1 Trainingstag gefunden" : n + " Trainingstage gefunden") : (n === 1 ? "Neues Training verbucht" : n + " neue Trainingstage");
+    const teile = [r ? (r === 1 ? "1 Tag mit Rekord" : r + " Tage mit Rekord") : "", !f ? "" : f <= 3 ? [...famNeu].map(x => FAMILIEN[x].name).join(", ") : f + " Übungsfamilien"].filter(Boolean);
+    const text = n ? (warDemo ? "Dein echtes Gym ist aufgebaut. " : "") + (teile.length ? teile.join(" · ") + ". " : "") + "Die Besucher machen deine Übungen nach." : IN_KORUND ? "Neue Trainings aus Korund kommen von selbst dazu." : "Neue Trainings kommen mit dem nächsten Backup dazu.";
+    feiern({ symbol: IN_KORUND ? "haken" : "datei", farbe: "farbe-akzent", titel: titel, text: text, lohn: n ? { splitter: summe.splitter, kristalle: summe.kristalle } : null, danach: rufPruefen });
   }
 
   function infoBauen(obj) {
@@ -2067,7 +2073,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   function zusammenfassen(g) {
     const frei = new Set(BEWEGT.map(k => g.userData[k]).filter(Boolean)), sammel = new Map();
     g.updateMatrixWorld(true);
-    const inv = new THREE.Matrix4().copy(g.matrixWorld).invert(), m = new THREE.Matrix4(), nm = new THREE.Matrix3(), v = new THREE.Vector3();
+    const inv = new THREE.Matrix4().copy(g.matrixWorld).invert();
     (function gehe(o) {
       o.children.forEach(c => {
         if (frei.has(c) || !c.visible) return;
@@ -2075,27 +2081,35 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
         else if (!c.isLight && !c.isLine && !c.isPoints && !c.isSprite) gehe(c);
       });
     })(g);
-    sammel.forEach(liste => {
-      if (liste.length < 2) return;
-      const teile = liste.map(c => [c, c.geometry.index ? c.geometry.toNonIndexed() : c.geometry]);
-      const n = teile.reduce((a, t) => a + t[1].attributes.position.count, 0), pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2);
-      let o = 0;
-      teile.forEach(([c, geo]) => {
-        m.multiplyMatrices(inv, c.matrixWorld); nm.getNormalMatrix(m);
-        const p = geo.attributes.position, q = geo.attributes.normal, t = geo.attributes.uv;
-        for (let i = 0; i < p.count; i++, o++) {
-          v.fromBufferAttribute(p, i).applyMatrix4(m); pos[o * 3] = v.x; pos[o * 3 + 1] = v.y; pos[o * 3 + 2] = v.z;
-          if (q) { v.fromBufferAttribute(q, i).applyMatrix3(nm).normalize(); nor[o * 3] = v.x; nor[o * 3 + 1] = v.y; nor[o * 3 + 2] = v.z; }
-          if (t) { uv[o * 2] = t.getX(i); uv[o * 2 + 1] = t.getY(i); }
-        }
-        if (geo !== c.geometry) geo.dispose();
-        if (!istGeteilt(c.geometry)) c.geometry.dispose();
-        c.parent.remove(c);
-      });
-      const gg = new THREE.BufferGeometry();
-      gg.setAttribute("position", new THREE.BufferAttribute(pos, 3)); gg.setAttribute("normal", new THREE.BufferAttribute(nor, 3)); gg.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
-      const ganz = new THREE.Mesh(gg, liste[0].material); ganz.castShadow = liste[0].castShadow; ganz.receiveShadow = true; ganz.renderOrder = liste[0].renderOrder; g.add(ganz);
+    sammel.forEach(liste => { if (liste.length >= 2) g.add(verschmelzen(liste.map(c => [c, new THREE.Matrix4().multiplyMatrices(inv, c.matrixWorld)]))); });
+  }
+  // Mehrere Meshes mit gleichem Material zu einem: Lage je Teil aus der Matrix, die Teile werden entfernt
+  function verschmelzen(teile) {
+    const m = new THREE.Matrix4(), nm = new THREE.Matrix3(), v = new THREE.Vector3(), erstes = teile[0][0];
+    const geos = teile.map(([c]) => c.geometry.index ? c.geometry.toNonIndexed() : c.geometry);
+    const n = geos.reduce((a, g) => a + g.attributes.position.count, 0), pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2);
+    let o = 0;
+    teile.forEach(([c, mat], t) => {
+      const geo = geos[t]; m.copy(mat); nm.getNormalMatrix(m);
+      const p = geo.attributes.position, q = geo.attributes.normal, u = geo.attributes.uv;
+      for (let i = 0; i < p.count; i++, o++) {
+        v.fromBufferAttribute(p, i).applyMatrix4(m); pos[o * 3] = v.x; pos[o * 3 + 1] = v.y; pos[o * 3 + 2] = v.z;
+        if (q) { v.fromBufferAttribute(q, i).applyMatrix3(nm).normalize(); nor[o * 3] = v.x; nor[o * 3 + 1] = v.y; nor[o * 3 + 2] = v.z; }
+        if (u) { uv[o * 2] = u.getX(i); uv[o * 2 + 1] = u.getY(i); }
+      }
+      if (geo !== c.geometry) geo.dispose();
+      if (!istGeteilt(c.geometry)) c.geometry.dispose();
+      c.parent.remove(c);
     });
+    const gg = new THREE.BufferGeometry();
+    gg.setAttribute("position", new THREE.BufferAttribute(pos, 3)); gg.setAttribute("normal", new THREE.BufferAttribute(nor, 3)); gg.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+    const ganz = new THREE.Mesh(gg, erstes.material); ganz.castShadow = erstes.castShadow; ganz.receiveShadow = true; ganz.renderOrder = erstes.renderOrder; return ganz;
+  }
+  // Besucher: in jedem Gelenk die Teile mit gleichem Material zusammenfassen (Gelenke bewegen sich weiter einzeln)
+  function gelenkZusammenfassen(gr) {
+    const sammel = new Map();
+    gr.children.forEach(c => { if (!c.isMesh || c.children.length) return; const k = c.material.uuid + "|" + c.castShadow; if (!sammel.has(k)) sammel.set(k, []); sammel.get(k).push(c); });
+    sammel.forEach(liste => { if (liste.length < 2) return; const teile = liste.map(c => { c.updateMatrix(); return [c, c.matrix.clone()]; }); gr.add(verschmelzen(teile)); });
   }
   function itemAufbauen(it, animiert) {
     const k = KATALOG.find(x => x.key === it.key), g = new THREE.Group();
@@ -2235,6 +2249,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
       return { hue, knie, fuss };
     }
     const m = { w, becken, rumpf, kopf, aL: arm(-1), aR: arm(1), bL: bein(-1), bR: bein(1), hemd, props: [] };
+    [becken, rumpf, kopf, m.aL.sch, m.aL.ell, m.aL.hand, m.aR.sch, m.aR.ell, m.aR.hand, m.bL.hue, m.bL.knie, m.bL.fuss, m.bR.hue, m.bR.knie, m.bR.fuss].forEach(gelenkZusammenfassen);
     m.ist = neutral(); return m;
   }
   function haltungSetzen(m, p) {

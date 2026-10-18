@@ -481,6 +481,9 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   BEWEGUNG.kabelrudern.griff = s => seiten(zw([.13, .12, .22], [.12, .3, .55], s), { bezug: "rumpf", pol: [.12, -.16, -.22] });
   BEWEGUNG.schulterdruecken.griff = s => seiten(zw([.19, 1.0, .05], [.27, .64, .05], s), { bezug: "rumpf", pol: [.32, -.1, 0] });
   BEWEGUNG.dips.griff = () => seiten([.27, 1.25, .1], { pol: "hintenAussen" });
+  // Swing und Russian Twist: beide Hände eng zusammen am Griff der Kettlebell
+  BEWEGUNG.swing.griff = (s, ph) => { const x = wechsel(ph), a = 1 - x, w = 1.45 * x - .1 * a, y = .47 - .55 * Math.cos(w), z = .55 * Math.sin(w) + .04; return { bezug: "rumpf", L: [-.055, y, z], R: [.055, y, z], pol: "aussen" }; };
+  BEWEGUNG.twist.griff = () => ({ bezug: "rumpf", L: [-.05, .22, .36], R: [.05, .22, .36], pol: "unten" });
   BEWEGUNG.holzhacker.griff = s => { const p = zw([-.04, .97, 1.15], [-.52, 1.72, .98], s); return { L: [p[0] - .04, p[1] + .01, p[2]], R: [p[0] + .04, p[1] - .01, p[2]], pol: "untenAussen" }; };
   BEWEGUNG.klimmzug.griff = BEWEGUNG.knieheben.griff = () => seiten([.42, 2.22, -.1], { pol: "aussen" });
   BEWEGUNG.latzug.griff = s => seiten(zw([.42, 1.06, .04], [.42, 1.55, .12], s), { pol: "untenAussen" });

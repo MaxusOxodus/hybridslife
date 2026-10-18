@@ -856,6 +856,13 @@
 
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-routine {
   grid-column: 2;
+  /* Seit Version 153 im Raster statt absolut (style.css): so steht der Name genau in der Mitte zwischen ‹ und …,
+     das Polster links gleicht den Buchstabenabstand nach dem letzten Buchstaben aus */
+  position: static;
+  width: auto;
+  min-width: 0;
+  padding-left: 0.06em;
+  transform: none;
   text-align: center;
   font-size: 17px;
   font-weight: 700;
@@ -4905,6 +4912,13 @@
 
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-routine {
     grid-column: 2;
+    /* Seit Version 153 im Raster statt absolut (style.css): so steht der Name genau in der Mitte zwischen ‹ und …,
+       das Polster links gleicht den Buchstabenabstand nach dem letzten Buchstaben aus */
+    position: static;
+    width: auto;
+    min-width: 0;
+    padding-left: 0.06em;
+    transform: none;
     text-align: center;
     font-size: 17px;
     font-weight: 700;

@@ -397,7 +397,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
 
   // ---------- Bewegungen: Haltung je Zeitpunkt ----------
   const OS = .45, US = .43, OA = .29, UA = .27; // Ober-, Unterschenkel, Ober-, Unterarm in Metern
-  function neutral() { return { by: .95, bz: 0, wy: 0, wz: 0, wx: 0, rumpf: 0, rumpfY: 0, kopf: 0, sLx: 0, sLz: 0, sRx: 0, sRz: 0, eL: 0, eR: 0, eLz: 0, eRz: 0, sLy: 0, sRy: 0, hL: 0, hR: 0, hLz: 0, hRz: 0, kL: 0, kR: 0, fx: 0, fxL: 0, fxR: 0, schY: 0, rx: 0 }; }
+  function neutral() { return { by: .95, bz: 0, wy: 0, wz: 0, wx: 0, rumpf: 0, rumpfY: 0, kopf: 0, sLx: 0, sLz: 0, sRx: 0, sRz: 0, eL: 0, eR: 0, eLz: 0, eRz: 0, sLy: 0, sRy: 0, hL: 0, hR: 0, hLz: 0, hRz: 0, kL: 0, kR: 0, fx: 0, fxL: 0, fxR: 0, fussMit: 0, schY: 0, rx: 0 }; }
   // Stehen mit Füßen am Boden: das Becken folgt aus Hüft- und Kniewinkel
   function stehen(p, a, k, aR, kR) {
     aR = aR === undefined ? a : aR; kR = kR === undefined ? k : kR;
@@ -435,8 +435,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     beinstrecker: { name: "Beinstrecker", familie: "beinstrecker", tempo: .38, sitzen: .58, h(s) { const p = neutral(); p.hL = p.hR = 1.57; p.kL = p.kR = 1.5 - 1.38 * (1 - s); p.rumpf = -.15; return p; } },
     beincurl: { name: "Beinbeuger liegend", familie: "beincurl", tempo: .35, liegen: Math.PI / 2, h(s) { const p = neutral(); p.by = 1; p.kL = p.kR = .08 + 1.75 * (1 - s); p.kopf = -.4; p.fx = -.3; return p; } },
     waden: { name: "Wadenheben mit Kurzhanteln", familie: "waden", tempo: .5, kurz: true, h(s) { const p = stehen(neutral(), 0, 0); p.fx = .55 * (1 - s); p.by += .1 * (1 - s); p.sLz = -.1; p.sRz = .1; p.eL = p.eR = .05; return p; } },
-    abduktion: { name: "Abduktoren-Maschine", familie: "abduktion", tempo: .4, sitzen: .52, h(s) { const p = neutral(); p.hL = p.hR = 1.5; p.kL = p.kR = 1.5; p.hLz = -(.08 + .5 * (1 - s)); p.hRz = .08 + .5 * (1 - s); p.rumpf = -.12; p.sLx = p.sRx = .2; p.sLz = -.3; p.sRz = .3; p.eL = p.eR = .3; return p; } },
-    adduktion: { name: "Adduktoren-Maschine", familie: "adduktion", tempo: .4, sitzen: .52, h(s) { const p = neutral(); p.hL = p.hR = 1.5; p.kL = p.kR = 1.5; p.hLz = -(.08 + .5 * s); p.hRz = .08 + .5 * s; p.rumpf = -.12; p.sLx = p.sRx = .2; p.sLz = -.3; p.sRz = .3; p.eL = p.eR = .3; return p; } },
+    abduktion: { name: "Abduktoren-Maschine", familie: "abduktion", tempo: .4, sitzen: .52, h(s) { const p = neutral(); p.hL = p.hR = 1.5; p.kL = p.kR = 1.5; p.hLz = -(.08 + .5 * (1 - s)); p.hRz = .08 + .5 * (1 - s); p.rumpf = -.12; p.sLx = p.sRx = .2; p.sLz = -.3; p.sRz = .3; p.eL = p.eR = .3; p.fussMit = 1; return p; } },
+    adduktion: { name: "Adduktoren-Maschine", familie: "adduktion", tempo: .4, sitzen: .52, h(s) { const p = neutral(); p.hL = p.hR = 1.5; p.kL = p.kR = 1.5; p.hLz = -(.08 + .5 * s); p.hRz = .08 + .5 * s; p.rumpf = -.12; p.sLx = p.sRx = .2; p.sLz = -.3; p.sRz = .3; p.eL = p.eR = .3; p.fussMit = 1; return p; } },
     // Bankdrücken: Rücken auf der Bank, Füße flach am Boden vor dem Bankende
     bankdruecken: { name: "Bankdrücken", familie: "bankdruecken", tempo: .32, liegen: -Math.PI / 2, stange: "lang", h(s) { const p = neutral(); beinZiel(p, .9, 0, .4, -.475); p.hLz = -.2; p.hRz = .2; p.fx = Math.PI / 2; return p; } },
     schraegdruecken: { name: "Schrägbankdrücken mit Kurzhanteln", familie: "schraegdruecken", tempo: .32, liegen: -.82, kurz: true, h(s) { const p = neutral(), o = 1 - s; beinZiel(p, .9, 0, .316, -.028); p.hLz = -.22; p.hRz = .22; p.fx = .82; p.sLx = p.sRx = -.6 - 1.0 * o; p.sLz = -(1.0 - .75 * o); p.sRz = 1.0 - .75 * o; p.eL = p.eR = 1.7 * s; return p; } },
@@ -2259,6 +2259,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     [becken, rumpf, kopf, m.aL.sch, m.aL.ell, m.aL.hand, m.aR.sch, m.aR.ell, m.aR.hand, m.bL.hue, m.bL.knie, m.bL.fuss, m.bR.hue, m.bR.knie, m.bR.fuss].forEach(gelenkZusammenfassen);
     m.ist = neutral(); return m;
   }
+  const fussE = new THREE.Euler(), fussQ = new THREE.Quaternion(), fussQ2 = new THREE.Quaternion();
   function haltungSetzen(m, p) {
     m.becken.position.y = p.by; m.becken.position.z = p.bz; m.rumpf.rotation.x = p.rumpf; m.rumpf.rotation.y = p.rumpfY; m.kopf.rotation.x = p.kopf;
     m.aL.sch.position.y = m.aR.sch.position.y = .47 + p.schY;
@@ -2267,6 +2268,12 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     m.bL.hue.rotation.x = -p.hL; m.bR.hue.rotation.x = -p.hR; m.bL.hue.rotation.z = p.hLz; m.bR.hue.rotation.z = p.hRz;
     m.bL.knie.rotation.x = p.kL; m.bR.knie.rotation.x = p.kR;
     m.bL.fuss.rotation.x = p.hL - p.kL + p.fx + p.fxL; m.bR.fuss.rotation.x = p.hR - p.kR + p.fx + p.fxR;
+    // Ist das Bein seitlich abgespreizt, dreht sich der Fuß sonst mit: dann den Fuß so drehen, dass er flach nach vorn zeigt (außer er soll mitgehen, z. B. an der Abduktoren-Maschine)
+    if (!(p.fussMit > .5)) [[m.bL, p.hL, p.hLz, p.kL, p.fx + p.fxL], [m.bR, p.hR, p.hRz, p.kR, p.fx + p.fxR]].forEach(([bn, h, hz, k, f]) => {
+      if (Math.abs(hz) < .01) return;
+      fussE.set(-h, 0, hz); fussQ.setFromEuler(fussE); fussE.set(k, 0, 0); fussQ2.setFromEuler(fussE); fussQ.multiply(fussQ2).invert();
+      fussE.set(f, 0, 0); fussQ2.setFromEuler(fussE); bn.fuss.quaternion.copy(fussQ.multiply(fussQ2));
+    });
     m.w.rotation.x = p.rx;
   }
   // ---------- Hände greifen fest: Arm-Rechnung (inverse Kinematik) ----------

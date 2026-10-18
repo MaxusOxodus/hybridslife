@@ -8553,3 +8553,49 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rang-hinweis-symbol.abzeichen { background: rgba(110, 168, 255, 0.15); color: #7EB0FF; animation: korund-drehen 0.8s 0.15s cubic-bezier(0.3, 0.7, 0.2, 1.15) both; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #rang-hinweis:has(.rang-hinweis-symbol) { padding-left: 8px; }
 }
+
+
+/* ---------- Trainingsmodus etwas kleiner und dichter (seit Version 158): gleiches Design, kleinere Zahlen, Knöpfe und Abstände ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-satz { font-size: 23px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #ansicht-modus .modus-satz-zeile { margin-top: 14px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe .eingaben.zwei { gap: 10px; margin-top: 10px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe .eingaben.zwei > div { padding: 10px 8px 8px; border-radius: 20px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe .zahl-feld.gross { height: 60px; font-size: 40px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe .schnell { gap: 6px; margin-top: 4px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe .schnell button { height: 38px; min-height: 38px; border-radius: 19px; font-size: 14px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe .rir { margin-top: 10px; padding: 7px 8px 7px 14px; border-radius: 20px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe #modus-rir { padding: 2px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe #modus-rir button { height: 36px; min-height: 36px; font-size: 15px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-eingabe .w-knopf { width: 38px; height: 38px; min-width: 38px; font-size: 14px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-tabelle { margin-top: 10px; border-radius: 20px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-reihe { padding-top: 4px; padding-bottom: 4px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-saetze .satz-nummer { width: 24px; height: 24px; font-size: 12.5px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes { margin-top: 20px; padding: 12px 12px 10px; border-radius: 20px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-zeile { margin-top: 6px; padding: 5px 10px; border-radius: 14px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .letztes-wert { font-size: 15px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] #modus-letztes .satz-nummer { width: 26px; height: 26px; font-size: 13px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-notiz { margin-top: 16px; padding: 11px 14px; border-radius: 20px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .modus-notiz textarea { min-height: 42px; height: 42px; margin-top: 6px; padding: 9px 12px; font-size: 15px; }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-satz { font-size: 23px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #ansicht-modus .modus-satz-zeile { margin-top: 14px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe .eingaben.zwei { gap: 10px; margin-top: 10px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe .eingaben.zwei > div { padding: 10px 8px 8px; border-radius: 20px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe .zahl-feld.gross { height: 60px; font-size: 40px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe .schnell { gap: 6px; margin-top: 4px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe .schnell button { height: 38px; min-height: 38px; border-radius: 19px; font-size: 14px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe .rir { margin-top: 10px; padding: 7px 8px 7px 14px; border-radius: 20px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe #modus-rir { padding: 2px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe #modus-rir button { height: 36px; min-height: 36px; font-size: 15px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-eingabe .w-knopf { width: 38px; height: 38px; min-width: 38px; font-size: 14px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-tabelle { margin-top: 10px; border-radius: 20px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-reihe { padding-top: 4px; padding-bottom: 4px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-saetze .satz-nummer { width: 24px; height: 24px; font-size: 12.5px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes { margin-top: 20px; padding: 12px 12px 10px; border-radius: 20px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-zeile { margin-top: 6px; padding: 5px 10px; border-radius: 14px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .letztes-wert { font-size: 15px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #modus-letztes .satz-nummer { width: 26px; height: 26px; font-size: 13px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-notiz { margin-top: 16px; padding: 11px 14px; border-radius: 20px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .modus-notiz textarea { min-height: 42px; height: 42px; margin-top: 6px; padding: 9px 12px; font-size: 15px; }
+}

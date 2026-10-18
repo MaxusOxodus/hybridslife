@@ -5189,7 +5189,15 @@
         chip.classList.add("steigt");
         chip.textContent = "↑ " + chip.textContent;
       }
+      // Entlastungswoche (seit Version 151): Pfeil nach unten vor dem leichteren Gewicht
+      if (v.art === "entlastung") {
+        chip.textContent = "↓ " + chip.textContent;
+      }
       behaelter.appendChild(chip);
+    }
+    // Entlastungswoche (seit Version 151): ein eigener Chip, damit man im Look Korund sieht, warum es leichter ist
+    if (u.entlastung) {
+      behaelter.appendChild(element("span", "modus-chip", txt("chip.entlastung", { n: entlastungRestTage() })));
     }
   }
 

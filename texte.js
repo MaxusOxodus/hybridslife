@@ -1327,6 +1327,7 @@ const TEXTE = {
   "entlastung.text": { de: "Deine Routinen bleiben, wie sie sind. Korund schlägt im Training nur leichtere Werte vor. Serie und Konstanz zählen normal.", en: "Your routines stay as they are. Korund only suggests lighter values during workouts. Streak and consistency count as usual." },
   "entlastung.starten": { de: "Starten", en: "Start" },
   "entlastung.beenden": { de: "Vorzeitig beenden", en: "End early" },
+  "chip.entlastung": { de: "Entlastung · noch {n} T.", en: "Deload · {n} d left" },
   "modus.entlastung": { de: "Entlastungswoche · noch {n} Tage: leichteres Gewicht, halb so viele Sätze.", en: "Deload week · {n} days left: lighter weight, half the sets." },
   "stillstand.titel": { de: "Stillstand", en: "Plateau" },
   "stillstand.karteEins": { de: "Stillstand bei {name}", en: "Plateau on {name}" },

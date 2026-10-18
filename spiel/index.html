@@ -1036,9 +1036,9 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     const g = grp || (f ? FAMILIEN[f].gruppen[0] : null);
     return { familie: f, partie: g ? PARTIE_VON[g] : null };
   }
-  function importieren(daten) {
+  function importieren(daten, leise) {
     const eintraege = Array.isArray(daten) ? daten : daten && daten.eintraege;
-    if (!Array.isArray(eintraege) || !eintraege.length) return toast("Keine Trainings", "In der Datei sind keine Einträge");
+    if (!Array.isArray(eintraege) || !eintraege.length) return leise ? null : toast("Keine Trainings", "In der Datei sind keine Einträge");
     const tage = {}, best = {};
     eintraege.slice().sort((a, b) => String(a.datum).localeCompare(String(b.datum))).forEach(e => {
       const d = new Date(e.datum); if (isNaN(d)) return; const t = iso(d);
@@ -1057,6 +1057,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     stand.familien = stand.familien || {}; const famZahl = new Set();
     Object.keys(tage).sort().forEach(t => { tage[t].familien.forEach(f => { stand.familien[f] = t; famZahl.add(f); }); });
     Object.keys(tage).sort().forEach(t => { stand.tage[t] = tage[t]; const l = tagVerbuchen(t); if (l) { summe.splitter += l.splitter; summe.kristalle += l.kristalle; summe.tage++; if (tage[t].rekord) summe.rekorde++; } });
+    if (leise && !summe.tage && !warDemo) return null;
     stand.demo = false; stand.demoTage = 0; merken();
     raumBauen(); kopfZeigen(true); reiter = null; reiterZeigen(); ueberZeigen();
     feiern({ symbol: "datei", farbe: "farbe-akzent", titel: summe.tage ? summe.tage + " Trainingstage gefunden" : "Schon alles verbucht", text: summe.tage ? (warDemo ? "Dein echtes Gym ist aufgebaut. " : "") + summe.rekorde + " Tage mit Rekord, " + famZahl.size + " Übungsfamilien. Die Besucher machen deine Übungen nach." : "Neue Trainings kommen mit dem nächsten Backup dazu.", lohn: summe.tage ? { splitter: summe.splitter, kristalle: summe.kristalle } : null, danach: rufPruefen });
@@ -2537,6 +2538,10 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   window.__gym = { alleUeben, blick, kameraAnpassen, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), zustaende: () => objekte.map(o => [o.userData.item.key, o.userData.zustand, !!o.userData.halo, o.userData.halo && o.userData.halo.material.opacity]), stand: () => stand, eintragen: (g, r) => trainingEintragen(heute(), g, r, null), importieren: importieren, neuBauen: () => { raumBauen(false); kopfZeigen(); ueberZeigen(); }, phase: v => { testPhase = v; }, fokus: () => { const v = new THREE.Vector3(); besucher[0].m.becken.getWorldPosition(v); v.y = Math.max(.5, v.y); blick.fokus = v; },
     haende: () => { const b = besucher[0], o = b.ziel, r = {}; [["L", b.m.aL], ["R", b.m.aR]].forEach(([k, arm]) => { const v = new THREE.Vector3(); arm.hand.getWorldPosition(v); o.worldToLocal(v); r[k] = [v.x, v.y, v.z].map(x => +x.toFixed(3)); arm.sch.getWorldPosition(v); o.worldToLocal(v); r["S" + k] = [v.x, v.y, v.z].map(x => +x.toFixed(3)); }); r.ik = b.m.ik; r.griff = !!BEWEGUNG[b.anker.b].griff; return r; },
     ansicht: art => { const f = besucher[0].m.w.rotation.y; window.__gym.fokus(); blick.winkel = blick.ziel = art === "seite" ? f + Math.PI / 4 + .5 : art === "vorn" ? f - Math.PI / 4 : -.5; blick.neigung = blick.neigungZiel = art === "iso" ? .7 : .18; kameraAnpassen(true); kamera.near = art === "iso" ? 1 : 37.6; kamera.updateProjectionMatrix(); } };
+  // In Korund (gleiche Adresse): die Trainings der App direkt lesen, nur lesen, nie schreiben
+  function appAbgleich() { try { const e = JSON.parse(localStorage.getItem("eintraege") || "null"); if (Array.isArray(e) && e.length) importieren(e, true); } catch (err) {} }
+  window.__gymSync = appAbgleich;
+  appAbgleich();
   requestAnimationFrame(bild);
 })();
 </script>

@@ -68,11 +68,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=160">
+  <link rel="stylesheet" href="style.css?v=161">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=160">
+  <link rel="stylesheet" href="glass.css?v=161">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=160">
+  <link rel="stylesheet" href="korund.css?v=161">
 </head>
 <body>
 
@@ -516,8 +516,8 @@
   <!-- Seite: Gym -->
   <section id="seite-gym" class="seite">
     <h1 data-t="nav.gym">Gym</h1>
-    <p class="unterzeile" data-t="gym.unterzeile">Bau dir dein eigenes Gym</p>
-    <div class="karte kommt-bald" data-t="kommtBald">Kommt bald</div>
+    <!-- Das Gym-Spiel (spiel/index.html) läuft hier in einem eigenen Fenster, die app.js lädt es beim ersten Öffnen -->
+    <iframe id="gym-spiel" title="Korund Gym"></iframe>
   </section>
 
   <!-- Seite: Profil. Karte, Raster und Reiter füllt die app.js. -->
@@ -588,7 +588,7 @@
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20v-6M12 20V5M18 20v-10"/></svg></span>
       <span data-t="nav.fortschritt">Fortschritt</span>
     </button>
-    <button id="nav-gym" class="nav-btn" data-platzhalter onclick="seiteZeigen('gym')">
+    <button id="nav-gym" class="nav-btn" onclick="seiteZeigen('gym')">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V5h14v15M9 9h2M13 9h2M9 13h2M13 13h2M10 20v-3h4v3"/></svg></span>
       <span data-t="nav.gym">Gym</span>
     </button>
@@ -1271,9 +1271,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=160"></script>
-<script src="uebungen.js?v=160"></script>
-<script src="erklaerungen.js?v=160"></script>
+<script src="texte.js?v=161"></script>
+<script src="uebungen.js?v=161"></script>
+<script src="erklaerungen.js?v=161"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1295,15 +1295,15 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=160"></script>
-<script src="bilder.js?v=160"></script>
-<script src="vorlagen.js?v=160"></script>
-<script src="figuren.js?v=160"></script>
+<script src="raenge.js?v=161"></script>
+<script src="bilder.js?v=161"></script>
+<script src="vorlagen.js?v=161"></script>
+<script src="figuren.js?v=161"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
 <!-- Supabase für das Cloud-Backup (seit Version 146). Die Version steht im Dateinamen, deshalb ohne ?v=N -->
 <script src="supabase-2.117.2.js"></script>
-<script src="app.js?v=160"></script>
+<script src="app.js?v=161"></script>
 
 </body>
 </html>

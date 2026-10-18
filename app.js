@@ -1201,6 +1201,10 @@
       einfuehrungAnbieten("fortschritt");
     }
 
+    if (name === "gym") {
+      gymSpielZeigen();
+    }
+
     if (name === "profil") {
       profilAnzeigen();
       // Beim ersten Öffnen bietet die Einführung an, den Bereich kurz zu zeigen (einfuehrung.js)
@@ -17656,6 +17660,21 @@
     if (adresse !== "") {
       zeile.href = adresse;
     }
+  }
+
+  // Gym-Tab: lädt das Spiel beim ersten Öffnen und gleicht danach die Trainings ab (das Spiel liest die Einträge nur)
+  function gymSpielZeigen() {
+    const fenster = document.getElementById("gym-spiel");
+    fenster.style.setProperty("--gym-unten", document.getElementById("navigation").offsetHeight + "px");
+    if (!fenster.getAttribute("src")) {
+      fenster.setAttribute("src", "spiel/index.html?v=" + appVersion());
+      return;
+    }
+    try {
+      if (fenster.contentWindow && fenster.contentWindow.__gymSync) {
+        fenster.contentWindow.__gymSync();
+      }
+    } catch (fehler) {}
   }
 
   // Blendet alle Platzhalter aus, solange SHOW_PLATZHALTER auf false steht

@@ -282,6 +282,24 @@ h1 {
   background: var(--karte);
 }
 
+/* Gym-Tab (seit Version 161): das Spiel füllt den Bildschirm über der Tab-Leiste, die Unterkante setzt gymSpielZeigen in der app.js */
+#seite-gym h1 {
+  display: none;
+}
+#gym-spiel {
+  position: fixed;
+  top: env(safe-area-inset-top);
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 480px;
+  height: calc(100vh - env(safe-area-inset-top) - var(--gym-unten, 70px));
+  height: calc(100dvh - env(safe-area-inset-top) - var(--gym-unten, 70px));
+  margin: 0 auto;
+  border: 0;
+  background: #000;
+}
+
 .kommt-bald {
   color: var(--text-leise);
   font-weight: 600;

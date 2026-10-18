@@ -8354,3 +8354,31 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-karte { transition: transform 0.16s ease; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-karte:active { transform: scale(0.98); }
 }
+
+
+/* ---------- Wochenbericht und Daumen (seit Version 154) ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .rueckblick-kachel b.rekord { color: #F5C04A; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochenbericht-karte .rueckblick-symbol { background: rgba(245, 192, 74, 0.15); color: #F5C04A; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .wochenbericht-empfehlung { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; padding: 16px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-daumen { display: flex; align-items: center; gap: 10px; margin: 14px 2px 4px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-daumen > .seiten-klein { flex: 1; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-daumen-knopf { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; background: rgba(var(--fw-glas-rgb), 0.55); color: var(--text-leise); cursor: pointer; transition: transform 0.16s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; -webkit-tap-highlight-color: transparent; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-daumen-knopf svg { width: 20px; height: 20px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-daumen-knopf:active { transform: scale(0.9); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-daumen-knopf.hoch[aria-pressed="true"] { border-color: rgba(80, 214, 143, 0.6); background: rgba(80, 214, 143, 0.15); color: #5FD68F; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-daumen-knopf.runter[aria-pressed="true"] { border-color: rgba(255, 112, 112, 0.6); background: rgba(255, 112, 112, 0.15); color: #FF8A80; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .coach-daumen-knopf[aria-pressed="true"] svg { animation: korund-pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .rueckblick-kachel b.rekord { color: #F5C04A; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochenbericht-karte .rueckblick-symbol { background: rgba(245, 192, 74, 0.15); color: #F5C04A; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .wochenbericht-empfehlung { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; padding: 16px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen { display: flex; align-items: center; gap: 10px; margin: 14px 2px 4px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen > .seiten-klein { flex: 1; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen-knopf { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; background: rgba(var(--fw-glas-rgb), 0.55); color: var(--text-leise); cursor: pointer; transition: transform 0.16s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; -webkit-tap-highlight-color: transparent; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen-knopf svg { width: 20px; height: 20px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen-knopf:active { transform: scale(0.9); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen-knopf.hoch[aria-pressed="true"] { border-color: rgba(80, 214, 143, 0.6); background: rgba(80, 214, 143, 0.15); color: #5FD68F; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen-knopf.runter[aria-pressed="true"] { border-color: rgba(255, 112, 112, 0.6); background: rgba(255, 112, 112, 0.15); color: #FF8A80; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .coach-daumen-knopf[aria-pressed="true"] svg { animation: korund-pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+}

@@ -7021,6 +7021,8 @@
     document.getElementById("home-datum").textContent = new Date().toLocaleDateString(gebiet(), { weekday: "long", day: "numeric", month: "long" });
     homeSerieAnzeigen();
     homeHeuteAnzeigen();
+    // Look Korund (seit Version 154): der Wochenbericht des Coachs oben auf Home, einmal pro Woche
+    wochenberichtKarteAnzeigen(document.getElementById("home-heute"));
     homeWocheAnzeigen();
     homeLetztesAnzeigen();
     homeGewichtAnzeigen();
@@ -15568,6 +15570,12 @@
   const COACH_AUFTEILUNG_ANFAENGER = { 3: "3-ganzkoerper" };
   const COACH_AUFTEILUNG_ARME = { 5: "5-brust-ruecken" };
 
+  // Gedächtnis des Coachs (seit Version 154): so viele Entscheidungen und Daumen bleiben, und diese Arten von Entscheidungen.
+  // Sie stehen hier, weil coachBereinigen gleich beim Start läuft.
+  const COACH_MAX_ENTSCHEIDUNGEN = 200;
+  const COACH_MAX_BEWERTUNGEN = 200;
+  const COACH_ENTSCHEIDUNG_ARTEN = ["plan", "entlastung", "stillstand", "wochenbericht"];
+
   // Die gespeicherten Antworten, siehe coachBereinigen
   let coach = coachBereinigen(gespeichertLesen("coach", {}));
 
@@ -15601,6 +15609,24 @@
     }
     if (c.rueckblick && coachZahl(c.rueckblick.am)) {
       sauber.rueckblick = { am: c.rueckblick.am, energie: String(c.rueckblick.energie || ""), menge: String(c.rueckblick.menge || "") };
+    }
+    // Seit Version 154: Gedächtnis (Entscheidungen, Daumen) und die Woche des zuletzt gesehenen Wochenberichts
+    if (Array.isArray(c.entscheidungen)) {
+      sauber.entscheidungen = c.entscheidungen.filter(function (x) {
+        return x && coachZahl(x.am) && COACH_ENTSCHEIDUNG_ARTEN.indexOf(x.art) !== -1;
+      }).map(function (x) {
+        return { am: x.am, art: x.art, angenommen: Boolean(x.angenommen), info: String(x.info || "").slice(0, 60) };
+      }).slice(-COACH_MAX_ENTSCHEIDUNGEN);
+    }
+    if (Array.isArray(c.bewertungen)) {
+      sauber.bewertungen = c.bewertungen.filter(function (x) {
+        return x && coachZahl(x.am) && typeof x.art === "string" && typeof x.schluessel === "string";
+      }).map(function (x) {
+        return { am: x.am, art: x.art.slice(0, 20), schluessel: x.schluessel.slice(0, 40), gut: Boolean(x.gut) };
+      }).slice(-COACH_MAX_BEWERTUNGEN);
+    }
+    if (coachZahl(c.wochenbericht)) {
+      sauber.wochenbericht = c.wochenbericht;
     }
     if (c.ausgeblendet && typeof c.ausgeblendet === "object") {
       const aus = {};
@@ -15813,7 +15839,10 @@
     blitz: '<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/>',
     pfeilRunter: '<path d="M12 5v14M6 13l6 6 6-6"/>',
     haken: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
-    pfeilHoch: '<path d="M12 19V5M6 11l6-6 6 6"/>'
+    pfeilHoch: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+    pokal: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
+    daumenHoch: '<path d="M7 11v9H4v-9h3z"/><path d="M7 11l4-7a2 2 0 0 1 3 2l-1 4h5a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 16.8 20H7"/>',
+    daumenRunter: '<path d="M7 13V4H4v9h3z"/><path d="M7 13l4 7a2 2 0 0 0 3-2l-1-4h5a2 2 0 0 0 2-2.3l-1.2-6A2 2 0 0 0 16.8 4H7"/>'
   };
 
   function symbolSvg(name) {
@@ -16065,6 +16094,7 @@
       coachPlanZeigen(plan);
     }));
     unten.appendChild(seitenKnopf(txt("coach.uebernehmen"), true, function () {
+      coachEntscheidung("plan", true, plan.basis);
       coachPlanZeigen(plan);
       vorlageUebernehmen();
     }));
@@ -16203,6 +16233,7 @@
   }
 
   function coachAusblenden(art) {
+    coachEntscheidung(art, art === "stillstand", "");
     coach.ausgeblendet = Object.assign({}, coach.ausgeblendet, { [art]: Date.now() });
     coachSpeichern();
     korundSeitenSchliessen();
@@ -16210,6 +16241,7 @@
   }
 
   function entlastungStarten() {
+    coachEntscheidung("entlastung", true, "");
     const heute = new Date();
     const von = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate()).getTime();
     coach.entlastung = { von: von, bis: von + ENTLASTUNG_DAUER_TAGE * TAG_MS };
@@ -16299,6 +16331,9 @@
         liste.appendChild(seitenZeile(txt("entlastung.regel.dauer"), txt("entlastung.regel.tage", { n: ENTLASTUNG_DAUER_TAGE }), null, { leise: true }));
         inhalt.appendChild(liste);
         inhalt.appendChild(element("p", "seiten-text", txt("entlastung.text")));
+        if (!entlastungAktiv()) {
+          inhalt.appendChild(coachDaumen("entlastung", grund || ""));
+        }
         if (entlastungAktiv()) {
           unten.appendChild(seitenKnopf(txt("entlastung.beenden"), false, entlastungBeenden));
         } else {
@@ -16327,11 +16362,179 @@
           tipps.appendChild(seitenZeile(txt("stillstand.tipp." + t), undefined, null));
         });
         inhalt.appendChild(tipps);
+        inhalt.appendChild(coachDaumen("stillstand", stillstaende.map(function (s) {
+          return s.id || s.name;
+        }).join(",").slice(0, 40)));
         unten.appendChild(seitenKnopf(txt("coach.verstanden"), true, function () {
           coachAusblenden("stillstand");
         }));
       }
     });
+  }
+
+  // ---------- Coach (seit Version 154): Wochenbericht, Rückmeldung und Gedächtnis ----------
+  // Wochenbericht: ab Montag einmal pro Woche auf Home (Look Korund), nur wenn letzte Woche trainiert wurde.
+  // Gedächtnis im Schlüssel "coach": entscheidungen (was angenommen oder abgelehnt wurde), bewertungen (Daumen),
+  // wochenbericht (die Woche, deren Bericht schon gesehen ist, als Montag in ms).
+
+  // Merkt sich eine Entscheidung: art aus COACH_ENTSCHEIDUNG_ARTEN, angenommen ja oder nein, info ein kurzer Text (z. B. die Aufteilung)
+  function coachEntscheidung(art, angenommen, info) {
+    const liste = (coach.entscheidungen || []).concat([{ am: Date.now(), art: art, angenommen: Boolean(angenommen), info: String(info || "").slice(0, 60) }]);
+    coach.entscheidungen = liste.slice(-COACH_MAX_ENTSCHEIDUNGEN);
+    coachSpeichern();
+  }
+
+  // Daumen hoch (gut = true) oder runter zu einer Empfehlung. Pro Empfehlung zählt nur die letzte Wahl.
+  function coachBewerten(art, schluessel, gut) {
+    const liste = (coach.bewertungen || []).filter(function (b) {
+      return !(b.art === art && b.schluessel === schluessel);
+    });
+    liste.push({ am: Date.now(), art: art, schluessel: String(schluessel).slice(0, 40), gut: Boolean(gut) });
+    coach.bewertungen = liste.slice(-COACH_MAX_BEWERTUNGEN);
+    coachSpeichern();
+  }
+
+  function coachBewertung(art, schluessel) {
+    const treffer = (coach.bewertungen || []).filter(function (b) {
+      return b.art === art && b.schluessel === schluessel;
+    });
+    return treffer.length > 0 ? treffer[treffer.length - 1].gut : null;
+  }
+
+  // Zwei Daumen „War das hilfreich?“ unter einer Empfehlung
+  function coachDaumen(art, schluessel) {
+    const zeile = element("div", "coach-daumen");
+    zeile.appendChild(element("span", "seiten-klein", txt("coach.hilfreich")));
+    const jetzt = coachBewertung(art, schluessel);
+    [[true, "daumenHoch"], [false, "daumenRunter"]].forEach(function (d) {
+      const knopf = element("button", "coach-daumen-knopf" + (d[0] ? " hoch" : " runter"));
+      knopf.type = "button";
+      knopf.setAttribute("aria-pressed", jetzt === d[0] ? "true" : "false");
+      knopf.setAttribute("aria-label", txt(d[0] ? "coach.daumenHoch" : "coach.daumenRunter"));
+      knopf.innerHTML = symbolSvg(d[1]);
+      knopf.onclick = function () {
+        coachBewerten(art, schluessel, d[0]);
+        zeile.querySelectorAll(".coach-daumen-knopf").forEach(function (k) {
+          k.setAttribute("aria-pressed", k === knopf ? "true" : "false");
+        });
+      };
+      zeile.appendChild(knopf);
+    });
+    return zeile;
+  }
+
+  // Die Zahlen der letzten Woche für den Bericht: Trainings, Volumen (mit Vergleich zur Woche davor), Rekorde
+  function wochenberichtDaten(heute) {
+    const montag = montagDerWoche(new Date(heute));
+    const letzte = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7);
+    const davor = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 14);
+    const tage = trainingstage();
+    const zahlen = wochenZahlen(tage, letzte);
+    const vorher = wochenZahlen(tage, davor);
+    const listen = trainierteUebungen().map(function (u) {
+      return verlaufPunkte(u.name, u.id, "rang");
+    });
+    const rekordeWoche = rekorde(listen).filter(function (r) {
+      return r.zeit >= letzte.getTime() && r.zeit < montag.getTime();
+    }).length;
+    return {
+      woche: letzte.getTime(),
+      workouts: zahlen.workouts,
+      ziel: coach.tage || WOCHEN_ZIELE.workouts,
+      volumen: zahlen.volumen,
+      veraenderung: vorher.volumen > 0 ? zahlen.volumen / vorher.volumen - 1 : null,
+      rekorde: rekordeWoche
+    };
+  }
+
+  // Die eine Empfehlung der Woche nach fester Reihenfolge: Entlastung > Stillstand > zu wenig trainiert > weiter so
+  function wochenberichtEmpfehlung(daten, heute) {
+    const stillstaende = coachStillstaende(heute);
+    if (entlastungAktiv()) {
+      return { art: "entlastungLaeuft", n: entlastungRestTage() };
+    }
+    const grund = entlastungGrund(heute, stillstaende);
+    if (grund) {
+      return { art: "entlastung", grund: grund };
+    }
+    if (stillstaende.length > 0) {
+      return { art: "stillstand", n: stillstaende.length, name: anzeigeName(stillstaende[0].name, stillstaende[0].id) };
+    }
+    if (daten.workouts < daten.ziel) {
+      return { art: "mehr", n: daten.ziel - daten.workouts };
+    }
+    return { art: "weiter" };
+  }
+
+  // Die Karte auf Home (nur Look Korund): einmal pro Woche ab Montag, nur nach einer Woche mit Training
+  function wochenberichtKarteAnzeigen(bereich) {
+    if (!lookKorund() || laufendesTraining) {
+      return;
+    }
+    const daten = wochenberichtDaten(Date.now());
+    if (daten.workouts === 0 || coach.wochenbericht === daten.woche) {
+      return;
+    }
+    const karte = element("button", "karte seiten-karte rueckblick-karte coach-hinweis wochenbericht-karte");
+    karte.type = "button";
+    const zeichen = element("span", "rueckblick-symbol");
+    zeichen.innerHTML = symbolSvg("pokal");
+    karte.appendChild(zeichen);
+    const stapel = element("span", "seiten-stapel");
+    stapel.appendChild(element("span", "seiten-titel", txt("wochenbericht.karte")));
+    stapel.appendChild(element("span", "seiten-klein", txt("wochenbericht.karteText", { n: daten.workouts, ziel: daten.ziel })));
+    karte.appendChild(stapel);
+    karte.appendChild(element("span", "seiten-pfeil", "›"));
+    karte.onclick = function () {
+      wochenberichtOeffnen(daten);
+    };
+    bereich.insertBefore(karte, bereich.firstChild);
+  }
+
+  function wochenberichtOeffnen(daten) {
+    const empfehlung = wochenberichtEmpfehlung(daten, Date.now());
+    korundSeiteOeffnen({
+      titel: txt("wochenbericht.titel"),
+      schliessen: true,
+      bauen: function (inhalt, unten) {
+        inhalt.appendChild(element("div", "seiten-gross", txt(daten.workouts >= daten.ziel ? "wochenbericht.geschafft" : "wochenbericht.gut")));
+        const kacheln = element("div", "rueckblick-kacheln");
+        const kachel = function (wert, titel, klasse) {
+          const k = element("div", "karte rueckblick-kachel");
+          k.appendChild(element("b", klasse, wert));
+          k.appendChild(element("span", "seiten-klein", titel));
+          kacheln.appendChild(k);
+        };
+        kachel(daten.workouts + " / " + daten.ziel, txt("rueckblick.trainings"), daten.workouts >= daten.ziel ? "plus" : "metall");
+        kachel(daten.veraenderung === null ? volumenText(daten.volumen) : prozentText(daten.veraenderung), txt("wochenbericht.volumen"), daten.veraenderung !== null && daten.veraenderung > 0 ? "plus" : "metall");
+        kachel(String(daten.rekorde), txt("wochenbericht.rekorde"), daten.rekorde > 0 ? "rekord" : "metall");
+        inhalt.appendChild(kacheln);
+        inhalt.appendChild(seitenLabel(txt("wochenbericht.empfehlung")));
+        const karte = element("div", "karte seiten-karte wochenbericht-empfehlung");
+        karte.appendChild(element("div", "seiten-titel", txt("wochenbericht.e." + empfehlung.art, empfehlung)));
+        karte.appendChild(element("div", "seiten-klein", txt("wochenbericht.e." + empfehlung.art + ".text", empfehlung)));
+        inhalt.appendChild(karte);
+        inhalt.appendChild(coachDaumen("wochenbericht", daten.woche + ":" + empfehlung.art));
+        if (empfehlung.art === "entlastung") {
+          unten.appendChild(seitenKnopf(txt("entlastung.ansehen"), false, function () {
+            wochenberichtGesehen(daten, false);
+            entlastungSeiteOeffnen(empfehlung.grund, coachStillstaende(Date.now()));
+          }));
+        }
+        unten.appendChild(seitenKnopf(txt("fertig.knopf"), true, function () {
+          wochenberichtGesehen(daten, true);
+          korundSeitenSchliessen();
+        }));
+      }
+    });
+  }
+
+  function wochenberichtGesehen(daten, schliessen) {
+    coach.wochenbericht = daten.woche;
+    coachEntscheidung("wochenbericht", true, "");
+    if (schliessen) {
+      homeAnzeigen();
+    }
   }
 
   // ---------- Ruhetag im Training-Tab ----------

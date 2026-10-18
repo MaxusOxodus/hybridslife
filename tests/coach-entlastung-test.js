@@ -36,7 +36,7 @@ const HEUTE = new Date(2026, 9, 18, 12).getTime();
 const KONSTANTEN = ["STILLSTAND_FENSTER_TAGE", "STILLSTAND_MIN_EINHEITEN", "STILLSTAND_LETZTE", "STILLSTAND_MIN_TAGE",
   "ENTLASTUNG_STILLSTAENDE", "ENTLASTUNG_ABFALL", "ENTLASTUNG_ABFALL_UEBUNGEN", "ENTLASTUNG_ABSTAND_TAGE",
   "ENTLASTUNG_RUECKBLICK_TAGE", "ENTLASTUNG_GEWICHT", "COACH_ZIELE", "COACH_TAGE", "COACH_MINUTEN", "COACH_ERFAHRUNG",
-  "COACH_SCHWERPUNKTE", "COACH_MAX_SCHWERPUNKT"];
+  "COACH_SCHWERPUNKTE", "COACH_MAX_SCHWERPUNKT", "COACH_MAX_ENTSCHEIDUNGEN", "COACH_MAX_BEWERTUNGEN", "COACH_ENTSCHEIDUNG_ARTEN"];
 const f = new Function("const TAG_MS = " + TAG + "; let uebungen = []; let coach = {}; let blockStart = 0;"
   + "const Date = globalThis.Date;"
   + "function trainierteUebungen() { return uebungen.map(function (u) { return { name: u.name, id: u.name }; }); }"
@@ -107,6 +107,15 @@ pruefe("Bereinigen: kaputte letzteEntlastung fällt weg", !("letzteEntlastung" i
 pruefe("Bereinigen: Rückblick bleibt", b.rueckblick && b.rueckblick.energie === "muede");
 pruefe("Bereinigen: nur bekannte Karten ausgeblendet", JSON.stringify(Object.keys(b.ausgeblendet)) === '["entlastung"]');
 pruefe("Bereinigen: Entlastung mit bis vor von fällt weg", !("entlastung" in f.coachBereinigen({ entlastung: { von: HEUTE, bis: HEUTE - 1 } })));
+
+// Gedächtnis (seit Version 154)
+const g = f.coachBereinigen({ entscheidungen: [{ am: HEUTE, art: "plan", angenommen: 1, info: "x".repeat(80) }, { am: HEUTE, art: "quatsch" }, { am: "x", art: "plan" }],
+  bewertungen: [{ am: HEUTE, art: "wochenbericht", schluessel: "1:mehr", gut: 0 }, { am: HEUTE, art: 5 }], wochenbericht: HEUTE });
+pruefe("Gedächtnis: nur gültige Entscheidungen, Info gekürzt", g.entscheidungen.length === 1 && g.entscheidungen[0].angenommen === true && g.entscheidungen[0].info.length === 60);
+pruefe("Gedächtnis: nur gültige Bewertungen", g.bewertungen.length === 1 && g.bewertungen[0].gut === false);
+pruefe("Gedächtnis: Woche des Berichts bleibt", g.wochenbericht === HEUTE);
+const viele = f.coachBereinigen({ entscheidungen: Array.from({ length: 250 }, (_, i) => ({ am: HEUTE + i, art: "plan" })) });
+pruefe("Gedächtnis: höchstens 200 Entscheidungen, die neuesten", viele.entscheidungen.length === 200 && viele.entscheidungen[199].am === HEUTE + 249);
 
 // Training und Texte
 const beginnen = funktionHolen("trainingBeginnen");

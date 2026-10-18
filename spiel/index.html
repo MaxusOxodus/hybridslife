@@ -463,7 +463,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     // Crunch: Rücken auf der Matte, Knie hoch, Füße flach am Boden, Hände am Kopf
     crunch: { name: "Crunches", familie: "bauch", tempo: .38, liegen: -Math.PI / 2, h(s) { s = 1 - s; const p = neutral(); beinZiel(p, .9, 0, .45, -.08); p.fx = Math.PI / 2; p.rumpf = .6 * s; p.kopf = .25 * s; return p; } },
     twist: { name: "Russian Twist", familie: "rotation", tempo: .3, stange: "kugel", h(s, t, satz, ph) { const p = neutral(); p.by = .13; beinZiel(p, .08, 0, .08, .5); p.rumpf = -.55; p.rumpfY = Math.sin(ph * Math.PI * 2) * .65; p.sLx = p.sRx = -1.05; p.eL = p.eR = .9; p.sLz = .25; p.sRz = -.25; return p; } },
-    holzhacker: { name: "Holzhacker am Kabel", familie: "rotation", tempo: .32, seile: "rolleL", h(s) { s = 1 - s; const p = stehen(neutral(), .2, .3); p.rumpfY = .75 - 1.4 * s; p.rumpf = .2 * s; p.sLx = p.sRx = -(2.4 - 1.5 * s); p.sLz = -.55 + .4 * s; p.sRz = .2 + .3 * s; p.eL = p.eR = .3; return p; } },
+    // Holzhacker von oben: beide Hände an einem Griff, oben zur Rolle am linken Turm gedreht, diagonal nach unten zur anderen Hüfte
+    holzhacker: { name: "Holzhacker am Kabel", familie: "rotation", tempo: .32, seile: "obenL", h(s) { const p = stehen(neutral(), .18, .28); p.rumpfY = -.7 * s + .55 * (1 - s); p.rumpf = .22 * (1 - s); p.kopf = .1 * (1 - s); return p; } },
     swing: { name: "Kettlebell-Swings", familie: "ganzkoerper", tempo: .45, stange: "kugel", h(s, t, satz, ph) { const x = wechsel(ph), a = 1 - x, p = stehen(neutral(), .45 * a, .55 * a); p.rumpf = .95 * a; p.kopf = -.5 * a; p.sLx = p.sRx = -(1.45 * x) + .1 * a; p.sLz = .12; p.sRz = -.12; return p; }, eigenesTempo: true },
     gehen: { tempo: .9, h(s, t) { const w = Math.sin(t * 5.6), p = neutral(); p.hL = .42 * w; p.hR = -.42 * w; p.kL = Math.max(0, -w) * .7 + .05; p.kR = Math.max(0, w) * .7 + .05; p.by = 1 - Math.abs(w) * .02; p.sLx = -.35 * w; p.sRx = .35 * w; p.eL = p.eR = .3; p.sLz = -.06; p.sRz = .06; return p; } },
     stehen: { tempo: .2, h(s) { const p = neutral(); p.by = 1; p.rumpf = .02 * s; p.sLz = -.08; p.sRz = .08; p.eL = p.eR = .15; return p; } },
@@ -480,6 +481,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   BEWEGUNG.kabelrudern.griff = s => seiten(zw([.13, .12, .22], [.12, .3, .55], s), { bezug: "rumpf", pol: [.12, -.16, -.22] });
   BEWEGUNG.schulterdruecken.griff = s => seiten(zw([.19, 1.0, .05], [.27, .64, .05], s), { bezug: "rumpf", pol: [.32, -.1, 0] });
   BEWEGUNG.dips.griff = () => seiten([.27, 1.25, .1], { pol: "hintenAussen" });
+  BEWEGUNG.holzhacker.griff = s => { const p = zw([-.04, .97, 1.15], [-.52, 1.72, .98], s); return { L: [p[0] - .04, p[1] + .01, p[2]], R: [p[0] + .04, p[1] - .01, p[2]], pol: "untenAussen" }; };
   BEWEGUNG.klimmzug.griff = BEWEGUNG.knieheben.griff = () => seiten([.42, 2.22, -.1], { pol: "aussen" });
   BEWEGUNG.latzug.griff = s => seiten(zw([.42, 1.06, .04], [.42, 1.55, .12], s), { pol: "untenAussen" });
   BEWEGUNG.kreuzheben.griff = (s, ph, b) => { const v = new THREE.Vector3(), r = {}; [["L", b.m.aL], ["R", b.m.aR]].forEach(([k, a]) => { a.sch.getWorldPosition(v); v.y -= .575; const y = b.m.w.rotation.y; v.x += Math.sin(y) * .03; v.z += Math.cos(y) * .03; r[k] = [v.x, v.y, v.z]; }); return { bezug: "welt", L: r.L, R: r.R, pol: "hinten" }; };
@@ -502,7 +504,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     kettle: [{ b: "swing", pos: [0, 0, .62], blick: 0 }, { b: "farmer", pos: [0, 0, .8], blick: Math.PI / 2 }],
     dip: [{ b: "dips", pos: [0, 0, .02], blick: 0 }, { b: "klimmzug", pos: [0, 0, -.12], blick: 0 }, { b: "knieheben", pos: [0, 0, -.12], blick: 0 }],
     plattform: [{ b: "kreuzheben", pos: [0, .052, 0], blick: 0, nimmt: true }],
-    kabel: [{ b: "kabelfly", pos: [0, 0, .8], blick: 0 }, { b: "kabelrudern", pos: [0, 0, .2], blick: Math.PI }, { b: "facepull", pos: [0, 0, 1.0], blick: Math.PI }, { b: "pushdown", pos: [0, 0, .72], blick: Math.PI }, { b: "holzhacker", pos: [-.3, 0, .75], blick: Math.PI / 2 }],
+    kabel: [{ b: "kabelfly", pos: [0, 0, .8], blick: 0 }, { b: "kabelrudern", pos: [0, 0, .2], blick: Math.PI }, { b: "facepull", pos: [0, 0, 1.0], blick: Math.PI }, { b: "pushdown", pos: [0, 0, .72], blick: Math.PI }, { b: "holzhacker", pos: [-.25, 0, .85], blick: 0 }],
     latzug: [{ b: "latzug", pos: [0, 0, .22], blick: Math.PI, nimmt: true }],
     beinstr: [{ b: "beinstrecker", pos: [0, 0, -.16], blick: 0 }],
     presse: [{ b: "beinpresse", pos: [0, 0, .45], blick: Math.PI }, { b: "wadenpresse", pos: [0, 0, .45], blick: Math.PI }],
@@ -2493,7 +2495,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     if (ue.kurzR || a.kurzR) hand(b.m.aR);
     if (ue.kugelHaende) { hand(b.m.aL, "kugel"); hand(b.m.aR, "kugel"); }
     if (ue.seile && o.userData.rollen) {
-      const r = o.userData.rollen, punkte = ue.seile === "rollen" ? [[r[0], "L"], [r[1], "R"]] : ue.seile === "rolleL" ? [[r[0], "M"]] : ue.seile === "unten" ? [[[0, .3, -.58], "M"]] : [[[0, 2.1, .3], "M"]];
+      const r = o.userData.rollen, punkte = ue.seile === "rollen" ? [[r[0], "L"], [r[1], "R"]] : ue.seile === "obenL" ? [[[-.82, 2.14, .1], "M"]] : ue.seile === "unten" ? [[[0, .3, -.58], "M"]] : [[[0, 2.1, .3], "M"]];
       b.seile = punkte.map(pk => { const l = seil(raum, [0, 0, 0], [0, 0, 0]); l.userData.rolle = pk[0]; l.userData.hand = pk[1]; return l; });
     }
   }

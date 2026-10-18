@@ -2,7 +2,7 @@
 
 // Dieselbe Nummer wie bei style.css?v=N, texte.js?v=N, uebungen.js?v=N, raenge.js?v=N, bilder.js?v=N und app.js?v=N in der index.html.
 // Erst wenn sich diese Zahl ändert, bemerkt der Browser eine neue Version.
-const VERSION = 159;
+const VERSION = 160;
 
 const CACHE = "gymstead-v" + VERSION;
 
@@ -89,7 +89,9 @@ self.addEventListener("message", function (ereignis) {
 // Jede Anfrage der App: erst im Cache nachsehen, nur sonst ins Internet gehen
 self.addEventListener("fetch", function (ereignis) {
   const anfrage = ereignis.request;
-  if (anfrage.method !== "GET" || new URL(anfrage.url).origin !== self.location.origin) {
+  const adresse = new URL(anfrage.url);
+  // Das Gym-Spiel unter spiel/ ist eine eigene Seite und kommt immer aus dem Netz
+  if (anfrage.method !== "GET" || adresse.origin !== self.location.origin || adresse.pathname.includes("/spiel/")) {
     return;
   }
 

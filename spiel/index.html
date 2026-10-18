@@ -404,13 +404,16 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     p.hL = a; p.kL = k; p.hR = aR; p.kR = kR;
     p.by = .07 + OS * Math.cos(a) + US * Math.cos(a - k); p.bz = -(OS * Math.sin(a) + US * Math.sin(a - k)); return p;
   }
+  // Stange liegt hinten auf dem Trapez, die Hände greifen sie etwas breiter als die Schultern
+  const NACKEN_STANGE = [0, .5, -.12];
+  function nackenGriff(p) { p.sLx = p.sRx = -2.654; p.sRz = 2.745; p.sLz = -2.745; p.eL = p.eR = 2.516; p.eRz = -.818; p.eLz = .818; return p; }
   const weich = x => x * x * (3 - 2 * x);
   // Tempo wie im Training: 40 % ablassen, kurz halten, 35 % kräftig zurück, kurz halten
   function profil(p) { if (p < .4) return weich(p / .4); if (p < .48) return 1; if (p < .83) return 1 - weich((p - .48) / .35); return 0; }
   const wechsel = p => (1 - Math.cos(p * Math.PI * 2)) / 2;
   const L = -1, Rr = 1; // Seiten: links ist -x
   const BEWEGUNG = {
-    kniebeuge: { name: "Langhantel-Kniebeuge", familie: "kniebeuge", tempo: .3, stange: "lang", h(s) { const p = stehen(neutral(), 1.32 * s, 2.1 * s); p.rumpf = .55 * s; p.sLx = p.sRx = 1.05 + .45 * s; p.sLz = -1.3; p.sRz = 1.3; p.eL = p.eR = 2.35; p.kopf = -.35 * s; return p; } },
+    kniebeuge: { name: "Langhantel-Kniebeuge", familie: "kniebeuge", tempo: .3, stange: "nacken", h(s) { const p = stehen(neutral(), 1.32 * s, 2.1 * s); p.rumpf = .55 * s; nackenGriff(p); p.kopf = -.35 * s; return p; } },
     frontsquat: { name: "Multipresse-Kniebeuge", familie: "kniebeuge", tempo: .3, h(s) { return BEWEGUNG.kniebeuge.h(s); } },
     ausfall: { name: "Ausfallschritte mit Kurzhanteln", familie: "ausfall", tempo: .32, kurz: true, h(s, t, satz) { const v = satz % 2 ? 1 : -1, p = neutral(); const vorn = { a: .25 + 1.15 * s, k: .1 + 1.45 * s }, hinten = { a: -.3 - .1 * s, k: .15 + 1.55 * s }; const l = v < 0 ? vorn : hinten, r = v < 0 ? hinten : vorn; p.hL = l.a; p.kL = l.k; p.hR = r.a; p.kR = r.k; p.by = .95 - .42 * s; p.bz = -.05; p.rumpf = .08; p.sLz = -.1; p.sRz = .1; p.eL = p.eR = .08; return p; } },
     kreuzheben: { name: "Kreuzheben", familie: "kreuzheben", tempo: .28, stange: "lang", h(s) { s = 1 - s; const a = 1 - s, p = stehen(neutral(), .95 * a, 1.05 * a); p.rumpf = 1.02 * a; p.kopf = -.45 * a; p.sLx = p.sRx = -p.rumpf * .98; p.sLz = -.09; p.sRz = .09; return p; } },
@@ -1973,7 +1976,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
 
   // Geräte, die der Besucher mitbringt oder vom Gerät nimmt
   function propBauen(art) {
-    if (art === "lang" || art === "becken") return langhantel([[.225, .065]]);
+    if (art === "lang" || art === "becken" || art === "nacken") return langhantel([[.225, .065]]);
     if (art === "lat") { const g = new THREE.Group(), s = zyl(.014, 1.15, M.stange, 10); s.rotation.z = Math.PI / 2; g.add(s); [-1, 1].forEach(v => { const e = zyl(.014, .18, M.stange, 8); e.rotation.z = Math.PI / 2 + v * .5; e.position.set(v * .62, -.04, 0); g.add(e); }); return g; }
     if (art === "kugel") { const k = kettlebell(.12); k.children.forEach(c => c.position.y -= .2); return k; }
   }
@@ -1986,6 +1989,12 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     const d = tmpB.clone().sub(tmpA); prop.rotation.set(0, Math.atan2(-d.z, d.x), Math.atan2(d.y, Math.hypot(d.x, d.z)));
   }
   // Stange auf dem Becken (Hip Thrust): quer zur Blickrichtung über den Hüften
+  // Stange auf dem Trapez (Kniebeuge): fest am Rumpf, quer zu den Schultern
+  const tmpQ = new THREE.Quaternion(), tmpQ2 = new THREE.Quaternion();
+  function aufNacken(m, prop) {
+    m.rumpf.localToWorld(tmpA.set(NACKEN_STANGE[0], NACKEN_STANGE[1], NACKEN_STANGE[2])); raum.worldToLocal(tmpA); prop.position.copy(tmpA);
+    m.rumpf.getWorldQuaternion(tmpQ); raum.getWorldQuaternion(tmpQ2); prop.quaternion.copy(tmpQ2.invert().multiply(tmpQ));
+  }
   function aufBecken(m, prop) {
     m.becken.getWorldPosition(tmpA); raum.worldToLocal(tmpA); prop.position.copy(tmpA); prop.position.y += .14;
     prop.rotation.set(0, m.w.rotation.y, 0);
@@ -2095,7 +2104,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   // Maschinenteile laufen mit der Bewegung mit: Hebel, Schlitten, Polster, Zugstange, Seile
   function geraetMitbewegen(b) {
     const o = b.ziel, m = b.m, p = m.ist;
-    if (b.stange) (b.stangeArt === "becken" ? aufBecken : zwischenHaenden)(m, b.stange);
+    if (b.stange) ({ becken: aufBecken, nacken: aufNacken })[b.stangeArt] ? ({ becken: aufBecken, nacken: aufNacken })[b.stangeArt](m, b.stange) : zwischenHaenden(m, b.stange);
     if (o.userData.fuehrung && o.userData.ablage) { m.aL.hand.getWorldPosition(tmpA); m.aR.hand.getWorldPosition(tmpB); const y = (tmpA.y + tmpB.y) / 2; o.userData.ablage.position.y += (y - o.userData.ablage.position.y) * .5; }
     if (o.userData.hebel) o.userData.hebel.rotation.x = o.userData.item.key === "beincurl" ? -p.kL : -(1.5 - p.kL) * .95;
     if (o.userData.polsterL) { o.userData.polsterL.rotation.y = p.hLz * .9; o.userData.polsterR.rotation.y = p.hRz * .9; }

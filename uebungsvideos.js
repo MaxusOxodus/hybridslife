@@ -23,31 +23,37 @@ const UEBUNGSVIDEOS = [
   "crunches",
   "beinheben",
   "bulgarian-split-squats",
-  "glute-bridge"
+  "glute-bridge",
+  "military-press",
+  "enges-bankdruecken-lh",
+  "bankdruecken-kh",
+  "schraegbank-45-lh",
+  "langhantelcurls",
+  "hammercurls",
+  "frontheben",
+  "ausfallschritte",
+  "wadenheben",
+  "plank"
 ];
 
 // Übungen, bei denen nicht alle drei Figuren fertig sind: welche es gibt. Alle anderen haben Mann, Frau und Roboter.
 const UEBUNGSVIDEO_FIGUREN = {
-  "kniebeuge": ["mann"],
-  "bankdruecken-lh": ["mann"],
-  "kreuzheben": ["mann"],
-  "rumaenisches-kreuzheben": ["mann"],
-  "langhantelrudern": ["mann"],
-  "schulterdruecken": ["mann"],
-  "kurzhantelcurls": ["mann"],
-  "seitheben": ["mann"],
-  "hip-thrust": ["mann"],
-  "liegestuetze": ["mann"],
-  "klimmzuege": ["mann"],
-  "brust-dips": ["mann"],
   "kurzhantelrudern": ["mann"],
   "french-press": ["mann"],
   "fliegende-kh": ["mann"],
   "reverse-flys": ["mann"],
-  "crunches": ["mann"],
-  "beinheben": ["mann"],
   "bulgarian-split-squats": ["mann"],
-  "glute-bridge": ["mann"]
+  "glute-bridge": ["mann"],
+  "military-press": ["mann"],
+  "enges-bankdruecken-lh": ["mann"],
+  "bankdruecken-kh": ["mann"],
+  "schraegbank-45-lh": ["mann"],
+  "langhantelcurls": ["mann"],
+  "hammercurls": ["mann"],
+  "frontheben": ["mann"],
+  "ausfallschritte": ["mann"],
+  "wadenheben": ["mann"],
+  "plank": ["mann"]
 };
 
 // Welche Figur zeigt das Video? Nach dem Geschlecht im Profil: "m" Mann, "w" Frau, "d" Roboter.

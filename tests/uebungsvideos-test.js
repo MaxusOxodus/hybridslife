@@ -1,5 +1,5 @@
 // Test: Übungsvideos in der Erklärung (seit Version 162).
-// Jede Übung in UEBUNGSVIDEOS hat eine Erklärung und für jede Figur (Mann, Frau, Roboter) MP4, WebM und Standbild,
+// Jede Übung in UEBUNGSVIDEOS hat eine Erklärung und für jede vorhandene Figur (Mann immer, Frau/Roboter laut UEBUNGSVIDEO_FIGUREN) MP4, WebM und Standbild,
 // die Figur folgt dem Geschlecht im Profil, die sw.js lässt videos/ durch, und die uebungsvideos.js ist eingebunden.
 // Starten mit: node tests/uebungsvideos-test.js
 // Die Datei gehört nicht zur App.
@@ -18,19 +18,30 @@ function pruefe(name, ok, info) {
 }
 
 // Liste und Figur aus der uebungsvideos.js
-const videos = new Function(lesen("uebungsvideos.js") + "; return { UEBUNGSVIDEOS, videoFigur };")();
+const videos = new Function(lesen("uebungsvideos.js") + "; return { UEBUNGSVIDEOS, UEBUNGSVIDEO_FIGUREN, videoFigur, videoDatei };")();
 pruefe("Liste ist nicht leer", videos.UEBUNGSVIDEOS.length > 0);
 pruefe("m zeigt den Mann", videos.videoFigur("m") === "mann");
 pruefe("w zeigt die Frau", videos.videoFigur("w") === "frau");
 pruefe("d zeigt den Roboter", videos.videoFigur("d") === "roboter");
 pruefe("ohne Angabe zeigt den Roboter", videos.videoFigur("") === "roboter");
+pruefe("videoDatei mit Figur", videos.videoDatei("kniebeuge", "w") === (videos.UEBUNGSVIDEO_FIGUREN.kniebeuge && videos.UEBUNGSVIDEO_FIGUREN.kniebeuge.indexOf("frau") === -1 ? "videos/kniebeuge-mann" : "videos/kniebeuge-frau"));
+for (const [id, figs] of Object.entries(videos.UEBUNGSVIDEO_FIGUREN)) {
+  pruefe("Teilliste nur für Übungen mit Video: " + id, videos.UEBUNGSVIDEOS.indexOf(id) !== -1);
+  pruefe("Mann immer dabei: " + id, figs.indexOf("mann") !== -1);
+  for (const g of ["m", "w", "d", ""]) {
+    const d = videos.videoDatei(id, g);
+    pruefe("Fehlende Figur fällt auf den Mann zurück: " + id + " " + g, figs.indexOf(d.split("-").pop()) !== -1);
+  }
+}
 
 // Jede Übung hat eine Erklärung (sonst öffnet sich das Sheet gar nicht)
 const fenster = {};
-const erklaerungen = new Function("window", lesen("erklaerungen.js") + "; return ERKLAERUNGEN;")(fenster);
+// dazu die Pakete pro Muskelgruppe (erklaerungen-*.js), sie hängen ihre Einträge an ERKLAERUNGEN an
+const pakete = fs.readdirSync(new URL(".", wurzel)).filter((d) => /^erklaerungen-.+\.js$/.test(d)).sort();
+const erklaerungen = new Function("window", lesen("erklaerungen.js") + pakete.map((d) => ";\n" + lesen(d)).join("") + "; return ERKLAERUNGEN;")(fenster);
 for (const id of videos.UEBUNGSVIDEOS) {
   pruefe("Erklärung für " + id, Boolean(erklaerungen[id]));
-  for (const figur of ["mann", "frau", "roboter"]) {
+  for (const figur of videos.UEBUNGSVIDEO_FIGUREN[id] || ["mann", "frau", "roboter"]) {
     for (const endung of ["mp4", "webm", "webp"]) {
       const datei = "videos/" + id + "-" + figur + "." + endung;
       const da = fs.existsSync(new URL(datei, wurzel));
@@ -60,7 +71,7 @@ pruefe("alle gleich wie in der sw.js", nummern.every((n) => n === swNummer), num
 const app = lesen("app.js");
 const start = app.indexOf("\n  function uebungsVideo(");
 const teil = app.slice(start, app.indexOf("\n  }\n", start));
-for (const stueck of ["video.muted = true", "video.loop = true", "playsinline", ".webp", ".mp4", ".webm", "videoFigur(profil.geschlecht)"]) {
+for (const stueck of ["video.muted = true", "video.loop = true", "playsinline", ".webp", ".mp4", ".webm", "videoDatei(eid, profil.geschlecht)"]) {
   pruefe("uebungsVideo enthält " + stueck, teil.includes(stueck));
 }
 

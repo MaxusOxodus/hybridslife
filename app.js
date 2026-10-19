@@ -9283,10 +9283,11 @@
     zusatzSheetOeffnen("erklaerung-sheet");
   }
 
-  // Das Video einer Übung für die Erklärung (seit Version 162): läuft stumm in Schleife, die Figur kommt aus dem Profil.
+  // Das Video einer Übung für die Erklärung (seit Version 162): läuft stumm in Schleife, die Figur kommt aus dem Profil
+  // (seit Version 163 der Mann, wenn es die Figur für diese Übung noch nicht gibt).
   // Kann der Browser MP4 nicht abspielen, nimmt er die WebM-Datei. Bis das Video da ist, steht das Standbild.
   function uebungsVideo(eid) {
-    const datei = "videos/" + eid + "-" + videoFigur(profil.geschlecht);
+    const datei = videoDatei(eid, profil.geschlecht);
     const video = document.createElement("video");
     video.className = "erklaerung-video";
     video.muted = true;

@@ -33,7 +33,7 @@ function pruefe(name, ok, info) {
 
 const TAG = 86400000;
 const HEUTE = new Date(2026, 9, 18, 12).getTime();
-const KONSTANTEN = ["STILLSTAND_FENSTER_TAGE", "STILLSTAND_MIN_EINHEITEN", "STILLSTAND_LETZTE", "STILLSTAND_MIN_TAGE",
+const KONSTANTEN = ["STILLSTAND_FENSTER_TAGE", "STILLSTAND_MIN_EINHEITEN", "STILLSTAND_LETZTE", "STILLSTAND_MIN_TAGE", "STILLSTAND_VERGLEICH_TAGE",
   "ENTLASTUNG_STILLSTAENDE", "ENTLASTUNG_ABFALL", "ENTLASTUNG_ABFALL_UEBUNGEN", "ENTLASTUNG_ABSTAND_TAGE",
   "ENTLASTUNG_RUECKBLICK_TAGE", "ENTLASTUNG_GEWICHT", "COACH_ZIELE", "COACH_TAGE", "COACH_MINUTEN", "COACH_ERFAHRUNG",
   "COACH_SCHWERPUNKTE", "COACH_MAX_SCHWERPUNKT", "COACH_MAX_ENTSCHEIDUNGEN", "COACH_MAX_BEWERTUNGEN", "COACH_ENTSCHEIDUNG_ARTEN"];
@@ -70,6 +70,13 @@ f.setze([uebung("neu", [[19, 95], [12, 95], [5, 95]])]);
 pruefe("Nur 3 Einheiten insgesamt: kein Stillstand (nichts davor)", f.coachStillstaende(HEUTE).length === 0);
 f.setze([uebung("rekord", [[40, 90], [33, 95], [26, 94], [19, 93], [12, 95.5]])]);
 pruefe("Neuer Bestwert in den letzten 3: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
+// Seit Version 162: Vergleich nur mit dem Bestwert der 84 Tage vor den letzten 3 Einheiten
+f.setze([uebung("pause", [[300, 120], [40, 90], [33, 95], [26, 94], [19, 95], [12, 95]])]);
+pruefe("Alter Bestwert vor langer Pause (120 vor 300 Tagen) zählt nicht, 95 im Vergleichsfenster schon: Stillstand", f.coachStillstaende(HEUTE).length === 1);
+f.setze([uebung("comeback", [[300, 120], [200, 118], [40, 90], [33, 92], [26, 95], [19, 96], [12, 97]])]);
+pruefe("Nach langer Pause wieder steigend unter altem Bestwert: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
+f.setze([uebung("luecke", [[300, 120], [250, 118], [26, 90], [19, 90], [12, 90]])]);
+pruefe("Nichts im Vergleichsfenster: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
 
 // Abfall: letzter Wert höchstens 95 % des Besten im Fenster
 f.setze([uebung("a", [[20, 100], [10, 100], [3, 95]]), uebung("b", [[20, 100], [3, 94]]), uebung("c", [[20, 100], [3, 96]])]);

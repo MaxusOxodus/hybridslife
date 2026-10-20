@@ -9431,8 +9431,9 @@
 
   // Die Punkte für das Diagramm einer Übung: ein Wert pro Trainingstag, der älteste Tag zuerst.
   // art "1rm": geschätztes Maximalgewicht für eine Wiederholung nach Epley (epley1RM in der raenge.js),
-  //            der beste Wert des Tages.
-  // art "rang": dasselbe, aber nur aus Sätzen, die für die Ränge zählen (1 bis 10 Wdh.).
+  //            der beste Wert des Tages, seit Version 162 nur aus Sätzen mit 1 bis 10 Wdh. (rangSatzGueltig):
+  //            darüber werden die Schätzformeln ungenau. Tage ohne solchen Satz fehlen im Diagramm.
+  // art "rang": dasselbe wie "1rm" (Sätze, die für die Ränge zählen, 1 bis 10 Wdh.).
   // art "schwer": das schwerste eingetragene Gewicht des Tages.
   // art "volumen": Sätze × Wdh. × Gewicht, über den Tag zusammengezählt.
   // Bei Eigengewicht-Übungen zählt für 1RM und Volumen das Körpergewicht des Tages zum eingetragenen Gewicht dazu.
@@ -9461,9 +9462,7 @@
       let wert = 0;
       for (let j = 0; j < saetze.length; j++) {
         const last = saetze[j].gewicht + koerper;
-        if (art === "1rm") {
-          wert = Math.max(wert, epley1RM(last, saetze[j].wdh));
-        } else if (art === "rang") {
+        if (art === "1rm" || art === "rang") {
           if (rangSatzGueltig(last, saetze[j].wdh)) {
             wert = Math.max(wert, epley1RM(last, saetze[j].wdh));
           }
@@ -9473,8 +9472,8 @@
           wert = Math.max(wert, saetze[j].gewicht);
         }
       }
-      // Für die Ränge gibt es einen Tag nur, wenn er einen gültigen Satz hat
-      if (art === "rang" && wert === 0) {
+      // Für 1RM und Ränge gibt es einen Tag nur, wenn er einen gültigen Satz hat
+      if ((art === "1rm" || art === "rang") && wert === 0) {
         continue;
       }
 
@@ -9532,6 +9531,9 @@
       hinweis = txt("verlauf.leer");
       if (alle.length > 0) {
         hinweis = txt("verlauf.zeitraumLeer");
+      } else if (verlaufArt === "1rm" && verlaufPunkte(verlaufName, verlaufId, "schwer").length > 0) {
+        // Einträge gibt es, aber keinen Satz mit 1 bis 10 Wdh. (seit Version 162)
+        hinweis = txt("verlauf.1rmLeer");
       }
     } else {
       diagrammZeichnen(diagramm, [{ punkte: punkte, art: "haupt", mitPunkten: true }], function (p) {
@@ -16288,6 +16290,9 @@
   const STILLSTAND_MIN_EINHEITEN = 4;
   const STILLSTAND_LETZTE = 3;
   const STILLSTAND_MIN_TAGE = 14;
+  // Verglichen wird nur mit dem Bestwert der STILLSTAND_VERGLEICH_TAGE vor den letzten Einheiten (seit Version 162),
+  // sonst meldet ein alter Bestwert nach einer langen Pause einen Stillstand, obwohl man gerade wieder aufbaut
+  const STILLSTAND_VERGLEICH_TAGE = 84;
   // Entlastung vorschlagen bei so vielen Stillständen, oder wenn in so vielen Übungen das letzte 1RM höchstens
   // ENTLASTUNG_ABFALL des Bestwerts im Fenster ist, oder nach ENTLASTUNG_ABSTAND_TAGE mit „Müde“ / „Zu viel“ im Rückblick
   const ENTLASTUNG_STILLSTAENDE = 3;
@@ -16337,7 +16342,13 @@
       if (letzte[letzte.length - 1].zeit - letzte[0].zeit < STILLSTAND_MIN_TAGE * TAG_MS) {
         return;
       }
-      const vorher = Math.max.apply(null, punkte.slice(0, -STILLSTAND_LETZTE).map(function (p) {
+      const vergleich = punkte.slice(0, -STILLSTAND_LETZTE).filter(function (p) {
+        return p.zeit >= letzte[0].zeit - STILLSTAND_VERGLEICH_TAGE * TAG_MS;
+      });
+      if (vergleich.length === 0) {
+        return;
+      }
+      const vorher = Math.max.apply(null, vergleich.map(function (p) {
         return p.wert;
       }));
       const jetzt = Math.max.apply(null, letzte.map(function (p) {

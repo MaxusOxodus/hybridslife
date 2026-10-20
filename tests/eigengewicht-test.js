@@ -291,7 +291,8 @@ ziel = umgebung({});
 ziel.importieren(altOhneUebung, "ersetzen");
 pruefe("altes Backup, Übung schon früher gelöscht: 5 Einträge", ziel.eintraege().length, 5);
 pruefe("altes Backup, Übung schon früher gelöscht: kein Eigengewicht", ziel.werte(DIPS.name, DIPS.id).eigengewicht, false);
-pruefe("altes Backup, Übung schon früher gelöscht: 1RM ohne Körpergewicht", ziel.werte(DIPS.name, DIPS.id).diagramm1RM, [0, 6.33, 12]);
+// Seit Version 162 zählt das 1RM wie die Ränge nur Sätze mit Last über 0 und 1 bis 10 Wdh.: Der Tag ohne Zusatzgewicht fällt weg
+pruefe("altes Backup, Übung schon früher gelöscht: 1RM ohne Körpergewicht", ziel.werte(DIPS.name, DIPS.id).diagramm1RM, [6.33, 12]);
 
 // Ganz altes Backup: nur eine Liste von Einträgen
 ziel = umgebung({});

@@ -690,6 +690,7 @@ const TEXTE = {
   "verlauf.einPunkt": { de: "Ab dem zweiten Trainingstag entsteht eine Linie.", en: "A line appears from the second training day." },
 
   "verlauf.zeitraumLeer": { de: "In diesem Zeitraum gibt es keine Einträge.", en: "There are no entries in this period." },
+  "verlauf.1rmLeer": { de: "Das 1RM schätzt Korund nur aus Sätzen mit 1 bis 10 Wiederholungen. Bei mehr wird die Schätzung ungenau. Schau dir Gewicht oder Volumen an.", en: "Korund only estimates the 1RM from sets of 1 to 10 reps. Above that the estimate gets inaccurate. Check weight or volume instead." },
   "verlauf.veraenderung": { de: "Veränderung", en: "Change" },
   "verlauf.monate": { de: "{n} Monate", en: "{n} months" },
 
@@ -1122,8 +1123,8 @@ const TEXTE = {
   "teilen.alt": { de: "Vorschau der Karte mit deinen Rängen", en: "Preview of the card with your ranks" },
   "teilen.fehler": { de: "Das Bild konnte nicht erstellt werden.", en: "The image could not be created." },
   "rang.hinweis": {
-    de: "Ränge sind Richtwerte und vergleichen Kraft im Verhältnis zum Körpergewicht.",
-    en: "Ranks are rough guides and compare strength relative to body weight."
+    de: "Ränge sind Richtwerte und vergleichen Kraft im Verhältnis zum Körpergewicht. Andere Übungen als die Referenz werden geschätzt umgerechnet. Die obersten Stufen entsprechen Wettkampfniveau.",
+    en: "Ranks are rough guides and compare strength relative to body weight. Exercises other than the reference are converted with estimates. The top levels match competition level."
   },
 
   "plausibel.titel": { de: "Stimmt der Wert?", en: "Is this value correct?" },
@@ -1233,7 +1234,7 @@ const TEXTE = {
   "einschraenkung.stufe.mittel": { de: "Mittel", en: "Moderate" },
   "einschraenkung.stufe.stark": { de: "Stark", en: "Severe" },
   "einschraenkung.entfernen": { de: "Entfernen", en: "Remove" },
-  "einschraenkung.hinweis": { de: "Kein Ersatz für ärztlichen Rat.", en: "Not a substitute for medical advice." },
+  "einschraenkung.hinweis": { de: "Korund stellt keine Diagnosen und ersetzt keine ärztliche oder physiotherapeutische Untersuchung. Bei Schmerzen, die stark sind, schlimmer werden oder nicht nachlassen, lass dich bitte untersuchen.", en: "Korund does not diagnose and does not replace an examination by a doctor or physiotherapist. If pain is severe, gets worse or does not ease, please get it checked." },
   "einschraenkung.ohne.schulter.leicht": { de: "Ohne Drücken über Kopf.", en: "No overhead pressing." },
   "einschraenkung.ohne.schulter.mehr": { de: "Ohne Drücken über Kopf, Bankdrücken, Dips und Seitheben.", en: "No overhead or bench pressing, dips or lateral raises." },
   "einschraenkung.ohne.ellbogen.leicht": { de: "Ohne Stirndrücken.", en: "No skull crushers." },
@@ -1316,8 +1317,8 @@ const TEXTE = {
   "entlastung.karte": { de: "Zeit für eine Entlastungswoche", en: "Time for a deload week" },
   "entlastung.laeuft": { de: "Entlastungswoche läuft", en: "Deload week in progress" },
   "entlastung.noch": { de: "Noch {n} Tage", en: "{n} days left" },
-  "entlastung.grund.stillstand": { de: "{n} Übungen kommen gerade nicht weiter. Eine leichtere Woche hilft oft beim nächsten Schritt.", en: "{n} exercises have stalled. A lighter week often helps you take the next step." },
-  "entlastung.grund.abfall": { de: "Mehrere Übungen lagen zuletzt deutlich unter deinem Bestwert. Dein Körper braucht wohl etwas Erholung.", en: "Several exercises were clearly below your best lately. Your body probably needs some recovery." },
+  "entlastung.grund.stillstand": { de: "{n} Übungen kommen gerade nicht weiter. Viele legen dann eine leichtere Woche ein, um Ermüdung abzubauen. Das ist ein Erfahrungswert, kein Muss.", en: "{n} exercises have stalled. Many lifters take a lighter week then to shed fatigue. It is a rule of thumb, not a must." },
+  "entlastung.grund.abfall": { de: "Mehrere Übungen lagen zuletzt deutlich unter deinem Bestwert. Das kann an Ermüdung liegen. Eine leichtere Woche ist eine Möglichkeit.", en: "Several exercises were clearly below your best lately. That can be fatigue. A lighter week is one option." },
   "entlastung.grund.rueckblick": { de: "Du hast im Rückblick gesagt, dass du müde bist oder es zu viel war.", en: "In your review you said you are tired or it was too much." },
   "entlastung.regel.gewicht": { de: "Gewicht", en: "Weight" },
   "entlastung.regel.saetze": { de: "Sätze", en: "Sets" },

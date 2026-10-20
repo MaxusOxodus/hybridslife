@@ -29,7 +29,7 @@ function konstanteHolen(name) {
   return treffer[0];
 }
 
-const ECHT = ["satzZiel", "zaehltSeiten", "einseitig", "kurzhantel", "steigerungSchritt", "steigerungVorschlag", "steigerungText", "modusStartWerte",
+const ECHT = ["satzZiel", "zaehltSeiten", "einseitig", "kurzhantel", "steigerungSchritt", "steigerungVorschlag", "vorletzterEintrag", "steigerungText", "modusStartWerte",
   "letzterEintrag", "gleicheUebung", "saetzeVon", "rirLesen", "wdhBis", "hatDatum", "istEigengewicht", "einheit", "ausKg", "zuKg",
   "gewichtAnzeige", "gewichtText", "zahlText", "startGewicht", "steigernAn"];
 
@@ -39,7 +39,7 @@ const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
   return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
 };
-const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
+const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
 
 // Baut die Funktionen mit diesen Einträgen, Einstellungen und Sprache. Die Übungen sind die echten aus der uebungen.js.
 function umgebung(eintraege, einstellungen, sprache) {
@@ -114,8 +114,11 @@ pruefe("Langhantel 3 × 12 mit 70 kg: Feld 72,5 kg", JSON.stringify(r.felder) ==
 pruefe("Langhantel: Hinweis +2,5 kg", r.text === 'modus.steigern {"schritt":"+2,5 kg","gewicht":"70 kg","wdh":12}', r.text);
 r = rechne("bankdruecken-multi", "Bankdrücken an der Multipresse", ALLE_12(50));
 pruefe("Maschine wie bisher: 52,5 kg", JSON.stringify(r.felder) === "[52.5,8]", JSON.stringify(r.felder));
+// Seit Version 163: 12 kg + 2 kg wären fast 17 %, erst 2 Wdh. über das Ziel, dann +2 kg
 r = rechne("eigene-1", "Kurzhantel-Curl", ALLE_12(12));
-pruefe("eigene Kurzhantel-Übung: 14 kg", JSON.stringify(r.felder) === "[14,8]" && r.text.indexOf('"+2 kg"') !== -1, JSON.stringify(r.felder) + r.text);
+pruefe("eigene Kurzhantel-Übung, 12 Wdh.: gleiches Gewicht, 13 Wdh.", r.v.art === "mehrWdh" && JSON.stringify(r.felder) === "[12,13]" && r.text.indexOf('"+2 kg"') !== -1, JSON.stringify(r.felder) + r.text);
+r = rechne("eigene-1", "Kurzhantel-Curl", [[12, 14], [12, 14], [12, 14]]);
+pruefe("eigene Kurzhantel-Übung, 14 Wdh.: 14 kg", JSON.stringify(r.felder) === "[14,8]" && r.text.indexOf('"+2 kg"') !== -1, JSON.stringify(r.felder) + r.text);
 r = rechne("bankdruecken-kh", "Bankdrücken (Kurzhantel)", [[30, 12], [30, 11], [30, 10]]);
 pruefe("Kurzhantel nicht alle am oberen Ende: halten bei 30", r.v.art === "halten" && JSON.stringify(r.felder) === "[30,12]", JSON.stringify(r.felder));
 r = rechne("bankdruecken-kh", "Bankdrücken (Kurzhantel)", ALLE_12(22.5));

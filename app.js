@@ -120,6 +120,14 @@
   // Schritt der automatischen Steigerung bei Kurzhanteln in kg (seit Version 139), sie hängen meist in 2-kg-Stufen.
   // In lbs bleibt es wie bei allen Übungen der Schritt der Gewichtsknöpfe (5 lbs).
   const KURZHANTEL_SCHRITT_KG = 2;
+  // Satz-Vorschlag mit RIR (seit Version 163, Vault „Korund Forschung 17“, F2):
+  // Gesteigert wird nur, wenn im Schnitt noch mindestens STEIGERN_MIN_RIR Wdh. Reserve waren (ohne RIR-Angabe wie bisher).
+  // Wäre ein Schritt mehr als STEIGERN_MAX_ANTEIL des Gewichts, kommen erst STEIGERN_EXTRA_WDH Wdh. über das Ziel dazu.
+  // Zweimal in Folge unter dem Wdh.-Ziel mit demselben Gewicht: SENKEN_ANTEIL leichter.
+  const STEIGERN_MIN_RIR = 2;
+  const STEIGERN_MAX_ANTEIL = 0.1;
+  const STEIGERN_EXTRA_WDH = 2;
+  const SENKEN_ANTEIL = 0.1;
 
   // Höhe eines Wertes im Rad in Pixeln. Muss zur Höhe von .rad-wert im CSS passen.
   const RAD_HOEHE = 44;
@@ -5041,8 +5049,12 @@
   // Gewichtsknöpfe hoch (2,5 kg oder 5 lbs, bei Kurzhanteln in kg 2 kg, steigerungSchritt, in der gewählten Einheit gerechnet,
   // nicht gerundet), mit dem unteren Ende als Wdh. Sonst bleibt das Gewicht, mit den Wdh. des ersten Satzes mit dem Arbeitsgewicht.
   // Nie gesteigert wird ohne Wdh.-Ziel, bei Eigengewicht ohne Zusatzgewicht und nach mehr als STEIGERN_PAUSE_TAGE Tagen.
-  // Zurück kommt { art, gewicht (kg), wdh, alt (kg), ziel } mit art "steigern", "halten", "pause", "eigengewicht"
-  // oder "ohneZiel". Ohne früheres Training mit Sätzen: null.
+  // Seit Version 163 (Forschung AP6): Ziel erreicht, aber RIR im Schnitt unter STEIGERN_MIN_RIR: "haltenRir".
+  // Wäre der Schritt mehr als STEIGERN_MAX_ANTEIL des Gewichts: erst "mehrWdh" (eine Wdh. mehr), bis alle Sätze
+  // STEIGERN_EXTRA_WDH über dem Ziel liegen. Zweimal in Folge alle Sätze unter dem unteren Ende mit demselben Gewicht:
+  // "senken" (SENKEN_ANTEIL leichter, gerundet auf den Schritt, mindestens ein Schritt).
+  // Zurück kommt { art, gewicht (kg), wdh, alt (kg), ziel, rir } mit art "steigern", "halten", "haltenRir", "mehrWdh",
+  // "senken", "pause", "eigengewicht", "entlastung" oder "ohneZiel". Ohne früheres Training mit Sätzen: null.
   function steigerungVorschlag(u) {
     const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
     if (!letzter) {
@@ -5077,16 +5089,68 @@
     }
     const erreicht = arbeit.filter(function (s) { return s.wdh >= vorschlag.ziel; }).length;
     if (erreicht < arbeit.length || erreicht < Math.max(1, satzZiel(u))) {
+      // Zweimal in Folge alle Arbeitssätze unter dem unteren Wdh.-Ende, beide Male mit diesem Gewicht: etwas leichter
+      if (alt > 0 && arbeit.every(function (s) { return s.wdh < u.zielWdh; })) {
+        const davor = vorletzterEintrag(u, letzter);
+        const davorSaetze = davor ? arbeitsSaetzeVon(davor) : [];
+        const davorAlt = Math.max.apply(null, davorSaetze.map(function (s) { return s.gewicht; }).concat([0]));
+        if (davorAlt === alt && davorSaetze.filter(function (s) { return s.gewicht === alt; }).every(function (s) { return s.wdh < u.zielWdh; })) {
+          const schritt = steigerungSchritt(u);
+          const leichter = Math.min(ausKg(alt) - schritt, Math.round(ausKg(alt) * (1 - SENKEN_ANTEIL) / schritt) * schritt);
+          if (leichter > 0) {
+            vorschlag.art = "senken";
+            vorschlag.gewicht = zuKg(leichter);
+            vorschlag.wdh = u.zielWdh;
+          }
+        }
+      }
       return vorschlag;
     }
     if (istEigengewicht(u.uebungId) && alt <= 0) {
       vorschlag.art = "eigengewicht";
       return vorschlag;
     }
+    // Kaum Reserve (RIR im Schnitt unter STEIGERN_MIN_RIR): erst sauber wiederholen. Sätze ohne RIR zählen nicht mit.
+    const mitRir = arbeit.filter(function (s) { return typeof s.rir === "number"; });
+    if (mitRir.length > 0) {
+      const rir = mitRir.reduce(function (summe, s) { return summe + s.rir; }, 0) / mitRir.length;
+      if (rir < STEIGERN_MIN_RIR) {
+        vorschlag.art = "haltenRir";
+        vorschlag.rir = Math.round(rir * 10) / 10;
+        return vorschlag;
+      }
+    }
+    // Großer Sprung im Verhältnis zum Gewicht (z. B. 6 kg + 2 kg): erst mehr Wdh.
+    const wenigste = Math.min.apply(null, arbeit.map(function (s) { return s.wdh; }));
+    if (steigerungSchritt(u) > ausKg(alt) * STEIGERN_MAX_ANTEIL && wenigste < vorschlag.ziel + STEIGERN_EXTRA_WDH) {
+      vorschlag.art = "mehrWdh";
+      vorschlag.wdh = wenigste + 1;
+      return vorschlag;
+    }
     vorschlag.art = "steigern";
     vorschlag.gewicht = zuKg(ausKg(alt) + steigerungSchritt(u));
     vorschlag.wdh = u.zielWdh;
     return vorschlag;
+  }
+
+  // Der Eintrag dieser Übung vor dem letzten (für "zweimal unter dem Ziel"), ohne den des laufenden Trainings.
+  // Einträge ohne Arbeitssatz zählen nicht.
+  function vorletzterEintrag(u, letzter) {
+    let davor = null;
+    let davorZeit = -1;
+    const letzteZeit = hatDatum(letzter) ? new Date(letzter.datum).getTime() : 0;
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (e === letzter || e.id === u.eintragId || !gleicheUebung(e, u.name, u.uebungId) || arbeitsSaetzeVon(e).length === 0) {
+        continue;
+      }
+      const zeit = hatDatum(e) ? new Date(e.datum).getTime() : 0;
+      if (zeit <= letzteZeit && zeit > davorZeit) {
+        davor = e;
+        davorZeit = zeit;
+      }
+    }
+    return davor;
   }
 
   // Der Hinweis unter dem Ziel im Trainingsmodus zum Vorschlag, z. B. "+2,5 kg: …" oder "Gleiches Gewicht: …".
@@ -5111,6 +5175,15 @@
     }
     if (v.art === "eigengewicht") {
       return txt("modus.eigengewicht");
+    }
+    if (v.art === "haltenRir") {
+      return txt("modus.haltenRir", { rir: zahlText(v.rir) });
+    }
+    if (v.art === "mehrWdh") {
+      return txt("modus.mehrWdh", { wdh: v.wdh, schritt: "+" + zahlText(steigerungSchritt(u)) + " " + einheit() });
+    }
+    if (v.art === "senken") {
+      return txt("modus.senken", { schritt: "−" + zahlText(Math.round((ausKg(v.alt) - ausKg(v.gewicht)) * 100) / 100) + " " + einheit(), wdh: u.zielWdh });
     }
     return txt("modus.halten", { wdh: v.ziel });
   }
@@ -5193,8 +5266,8 @@
         chip.classList.add("steigt");
         chip.textContent = "↑ " + chip.textContent;
       }
-      // Entlastungswoche (seit Version 151): Pfeil nach unten vor dem leichteren Gewicht
-      if (v.art === "entlastung") {
+      // Entlastungswoche (seit Version 151) und leichter nach zwei Mal unter dem Ziel (seit Version 163): Pfeil nach unten
+      if (v.art === "entlastung" || v.art === "senken") {
         chip.textContent = "↓ " + chip.textContent;
       }
       behaelter.appendChild(chip);

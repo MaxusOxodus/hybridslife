@@ -453,6 +453,18 @@ const TEXTE = {
     de: "Gleiches Gewicht: Dein letztes Training ist über {tage} Tage her.",
     en: "Same weight: your last session was more than {tage} days ago."
   },
+  "modus.haltenRir": {
+    de: "Gleiches Gewicht: Ziel erreicht, aber mit wenig Reserve (RIR {rir}). Erst sicher wiederholen.",
+    en: "Same weight: target hit, but with little in reserve (RIR {rir}). Repeat it solidly first."
+  },
+  "modus.mehrWdh": {
+    de: "Gleiches Gewicht, versuch {wdh} Wdh.: Der nächste Sprung ({schritt}) wäre mehr als 10 %.",
+    en: "Same weight, try {wdh} reps: the next jump ({schritt}) would be more than 10%."
+  },
+  "modus.senken": {
+    de: "{schritt}: Zweimal unter {wdh} Wdh. Etwas leichter bringt dich wieder ins Ziel.",
+    en: "{schritt}: twice below {wdh} reps. A bit lighter gets you back on target."
+  },
   "modus.eigengewicht": {
     de: "Ziel erreicht: Mach mehr Wdh. oder nimm Zusatzgewicht.",
     en: "Target hit: do more reps or add extra weight."

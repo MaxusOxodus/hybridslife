@@ -30,7 +30,7 @@ function konstanteHolen(name) {
   return treffer[0];
 }
 
-const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "kurzhantel", "steigerungSchritt", "steigerungVorschlag", "steigerungText", "modusStartWerte", "letzterEintrag", "gleicheUebung", "saetzeVon",
+const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "kurzhantel", "steigerungSchritt", "steigerungVorschlag", "vorletzterEintrag", "steigerungText", "modusStartWerte", "letzterEintrag", "gleicheUebung", "saetzeVon",
   "rirLesen", "wdhBis", "hatDatum", "istEigengewicht", "einheit", "ausKg", "zuKg", "gewichtAnzeige", "gewichtText",
   "zahlText", "startGewicht", "steigernAn"];
 
@@ -40,7 +40,7 @@ const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
   return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
 };
-const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
+const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
 
 // Baut die Funktionen mit diesen Einträgen und Einstellungen
 function umgebung(eintraege, einstellungen) {
@@ -76,7 +76,7 @@ function vorTagen(n) {
 // Ein Eintrag aus dem Trainingsmodus mit einzelnen Sätzen [gewicht, wdh]
 function eintrag(id, saetze, tage, uebungId) {
   return { id: id, uebung: "Bankdrücken", uebungId: uebungId || "bankdruecken", datum: vorTagen(tage === undefined ? 3 : tage),
-    einzelsaetze: saetze.map(s => ({ gewicht: s[0], wdh: s[1] })), saetze: saetze.length, gewicht: saetze[0][0], wdh: saetze[0][1] };
+    einzelsaetze: saetze.map(s => (s.length > 2 ? { gewicht: s[0], wdh: s[1], rir: s[2] } : { gewicht: s[0], wdh: s[1] })), saetze: saetze.length, gewicht: saetze[0][0], wdh: saetze[0][1] };
 }
 // Eine Übung im laufenden Training
 function platz(ziel, uebungId) {
@@ -164,8 +164,11 @@ r = rechne([eintrag("e1", [[0, 12], [0, 12], [0, 12]], 3, "klimmzug")], platz(BE
 pruefe("Eigengewicht ohne Zusatzgewicht: nie steigern, Hinweis", r.v.art === "eigengewicht" && JSON.stringify(r.felder) === "[0,12]" && r.text === "modus.eigengewicht", JSON.stringify(r.felder) + r.text);
 r = rechne([eintrag("e1", [[0, 9], [0, 8], [0, 8]], 3, "klimmzug")], platz(BEREICH, "klimmzug"));
 pruefe("Eigengewicht unter dem Bereich: halten", r.v.art === "halten" && r.felder[0] === 0, r.v.art);
+// Seit Version 163: +2,5 kg wären bei 10 kg 25 %, also erst 2 Wdh. über das Ziel
 r = rechne([eintrag("e1", [[10, 12], [10, 12], [10, 12]], 3, "klimmzug")], platz(BEREICH, "klimmzug"));
-pruefe("Eigengewicht mit 10 kg Zusatz: steigern auf 12,5", r.v.art === "steigern" && r.felder[0] === 12.5, JSON.stringify(r.felder));
+pruefe("Eigengewicht mit 10 kg Zusatz, 12 Wdh.: erst mehr Wdh. (13)", r.v.art === "mehrWdh" && JSON.stringify(r.felder) === "[10,13]", JSON.stringify(r.felder));
+r = rechne([eintrag("e1", [[10, 14], [10, 14], [10, 14]], 3, "klimmzug")], platz(BEREICH, "klimmzug"));
+pruefe("Eigengewicht mit 10 kg Zusatz, 14 Wdh.: steigern auf 12,5", r.v.art === "steigern" && r.felder[0] === 12.5, JSON.stringify(r.felder));
 
 // ---------- lbs, nicht gerundet ----------
 const lbs135 = 61.235; // so speichert die App 135 lbs (zuKg mit vier Nachkommastellen)
@@ -219,6 +222,28 @@ const zweiterAus = platz(BEREICH);
 zweiterAus.saetze = [{ gewicht: 65, wdh: 9 }];
 r = rechne(MIT_AUFWAERMEN, zweiterAus, { steigern: false });
 pruefe("Schalter aus, Satz 2: Satz davor", JSON.stringify(r.felder) === "[65,9]", JSON.stringify(r.felder));
+
+
+// ---------- Seit Version 163: RIR, Senken, großer Sprung ----------
+r = rechne([eintrag("e1", [[70, 12, 3], [70, 12, 2], [70, 12, 2]])], platz(BEREICH));
+pruefe("Ziel erreicht mit RIR im Schnitt ≥ 2: steigern", r.v.art === "steigern" && r.felder[0] === 72.5, r.v.art);
+r = rechne([eintrag("e1", [[70, 12, 1], [70, 12, 1], [70, 12, 0]])], platz(BEREICH));
+pruefe("Ziel erreicht, aber RIR im Schnitt unter 2: halten mit Hinweis", r.v.art === "haltenRir" && r.felder[0] === 70 && r.text.indexOf("modus.haltenRir") === 0, r.v.art + r.text);
+r = rechne([eintrag("e1", [[70, 12, 1], [70, 12], [70, 12]])], platz(BEREICH));
+pruefe("Sätze ohne RIR zählen nicht mit: RIR 1 im einen Satz reicht für halten", r.v.art === "haltenRir", r.v.art);
+r = rechne([eintrag("e1", [[70, 12], [70, 12], [70, 12]])], platz(BEREICH));
+pruefe("Ohne RIR wie bisher: steigern", r.v.art === "steigern", r.v.art);
+r = rechne([eintrag("e2", [[70, 7], [70, 6], [70, 6]], 3), eintrag("e1", [[70, 7], [70, 7], [70, 6]], 7)], platz(BEREICH));
+pruefe("Zweimal unter 8 Wdh. mit 70 kg: senken auf 62,5 (−10 %, auf 2,5 gerundet)", r.v.art === "senken" && JSON.stringify(r.felder) === "[62.5,8]", JSON.stringify(r.felder) + r.v.art);
+pruefe("Senken: Hinweis mit −7,5 kg", r.text === 'modus.senken {"schritt":"−7,5 kg","wdh":8}', r.text);
+r = rechne([eintrag("e2", [[70, 7], [70, 6], [70, 6]], 3), eintrag("e1", [[70, 9], [70, 8], [70, 8]], 7)], platz(BEREICH));
+pruefe("Nur einmal unter dem Ziel: halten", r.v.art === "halten", r.v.art);
+r = rechne([eintrag("e2", [[70, 7], [70, 6], [70, 6]], 3), eintrag("e1", [[67.5, 7], [67.5, 7]], 7)], platz(BEREICH));
+pruefe("Davor anderes Gewicht: halten", r.v.art === "halten", r.v.art);
+r = rechne([eintrag("e2", [[10, 7], [10, 6]], 3), eintrag("e1", [[10, 7], [10, 6]], 7)], platz(BEREICH));
+pruefe("Senken bei 10 kg: mindestens ein Schritt (7,5)", r.v.art === "senken" && r.felder[0] === 7.5, JSON.stringify(r.felder));
+r = rechne([eintrag("e2", [[70, 7], [70, 6]], 30), eintrag("e1", [[70, 7], [70, 6]], 35)], platz(BEREICH));
+pruefe("Nach mehr als 21 Tagen Pause: nicht senken, halten", r.v.art === "pause", r.v.art);
 
 console.log(pruefungen + " Prüfungen, " + fehler + " Fehler");
 process.exit(fehler ? 1 : 0);

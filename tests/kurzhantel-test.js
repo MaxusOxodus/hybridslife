@@ -35,17 +35,19 @@ const ECHT = ["satzZiel", "zaehltSeiten", "einseitig", "kurzhantel", "steigerung
 
 // Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+// Seit Version 179: Basis ohne Zukunft und Entlastung, auffälliges Gewicht
+ECHT.push("fruehereArbeit", "vorschlagEintrag", "eintragInZukunft", "arbeitsGewicht", "inEntlastung", "entlastungsZeitraeume", "vorschlagAuffaellig", "median", "entlastungGewicht");
 const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
   return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
 };
-const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_RIR_MIN_SAETZE", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
+const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_RIR_MIN_SAETZE", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN", "ZUKUNFT_TOLERANZ_MS", "AUFFAELLIG_FAKTOR", "AUFFAELLIG_VERGLEICH", "AUFFAELLIG_MIN_VERGLEICH", "ENTLASTUNG_DAUER_TAGE", "ENTLASTUNG_GEWICHT"];
 
 // Baut die Funktionen mit diesen Einträgen, Einstellungen und Sprache. Die Übungen sind die echten aus der uebungen.js.
 function umgebung(eintraege, einstellungen, sprache) {
   let code = "const eintraege = " + JSON.stringify(eintraege) + ";"
     + "const einstellungen = " + JSON.stringify(einstellungen || {}) + ";"
-    + "let laufendesTraining = null; const geloeschteEigengewicht = [];"
+    + "let laufendesTraining = null; const geloeschteEigengewicht = []; let coach = {}; const TAG_MS = 86400000;"
     + "const UEBUNG_NACH_ID = {}; for (const u of UEBUNGEN) UEBUNG_NACH_ID[u.id] = u;"
     + "function gebiet() { return " + JSON.stringify(sprache === "en" ? "en-US" : "de-DE") + "; }"
     + "function txt(schluessel, werte) { return schluessel + (werte ? \" \" + JSON.stringify(werte) : \"\"); }";
@@ -102,7 +104,11 @@ const ALLE_12 = n => Array.from({ length: 3 }, () => [n, 12]);
   const en = UEBUNGEN.filter(u => /dumbbell/i.test(u.en));
   pruefe("Deutsch und Englisch erkennen dieselben Übungen", de.length === en.length && de.every(u => /dumbbell/i.test(u.en)), de.length + "/" + en.length);
   const erkannt = UEBUNGEN.filter(u => app.kurzhantel(u.id, ""));
-  pruefe("alle " + de.length + " Kurzhantel-Übungen erkannt, keine weitere", erkannt.length === de.length, erkannt.length);
+  // Seit Version 179 zählt auch der Alias: Seal Row, Seitheben und Kickbacks heißen dort „Dumbbell …“
+  const perAlias = UEBUNGEN.filter(u => !de.includes(u) && (u.alias || []).some(a => /kurzhantel|dumbbell/i.test(a))).map(u => u.id).sort();
+  pruefe("über den Alias genau Seal Row, Seitheben, Kickbacks", JSON.stringify(perAlias) === JSON.stringify(["kickbacks", "seal-row", "seitheben"]), perAlias.join(","));
+  pruefe("alle " + de.length + " Kurzhantel-Übungen und die " + perAlias.length + " per Alias erkannt, keine weitere", erkannt.length === de.length + perAlias.length && perAlias.every(id => erkannt.some(u => u.id === id)), erkannt.length);
+  pruefe("Seitheben steigt um 2 kg", app.kurzhantel("seitheben", "Seitheben") && !app.kurzhantel("bankdruecken-lh", "Bankdrücken"));
 }
 
 // ---------- kg: Kurzhantel +2, Langhantel +2,5 ----------

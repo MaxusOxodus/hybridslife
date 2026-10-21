@@ -33,8 +33,9 @@ function pruefe(name, ok, info) {
 const f = new Function(["ERHOLUNG_TAGE", "ERHOLUNG_LEICHT", "ERHOLUNG_SCHWER", "ERHOLUNG_HART_RIR", "ERHOLUNG_FENSTER_TAGE", "ERHOLUNG_PARTIEN"].map(konstanteHolen).join("")
   + "function hatDatum(e) { return typeof e.datum === 'string'; }"
   + "function gruppeIdVon(id, gruppe) { return gruppe; }"
-  + "function arbeitsSaetzeVon(e) { return e.einzelsaetze.filter(function (s) { return !s.aufwaermen; }); }"
-  + ["erholungPartie", "erholungTage", "erholungBedarf", "partieErholt"].map(funktionHolen).join("")
+  // Seit Version 179 der echte Weg der Sätze (saetzeVon mit rirLesen), keine Attrappe mehr: RIR über 4 (nur aus einem Import
+  // möglich, die Eingabe kennt 0 bis 3 und 4+) wird dort zu „ohne RIR“, so wie in der App
+  + ["istAufwaermen", "rirLesen", "saetzeVon", "arbeitsSaetzeVon", "erholungPartie", "erholungTage", "erholungBedarf", "partieErholt"].map(funktionHolen).join("")
   + "return { erholungTage, erholungBedarf, partieErholt };")();
 
 const HEUTE = new Date(2026, 9, 21, 12);
@@ -61,7 +62,12 @@ pruefe("RIR 0, aber nur 4 Sätze: 2 Tage", r.bedarf.beine === 2, r.bedarf.beine)
 r = rechne([eintrag(1, "brust", mitRir([3, 3, 3, 3, 3, 3, 3]))]);
 pruefe("RIR 3, aber 7 Sätze: 2 Tage", r.bedarf.brust === 2, r.bedarf.brust);
 r = rechne([eintrag(1, "brust", mitRir([5, 5, 3, 3]))]);
-pruefe("Sätze mit RIR 5 sind nicht hart: 2 harte mit RIR 3 → 1 Tag", r.bedarf.brust === 1, r.bedarf.brust);
+// Echter Weg: RIR 5 wird zu „ohne RIR“ (rirLesen), zählt also als harter Satz ohne Angabe. Schnitt der Angaben 3, 4 harte Sätze → 1 Tag
+pruefe("RIR 5 aus einem Import gilt als ohne RIR: 4 harte, Schnitt 3 → 1 Tag", r.bedarf.brust === 1, r.bedarf.brust);
+r = rechne([eintrag(1, "brust", mitRir([5, 5, 5, 5, 3, 3, 3]))]);
+pruefe("RIR 5 zählt beim echten Weg als harter Satz: 7 harte → 2 Tage (mit Attrappe wären es 3 harte → 1 Tag)", r.bedarf.brust === 2, r.bedarf.brust);
+r = rechne([eintrag(1, "brust", [[1, 4], [1, 4], [1, 3]])]);
+pruefe("RIR 4 (Eingabe „4+“) bleibt eine Angabe: Schnitt 3,7, 3 harte → 1 Tag", r.bedarf.brust === 1, r.bedarf.brust);
 r = rechne([eintrag(1, "lat", mitRir([0, 0, 0, 0, 0])), eintrag(1, "ruecken-oben", mitRir([0, 1, 0, 1, 0]))]);
 pruefe("Mehrere Einträge einer Partie am selben Tag zählen zusammen (10 Sätze, RIR 0): 3 Tage", r.bedarf.ruecken === 3, r.bedarf.ruecken);
 r = rechne([eintrag(5, "brust", mitRir([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])), eintrag(1, "brust", mitRir([3, 3]))]);

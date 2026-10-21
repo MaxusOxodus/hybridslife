@@ -2815,9 +2815,10 @@
   const VOLUMEN_TAGE = 30;
 
   // Harte Sätze je Muskelgruppe und Woche (seit Version 167, Forschung AP5, Vault „Korund Forschung 17“ F1):
-  // Arbeitssätze mit 1 bis HARTER_SATZ_WDH Wdh. und RIR bis HARTER_SATZ_RIR oder ohne RIR. Der Hauptmuskel zählt 1,
-  // jede andere Muskelgruppe aus hilfs HILFS_ANTEIL (Pelland et al. 2026). Zielbereich je Muskel und Woche nach ACSM 2026.
-  const HARTER_SATZ_RIR = 4;
+  // Arbeitssätze mit 1 bis HARTER_SATZ_WDH Wdh. (ohne Aufwärmsätze). Der Hauptmuskel zählt 1,
+  // jede andere Muskelgruppe aus hilfs HILFS_ANTEIL (Pelland et al. 2026). Bereich je Muskel und Woche nach ACSM 2026, eine Orientierung.
+  // Seit Version 180 ohne die Bedingung „RIR bis 4“: Sie hat nie gegriffen (Eingabe 0 bis 3 und 4+, rirLesen macht alles über 4
+  // zu „ohne RIR“). Die Zählung (und damit die XP) ist dieselbe wie vorher. Wie nah ein Satz am Versagen war, misst Korund nicht.
   const HARTER_SATZ_WDH = 30;
   const HILFS_ANTEIL = 0.5;
   const SAETZE_ZIEL = { von: 10, bis: 20 };
@@ -2834,7 +2835,7 @@
   // Wie viele harte Sätze ein Eintrag hat (auch für die XP, seit Version 169)
   function harteSaetzeVon(e) {
     return arbeitsSaetzeVon(e).filter(function (s) {
-      return s.wdh >= 1 && s.wdh <= HARTER_SATZ_WDH && (typeof s.rir !== "number" || s.rir <= HARTER_SATZ_RIR);
+      return s.wdh >= 1 && s.wdh <= HARTER_SATZ_WDH;
     }).length;
   }
 
@@ -5188,13 +5189,14 @@
   }
 
   // Kurzhantel-Übungen (seit Version 139). Ein eigenes Feld dafür gibt es in der uebungen.js nicht, wie bei einseitig
-  // zählt der Name auf Deutsch oder Englisch (bei eigenen Übungen ihr Name).
+  // zählt der Name auf Deutsch oder Englisch (bei eigenen Übungen ihr Name). Seit Version 179 auch der Alias
+  // (z. B. Seitheben „Dumbbell Lateral Raise“).
   const KURZHANTEL_NAME = /kurzhantel|dumbbell/i;
 
   function kurzhantel(id, name) {
     const u = UEBUNG_NACH_ID[id];
     if (u) {
-      return KURZHANTEL_NAME.test(u.de) || KURZHANTEL_NAME.test(u.en);
+      return KURZHANTEL_NAME.test(u.de) || KURZHANTEL_NAME.test(u.en) || (Array.isArray(u.alias) && u.alias.some(function (a) { return KURZHANTEL_NAME.test(a); }));
     }
     return typeof name === "string" && KURZHANTEL_NAME.test(name);
   }
@@ -5222,7 +5224,11 @@
   // Zurück kommt { art, gewicht (kg), wdh, alt (kg), ziel, rir } mit art "steigern", "halten", "haltenRir", "mehrWdh",
   // "senken", "pause", "eigengewicht", "entlastung" oder "ohneZiel". Ohne früheres Training mit Sätzen: null.
   function steigerungVorschlag(u) {
-    const letzter = letzterEintrag(u.name, u.uebungId, u.eintragId);
+    // Seit Version 179: Einträge mehr als ZUKUNFT_TOLERANZ_MS in der Zukunft zählen nicht, und Einheiten der Entlastungswoche
+    // sind keine Basis (sonst sinkt das Gewicht von Einheit zu Einheit: 100, 90, 80, 72,5 kg). Die Pause rechnet trotzdem
+    // ab dem letzten echten Training, auch wenn das eine Entlastungseinheit war.
+    const zuletzt = vorschlagEintrag(u, false);
+    const letzter = vorschlagEintrag(u, true) || zuletzt;
     if (!letzter) {
       return null;
     }
@@ -5231,17 +5237,26 @@
       return null;
     }
 
-    let alt = saetze[0].gewicht;
-    for (let i = 1; i < saetze.length; i++) {
-      alt = Math.max(alt, saetze[i].gewicht);
+    let alt = arbeitsGewicht(letzter);
+    // Auffälliges Gewicht (seit Version 179, Produktparameter AUFFAELLIG_FAKTOR): Basis ist der letzte unauffällige Eintrag
+    const auffaellig = vorschlagAuffaellig(u, letzter, alt);
+    const basis = auffaellig ? auffaellig.eintrag : letzter;
+    if (auffaellig) {
+      alt = auffaellig.gewicht;
     }
-    const arbeit = saetze.filter(function (s) { return s.gewicht === alt; });
+    const arbeit = arbeitsSaetzeVon(basis).filter(function (s) { return s.gewicht === alt; });
     const vorschlag = { art: "halten", gewicht: alt, wdh: arbeit[0].wdh, alt: alt, ziel: wdhBis(u) || u.zielWdh };
 
-    // Entlastungswoche (seit Version 150, Merker an der Übung im Training): leichteres Gewicht, keine Steigerung
+    // Entlastungswoche (seit Version 150, Merker an der Übung im Training): leichteres Gewicht, keine Steigerung.
+    // Seit Version 179 immer vom Gewicht vor der Entlastung. Gibt es nur Einheiten aus der Entlastung, bleibt deren Gewicht.
     if (u.entlastung) {
       vorschlag.art = "entlastung";
-      vorschlag.gewicht = entlastungGewicht(alt, u);
+      vorschlag.gewicht = inEntlastung(letzter) ? alt : entlastungGewicht(alt, u);
+      return vorschlag;
+    }
+    if (auffaellig) {
+      vorschlag.art = "auffaellig";
+      vorschlag.auffaellig = auffaellig.original;
       return vorschlag;
     }
 
@@ -5249,13 +5264,16 @@
       vorschlag.art = "ohneZiel";
       return vorschlag;
     }
-    if (hatDatum(letzter) && Date.now() - new Date(letzter.datum).getTime() > STEIGERN_PAUSE_TAGE * 24 * 60 * 60 * 1000) {
+    // Pause in Kalendertagen (seit Version 173 innen, seit Version 179 auch für die Grenze selbst). Gerundet wegen der Zeitumstellung.
+    let pauseTage = 0;
+    if (hatDatum(zuletzt)) {
+      const letzterTag = new Date(zuletzt.datum);
+      const heute = new Date();
+      pauseTage = Math.round((new Date(heute.getFullYear(), heute.getMonth(), heute.getDate()) - new Date(letzterTag.getFullYear(), letzterTag.getMonth(), letzterTag.getDate())) / TAG_MS);
+    }
+    if (pauseTage > STEIGERN_PAUSE_TAGE) {
       vorschlag.art = "pause";
       // Lange Pause: leichter wieder einsteigen, auf den Schritt gerundet (seit Version 165)
-      // Seit Version 173 Kalendertage (wie Erholung und Comeback), nicht volle 24 Stunden. Gerundet wegen der Zeitumstellung.
-      const letzterTag = new Date(letzter.datum);
-      const heute = new Date();
-      const pauseTage = Math.round((new Date(heute.getFullYear(), heute.getMonth(), heute.getDate()) - new Date(letzterTag.getFullYear(), letzterTag.getMonth(), letzterTag.getDate())) / TAG_MS);
       const stufe = WIEDEREINSTIEG.filter(function (w) { return pauseTage >= w.ab; }).pop();
       if (stufe && alt > 0) {
         const schritt = steigerungSchritt(u);
@@ -5316,6 +5334,131 @@
     return vorschlag;
   }
 
+  // Einträge, die mehr als ZUKUNFT_TOLERANZ_MS in der Zukunft liegen (Import, falsche Uhr), zählen für den Vorschlag nicht
+  // (seit Version 179). Ein Tag Spielraum, damit eine andere Zeitzone nichts ausschließt. Gelöscht wird nichts.
+  const ZUKUNFT_TOLERANZ_MS = 24 * 60 * 60 * 1000;
+
+  // Auffälliges Arbeitsgewicht (seit Version 179, Produktparameter, kein Wert aus Studien): mindestens AUFFAELLIG_FAKTOR
+  // schwerer oder leichter als der Median der bis zu AUFFAELLIG_VERGLEICH Einträge davor (mindestens AUFFAELLIG_MIN_VERGLEICH).
+  // Fängt Tippfehler wie 400 statt 40 kg (×10) und kg/lbs (×2,2), nicht aber normale Sprünge (×1,1 bis ×1,5).
+  const AUFFAELLIG_FAKTOR = 2;
+  const AUFFAELLIG_VERGLEICH = 5;
+  const AUFFAELLIG_MIN_VERGLEICH = 2;
+
+  function eintragInZukunft(e) {
+    return hatDatum(e) && new Date(e.datum).getTime() > Date.now() + ZUKUNFT_TOLERANZ_MS;
+  }
+
+  // Das Arbeitsgewicht eines Eintrags: das schwerste Gewicht seiner Arbeitssätze (null ohne Arbeitssatz)
+  function arbeitsGewicht(e) {
+    const saetze = arbeitsSaetzeVon(e);
+    return saetze.length === 0 ? null : Math.max.apply(null, saetze.map(function (s) { return s.gewicht; }));
+  }
+
+  // Gehört ein Eintrag zu einer Entlastungswoche (seit Version 179)? Neue Einträge tragen den Merker entlastung: true.
+  // Ältere erkennt die App am Zeitraum der laufenden oder letzten Entlastung (entlastungsZeitraeume).
+  function inEntlastung(e) {
+    if (!e) {
+      return false;
+    }
+    if (e.entlastung === true) {
+      return true;
+    }
+    if (!hatDatum(e)) {
+      return false;
+    }
+    const zeit = new Date(e.datum).getTime();
+    return entlastungsZeitraeume().some(function (z) {
+      return zeit >= z.von && zeit < z.bis;
+    });
+  }
+
+  // Die bekannten Entlastungswochen als { von, bis } (ms): die laufende und die letzte. Ohne gemerkten Beginn
+  // (beendet vor Version 179) gilt für die letzte ENTLASTUNG_DAUER_TAGE vor ihrem Ende. Ältere werden nicht rekonstruiert.
+  function entlastungsZeitraeume() {
+    const liste = [];
+    if (coach.entlastung) {
+      liste.push({ von: coach.entlastung.von, bis: coach.entlastung.bis });
+    }
+    if (coach.letzteEntlastung) {
+      const von = coach.letzteEntlastungVon || coach.letzteEntlastung - ENTLASTUNG_DAUER_TAGE * TAG_MS;
+      liste.push({ von: von, bis: coach.letzteEntlastung });
+    }
+    return liste;
+  }
+
+  // Die ids aller Einträge aus Entlastungswochen (für Stillstand und Abfall, die sie nicht mitzählen)
+  function entlastungsEintragIds() {
+    return eintraege.filter(inEntlastung).map(function (e) { return e.id; });
+  }
+
+  // Der neueste Eintrag der Übung für den Vorschlag: ohne den des laufenden Trainings, ohne Einträge in der Zukunft,
+  // mit ohneEntlastung auch ohne Einheiten der Entlastungswoche. Gleiche Regel wie letzterEintrag (spätestes Datum gewinnt).
+  function vorschlagEintrag(u, ohneEntlastung) {
+    let neuester = null;
+    let neuesteZeit = 0;
+    if (u.name.trim() === "") {
+      return null;
+    }
+    for (let i = 0; i < eintraege.length; i++) {
+      const e = eintraege[i];
+      if (!gleicheUebung(e, u.name, u.uebungId) || (u.eintragId && e.id === u.eintragId) || eintragInZukunft(e) || (ohneEntlastung && inEntlastung(e))) {
+        continue;
+      }
+      const zeit = hatDatum(e) ? new Date(e.datum).getTime() : 0;
+      if (neuester === null || zeit >= neuesteZeit) {
+        neuester = e;
+        neuesteZeit = zeit;
+      }
+    }
+    return neuester;
+  }
+
+  // Ist das Arbeitsgewicht des letzten Eintrags auffällig? Dann { eintrag, gewicht, original } mit dem neuesten früheren
+  // Eintrag, der nicht auffällig ist, sonst null. Ohne genug Vergleich oder bei Eigengewicht ohne Zusatz: null.
+  function vorschlagAuffaellig(u, letzter, alt) {
+    if (!(alt > 0)) {
+      return null;
+    }
+    const frueher = fruehereArbeit(u, hatDatum(letzter) ? new Date(letzter.datum).getTime() : 0, letzter);
+    if (frueher.length < AUFFAELLIG_MIN_VERGLEICH) {
+      return null;
+    }
+    const mitte = median(frueher.map(arbeitsGewicht));
+    const passt = function (g) { return g < mitte * AUFFAELLIG_FAKTOR && g > mitte / AUFFAELLIG_FAKTOR; };
+    if (passt(alt)) {
+      return null;
+    }
+    const gut = frueher.filter(function (e) { return passt(arbeitsGewicht(e)); })[0];
+    return gut ? { eintrag: gut, gewicht: arbeitsGewicht(gut), original: alt } : null;
+  }
+
+  // Die bis zu AUFFAELLIG_VERGLEICH neuesten Einträge der Übung bis bisZeit mit Arbeitsgewicht über 0, der neueste zuerst:
+  // ohne den des laufenden Trainings, ohne ohne, ohne Einheiten der Entlastung und ohne Einträge in der Zukunft
+  function fruehereArbeit(u, bisZeit, ohne) {
+    return eintraege.filter(function (e) {
+      return e !== ohne && e.id !== u.eintragId && gleicheUebung(e, u.name, u.uebungId) && hatDatum(e) && !inEntlastung(e)
+        && !eintragInZukunft(e) && new Date(e.datum).getTime() <= bisZeit && arbeitsGewicht(e) > 0;
+    }).sort(function (a, b) {
+      return new Date(b.datum) - new Date(a.datum);
+    }).slice(0, AUFFAELLIG_VERGLEICH);
+  }
+
+  // Das übliche Arbeitsgewicht der Übung (Median wie beim Vorschlag), wenn gewicht um AUFFAELLIG_FAKTOR oder mehr davon
+  // abweicht, sonst null. Kein Vergleich bei Eigengewicht ohne Zusatz (0), mit weniger als AUFFAELLIG_MIN_VERGLEICH früheren
+  // Einträgen oder wenn heute schon ein Satz mit diesem Gewicht gespeichert ist (dann ist es bestätigt).
+  function gewichtUngewoehnlich(u, gewicht) {
+    if (!(gewicht > 0) || u.saetze.some(function (s) { return s.gewicht === gewicht; })) {
+      return null;
+    }
+    const frueher = fruehereArbeit(u, Date.now(), null);
+    if (frueher.length < AUFFAELLIG_MIN_VERGLEICH) {
+      return null;
+    }
+    const mitte = median(frueher.map(arbeitsGewicht));
+    return gewicht >= mitte * AUFFAELLIG_FAKTOR || gewicht <= mitte / AUFFAELLIG_FAKTOR ? mitte : null;
+  }
+
   // Der Eintrag dieser Übung vor dem letzten (für "zweimal unter dem Ziel"), ohne den des laufenden Trainings.
   // Einträge ohne Arbeitssatz zählen nicht.
   function vorletzterEintrag(u, letzter) {
@@ -5324,7 +5467,7 @@
     const letzteZeit = hatDatum(letzter) ? new Date(letzter.datum).getTime() : 0;
     for (let i = 0; i < eintraege.length; i++) {
       const e = eintraege[i];
-      if (e === letzter || e.id === u.eintragId || !gleicheUebung(e, u.name, u.uebungId) || arbeitsSaetzeVon(e).length === 0) {
+      if (e === letzter || e.id === u.eintragId || !gleicheUebung(e, u.name, u.uebungId) || arbeitsSaetzeVon(e).length === 0 || inEntlastung(e)) {
         continue;
       }
       const zeit = hatDatum(e) ? new Date(e.datum).getTime() : 0;
@@ -5367,6 +5510,9 @@
     }
     if (v.art === "mehrWdh") {
       return txt("modus.mehrWdh", { wdh: v.wdh, schritt: "+" + zahlText(steigerungSchritt(u)) + " " + einheit() });
+    }
+    if (v.art === "auffaellig") {
+      return txt("modus.auffaellig", { gewicht: gewichtText(v.auffaellig) });
     }
     if (v.art === "senken") {
       return txt("modus.senken", { schritt: "−" + zahlText(Math.round((ausKg(v.alt) - ausKg(v.gewicht)) * 100) / 100) + " " + einheit(), wdh: u.zielWdh });
@@ -5763,6 +5909,22 @@
   // Der Eintrag entsteht mit dem ersten Satz und wächst mit jedem weiteren. So geht nichts verloren,
   // wenn das Handy die App mitten in der Übung schließt.
   // routineId und routineName halten fest, aus welcher Routine der Eintrag stammt.
+  // Der Knopf „Satz fertig“ (seit Version 179): Ist das Gewicht eines Arbeitssatzes ungewöhnlich (gewichtUngewoehnlich),
+  // fragt die App erst nach. „Ja, speichern“ speichert wie immer, „Korrigieren“ lässt die Felder stehen. Nichts wird geändert.
+  function satzFertigPruefen() {
+    const u = laufendesTraining.uebungen[laufendesTraining.index];
+    const gewicht = gewichtFeldWert("t-feld-gewicht");
+    const ueblich = aufwaermenGewaehlt ? null : gewichtUngewoehnlich(u, gewicht);
+    if (ueblich === null) {
+      satzFertig();
+      return;
+    }
+    frageZeigen(txt("satz.ungewoehnlichTitel"), txt("satz.ungewoehnlichText", { gewicht: gewichtText(gewicht), ueblich: gewichtText(ueblich) }), [
+      { text: txt("satz.ungewoehnlichJa"), art: "haupt", aktion: satzFertig },
+      { text: txt("satz.ungewoehnlichKorrigieren"), art: "leise" }
+    ]);
+  }
+
   function satzFertig() {
     const t = laufendesTraining;
     const u = t.uebungen[t.index];
@@ -5796,6 +5958,10 @@
         routineId: t.routineId,
         routineName: t.routineName
       };
+      // Einheit der Entlastungswoche (seit Version 179): zählt nicht als Basis des Vorschlags, für Stillstand und Abfall
+      if (u.entlastung) {
+        eintrag.entlastung = true;
+      }
       eintraege.push(eintrag);
       u.eintragId = eintrag.id;
       t.erledigt.push({ id: eintrag.id, uebung: eintrag.uebung });
@@ -16398,6 +16564,10 @@
     }
     if (coachZahl(c.letzteEntlastung)) {
       sauber.letzteEntlastung = c.letzteEntlastung;
+      // Seit Version 179 auch der Beginn, damit die Einheiten dieser Woche erkennbar bleiben
+      if (coachZahl(c.letzteEntlastungVon) && c.letzteEntlastungVon < c.letzteEntlastung) {
+        sauber.letzteEntlastungVon = c.letzteEntlastungVon;
+      }
     }
     if (c.rueckblick && coachZahl(c.rueckblick.am)) {
       sauber.rueckblick = { am: c.rueckblick.am, energie: String(c.rueckblick.energie || ""), menge: String(c.rueckblick.menge || "") };
@@ -17033,7 +17203,9 @@
       if (stand === "unter") {
         unter++;
       }
-      liste.appendChild(seitenZeile(GRUPPE_NACH_ID[g][sprache], zahlText(x) + " · " + txt("coach.saetze." + stand), null, { leise: stand !== "im" }));
+      // Bei Ziel Kraft gleicht der Plan „zu wenig“ absichtlich nicht aus (coachVolumenAnpassen), deshalb steht dort kein „darunter“ (seit Version 180)
+      const wort = stand === "unter" && a.ziel === "kraft" ? "" : " · " + txt("coach.saetze." + stand);
+      liste.appendChild(seitenZeile(GRUPPE_NACH_ID[g][sprache], zahlText(x) + wort, null, { leise: stand !== "im" }));
     });
     inhalt.appendChild(liste);
     inhalt.appendChild(element("p", "seiten-text", txt("saetze.ziel", { von: ziel.von, bis: ziel.bis }) + "."
@@ -17133,8 +17305,10 @@
     const jetztAb = heute - STILLSTAND_JETZT_TAGE * TAG_MS;
     const vorherAb = jetztAb - STILLSTAND_VORHER_TAGE * TAG_MS;
     const liste = [];
+    // Einheiten der Entlastungswoche zählen nicht (seit Version 179): Sie sind absichtlich leichter
+    const ohne = entlastungsEintragIds();
     trainierteUebungen().forEach(function (u) {
-      const punkte = verlaufPunkte(u.name, u.id, "rang").filter(function (p) {
+      const punkte = verlaufPunkte(u.name, u.id, "rang", ohne).filter(function (p) {
         return p.zeit > vorherAb && p.zeit <= heute;
       });
       const jetzt = punkte.filter(function (p) { return p.zeit > jetztAb; });
@@ -17164,8 +17338,9 @@
   // In wie vielen Übungen ein Leistungsabfall vorliegt (Regel siehe ABFALL_EINHEITEN). heute: ms
   function coachAbfall(heute) {
     let anzahl = 0;
+    const ohne = entlastungsEintragIds();
     trainierteUebungen().forEach(function (u) {
-      const punkte = verlaufPunkte(u.name, u.id, "rang").filter(function (p) { return p.zeit <= heute; });
+      const punkte = verlaufPunkte(u.name, u.id, "rang", ohne).filter(function (p) { return p.zeit <= heute; });
       if (punkte.length < ABFALL_EINHEITEN + STILLSTAND_MIN_PUNKTE) {
         return;
       }
@@ -17241,6 +17416,7 @@
   function entlastungBeenden() {
     if (coach.entlastung) {
       coach.letzteEntlastung = Math.min(Date.now(), coach.entlastung.bis);
+      coach.letzteEntlastungVon = coach.entlastung.von;
     }
     delete coach.entlastung;
     coachSpeichern();
@@ -17252,6 +17428,7 @@
   function coachKarteAnzeigen(bereich) {
     if (coach.entlastung && !entlastungAktiv() && Date.now() >= coach.entlastung.bis) {
       coach.letzteEntlastung = coach.entlastung.bis;
+      coach.letzteEntlastungVon = coach.entlastung.von;
       delete coach.entlastung;
       coachSpeichern();
     }

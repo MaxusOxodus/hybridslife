@@ -32,10 +32,10 @@ const f = new Function(uebungen
   + ";const UEBUNG_NACH_ID = {}; UEBUNGEN.forEach(function (u) { UEBUNG_NACH_ID[u.id] = u; });"
   + "const GRUPPE_NACH_ID = {}; MUSKELGRUPPEN.forEach(function (g) { GRUPPE_NACH_ID[g.id] = g; });"
   + "function hatDatum(e) { return typeof e.datum === 'string'; }"
-  + "function arbeitsSaetzeVon(e) { return e.einzelsaetze.filter(function (s) { return !s.aufwaermen; }); }"
   + "function gruppeIdVon(id, gruppe) { return gruppe || ''; }"
-  + ["HARTER_SATZ_RIR", "HARTER_SATZ_WDH", "HILFS_ANTEIL"].map(konstanteHolen).join("")
-  + ["harteSaetzeVon", "muskelGruppeVon", "gruppenAnteile", "harteSaetzeWoche"].map(funktionHolen).join("")
+  + ["HARTER_SATZ_WDH", "HILFS_ANTEIL"].map(konstanteHolen).join("")
+  // Seit Version 180 der echte Weg der Sätze (saetzeVon mit rirLesen) statt einer Attrappe
+  + ["istAufwaermen", "rirLesen", "saetzeVon", "arbeitsSaetzeVon", "harteSaetzeVon", "muskelGruppeVon", "gruppenAnteile", "harteSaetzeWoche"].map(funktionHolen).join("")
   + "return { harteSaetzeWoche };")();
 
 const MONTAG = new Date(2026, 9, 19);
@@ -46,8 +46,13 @@ const satz = (wdh, rir, w) => (rir === undefined ? { gewicht: 60, wdh: wdh, aufw
 
 let r = f.harteSaetzeWoche([eintrag(1, "pause-smith-machine-bench-press", [satz(8), satz(8), satz(8)])], MONTAG);
 pruefe("Bankdrücken Multipresse mit Pause 3 Sätze: Brust 3, Trizeps 1,5, Schulter vorn 1,5", r.brust === 3 && r.trizeps === 1.5 && r["schulter-vorn"] === 1.5, JSON.stringify(r));
-r = f.harteSaetzeWoche([eintrag(1, "pause-smith-machine-bench-press", [satz(8, undefined, true), satz(8, 5), satz(8, 2), satz(40, 1)])], MONTAG);
-pruefe("Aufwärmen, RIR 5 und 40 Wdh. zählen nicht: 1 harter Satz", r.brust === 1, JSON.stringify(r));
+r = f.harteSaetzeWoche([eintrag(1, "pause-smith-machine-bench-press", [satz(8, undefined, true), satz(8, 4), satz(8, 2), satz(40, 1), satz(0, 1)])], MONTAG);
+pruefe("Aufwärmen, 40 Wdh. und 0 Wdh. zählen nicht, RIR 4 (Eingabe „4+“) zählt: 2 harte Sätze", r.brust === 2, JSON.stringify(r));
+// Seit Version 180: Die RIR-Angabe ändert die Zählung nicht (die Bedingung „RIR bis 4“ hat mit echten Daten nie gegriffen)
+r = f.harteSaetzeWoche([eintrag(1, "pause-smith-machine-bench-press", [satz(8, 5), satz(8, 9), satz(8, 0)])], MONTAG);
+pruefe("RIR 5 und 9 aus einem Import werden zu „ohne RIR“ und zählen: 3 harte Sätze", r.brust === 3, JSON.stringify(r));
+pruefe("Code ohne RIR-Bedingung und ohne HARTER_SATZ_RIR", !/HARTER_SATZ_RIR/.test(quelle) && /return s\.wdh >= 1 && s\.wdh <= HARTER_SATZ_WDH;/.test(funktionHolen("harteSaetzeVon")));
+pruefe("Hilfetext sagt ehrlich, dass Korund die Anstrengung nicht misst", /misst Korund nicht/.test(texte) && !/höchstens 4 Wdh\. Reserve/.test(texte) && !/kaum noch zusätzlich/.test(texte) && !/du hörst kurz vor Schluss auf/.test(texte));
 r = f.harteSaetzeWoche([eintrag(-1, "pause-smith-machine-bench-press", [satz(8)]), eintrag(7, "pause-smith-machine-bench-press", [satz(8)])], MONTAG);
 pruefe("Sonntag davor und Montag danach zählen nicht", Object.keys(r).length === 0, JSON.stringify(r));
 r = f.harteSaetzeWoche([eintrag(0, "cable-lat-pulldown", [satz(10), satz(10)]), eintrag(3, "chin-up", [satz(6), satz(6)])], MONTAG);

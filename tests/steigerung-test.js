@@ -36,17 +36,19 @@ const ECHT = ["satzZiel", "zaehltSeiten", "zaehlweiseKopieren", "einseitig", "ku
 
 // Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
+// Seit Version 179: Basis ohne Zukunft und Entlastung, auffälliges Gewicht
+ECHT.push("fruehereArbeit", "vorschlagEintrag", "eintragInZukunft", "arbeitsGewicht", "inEntlastung", "entlastungsZeitraeume", "vorschlagAuffaellig", "median", "entlastungGewicht");
 const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
   return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
 };
-const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_RIR_MIN_SAETZE", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "WIEDEREINSTIEG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
+const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_RIR_MIN_SAETZE", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "WIEDEREINSTIEG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN", "ZUKUNFT_TOLERANZ_MS", "AUFFAELLIG_FAKTOR", "AUFFAELLIG_VERGLEICH", "AUFFAELLIG_MIN_VERGLEICH", "ENTLASTUNG_DAUER_TAGE", "ENTLASTUNG_GEWICHT"];
 
 // Baut die Funktionen mit diesen Einträgen und Einstellungen
 function umgebung(eintraege, einstellungen) {
   let code = "const eintraege = " + JSON.stringify(eintraege) + ";"
     + "const einstellungen = " + JSON.stringify(einstellungen || {}) + ";"
-    + "let laufendesTraining = null; const geloeschteEigengewicht = []; const TAG_MS = 86400000;"
+    + "let laufendesTraining = null; const geloeschteEigengewicht = []; let coach = {}; const TAG_MS = 86400000;"
     + "const UEBUNG_NACH_ID = { klimmzug: { bereich: \"eigen\" }, bankdruecken: { bereich: \"frei\" } };"
     + "function gebiet() { return \"de-DE\"; }"
     + "function txt(schluessel, werte) { return schluessel + (werte ? \" \" + JSON.stringify(werte) : \"\"); }";

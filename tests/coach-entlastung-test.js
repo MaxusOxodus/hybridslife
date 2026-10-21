@@ -35,7 +35,7 @@ const TAG = 86400000;
 const HEUTE = new Date(2026, 9, 18, 12).getTime();
 const KONSTANTEN = ["STILLSTAND_JETZT_TAGE", "STILLSTAND_VORHER_TAGE", "STILLSTAND_MIN_PUNKTE", "STILLSTAND_MAX_LUECKE_TAGE", "ABFALL_EINHEITEN", "ABFALL_BEZUG_TAGE",
   "COACH_AUSBLENDEN_TAGE", "STILLSTAND_BESTAETIGT_TAGE", "STILLSTAND_AUSBLENDEN_TAGE", "ENTLASTUNG_STILLSTAENDE", "ENTLASTUNG_ABFALL", "ENTLASTUNG_ABFALL_UEBUNGEN", "ENTLASTUNG_ABSTAND_TAGE",
-  "ENTLASTUNG_RUECKBLICK_TAGE", "ENTLASTUNG_GEWICHT", "COACH_ZIELE", "COACH_TAGE", "COACH_MINUTEN", "COACH_ERFAHRUNG",
+  "ENTLASTUNG_RUECKBLICK_TAGE", "ENTLASTUNG_GEWICHT", "ENTLASTUNG_DAUER_TAGE", "COACH_ZIELE", "COACH_TAGE", "COACH_MINUTEN", "COACH_ERFAHRUNG",
   "COACH_SCHWERPUNKTE", "COACH_MAX_SCHWERPUNKT", "COACH_MAX_ENTSCHEIDUNGEN", "COACH_MAX_BEWERTUNGEN", "COACH_ENTSCHEIDUNG_ARTEN"];
 const f = new Function("const TAG_MS = " + TAG + "; let uebungen = []; let coach = {}; let blockStart = 0;"
   + "const Date = globalThis.Date;"
@@ -43,8 +43,9 @@ const f = new Function("const TAG_MS = " + TAG + "; let uebungen = []; let coach
   + "function verlaufPunkte(name) { return uebungen.filter(function (u) { return u.name === name; })[0].punkte; }"
   + "function steigerungSchritt(u) { return u.kurz ? 2 : 2.5; } function ausKg(x) { return x; } function zuKg(x) { return x; }"
   + "function rueckblickStart() { return blockStart; }"
+  + "const eintraege = []; function hatDatum(e) { return Boolean(e) && Boolean(e.datum); }"
   + KONSTANTEN.map(konstanteHolen).join("")
-  + ["median", "punkteLuecke", "coachStillstaende", "coachStillstaendeGemeldet", "coachAusgeblendet", "coachAbfall", "entlastungGrund", "entlastungGewicht", "entlastungAktiv", "coachZahl", "coachBereinigen"].map(n => funktionHolen(n)).join("")
+  + ["inEntlastung", "entlastungsZeitraeume", "entlastungsEintragIds", "median", "punkteLuecke", "coachStillstaende", "coachStillstaendeGemeldet", "coachAusgeblendet", "coachAbfall", "entlastungGrund", "entlastungGewicht", "entlastungAktiv", "coachZahl", "coachBereinigen"].map(n => funktionHolen(n)).join("")
   + "return { coachStillstaende, coachStillstaendeGemeldet, coachAusgeblendet, coachAbfall, entlastungGrund, entlastungGewicht, coachBereinigen,"
   + " setze: function (u, c, s) { uebungen = u; coach = c || {}; blockStart = s || 0; } };")();
 
@@ -210,7 +211,8 @@ pruefe("Gedächtnis: höchstens 200 Entscheidungen, die neuesten", viele.entsche
 const beginnen = funktionHolen("trainingBeginnen");
 pruefe("Training: Ziel-Sätze halbiert, aufgerundet, mindestens 1", /neu\.zielSaetze = Math\.max\(1, Math\.ceil\(neu\.zielSaetze \/ 2\)\)/.test(beginnen));
 pruefe("Training: nur in der Entlastungswoche und mit Merker", /if \(entlastungAktiv\(\)\)/.test(beginnen) && /neu\.entlastung = true/.test(beginnen));
-pruefe("Vorschlag: in der Entlastung leichter, keine Steigerung", /if \(u\.entlastung\) \{\n\s+vorschlag\.art = "entlastung";\n\s+vorschlag\.gewicht = entlastungGewicht\(alt, u\);\n\s+return vorschlag;/.test(funktionHolen("steigerungVorschlag")));
+// Seit Version 179 vom Gewicht vor der Entlastung (Basis ohne Entlastungseinheiten), nur Entlastungseinheiten: deren Gewicht
+pruefe("Vorschlag: in der Entlastung leichter, keine Steigerung", /if \(u\.entlastung\) \{\n\s+vorschlag\.art = "entlastung";\n\s+vorschlag\.gewicht = inEntlastung\(letzter\) \? alt : entlastungGewicht\(alt, u\);\n\s+return vorschlag;/.test(funktionHolen("steigerungVorschlag")));
 pruefe("Rückblick merkt Energie und Menge", /coach\.rueckblick = \{ am: einstellungen\.rueckblickAm, energie: rueckblick\.energie, menge: rueckblick\.menge \}/.test(funktionHolen("rueckblickUebernehmen")));
 const TEXTE = new Function(texte + "; return TEXTE;")();
 const benutzt = (quelle.match(/txt\("(entlastung|stillstand)\.[a-zA-Z.]*[a-zA-Z]"[,)]/g) || []).map(t => t.slice(5, -2)).concat(["modus.entlastung", "coach.nichtJetzt", "coach.verstanden"]);

@@ -3430,6 +3430,22 @@
     document.getElementById("frage-hintergrund").classList.add("offen");
   }
 
+  // „Warum?“ (seit Version 168, Forschung AP10): eine kurze Erklärung mit Quelle im Rückfrage-Dialog
+  function warumZeigen(schluessel, werte) {
+    frageZeigen(txt("warum.titel"), txt(schluessel, werte), [{ text: txt("ok"), art: "haupt" }]);
+  }
+
+  // Ein Textknopf „Warum?“ für Seiten und Karten
+  function warumKnopf(schluessel, werte) {
+    const knopf = element("button", "text-btn warum-knopf", txt("warum.knopf"));
+    knopf.type = "button";
+    knopf.onclick = function (ereignis) {
+      ereignis.stopPropagation();
+      warumZeigen(schluessel, werte);
+    };
+    return knopf;
+  }
+
   // ---------- Training: Übersicht ----------
 
   // Baut die ganze Übersicht neu auf
@@ -5398,6 +5414,14 @@
         chip.textContent = "↓ " + chip.textContent;
       }
       behaelter.appendChild(chip);
+      // „?“ erklärt den Vorschlag (seit Version 168)
+      const warum = element("button", "modus-chip warum-chip", "?");
+      warum.type = "button";
+      warum.setAttribute("aria-label", txt("warum.vorschlag"));
+      warum.onclick = function () {
+        warumZeigen("warum.art." + v.art, { tage: STEIGERN_PAUSE_TAGE });
+      };
+      behaelter.appendChild(warum);
     }
     // Entlastungswoche (seit Version 151): ein eigener Chip, damit man im Look Korund sieht, warum es leichter ist
     if (u.entlastung) {
@@ -8479,6 +8503,7 @@
       text.appendChild(element("div", "erholung-info", txt(mehrzahl(muede) ? "erholung.brauchen" : "erholung.braucht", { wer: namen(muede), tage: txtAnzahl("erholung.tage", rest) })));
     }
     kopf.appendChild(text);
+    kopf.appendChild(warumKnopf("warum.erholung"));
     bereich.appendChild(kopf);
 
     const liste = element("div", "erholung-liste");
@@ -16880,6 +16905,7 @@
         liste.appendChild(seitenZeile(txt("entlastung.regel.dauer"), txt("entlastung.regel.tage", { n: ENTLASTUNG_DAUER_TAGE }), null, { leise: true }));
         inhalt.appendChild(liste);
         inhalt.appendChild(element("p", "seiten-text", txt("entlastung.text")));
+        inhalt.appendChild(warumKnopf("warum.entlastung"));
         if (!entlastungAktiv()) {
           inhalt.appendChild(coachDaumen("entlastung", grund || ""));
         }
@@ -16911,6 +16937,7 @@
           tipps.appendChild(seitenZeile(txt("stillstand.tipp." + t), undefined, null));
         });
         inhalt.appendChild(tipps);
+        inhalt.appendChild(warumKnopf("warum.stillstand"));
         inhalt.appendChild(coachDaumen("stillstand", stillstaende.map(function (s) {
           return s.id || s.name;
         }).join(",").slice(0, 40)));

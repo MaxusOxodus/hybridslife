@@ -8574,3 +8574,14 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-leer,
 :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-viel { margin-top: 12px; }
 }
+
+/* ---------- „Warum?“ (seit Version 168): Chip „?“ neben dem Vorschlag, Textknopf auf Seiten und in der Erholungskarte ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .warum-chip { font: inherit; font-size: 14px; font-weight: 700; padding: 0 12px; color: var(--text-leise); cursor: pointer; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .warum-knopf { min-height: 36px; padding: 0; color: var(--fw-signal); font-size: 15px; font-weight: 600; text-align: left; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .erholung-kopf .warum-knopf { align-self: flex-start; margin-left: auto; flex: none; font-size: 14px; }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .warum-chip { font: inherit; font-size: 14px; font-weight: 700; padding: 0 12px; color: var(--text-leise); cursor: pointer; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .warum-knopf { min-height: 36px; padding: 0; color: var(--fw-signal); font-size: 15px; font-weight: 600; text-align: left; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .erholung-kopf .warum-knopf { align-self: flex-start; margin-left: auto; flex: none; font-size: 14px; }
+}

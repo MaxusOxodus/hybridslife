@@ -32,6 +32,21 @@ const MUSTER_SCHWELLEN = {
   ziehenH:   [0, 0.45, 0.65, 0.90, 1.15, 1.40, 1.65]  // Referenz: Langhantelrudern
 };
 
+// Seit Version 172 (Forschung AP11, F9): Frauen-Tabelle. Ihre Schwellen sind die oben mal diesem Faktor je Muster.
+// Geschätzt aus Normen von Powerlifterinnen: Drücken und Ziehen 0,69, Beine 0,80, Hüfte 0,82.
+const FRAUEN_FAKTOR = { drueckenH: 0.69, drueckenV: 0.69, beine: 0.80, huefte: 0.82, ziehenV: 0.69, ziehenH: 0.69 };
+
+// Die Schwellen eines Musters für die Tabelle "m" (Standard) oder "w" (Frauen)
+function musterSchwellen(muster, tabelle) {
+  const schwellen = MUSTER_SCHWELLEN[muster];
+  if (tabelle !== "w") {
+    return schwellen;
+  }
+  return schwellen.map(function (x) {
+    return x * FRAUEN_FAKTOR[muster];
+  });
+}
+
 // Die Referenz-Übung jedes Musters (ihre ID aus der uebungen.js). Ein leeres Muster nennt sie als Beispiel.
 const MUSTER_REFERENZ = {
   drueckenH: "bankdruecken-lh",
@@ -227,8 +242,9 @@ function rangKoerpergewicht(messungen, zeit, schnittAm) {
 //             Ohne Körpergewicht sind koerper, verhaeltnis und rp null und ohneKoerper ist true.
 //             gesamt ist der Durchschnitt der RP oder null, solange weniger als drei Muster einen Wert haben.
 //             fehlen sagt, wie viele Muster bis zum Gesamt-Rang noch fehlen.
-function kraftRaenge(uebungen, koerperAm, jetzt) {
-  const ergebnis = { muster: {}, anzahl: 0, gesamt: null, fehlen: GESAMT_MIN_MUSTER, ohneKoerper: false };
+// tabelle (seit Version 172, freiwillig): "w" rechnet mit der Frauen-Tabelle (musterSchwellen), sonst wie bisher.
+function kraftRaenge(uebungen, koerperAm, jetzt, tabelle) {
+  const ergebnis = { muster: {}, anzahl: 0, gesamt: null, fehlen: GESAMT_MIN_MUSTER, ohneKoerper: false, tabelle: tabelle === "w" ? "w" : "m" };
   for (let i = 0; i < MUSTER.length; i++) {
     ergebnis.muster[MUSTER[i]] = null;
   }
@@ -266,7 +282,7 @@ function kraftRaenge(uebungen, koerperAm, jetzt) {
     }
     m.koerper = koerper;
     m.verhaeltnis = m.aequivalent / koerper;
-    m.rp = rpAusSchwellen(m.verhaeltnis, MUSTER_SCHWELLEN[MUSTER[i]]);
+    m.rp = rpAusSchwellen(m.verhaeltnis, musterSchwellen(MUSTER[i], ergebnis.tabelle));
     summe += m.rp;
     ergebnis.anzahl++;
   }
@@ -292,7 +308,7 @@ function naechsterSchritt(ergebnis) {
     const bis = rpZuRang(m.rp).rpBisNaechste;
     if (naechster === null || bis < naechster.bis) {
       const zielRp = m.rp + bis;
-      const zielAequivalent = wertFuerRP(zielRp, MUSTER_SCHWELLEN[MUSTER[i]]) * m.koerper;
+      const zielAequivalent = wertFuerRP(zielRp, musterSchwellen(MUSTER[i], ergebnis.tabelle)) * m.koerper;
       // Das Äquivalent zurück in das 1RM der Übung rechnen: der umgekehrte Weg von kraftAequivalent
       const fehltKg = (zielAequivalent - m.aequivalent) * m.rang.faktor / kraftAequivalent(1, { faktor: 1, zaehlung: m.rang.zaehlung });
       naechster = { muster: MUSTER[i], uebungId: m.uebungId, zielRp: zielRp, fehltKg: Math.max(0, fehltKg), bis: bis };

@@ -12780,12 +12780,15 @@
 
   // Macht aus gespeicherten oder importierten Daten ein sauberes Profil. Was fehlt oder ungültig ist, bleibt leer.
   function profilBereinigen(p) {
-    const sauber = { name: "", benutzername: "", geschlecht: "", geburtstag: "", aktivitaet: 0 };
+    const sauber = { name: "", benutzername: "", geschlecht: "", geburtstag: "", aktivitaet: 0, rangTabelle: "" };
     if (!p || typeof p !== "object") {
       return sauber;
     }
     if (GESCHLECHTER.indexOf(p.geschlecht) !== -1) {
       sauber.geschlecht = p.geschlecht;
+    }
+    if (p.rangTabelle === "w") {
+      sauber.rangTabelle = "w";
     }
     if (geburtstagGueltig(p.geburtstag)) {
       sauber.geburtstag = p.geburtstag;
@@ -12802,6 +12805,20 @@
     return sauber;
   }
 
+  // Mit welcher Tabelle die Kraft-Ränge rechnen (seit Version 172): bei Männlich und Weiblich nach dem Geschlecht,
+  // bei Divers und ohne Angabe nach der eigenen Wahl profil.rangTabelle ("w" = Frauen, sonst wie bisher)
+  function rangTabelle() {
+    if (profil.geschlecht === "m" || profil.geschlecht === "w") {
+      return profil.geschlecht;
+    }
+    return profil.rangTabelle === "w" ? "w" : "m";
+  }
+
+  // Der Satz unter dem Kraftrang, mit Frauen-Tabelle ergänzt
+  function rangHinweisText() {
+    return txt("rang.hinweis") + (rangTabelle() === "w" ? " " + txt("rang.frauen") : "");
+  }
+
   function profilSichern() {
     sicherSpeichern("profil", profil);
   }
@@ -12810,7 +12827,7 @@
   // Beim Ergänzen füllt das Backup nur, was hier noch leer ist. Ein leeres Feld im Backup ändert nie etwas.
   // Geschlecht, Geburtstag und Aktivitätsniveau gibt es erst ab Backup-Version 10.
   function profilUebernehmen(neu, art) {
-    const felder = ["name", "benutzername", "geschlecht", "geburtstag", "aktivitaet"];
+    const felder = ["name", "benutzername", "geschlecht", "geburtstag", "aktivitaet", "rangTabelle"];
     for (let i = 0; i < felder.length; i++) {
       if (neu[felder[i]] && (art === "ersetzen" || !profil[felder[i]])) {
         profil[felder[i]] = neu[felder[i]];
@@ -12841,6 +12858,7 @@
     auswahlFuellen(document.getElementById("profil-feld-geschlecht"), txt("profil.keineAngabe"), GESCHLECHTER.map(function (g) {
       return { wert: g, text: txt("profil.geschlecht." + g) };
     }), profil.geschlecht);
+    auswahlFuellen(document.getElementById("profil-feld-rangtabelle"), txt("profil.rangTabelle.m"), [{ wert: "w", text: txt("profil.rangTabelle.w") }], profil.rangTabelle);
 
     const geburt = document.getElementById("profil-feld-geburt");
     geburt.min = GEBURTSTAG_MIN;
@@ -12862,6 +12880,9 @@
     document.getElementById("profil-name-meldung").textContent = "";
     document.getElementById("profil-benutzer-meldung").textContent = "";
     document.getElementById("profil-geburt-meldung").textContent = "";
+    // Die Wahl der Rang-Tabelle gibt es nur bei Divers und ohne Angabe (seit Version 172)
+    const geschlecht = document.getElementById("profil-feld-geschlecht").value;
+    document.getElementById("profil-rangtabelle-zeile").classList.toggle("versteckt", geschlecht === "m" || geschlecht === "w");
 
     const geburt = document.getElementById("profil-feld-geburt").value;
     const alter = alterAus(geburt);
@@ -12909,7 +12930,8 @@
       benutzername: benutzername,
       geschlecht: document.getElementById("profil-feld-geschlecht").value,
       geburtstag: geburtstag,
-      aktivitaet: Number(document.getElementById("profil-feld-aktivitaet").value)
+      aktivitaet: Number(document.getElementById("profil-feld-aktivitaet").value),
+      rangTabelle: document.getElementById("profil-feld-rangtabelle").value
     });
     profilSichern();
     einstLinks();
@@ -14227,7 +14249,7 @@
     }
     inhalt.appendChild(raster);
 
-    inhalt.appendChild(element("p", "meldung rang-fussnote", txt("rang.hinweis")));
+    inhalt.appendChild(element("p", "meldung rang-fussnote", rangHinweisText()));
   }
 
   // ---------- Ränge: Daten sammeln ----------
@@ -14273,7 +14295,7 @@
     }
     const kraft = kraftRaenge(uebungen, function (zeit) {
       return rangKoerpergewicht(messungen, zeit, schnittAm);
-    }, jetzt);
+    }, jetzt, rangTabelle());
     const zahlen = gesamtZahlen();
     return {
       uebungen: uebungen,
@@ -15175,7 +15197,7 @@
       inhalt.appendChild(konstanzKarte(stand));
       inhalt.appendChild(element("h2", "abschnitt", txt("rang.muster")));
       inhalt.appendChild(musterKorund(stand));
-      inhalt.appendChild(element("p", "meldung rang-fussnote", txt("rang.hinweis")));
+      inhalt.appendChild(element("p", "meldung rang-fussnote", rangHinweisText()));
       return;
     }
 
@@ -15228,7 +15250,7 @@
       }
       inhalt.appendChild(raster);
     }
-    inhalt.appendChild(element("p", "meldung rang-fussnote", txt("rang.hinweis")));
+    inhalt.appendChild(element("p", "meldung rang-fussnote", rangHinweisText()));
   }
 
   // Die große Karte des Gesamt-Rangs auf der Seite Kraftrang (Look Korund): Sechseck mit der Stufe, Name,

@@ -68,11 +68,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=171">
+  <link rel="stylesheet" href="style.css?v=172">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=171">
+  <link rel="stylesheet" href="glass.css?v=172">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=171">
+  <link rel="stylesheet" href="korund.css?v=172">
 </head>
 <body>
 
@@ -1131,6 +1131,12 @@
         <!-- Freiwillige Angaben zur Person. Die Möglichkeiten der beiden Auswahlfelder baut die app.js. -->
         <label class="form-titel" for="profil-feld-geschlecht" data-t="profil.geschlecht">Geschlecht</label>
         <select id="profil-feld-geschlecht" class="form-feld" onchange="profilFelderGeaendert()"></select>
+        <!-- Seit Version 172: nur bei Divers und ohne Angabe zu sehen (profilFelderGeaendert) -->
+        <div id="profil-rangtabelle-zeile">
+          <label class="form-titel" for="profil-feld-rangtabelle" data-t="profil.rangTabelle">Rang-Tabelle</label>
+          <select id="profil-feld-rangtabelle" class="form-feld"></select>
+          <p class="einst-fuss" data-t="profil.rangTabelleText">Gilt für die Kraft-Ränge. Bei Männlich und Weiblich richtet sie sich nach dem Geschlecht.</p>
+        </div>
 
         <label class="form-titel" for="profil-feld-geburt" data-t="profil.geburtstag">Geburtstag</label>
         <input id="profil-feld-geburt" class="datum-feld" type="date" oninput="profilFelderGeaendert()" onchange="profilFelderGeaendert()">
@@ -1281,9 +1287,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=171"></script>
-<script src="uebungen.js?v=171"></script>
-<script src="erklaerungen.js?v=171"></script>
+<script src="texte.js?v=172"></script>
+<script src="uebungen.js?v=172"></script>
+<script src="erklaerungen.js?v=172"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1305,15 +1311,15 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=171"></script>
-<script src="bilder.js?v=171"></script>
-<script src="vorlagen.js?v=171"></script>
-<script src="figuren.js?v=171"></script>
+<script src="raenge.js?v=172"></script>
+<script src="bilder.js?v=172"></script>
+<script src="vorlagen.js?v=172"></script>
+<script src="figuren.js?v=172"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
 <!-- Supabase für das Cloud-Backup (seit Version 146). Die Version steht im Dateinamen, deshalb ohne ?v=N -->
 <script src="supabase-2.117.2.js"></script>
-<script src="app.js?v=171"></script>
+<script src="app.js?v=172"></script>
 
 </body>
 </html>

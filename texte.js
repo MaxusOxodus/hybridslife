@@ -783,6 +783,10 @@ const TEXTE = {
   "profil.geschlecht.m": { de: "Männlich", en: "Male" },
   "profil.geschlecht.w": { de: "Weiblich", en: "Female" },
   "profil.geschlecht.d": { de: "Divers", en: "Non-binary" },
+  "profil.rangTabelle": { de: "Rang-Tabelle", en: "Rank table" },
+  "profil.rangTabelle.m": { de: "Standard", en: "Standard" },
+  "profil.rangTabelle.w": { de: "Frauen", en: "Women" },
+  "profil.rangTabelleText": { de: "Gilt für die Kraft-Ränge. Bei Männlich und Weiblich richtet sie sich nach dem Geschlecht.", en: "Used for the strength ranks. For male and female it follows your gender." },
   "profil.geburtstag": { de: "Geburtstag", en: "Date of birth" },
   "profil.geburtFehler": {
     de: "Bitte gib ein Datum zwischen {jahr} und heute ein.",
@@ -1180,6 +1184,7 @@ const TEXTE = {
   "teilen.titel": { de: "Rang teilen", en: "Share rank" },
   "teilen.alt": { de: "Vorschau der Karte mit deinen Rängen", en: "Preview of the card with your ranks" },
   "teilen.fehler": { de: "Das Bild konnte nicht erstellt werden.", en: "The image could not be created." },
+  "rang.frauen": { de: "Gerechnet mit der Frauen-Tabelle (geschätzt).", en: "Calculated with the women's table (estimated)." },
   "rang.hinweis": {
     de: "Ränge sind Richtwerte und vergleichen Kraft im Verhältnis zum Körpergewicht. Andere Übungen als die Referenz werden geschätzt umgerechnet. Die obersten Stufen entsprechen Wettkampfniveau.",
     en: "Ranks are rough guides and compare strength relative to body weight. Exercises other than the reference are converted with estimates. The top levels match competition level."

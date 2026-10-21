@@ -34,7 +34,7 @@ function pruefe(name, ok, info) {
 const TAG = 86400000;
 const HEUTE = new Date(2026, 9, 18, 12).getTime();
 const KONSTANTEN = ["STILLSTAND_JETZT_TAGE", "STILLSTAND_VORHER_TAGE", "STILLSTAND_MIN_PUNKTE", "STILLSTAND_MAX_LUECKE_TAGE", "ABFALL_EINHEITEN", "ABFALL_BEZUG_TAGE",
-  "ENTLASTUNG_STILLSTAENDE", "ENTLASTUNG_ABFALL", "ENTLASTUNG_ABFALL_UEBUNGEN", "ENTLASTUNG_ABSTAND_TAGE",
+  "COACH_AUSBLENDEN_TAGE", "STILLSTAND_BESTAETIGT_TAGE", "STILLSTAND_AUSBLENDEN_TAGE", "ENTLASTUNG_STILLSTAENDE", "ENTLASTUNG_ABFALL", "ENTLASTUNG_ABFALL_UEBUNGEN", "ENTLASTUNG_ABSTAND_TAGE",
   "ENTLASTUNG_RUECKBLICK_TAGE", "ENTLASTUNG_GEWICHT", "COACH_ZIELE", "COACH_TAGE", "COACH_MINUTEN", "COACH_ERFAHRUNG",
   "COACH_SCHWERPUNKTE", "COACH_MAX_SCHWERPUNKT", "COACH_MAX_ENTSCHEIDUNGEN", "COACH_MAX_BEWERTUNGEN", "COACH_ENTSCHEIDUNG_ARTEN"];
 const f = new Function("const TAG_MS = " + TAG + "; let uebungen = []; let coach = {}; let blockStart = 0;"
@@ -44,8 +44,8 @@ const f = new Function("const TAG_MS = " + TAG + "; let uebungen = []; let coach
   + "function steigerungSchritt(u) { return u.kurz ? 2 : 2.5; } function ausKg(x) { return x; } function zuKg(x) { return x; }"
   + "function rueckblickStart() { return blockStart; }"
   + KONSTANTEN.map(konstanteHolen).join("")
-  + ["median", "punkteLuecke", "coachStillstaende", "coachAbfall", "entlastungGrund", "entlastungGewicht", "entlastungAktiv", "coachZahl", "coachBereinigen"].map(n => funktionHolen(n)).join("")
-  + "return { coachStillstaende, coachAbfall, entlastungGrund, entlastungGewicht, coachBereinigen,"
+  + ["median", "punkteLuecke", "coachStillstaende", "coachStillstaendeGemeldet", "coachAusgeblendet", "coachAbfall", "entlastungGrund", "entlastungGewicht", "entlastungAktiv", "coachZahl", "coachBereinigen"].map(n => funktionHolen(n)).join("")
+  + "return { coachStillstaende, coachStillstaendeGemeldet, coachAusgeblendet, coachAbfall, entlastungGrund, entlastungGewicht, coachBereinigen,"
   + " setze: function (u, c, s) { uebungen = u; coach = c || {}; blockStart = s || 0; } };")();
 
 // Punkte: Liste von [Tage vor heute, 1RM], der älteste zuerst
@@ -138,6 +138,49 @@ f.setze([steigt], { rueckblick: { am: HEUTE - 2 * TAG, energie: "muede", menge: 
 pruefe("Rückblick müde, Block erst 30 Tage: kein Grund", f.entlastungGrund(HEUTE, []) === "");
 f.setze([steigt], { rueckblick: { am: HEUTE - 20 * TAG, energie: "muede", menge: "viel" } }, HEUTE - 50 * TAG);
 pruefe("Rückblick älter als 14 Tage: kein Grund", f.entlastungGrund(HEUTE, []) === "");
+
+// Seit Version 176: gemeldet wird ein Stillstand erst, wenn er auch 7 Tage vorher schon galt; „Verstanden“ blendet die
+// Stillstand-Karte 28 Tage aus, „Nicht jetzt“ die Entlastungskarte weiter 7 Tage (bei anhaltendem Plateau wöchentlich wieder)
+f.setze([flach2]);
+pruefe("176: 2×/Woche Plateau über 12 Wochen: gleich gemeldet (galt auch vor 7 Tagen)", f.coachStillstaendeGemeldet(HEUTE).length === 1);
+f.setze([steigt, reihe("steigt2", 84, 3.5, 90, 0.01)]);
+pruefe("176: Fortschritt 1 %/Woche (1× und 2×): nichts gemeldet", f.coachStillstaendeGemeldet(HEUTE).length === 0);
+// Erst seit dieser Woche erfüllt: heute Median 100 = 100, vor 7 Tagen noch 105 > 100
+const frisch = [[84, 100], [77, 100], [70, 100], [63, 100], [56, 100], [49, 100], [42, 100], [35, 100], [28, 110], [21, 110], [14, 100], [7, 100], [0, 100]];
+f.setze([uebung("frisch", frisch)]);
+pruefe("176: Stillstand erst seit dieser Woche: heute erfüllt, aber noch nicht gemeldet",
+  f.coachStillstaende(HEUTE).length === 1 && f.coachStillstaende(HEUTE - 7 * TAG).length === 0 && f.coachStillstaendeGemeldet(HEUTE).length === 0);
+f.setze([uebung("frisch", frisch.concat([[-7, 100]]))]);
+pruefe("176: Eine Woche später, weiter flach: gemeldet", f.coachStillstaendeGemeldet(HEUTE + 7 * TAG).length === 1);
+f.setze([flach1, flach2, flach3]);
+pruefe("176: 3 gemeldete Stillstände: Grund stillstand", f.entlastungGrund(HEUTE, f.coachStillstaendeGemeldet(HEUTE)) === "stillstand");
+// Abgrenzung: frischer Einbruch nach Fortschritt in 2 Übungen ist ein Abfall, kein gemeldeter Stillstand
+function einbruch(name) {
+  const u = reihe(name, 84, 3.5, 90, 0.01);
+  u.punkte.slice(-2).forEach(function (p) { p.wert = Math.round(p.wert * 0.88 * 100) / 100; });
+  return u;
+}
+f.setze([einbruch("e1"), einbruch("e2")]);
+pruefe("176: Frischer Einbruch um 12 % in 2 Übungen: Abfall, kein gemeldeter Stillstand, Grund abfall",
+  f.coachAbfall(HEUTE) === 2 && f.coachStillstaendeGemeldet(HEUTE).length === 0 && f.entlastungGrund(HEUTE, f.coachStillstaendeGemeldet(HEUTE)) === "abfall",
+  f.coachAbfall(HEUTE) + "/" + f.coachStillstaendeGemeldet(HEUTE).length + "/" + f.entlastungGrund(HEUTE, f.coachStillstaendeGemeldet(HEUTE)));
+// Ausblenden (mit der echten Uhr, coachAusgeblendet nutzt Date.now)
+const jetztMs = Date.now();
+f.setze([], { ausgeblendet: { stillstand: jetztMs - 10 * TAG } });
+pruefe("176: „Verstanden“ vor 10 Tagen: Stillstand noch ausgeblendet", f.coachAusgeblendet("stillstand") === true);
+f.setze([], { ausgeblendet: { stillstand: jetztMs - 27 * TAG } });
+pruefe("176: „Verstanden“ vor 27 Tagen: noch ausgeblendet", f.coachAusgeblendet("stillstand") === true);
+f.setze([], { ausgeblendet: { stillstand: jetztMs - 29 * TAG } });
+pruefe("176: „Verstanden“ vor 29 Tagen: wieder sichtbar", f.coachAusgeblendet("stillstand") === false);
+f.setze([], { ausgeblendet: { entlastung: jetztMs - 6 * TAG } });
+pruefe("176: „Nicht jetzt“ vor 6 Tagen: Entlastung ausgeblendet", f.coachAusgeblendet("entlastung") === true);
+f.setze([flach1, flach2, flach3], { ausgeblendet: { entlastung: jetztMs - 8 * TAG } });
+pruefe("176: „Nicht jetzt“ vor 8 Tagen bei anhaltendem Plateau: Entlastung wieder dran und nicht ausgeblendet",
+  f.coachAusgeblendet("entlastung") === false && f.entlastungGrund(HEUTE, f.coachStillstaendeGemeldet(HEUTE)) === "stillstand");
+f.setze([], { ausgeblendet: { entlastung: jetztMs - 10 * TAG, stillstand: jetztMs - 10 * TAG } });
+pruefe("176: Beide vor 10 Tagen weggetippt: Entlastung sichtbar, Stillstand ausgeblendet", f.coachAusgeblendet("entlastung") === false && f.coachAusgeblendet("stillstand") === true);
+f.setze([], {});
+pruefe("176: Nie weggetippt: nichts ausgeblendet", f.coachAusgeblendet("entlastung") === false && f.coachAusgeblendet("stillstand") === false);
 
 // Gewicht
 pruefe("90 % von 75 kg = 67,5 kg", f.entlastungGewicht(75, {}) === 67.5);

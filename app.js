@@ -17013,6 +17013,11 @@
   const ENTLASTUNG_GEWICHT = 0.9;
   // „Nicht jetzt“ blendet eine Karte so viele Tage aus
   const COACH_AUSBLENDEN_TAGE = 7;
+  // Seit Version 176 (weniger wiederholte Meldungen, Produktheuristik): Gemeldet wird ein Stillstand erst, wenn er auch
+  // STILLSTAND_BESTAETIGT_TAGE vorher schon galt (nachgerechnet aus den Einträgen, nichts gespeichert), und „Verstanden“
+  // blendet die Stillstand-Karte STILLSTAND_AUSBLENDEN_TAGE aus. Die Entlastungskarte bleibt bei COACH_AUSBLENDEN_TAGE.
+  const STILLSTAND_BESTAETIGT_TAGE = 7;
+  const STILLSTAND_AUSBLENDEN_TAGE = 28;
 
   // Läuft gerade eine Entlastungswoche?
   function entlastungAktiv() {
@@ -17073,6 +17078,17 @@
     return liste;
   }
 
+  // Die Stillstände, die Korund meldet (seit Version 176): nur Übungen, die auch STILLSTAND_BESTAETIGT_TAGE vorher schon
+  // im Stillstand waren. So kommt die Meldung nicht wegen einer einzelnen Woche und nicht bei jedem kurzen Auf und Ab.
+  function coachStillstaendeGemeldet(heute) {
+    const vorher = coachStillstaende(heute - STILLSTAND_BESTAETIGT_TAGE * TAG_MS).map(function (s) {
+      return s.name + "|" + s.id;
+    });
+    return coachStillstaende(heute).filter(function (s) {
+      return vorher.indexOf(s.name + "|" + s.id) !== -1;
+    });
+  }
+
   // In wie vielen Übungen ein Leistungsabfall vorliegt (Regel siehe ABFALL_EINHEITEN). heute: ms
   function coachAbfall(heute) {
     let anzahl = 0;
@@ -17127,7 +17143,8 @@
 
   function coachAusgeblendet(art) {
     const am = coach.ausgeblendet && coach.ausgeblendet[art];
-    return typeof am === "number" && Date.now() - am < COACH_AUSBLENDEN_TAGE * TAG_MS;
+    const tage = art === "stillstand" ? STILLSTAND_AUSBLENDEN_TAGE : COACH_AUSBLENDEN_TAGE;
+    return typeof am === "number" && Date.now() - am < tage * TAG_MS;
   }
 
   function coachAusblenden(art) {
@@ -17176,7 +17193,7 @@
       oeffnen = entlastungSeiteOeffnen;
     } else {
       const heute = Date.now();
-      const stillstaende = coachStillstaende(heute);
+      const stillstaende = coachStillstaendeGemeldet(heute);
       const grund = entlastungGrund(heute, stillstaende);
       if (grund && !coachAusgeblendet("entlastung")) {
         titel = txt("entlastung.karte");
@@ -17349,7 +17366,7 @@
 
   // Die eine Empfehlung der Woche nach fester Reihenfolge: Entlastung > Stillstand > zu wenig trainiert > weiter so
   function wochenberichtEmpfehlung(daten, heute) {
-    const stillstaende = coachStillstaende(heute);
+    const stillstaende = coachStillstaendeGemeldet(heute);
     if (entlastungAktiv()) {
       return { art: "entlastungLaeuft", n: entlastungRestTage() };
     }
@@ -17418,7 +17435,7 @@
         if (empfehlung.art === "entlastung") {
           unten.appendChild(seitenKnopf(txt("entlastung.ansehen"), false, function () {
             wochenberichtGesehen(daten, false);
-            entlastungSeiteOeffnen(empfehlung.grund, coachStillstaende(Date.now()));
+            entlastungSeiteOeffnen(empfehlung.grund, coachStillstaendeGemeldet(Date.now()));
           }));
         }
         unten.appendChild(seitenKnopf(txt("fertig.knopf"), true, function () {

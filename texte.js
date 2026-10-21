@@ -581,6 +581,13 @@ const TEXTE = {
   "statistik.zeit": { de: "Trainingszeit", en: "Training time" },
   "statistik.serie": { de: "Wochen Serie", en: "week streak" },
   "statistik.rekorde": { de: "Rekorde", en: "Records" },
+  // Harte Sätze je Muskelgruppe (harteSaetzeKarte in der app.js, seit Version 167)
+  "saetze.titel": { de: "Harte Sätze diese Woche", en: "Hard sets this week" },
+  "saetze.ziel": { de: "Ziel {von}–{bis} je Muskel · Hilfsmuskel zählt halb", en: "Target {von}–{bis} per muscle · assisting muscle counts half" },
+  "saetze.leer": { de: "Diese Woche noch keine harten Sätze.", en: "No hard sets yet this week." },
+  "saetze.viel": { de: "Über {bis} ist viel: Mehr bringt meist nur noch wenig dazu.", en: "Above {bis} is a lot: more usually adds little." },
+  "saetze.hilfeTitel": { de: "Was sind harte Sätze?", en: "What are hard sets?" },
+  "saetze.hilfeText": { de: "Gezählt werden Arbeitssätze nah an der Grenze: kein Aufwärmen, höchstens 4 Wdh. Reserve (oder ohne RIR-Angabe). Der Hauptmuskel der Übung zählt einen Satz, jeder Hilfsmuskel einen halben. Studien zeigen: Mehr Sätze bringen mehr Muskelaufbau, ab etwa {bis} Sätzen pro Muskel und Woche aber kaum noch zusätzlich. {von}–{bis} ist ein guter Bereich, kein Muss.", en: "Counted are work sets close to your limit: no warm-ups, at most 4 reps in reserve (or no RIR given). The exercise's main muscle counts one set, each assisting muscle half a set. Studies show more sets bring more muscle growth, but above roughly {bis} sets per muscle and week little extra. {von}–{bis} is a good range, not a must." },
   "statistik.volumen": { de: "Volumen je Muskelgruppe", en: "Volume by muscle group" },
   "statistik.tage": { de: "{n} Tage", en: "{n} days" },
   "profil.serieKurz": { de: "{n} Wochen Serie", en: "{n} week streak" },

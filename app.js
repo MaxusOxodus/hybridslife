@@ -2789,6 +2789,106 @@
   // Der Zeitraum für "Volumen je Muskelgruppe" in Tagen
   const VOLUMEN_TAGE = 30;
 
+  // Harte Sätze je Muskelgruppe und Woche (seit Version 167, Forschung AP5, Vault „Korund Forschung 17“ F1):
+  // Arbeitssätze mit 1 bis HARTER_SATZ_WDH Wdh. und RIR bis HARTER_SATZ_RIR oder ohne RIR. Der Hauptmuskel zählt 1,
+  // jede andere Muskelgruppe aus hilfs HILFS_ANTEIL (Pelland et al. 2026). Zielbereich je Muskel und Woche nach ACSM 2026.
+  const HARTER_SATZ_RIR = 4;
+  const HARTER_SATZ_WDH = 30;
+  const HILFS_ANTEIL = 0.5;
+  const SAETZE_ZIEL = { von: 10, bis: 20 };
+  const SAETZE_ZIEL_EINSTEIGER = { von: 6, bis: 10 };
+
+  // Die Muskelgruppe zu einem Muskel aus MUSKELN, bei eigenen Übungen ist es schon die Gruppe. Unbekannt: null.
+  function muskelGruppeVon(muskel) {
+    if (MUSKELN[muskel]) {
+      return MUSKELN[muskel].gruppe;
+    }
+    return GRUPPE_NACH_ID[muskel] ? muskel : null;
+  }
+
+  // Harte Sätze je Muskelgruppe in der Woche ab montag (Date, 0 Uhr). Ergebnis: { brust: 9, trizeps: 4.5, ... }
+  function harteSaetzeWoche(liste, montag) {
+    const von = montag.getTime();
+    const bis = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() + 7).getTime();
+    const ergebnis = {};
+    for (let i = 0; i < liste.length; i++) {
+      const e = liste[i];
+      if (!hatDatum(e)) {
+        continue;
+      }
+      const zeit = new Date(e.datum).getTime();
+      if (zeit < von || zeit >= bis) {
+        continue;
+      }
+      const n = arbeitsSaetzeVon(e).filter(function (s) {
+        return s.wdh >= 1 && s.wdh <= HARTER_SATZ_WDH && (typeof s.rir !== "number" || s.rir <= HARTER_SATZ_RIR);
+      }).length;
+      if (n === 0) {
+        continue;
+      }
+      const u = UEBUNG_NACH_ID[e.uebungId] || UEBUNG_NACH_ID[ALTE_IDS[e.uebungId]];
+      const haupt = u ? muskelGruppeVon(u.haupt) : gruppeIdVon(e.uebungId, e.muskelgruppe);
+      if (!haupt) {
+        continue;
+      }
+      ergebnis[haupt] = (ergebnis[haupt] || 0) + n;
+      const gesehen = [haupt];
+      (u && Array.isArray(u.hilfs) ? u.hilfs : []).forEach(function (m) {
+        const g = muskelGruppeVon(m);
+        if (g && gesehen.indexOf(g) === -1) {
+          gesehen.push(g);
+          ergebnis[g] = (ergebnis[g] || 0) + n * HILFS_ANTEIL;
+        }
+      });
+    }
+    return ergebnis;
+  }
+
+  // Die Karte "Harte Sätze diese Woche" in der Statistik (Look Korund)
+  function harteSaetzeKarte() {
+    const ziel = coach.erfahrung === "anfaenger" ? SAETZE_ZIEL_EINSTEIGER : SAETZE_ZIEL;
+    const werte = harteSaetzeWoche(eintraege, montagDerWoche(new Date()));
+    const karte = element("div", "karte statistik-volumen saetze-karte");
+    const kopf = element("div", "statistik-kopf");
+    kopf.appendChild(element("span", "statistik-titel", txt("saetze.titel")));
+    const hilfe = element("button", "saetze-hilfe", "?");
+    hilfe.type = "button";
+    hilfe.setAttribute("aria-label", txt("saetze.hilfeTitel"));
+    hilfe.onclick = function () {
+      frageZeigen(txt("saetze.hilfeTitel"), txt("saetze.hilfeText", { von: ziel.von, bis: ziel.bis }), [{ text: txt("ok"), art: "haupt" }]);
+    };
+    kopf.appendChild(hilfe);
+    karte.appendChild(kopf);
+    karte.appendChild(element("div", "statistik-klein", txt("saetze.ziel", { von: ziel.von, bis: ziel.bis })));
+    const reihen = Object.keys(werte).sort(function (a, b) {
+      return werte[b] - werte[a];
+    });
+    if (reihen.length === 0) {
+      karte.appendChild(element("div", "statistik-klein saetze-leer", txt("saetze.leer")));
+      return karte;
+    }
+    const skala = Math.max(ziel.bis * 1.25, werte[reihen[0]]);
+    reihen.forEach(function (id) {
+      const zeile = element("div", "statistik-zeile");
+      zeile.appendChild(element("span", "statistik-name", GRUPPE_NACH_ID[id][sprache]));
+      const bahn = element("span", "statistik-bahn");
+      const zone = element("b", "saetze-zone");
+      zone.style.left = (ziel.von / skala * 100) + "%";
+      zone.style.width = ((ziel.bis - ziel.von) / skala * 100) + "%";
+      bahn.appendChild(zone);
+      const fuellung = element("i", "");
+      fuellung.style.width = Math.round(werte[id] / skala * 100) + "%";
+      bahn.appendChild(fuellung);
+      zeile.appendChild(bahn);
+      zeile.appendChild(element("span", "statistik-prozent", werte[id].toLocaleString(gebiet())));
+      karte.appendChild(zeile);
+    });
+    if (werte[reihen[0]] > ziel.bis) {
+      karte.appendChild(element("div", "statistik-klein saetze-viel", txt("saetze.viel", { bis: ziel.bis })));
+    }
+    return karte;
+  }
+
   // Baut den Reiter Statistik neu: oben das bewegte Gewicht mit Monatsbalken, dann vier Kacheln, dann das Volumen
   // je Körperpartie. Nur im Look Korund zu sehen (style.css blendet es sonst aus). Die Einführung zeigt dort auf diesen
   // Block, in den anderen Looks wie bisher auf die Kacheln.
@@ -2893,6 +2993,9 @@
     serieKachel.onclick = serieSeiteOeffnen;
     kachel(String(anzahlRekorde), txt("statistik.rekorde"), "rekord");
     bereich.appendChild(kacheln);
+
+    // Harte Sätze je Muskelgruppe in dieser Woche (seit Version 167)
+    bereich.appendChild(harteSaetzeKarte());
 
     // Volumen je Körperpartie in den letzten 30 Tagen, die größte zuerst
     const grenze = Date.now() - VOLUMEN_TAGE * 86400000;

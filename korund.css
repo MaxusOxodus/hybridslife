@@ -8554,3 +8554,23 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) #rang-hinweis:has(.rang-hinweis-symbol) { padding-left: 8px; }
 }
 
+/* ---------- Harte Sätze je Muskelgruppe (seit Version 167): Karte in der Statistik, Zielbereich als helle Zone im Balken ---------- */
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .saetze-karte .statistik-kopf { align-items: center; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .saetze-karte .statistik-name { width: 104px; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .saetze-karte .statistik-bahn { position: relative; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .saetze-karte .statistik-bahn i { position: relative; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .saetze-zone { position: absolute; top: 0; bottom: 0; background: rgba(var(--fw-signal-rgb), 0.2); }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .saetze-hilfe { width: 26px; height: 26px; padding: 0; border: 1px solid rgba(238, 242, 247, 0.18); border-radius: 50%; background: none; color: var(--text-leise); font: inherit; font-size: 13px; font-weight: 700; line-height: 1; cursor: pointer; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .saetze-leer,
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .saetze-viel { margin-top: 12px; }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-karte .statistik-kopf { align-items: center; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-karte .statistik-name { width: 104px; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-karte .statistik-bahn { position: relative; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-karte .statistik-bahn i { position: relative; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-zone { position: absolute; top: 0; bottom: 0; background: rgba(var(--fw-signal-rgb), 0.2); }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-hilfe { width: 26px; height: 26px; padding: 0; border: 1px solid rgba(238, 242, 247, 0.18); border-radius: 50%; background: none; color: var(--text-leise); font: inherit; font-size: 13px; font-weight: 700; line-height: 1; cursor: pointer; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-leer,
+:root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .saetze-viel { margin-top: 12px; }
+}

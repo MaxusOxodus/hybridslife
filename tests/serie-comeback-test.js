@@ -29,13 +29,15 @@ const f = new Function("let coach = {}; let wochenplan = ['', '', '', '', '', ''
   + ["SERIE_TAGE_PRO_WOCHE", "SERIE_TAGE_MIN", "COMEBACK_PAUSE_TAGE"].map(konstanteHolen).join("")
   + "const SERIE_WOCHEN_JE_PAUSE = 8; const SERIE_PAUSEN_MAX = 2;"
   + "function trainingstage() { return tage; }"
-  + funktionHolen(quelle, "serieMinTage") + funktionHolen(quelle, "comebacks") + funktionHolen(raenge, "serieBerechnen")
+  + funktionHolen(quelle, "geplanteTage") + funktionHolen(quelle, "serieMinTage") + funktionHolen(quelle, "comebacks") + funktionHolen(raenge, "serieBerechnen")
   + "return { serieMinTage, comebacks, serieBerechnen, setze: function (c, p, t) { coach = c || {}; wochenplan = p || ['', '', '', '', '', '', '']; tage = t || {}; } };")();
 
 f.setze();
 pruefe("Ohne Plan: 3 Tage", f.serieMinTage() === 3);
 f.setze({}, ["a", "", "b", "", "", "", ""]);
 pruefe("Wochenplan mit 2 Tagen: 2", f.serieMinTage() === 2);
+f.setze({}, ["a", "ruhe", "b", "ruhe", "ruhe", "ruhe", "ruhe"]);
+pruefe("Vorlage mit Ruhetagen: 2 geplant (seit Version 173)", f.serieMinTage() === 2, f.serieMinTage());
 f.setze({}, ["a", "", "", "", "", "", ""]);
 pruefe("Wochenplan mit 1 Tag: mindestens 2", f.serieMinTage() === 2);
 f.setze({ tage: 5 }, ["a", "", "b", "", "", "", ""]);

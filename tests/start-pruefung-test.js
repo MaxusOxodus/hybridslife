@@ -29,6 +29,7 @@ function pruefe(name, ok, info) {
 }
 
 const speicher = {};
+globalThis.location = { hash: "" };
 globalThis.localStorage = { getItem: k => (k in speicher ? speicher[k] : null) };
 const f = new Function("let profil = { geburtstag: '' };"
   + konstanteHolen("GEBURTSTAG_MIN") + konstanteHolen("MINDESTALTER")
@@ -46,6 +47,9 @@ function vorJahren(n, tage) {
 pruefe("Mindestalter ist 16", f.MINDESTALTER === 16);
 f.setze("");
 pruefe("Ohne Geburtstag: Prüfung nötig", f.startPruefungNoetig() === true);
+location.hash = "#access_token=x&type=recovery";
+pruefe("Link „Passwort vergessen“: keine Prüfung (seit Version 173)", f.startPruefungNoetig() === false);
+location.hash = "";
 speicher.screening = JSON.stringify({ am: 1, ja: [] });
 f.setze(vorJahren(16, 1));
 pruefe("Einen Tag vor dem 16. Geburtstag: nötig", f.startPruefungNoetig() === true);

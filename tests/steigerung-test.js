@@ -46,7 +46,7 @@ const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG",
 function umgebung(eintraege, einstellungen) {
   let code = "const eintraege = " + JSON.stringify(eintraege) + ";"
     + "const einstellungen = " + JSON.stringify(einstellungen || {}) + ";"
-    + "let laufendesTraining = null; const geloeschteEigengewicht = [];"
+    + "let laufendesTraining = null; const geloeschteEigengewicht = []; const TAG_MS = 86400000;"
     + "const UEBUNG_NACH_ID = { klimmzug: { bereich: \"eigen\" }, bankdruecken: { bereich: \"frei\" } };"
     + "function gebiet() { return \"de-DE\"; }"
     + "function txt(schluessel, werte) { return schluessel + (werte ? \" \" + JSON.stringify(werte) : \"\"); }";

@@ -2727,8 +2727,13 @@
   // So viele Trainingstage braucht eine Woche für die Serie (seit Version 170): die geplanten Tage
   // (Plan mit Korund, sonst Wochenplan), mindestens SERIE_TAGE_MIN, höchstens SERIE_TAGE_PRO_WOCHE; ohne Plan SERIE_TAGE_PRO_WOCHE.
   // Höchstens 3, damit eine alte Serie mit einem größeren Plan nicht kleiner wird.
+  // Wie viele Tage im Wochenplan eine Routine haben (Ruhetage "ruhe" und leere Tage zählen nicht, seit Version 173)
+  function geplanteTage() {
+    return wochenplan.filter(function (id) { return Boolean(id) && id !== "ruhe"; }).length;
+  }
+
   function serieMinTage() {
-    const geplant = coach.tage || wochenplan.filter(function (id) { return Boolean(id); }).length;
+    const geplant = coach.tage || geplanteTage();
     if (!geplant) {
       return SERIE_TAGE_PRO_WOCHE;
     }
@@ -5243,7 +5248,10 @@
     if (hatDatum(letzter) && Date.now() - new Date(letzter.datum).getTime() > STEIGERN_PAUSE_TAGE * 24 * 60 * 60 * 1000) {
       vorschlag.art = "pause";
       // Lange Pause: leichter wieder einsteigen, auf den Schritt gerundet (seit Version 165)
-      const pauseTage = Math.floor((Date.now() - new Date(letzter.datum).getTime()) / (24 * 60 * 60 * 1000));
+      // Seit Version 173 Kalendertage (wie Erholung und Comeback), nicht volle 24 Stunden. Gerundet wegen der Zeitumstellung.
+      const letzterTag = new Date(letzter.datum);
+      const heute = new Date();
+      const pauseTage = Math.round((new Date(heute.getFullYear(), heute.getMonth(), heute.getDate()) - new Date(letzterTag.getFullYear(), letzterTag.getMonth(), letzterTag.getDate())) / TAG_MS);
       const stufe = WIEDEREINSTIEG.filter(function (w) { return pauseTage >= w.ab; }).pop();
       if (stufe && alt > 0) {
         const schritt = steigerungSchritt(u);
@@ -12670,6 +12678,11 @@
 
   // Muss die Ebene beim Start kommen? Ohne Geburtstag, unter MINDESTALTER oder ohne beantwortete Fragen.
   function startPruefungNoetig() {
+    // Seit Version 173: Nicht beim Link „Passwort vergessen“ (öffnet auf dem iPhone in Safari mit leerem Speicher),
+    // dort soll man gleich das neue Passwort setzen können. In der App kommt die Prüfung wie gewohnt.
+    if (new URLSearchParams(location.hash.slice(1)).get("type") === "recovery") {
+      return false;
+    }
     const alter = alterAus(profil.geburtstag);
     return alter === null || alter < MINDESTALTER || !screeningBeantwortet();
   }
@@ -13038,10 +13051,10 @@
   // Persönliche Wochenziele (seit Version 169, Forschung AP9, F11): Workouts = Tage im Coach, sonst Trainingstage im
   // Wochenplan, sonst WOCHEN_ZIELE. Volumen und Wdh. = Schnitt der letzten ZIEL_SCHNITT_WOCHEN Wochen mit Training
   // (gesucht in den ZIEL_SUCH_WOCHEN Wochen vor dieser), gerundet auf 1.000 kg bzw. 10 Wdh.; ohne solche Wochen WOCHEN_ZIELE.
-  function wochenZiele() {
-    const imPlan = wochenplan.filter(function (id) { return Boolean(id); }).length;
-    const ziele = { workouts: coach.tage || imPlan || WOCHEN_ZIELE.workouts, volumen: WOCHEN_ZIELE.volumen, wdh: WOCHEN_ZIELE.wdh };
-    const schnitt = wochenSchnitt(trainingstage(), montagDerWoche(new Date()));
+  // montag (seit Version 173, freiwillig): die Woche, für die die Ziele gelten; der Schnitt nimmt die Wochen davor. Ohne: diese Woche.
+  function wochenZiele(montag) {
+    const ziele = { workouts: coach.tage || geplanteTage() || WOCHEN_ZIELE.workouts, volumen: WOCHEN_ZIELE.volumen, wdh: WOCHEN_ZIELE.wdh };
+    const schnitt = wochenSchnitt(trainingstage(), montag || montagDerWoche(new Date()));
     if (schnitt) {
       ziele.volumen = Math.max(1000, Math.round(schnitt.volumen / 1000) * 1000);
       ziele.wdh = Math.max(10, Math.round(schnitt.wdh / 10) * 10);
@@ -13127,7 +13140,7 @@
   // Kopf mit Symbol, Titel der Wochenleiste und Pfeil zur Statistik. Links der große Ring, rechts sein Ziel und die zwei kleinen.
   // Ein Tipp auf einen kleinen Ring tauscht ihn mit dem großen (wochenTauschen). Das Profil zeigt die Woche weiter mit wochenZahlenFeld.
   function wochenRingeFeld(zahlen, titel) {
-    const daten = wochenRingDaten(zahlen, wochenZiele());
+    const daten = wochenRingDaten(zahlen, wochenZiele(homeMontag));
     const feld = element("div", "wochen-ringe");
 
     const kopf = element("div", "wochen-karte-kopf");
@@ -14177,7 +14190,7 @@
     inhalt.appendChild(karte);
 
     inhalt.appendChild(element("h2", "abschnitt", txt("home.dieseWoche")));
-    const daten = wochenRingDaten(wochenZahlen(profilTage, montag), wochenZiele());
+    const daten = wochenRingDaten(wochenZahlen(profilTage, montag), wochenZiele(montag));
     const kacheln = element("div", "statistik-woche-kacheln");
     [["workouts", "hantel", "blau"], ["wdh", "wiederholen", "tuerkis"], ["volumen", "gewicht", "lila"]].forEach(function (k) {
       const d = daten[k[0]];

@@ -32,7 +32,7 @@ const f = new Function("let wochenplan = ['', '', '', '', '', '', '']; let coach
   + ["WOCHEN_ZIELE", "ZIEL_SCHNITT_WOCHEN", "ZIEL_SUCH_WOCHEN"].map(konstanteHolen).join("")
   + "function trainingstage() { return tage; }"
   + "function tagSchluessel(d) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }"
-  + ["montagDerWoche", "wochenZahlen", "wochenSchnitt", "wochenZiele"].map(funktionHolen).join("")
+  + ["montagDerWoche", "wochenZahlen", "wochenSchnitt", "geplanteTage", "wochenZiele"].map(funktionHolen).join("")
   + "return { wochenZiele, setze: function (t, p, c) { tage = t; wochenplan = p || ['', '', '', '', '', '', '']; coach = c || {}; } };")();
 
 function tagVor(wochen, tag) {
@@ -46,6 +46,8 @@ f.setze({});
 pruefe("Ohne Daten: feste Ziele 5 / 15.000 / 320", JSON.stringify(f.wochenZiele()) === '{"workouts":5,"volumen":15000,"wdh":320}', JSON.stringify(f.wochenZiele()));
 f.setze({}, ["a", "", "b", "", "c", "", ""]);
 pruefe("Wochenplan mit 3 Tagen: Ziel 3 Workouts", f.wochenZiele().workouts === 3);
+f.setze({}, ["a", "ruhe", "b", "ruhe", "c", "ruhe", "ruhe"]);
+pruefe("Ruhetage zählen nicht als geplante Tage (seit Version 173)", f.wochenZiele().workouts === 3, f.wochenZiele().workouts);
 f.setze({}, ["a", "", "b", "", "c", "", ""], { tage: 4 });
 pruefe("Coach-Tage gehen vor dem Plan", f.wochenZiele().workouts === 4);
 const t = {};

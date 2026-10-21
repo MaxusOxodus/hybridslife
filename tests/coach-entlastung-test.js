@@ -33,7 +33,7 @@ function pruefe(name, ok, info) {
 
 const TAG = 86400000;
 const HEUTE = new Date(2026, 9, 18, 12).getTime();
-const KONSTANTEN = ["STILLSTAND_FENSTER_TAGE", "STILLSTAND_MIN_EINHEITEN", "STILLSTAND_LETZTE", "STILLSTAND_MIN_TAGE", "STILLSTAND_VERGLEICH_TAGE",
+const KONSTANTEN = ["STILLSTAND_JETZT_TAGE", "STILLSTAND_VORHER_TAGE", "STILLSTAND_MIN_PUNKTE", "STILLSTAND_MAX_LUECKE_TAGE", "ABFALL_EINHEITEN", "ABFALL_BEZUG_TAGE",
   "ENTLASTUNG_STILLSTAENDE", "ENTLASTUNG_ABFALL", "ENTLASTUNG_ABFALL_UEBUNGEN", "ENTLASTUNG_ABSTAND_TAGE",
   "ENTLASTUNG_RUECKBLICK_TAGE", "ENTLASTUNG_GEWICHT", "COACH_ZIELE", "COACH_TAGE", "COACH_MINUTEN", "COACH_ERFAHRUNG",
   "COACH_SCHWERPUNKTE", "COACH_MAX_SCHWERPUNKT", "COACH_MAX_ENTSCHEIDUNGEN", "COACH_MAX_BEWERTUNGEN", "COACH_ENTSCHEIDUNG_ARTEN"];
@@ -44,7 +44,7 @@ const f = new Function("const TAG_MS = " + TAG + "; let uebungen = []; let coach
   + "function steigerungSchritt(u) { return u.kurz ? 2 : 2.5; } function ausKg(x) { return x; } function zuKg(x) { return x; }"
   + "function rueckblickStart() { return blockStart; }"
   + KONSTANTEN.map(konstanteHolen).join("")
-  + ["coachStillstaende", "coachAbfall", "entlastungGrund", "entlastungGewicht", "entlastungAktiv", "coachZahl", "coachBereinigen"].map(n => funktionHolen(n)).join("")
+  + ["median", "punkteLuecke", "coachStillstaende", "coachAbfall", "entlastungGrund", "entlastungGewicht", "entlastungAktiv", "coachZahl", "coachBereinigen"].map(n => funktionHolen(n)).join("")
   + "return { coachStillstaende, coachAbfall, entlastungGrund, entlastungGewicht, coachBereinigen,"
   + " setze: function (u, c, s) { uebungen = u; coach = c || {}; blockStart = s || 0; } };")();
 
@@ -52,44 +52,83 @@ const f = new Function("const TAG_MS = " + TAG + "; let uebungen = []; let coach
 function uebung(name, liste) {
   return { name: name, punkte: liste.map(p => ({ zeit: HEUTE - p[0] * TAG, wert: p[1] })) };
 }
-const steigt = uebung("steigt", [[40, 90], [33, 92], [26, 94], [19, 96], [12, 98], [5, 100]]);
-const steht = uebung("steht", [[40, 90], [33, 95], [26, 95], [19, 95], [12, 95]]);
-const stehtKurz = uebung("kurz", [[40, 90], [33, 95], [12, 95], [9, 95], [5, 95]]);
-const wenig = uebung("wenig", [[60, 90], [50, 95], [26, 95], [19, 95], [12, 95]]);
-const genau = uebung("genau", [[40, 90], [33, 95], [28, 95], [21, 95], [14, 95]]);
+// Seit Version 175 (Audit Phase 2, K2/K3): Stillstand = Median der letzten 28 Tage nicht über dem Median der 56 Tage davor,
+// je mindestens 3 Trainingstage, keine Lücke über 14 Tage. Abfall = die letzten 2 Tage beide ≤ 95 % des Medians der 42 Tage davor.
+// Gleichmäßige Reihe: alle abstand Tage von vor tage bis heute, Wert start × (1 + proWoche)^(Wochen)
+function reihe(name, tage, abstand, start, proWoche) {
+  const liste = [];
+  for (let t = tage; t >= 0; t -= abstand) {
+    liste.push([t, Math.round(start * Math.pow(1 + proWoche, (tage - t) / 7) * 100) / 100]);
+  }
+  return uebung(name, liste);
+}
+const steigt = reihe("steigt", 84, 7, 90, 0.01);
+const flach1 = reihe("flach1", 84, 7, 100, 0);
+const flach2 = reihe("flach2", 84, 3.5, 100, 0);
 
-f.setze([steigt, steht]);
-pruefe("Steigende Übung: kein Stillstand, stehende: Stillstand", JSON.stringify(f.coachStillstaende(HEUTE).map(s => s.name)) === '["steht"]');
-f.setze([stehtKurz]);
-pruefe("Letzte 3 Einheiten in weniger als 14 Tagen: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
-f.setze([wenig]);
-pruefe("Nur 3 Einheiten in 6 Wochen: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
-f.setze([genau]);
-pruefe("Genau 14 Tage und 4 Einheiten: Stillstand", f.coachStillstaende(HEUTE).length === 1);
+f.setze([steigt, flach1]);
+pruefe("1×/Woche: steigende Übung kein Stillstand, flache Stillstand", JSON.stringify(f.coachStillstaende(HEUTE).map(s => s.name)) === '["flach1"]', JSON.stringify(f.coachStillstaende(HEUTE)));
+f.setze([flach2]);
+pruefe("2×/Woche flach: Stillstand (vorher nie erkannt)", f.coachStillstaende(HEUTE).length === 1);
+f.setze([reihe("steigt2", 84, 3.5, 90, 0.01)]);
+pruefe("2×/Woche steigend 1 %/Woche: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
+f.setze([uebung("glueck", [[77, 100], [70, 100], [63, 112], [56, 100], [49, 100], [42, 100], [35, 100], [21, 102], [14, 103], [7, 102], [0, 103]])]);
+pruefe("Ein einzelner Glückstag (112) davor entscheidet nicht: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
+f.setze([uebung("wenigJetzt", [[77, 100], [63, 100], [49, 100], [35, 100], [14, 100], [3, 100]])]);
+pruefe("Nur 2 Trainingstage in den letzten 28 Tagen: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
+f.setze([uebung("pause", [[84, 110], [77, 110], [70, 110], [63, 110], [20, 95], [13, 97], [6, 99]])]);
+pruefe("Nach einer Pause über 14 Tage niedriger: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
+f.setze([uebung("unregel", [[80, 100], [70, 100], [57, 100], [45, 100], [33, 100], [25, 100], [12, 100], [3, 100]])]);
+pruefe("Unregelmäßige Abstände bis 13 Tage, flach: Stillstand", f.coachStillstaende(HEUTE).length === 1);
 f.setze([uebung("neu", [[19, 95], [12, 95], [5, 95]])]);
-pruefe("Nur 3 Einheiten insgesamt: kein Stillstand (nichts davor)", f.coachStillstaende(HEUTE).length === 0);
-f.setze([uebung("rekord", [[40, 90], [33, 95], [26, 94], [19, 93], [12, 95.5]])]);
-pruefe("Neuer Bestwert in den letzten 3: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
-// Seit Version 162: Vergleich nur mit dem Bestwert der 84 Tage vor den letzten 3 Einheiten
-f.setze([uebung("pause", [[300, 120], [40, 90], [33, 95], [26, 94], [19, 95], [12, 95]])]);
-pruefe("Alter Bestwert vor langer Pause (120 vor 300 Tagen) zählt nicht, 95 im Vergleichsfenster schon: Stillstand", f.coachStillstaende(HEUTE).length === 1);
-f.setze([uebung("comeback", [[300, 120], [200, 118], [40, 90], [33, 92], [26, 95], [19, 96], [12, 97]])]);
-pruefe("Nach langer Pause wieder steigend unter altem Bestwert: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
-f.setze([uebung("luecke", [[300, 120], [250, 118], [26, 90], [19, 90], [12, 90]])]);
-pruefe("Nichts im Vergleichsfenster: kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
+pruefe("Nur 3 Trainingstage insgesamt (nichts davor): kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
+f.setze([uebung("gleich", [[70, 98], [56, 100], [42, 102], [30, 100], [21, 99], [14, 100], [7, 101]])]);
+pruefe("Median gleich (100 = 100): Stillstand", f.coachStillstaende(HEUTE).length === 1);
+f.setze([uebung("knapp", [[70, 98], [56, 100], [42, 102], [30, 100], [21, 99], [14, 100.5], [7, 101]])]);
+pruefe("Median knapp höher (100,5 > 100): kein Stillstand", f.coachStillstaende(HEUTE).length === 0);
+f.setze([uebung("ausreisser", [[77, 100], [70, 100], [63, 100], [56, 100], [49, 100], [42, 100], [35, 100], [21, 100], [14, 100], [7, 130]])]);
+pruefe("Ein Ausreißer nach oben (130) zählt nicht: Median 100 = 100, Stillstand (ein Mittelwert wäre 110)", f.coachStillstaende(HEUTE).length === 1);
 
-// Abfall: letzter Wert höchstens 95 % des Besten im Fenster
-f.setze([uebung("a", [[20, 100], [10, 100], [3, 95]]), uebung("b", [[20, 100], [3, 94]]), uebung("c", [[20, 100], [3, 96]])]);
-pruefe("Abfall: genau 95 % und darunter zählen, 96 % nicht", f.coachAbfall(HEUTE) === 2, f.coachAbfall(HEUTE));
+// Abfall: die letzten 2 Trainingstage beide ≤ 95 % des Medians der 42 Tage davor
+f.setze([uebung("a", [[35, 100], [28, 100], [21, 100], [14, 100], [7, 100], [2, 90]])]);
+pruefe("Ein einzelner schlechter Tag: kein Abfall", f.coachAbfall(HEUTE) === 0);
+f.setze([uebung("a", [[35, 100], [28, 100], [21, 100], [14, 100], [7, 94], [2, 93]])]);
+pruefe("Zwei schlechte Tage in Folge: Abfall", f.coachAbfall(HEUTE) === 1);
+f.setze([uebung("a", [[35, 100], [28, 100], [21, 100], [7, 95], [2, 95]]), uebung("b", [[35, 100], [28, 100], [21, 100], [7, 95.5], [2, 90]])]);
+pruefe("Genau 95 % zählt, 95,5 % nicht", f.coachAbfall(HEUTE) === 1, f.coachAbfall(HEUTE));
+f.setze([uebung("a", [[60, 100], [50, 100], [40, 100], [30, 90], [20, 90]])]);
+pruefe("Letzter Tag vor 20 Tagen: kein Abfall (nicht aktuell)", f.coachAbfall(HEUTE) === 0);
+f.setze([uebung("a", [[90, 100], [85, 100], [80, 100], [9, 90], [2, 90]])]);
+pruefe("Nach einer Pause über 14 Tage: kein Abfall", f.coachAbfall(HEUTE) === 0);
+f.setze([uebung("a", [[14, 100], [10, 100], [7, 90], [2, 90]])]);
+pruefe("Nur 2 Tage als Bezug: kein Abfall", f.coachAbfall(HEUTE) === 0);
+f.setze([uebung("a", [[40, 100], [38, 100], [36, 100], [16, 100], [7, 90], [2, 90]])]);
+pruefe("Lücke von 20 Tagen mitten im Bezug: kein Abfall", f.coachAbfall(HEUTE) === 0);
+f.setze([uebung("a", [[35, 100], [28, 112], [21, 100], [14, 100], [7, 100], [2, 100]])]);
+pruefe("Glückstag im Bezug zählt nicht (Median): kein Abfall bei 100", f.coachAbfall(HEUTE) === 0);
 
 // Grund
-f.setze([steht, genau, uebung("steht3", [[40, 90], [33, 95], [26, 95], [19, 95], [12, 95]])]);
+const flach3 = reihe("flach3", 84, 7, 80, 0);
+f.setze([flach1, flach2, flach3]);
 pruefe("3 Stillstände: Grund stillstand", f.entlastungGrund(HEUTE, f.coachStillstaende(HEUTE)) === "stillstand");
-f.setze([steht, genau]);
+f.setze([flach1, flach2]);
 pruefe("2 Stillstände ohne Abfall: kein Grund", f.entlastungGrund(HEUTE, f.coachStillstaende(HEUTE)) === "");
-f.setze([uebung("a", [[20, 100], [3, 90]]), uebung("b", [[20, 100], [3, 90]])]);
+const ab1 = uebung("a", [[35, 100], [28, 100], [21, 100], [14, 100], [7, 90], [2, 90]]);
+const ab2 = uebung("b", [[35, 100], [28, 100], [21, 100], [14, 100], [7, 90], [2, 90]]);
+f.setze([ab1, ab2]);
 pruefe("2 Übungen mit Abfall: Grund abfall", f.entlastungGrund(HEUTE, []) === "abfall");
-f.setze([uebung("a", [[20, 100], [3, 90]]), uebung("b", [[20, 100], [3, 90]])], { letzteEntlastung: HEUTE - 20 * TAG });
+f.setze([ab1]);
+pruefe("1 Übung mit Abfall: kein Grund", f.entlastungGrund(HEUTE, []) === "");
+// Überschneidung: Ein Abfall senkt auch den Median der letzten 4 Wochen, die Übung zählt dann zugleich als Stillstand.
+// Seit Version 175 gewinnt der genauere Grund, der Abfall.
+function eingebrochen(name) {
+  return uebung(name, [[84, 100], [77, 100], [70, 100], [63, 100], [56, 100], [49, 100], [42, 100], [35, 100], [28, 100], [21, 100], [14, 100], [7, 90], [0, 90]]);
+}
+f.setze([eingebrochen("x"), eingebrochen("y"), eingebrochen("z")]);
+pruefe("Abfall in 3 Übungen, die zugleich als Stillstand zählen: Grund abfall",
+  f.coachStillstaende(HEUTE).length === 3 && f.coachAbfall(HEUTE) === 3 && f.entlastungGrund(HEUTE, f.coachStillstaende(HEUTE)) === "abfall",
+  f.coachStillstaende(HEUTE).length + "/" + f.coachAbfall(HEUTE) + "/" + f.entlastungGrund(HEUTE, f.coachStillstaende(HEUTE)));
+f.setze([ab1, ab2], { letzteEntlastung: HEUTE - 20 * TAG });
 pruefe("Letzte Entlastung vor 20 Tagen: kein Grund", f.entlastungGrund(HEUTE, []) === "");
 f.setze([steigt], { rueckblick: { am: HEUTE - 2 * TAG, energie: "muede", menge: "passt" } }, HEUTE - 50 * TAG);
 pruefe("Rückblick müde nach 6 Wochen: Grund rueckblick", f.entlastungGrund(HEUTE, []) === "rueckblick");

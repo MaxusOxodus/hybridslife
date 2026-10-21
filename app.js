@@ -124,10 +124,14 @@
   // In lbs bleibt es wie bei allen Übungen der Schritt der Gewichtsknöpfe (5 lbs).
   const KURZHANTEL_SCHRITT_KG = 2;
   // Satz-Vorschlag mit RIR (seit Version 163, Vault „Korund Forschung 17“, F2):
-  // Gesteigert wird nur, wenn im Schnitt noch mindestens STEIGERN_MIN_RIR Wdh. Reserve waren (ohne RIR-Angabe wie bisher).
+  // Seit Version 175 (Audit Phase 2, H1): Gehalten wird nur noch, wenn mindestens STEIGERN_RIR_MIN_SAETZE Arbeitssätze
+  // (bei weniger Sätzen alle) eine RIR-Angabe haben und deren Schnitt unter STEIGERN_MIN_RIR liegt, also fast alles bis zum
+  // Versagen ging. Vorher galt Ø RIR ≥ 2: Wer wie empfohlen mit 1–2 Wdh. Reserve trainierte, wurde nie gesteigert.
+  // Fehlende Angaben zählen weder als 0 noch als viel Reserve, sie fallen einfach weg. Produktheuristik, keine Studienschwelle.
   // Wäre ein Schritt mehr als STEIGERN_MAX_ANTEIL des Gewichts, kommen erst STEIGERN_EXTRA_WDH Wdh. über das Ziel dazu.
   // Zweimal in Folge unter dem Wdh.-Ziel mit demselben Gewicht: SENKEN_ANTEIL leichter.
-  const STEIGERN_MIN_RIR = 2;
+  const STEIGERN_MIN_RIR = 1;
+  const STEIGERN_RIR_MIN_SAETZE = 2;
   const STEIGERN_MAX_ANTEIL = 0.1;
   const STEIGERN_EXTRA_WDH = 2;
   const SENKEN_ANTEIL = 0.1;
@@ -5288,9 +5292,10 @@
       vorschlag.art = "eigengewicht";
       return vorschlag;
     }
-    // Kaum Reserve (RIR im Schnitt unter STEIGERN_MIN_RIR): erst sauber wiederholen. Sätze ohne RIR zählen nicht mit.
+    // Kaum Reserve (RIR im Schnitt unter STEIGERN_MIN_RIR): erst sauber wiederholen. Sätze ohne RIR zählen nicht mit,
+    // und eine einzelne Angabe reicht nicht (außer es gibt nur einen Arbeitssatz).
     const mitRir = arbeit.filter(function (s) { return typeof s.rir === "number"; });
-    if (mitRir.length > 0) {
+    if (mitRir.length >= Math.min(STEIGERN_RIR_MIN_SAETZE, arbeit.length)) {
       const rir = mitRir.reduce(function (summe, s) { return summe + s.rir; }, 0) / mitRir.length;
       if (rir < STEIGERN_MIN_RIR) {
         vorschlag.art = "haltenRir";
@@ -16980,17 +16985,24 @@
   // ---------- Coach (seit Version 150): Stillstand und Entlastungswoche ----------
   // Feste Regeln, keine KI. Gemerkt wird im Schlüssel "coach": entlastung { von, bis } (läuft gerade), letzteEntlastung (ms),
   // rueckblick { am, energie, menge } (Antworten des letzten Rückblicks) und ausgeblendet { entlastung, stillstand } (ms, „Nicht jetzt“).
-  // Stillstand: in den letzten STILLSTAND_FENSTER_TAGE mindestens STILLSTAND_MIN_EINHEITEN Trainingstage der Übung und
-  // in den letzten STILLSTAND_LETZTE Einheiten (über mindestens STILLSTAND_MIN_TAGE) kein neuer Bestwert beim 1RM
-  const STILLSTAND_FENSTER_TAGE = 42;
-  const STILLSTAND_MIN_EINHEITEN = 4;
-  const STILLSTAND_LETZTE = 3;
-  const STILLSTAND_MIN_TAGE = 14;
-  // Verglichen wird nur mit dem Bestwert der STILLSTAND_VERGLEICH_TAGE vor den letzten Einheiten (seit Version 162),
-  // sonst meldet ein alter Bestwert nach einer langen Pause einen Stillstand, obwohl man gerade wieder aufbaut
-  const STILLSTAND_VERGLEICH_TAGE = 84;
-  // Entlastung vorschlagen bei so vielen Stillständen, oder wenn in so vielen Übungen das letzte 1RM höchstens
-  // ENTLASTUNG_ABFALL des Bestwerts im Fenster ist, oder nach ENTLASTUNG_ABSTAND_TAGE mit „Müde“ / „Zu viel“ im Rückblick
+  // Stillstand (seit Version 175 neu, Audit Phase 2, K2; Produktheuristik, keine Studienschwelle): Der Median des
+  // geschätzten 1RM der letzten STILLSTAND_JETZT_TAGE ist nicht höher als der Median der STILLSTAND_VORHER_TAGE davor.
+  // Beide Zeiträume brauchen mindestens STILLSTAND_MIN_PUNKTE Trainingstage, und zwischen zwei Trainingstagen der Übung
+  // darf keine Lücke über STILLSTAND_MAX_LUECKE_TAGE liegen (nach einer Pause ist ein Rückgang normal, kein Stillstand).
+  // Vorher: die letzten 3 Einheiten über ≥ 14 Tage gegen den Bestwert. Das erkannte bei 2×/Woche nie etwas und meldete bei
+  // 1×/Woche fast allen einen Stillstand, weil ein einzelner, durch Tagesform hoher Bestwert den Vergleich bestimmte.
+  const STILLSTAND_JETZT_TAGE = 28;
+  const STILLSTAND_VORHER_TAGE = 56;
+  const STILLSTAND_MIN_PUNKTE = 3;
+  const STILLSTAND_MAX_LUECKE_TAGE = 14;
+  // Leistungsabfall (seit Version 175 neu, Audit Phase 2, K3; Produktheuristik): In einer Übung liegen die letzten
+  // ABFALL_EINHEITEN Trainingstage alle höchstens bei ENTLASTUNG_ABFALL des Medians der ABFALL_BEZUG_TAGE davor
+  // (mindestens STILLSTAND_MIN_PUNKTE Tage, keine Lücke über STILLSTAND_MAX_LUECKE_TAGE). Ein einzelner schlechter Tag zählt
+  // nicht. Vorher reichte ein einzelner Wert ≤ 95 % des Bestwerts, das lag im normalen Tagesrauschen.
+  const ABFALL_EINHEITEN = 2;
+  const ABFALL_BEZUG_TAGE = 42;
+  // Entlastung vorschlagen bei so vielen Stillständen, oder wenn in so vielen Übungen ein Leistungsabfall vorliegt,
+  // oder nach ENTLASTUNG_ABSTAND_TAGE mit „Müde“ / „Zu viel“ im Rückblick
   const ENTLASTUNG_STILLSTAENDE = 3;
   const ENTLASTUNG_ABFALL = 0.95;
   const ENTLASTUNG_ABFALL_UEBUNGEN = 2;
@@ -17022,56 +17034,66 @@
     return zuKg(Math.round(ausKg(alt) * ENTLASTUNG_GEWICHT / schritt) * schritt);
   }
 
-  // Die Übungen im Stillstand als Liste { name, id }. heute: ms
+  // Der Median einer Liste von Zahlen (bei gerader Anzahl der Mittelwert der beiden mittleren)
+  function median(werte) {
+    const sortiert = werte.slice().sort(function (a, b) { return a - b; });
+    const mitte = Math.floor(sortiert.length / 2);
+    return sortiert.length % 2 ? sortiert[mitte] : (sortiert[mitte - 1] + sortiert[mitte]) / 2;
+  }
+
+  // Ob zwischen zwei aufeinanderfolgenden Punkten (sortiert, älteste zuerst) eine Lücke über STILLSTAND_MAX_LUECKE_TAGE liegt
+  function punkteLuecke(punkte) {
+    for (let i = 1; i < punkte.length; i++) {
+      if (punkte[i].zeit - punkte[i - 1].zeit > STILLSTAND_MAX_LUECKE_TAGE * TAG_MS) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Die Übungen im Stillstand als Liste { name, id }. heute: ms. Regel siehe STILLSTAND_JETZT_TAGE.
   function coachStillstaende(heute) {
-    const grenze = heute - STILLSTAND_FENSTER_TAGE * TAG_MS;
+    const jetztAb = heute - STILLSTAND_JETZT_TAGE * TAG_MS;
+    const vorherAb = jetztAb - STILLSTAND_VORHER_TAGE * TAG_MS;
     const liste = [];
     trainierteUebungen().forEach(function (u) {
-      const punkte = verlaufPunkte(u.name, u.id, "rang");
-      const fenster = punkte.filter(function (p) {
-        return p.zeit >= grenze;
+      const punkte = verlaufPunkte(u.name, u.id, "rang").filter(function (p) {
+        return p.zeit > vorherAb && p.zeit <= heute;
       });
-      if (fenster.length < STILLSTAND_MIN_EINHEITEN || punkte.length <= STILLSTAND_LETZTE) {
+      const jetzt = punkte.filter(function (p) { return p.zeit > jetztAb; });
+      const vorher = punkte.filter(function (p) { return p.zeit <= jetztAb; });
+      if (jetzt.length < STILLSTAND_MIN_PUNKTE || vorher.length < STILLSTAND_MIN_PUNKTE || punkteLuecke(punkte)) {
         return;
       }
-      const letzte = punkte.slice(-STILLSTAND_LETZTE);
-      if (letzte[letzte.length - 1].zeit - letzte[0].zeit < STILLSTAND_MIN_TAGE * TAG_MS) {
-        return;
-      }
-      const vergleich = punkte.slice(0, -STILLSTAND_LETZTE).filter(function (p) {
-        return p.zeit >= letzte[0].zeit - STILLSTAND_VERGLEICH_TAGE * TAG_MS;
-      });
-      if (vergleich.length === 0) {
-        return;
-      }
-      const vorher = Math.max.apply(null, vergleich.map(function (p) {
-        return p.wert;
-      }));
-      const jetzt = Math.max.apply(null, letzte.map(function (p) {
-        return p.wert;
-      }));
-      if (jetzt <= vorher) {
+      const wert = function (p) { return p.wert; };
+      if (median(jetzt.map(wert)) <= median(vorher.map(wert))) {
         liste.push({ name: u.name, id: u.id });
       }
     });
     return liste;
   }
 
-  // Wie viele Übungen beim letzten Mal deutlich unter ihrem Bestwert der letzten Wochen lagen
+  // In wie vielen Übungen ein Leistungsabfall vorliegt (Regel siehe ABFALL_EINHEITEN). heute: ms
   function coachAbfall(heute) {
-    const grenze = heute - STILLSTAND_FENSTER_TAGE * TAG_MS;
     let anzahl = 0;
     trainierteUebungen().forEach(function (u) {
-      const fenster = verlaufPunkte(u.name, u.id, "rang").filter(function (p) {
-        return p.zeit >= grenze;
-      });
-      if (fenster.length < 2) {
+      const punkte = verlaufPunkte(u.name, u.id, "rang").filter(function (p) { return p.zeit <= heute; });
+      if (punkte.length < ABFALL_EINHEITEN + STILLSTAND_MIN_PUNKTE) {
         return;
       }
-      const bester = Math.max.apply(null, fenster.slice(0, -1).map(function (p) {
-        return p.wert;
-      }));
-      if (fenster[fenster.length - 1].wert <= bester * ENTLASTUNG_ABFALL) {
+      const letzte = punkte.slice(-ABFALL_EINHEITEN);
+      // Nur aktuelle Daten: der letzte Tag höchstens STILLSTAND_MAX_LUECKE_TAGE her
+      if (heute - letzte[letzte.length - 1].zeit > STILLSTAND_MAX_LUECKE_TAGE * TAG_MS) {
+        return;
+      }
+      const bezug = punkte.slice(0, -ABFALL_EINHEITEN).filter(function (p) {
+        return p.zeit >= letzte[0].zeit - ABFALL_BEZUG_TAGE * TAG_MS;
+      });
+      if (bezug.length < STILLSTAND_MIN_PUNKTE || punkteLuecke(bezug.concat(letzte))) {
+        return;
+      }
+      const grenze = median(bezug.map(function (p) { return p.wert; })) * ENTLASTUNG_ABFALL;
+      if (letzte.every(function (p) { return p.wert <= grenze; })) {
         anzahl++;
       }
     });
@@ -17086,11 +17108,13 @@
     if (coach.letzteEntlastung && heute - coach.letzteEntlastung < ENTLASTUNG_ABSTAND_TAGE * TAG_MS) {
       return "";
     }
-    if (stillstaende.length >= ENTLASTUNG_STILLSTAENDE) {
-      return "stillstand";
-    }
+    // Abfall vor Stillstand (seit Version 175): Ein Abfall senkt auch den Median der letzten Wochen, dieselben Übungen
+    // zählen dann oft zugleich als Stillstand. Der Abfall ist der genauere Grund.
     if (coachAbfall(heute) >= ENTLASTUNG_ABFALL_UEBUNGEN) {
       return "abfall";
+    }
+    if (stillstaende.length >= ENTLASTUNG_STILLSTAENDE) {
+      return "stillstand";
     }
     const r = coach.rueckblick;
     const seit = coach.letzteEntlastung || rueckblickStart();
@@ -17225,7 +17249,7 @@
     korundSeiteOeffnen({
       titel: txt("stillstand.titel"),
       bauen: function (inhalt, unten) {
-        inhalt.appendChild(element("p", "seiten-text", txt("stillstand.text", { n: STILLSTAND_LETZTE, tage: STILLSTAND_MIN_TAGE })));
+        inhalt.appendChild(element("p", "seiten-text", txt("stillstand.text", { jetzt: STILLSTAND_JETZT_TAGE / 7, vorher: STILLSTAND_VORHER_TAGE / 7 })));
         const liste = element("div", "karte seiten-liste coach-liste");
         stillstaende.forEach(function (s) {
           liste.appendChild(seitenZeile(anzeigeName(s.name, s.id), undefined, null));

@@ -40,7 +40,7 @@ const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
   return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
 };
-const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "WIEDEREINSTIEG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
+const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_RIR_MIN_SAETZE", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "WIEDEREINSTIEG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
 
 // Baut die Funktionen mit diesen Einträgen und Einstellungen
 function umgebung(eintraege, einstellungen) {
@@ -227,10 +227,25 @@ pruefe("Schalter aus, Satz 2: Satz davor", JSON.stringify(r.felder) === "[65,9]"
 // ---------- Seit Version 163: RIR, Senken, großer Sprung ----------
 r = rechne([eintrag("e1", [[70, 12, 3], [70, 12, 2], [70, 12, 2]])], platz(BEREICH));
 pruefe("Ziel erreicht mit RIR im Schnitt ≥ 2: steigern", r.v.art === "steigern" && r.felder[0] === 72.5, r.v.art);
+// Seit Version 175 (Audit Phase 2, H1): halten nur bei Ø RIR unter 1 aus mindestens 2 Angaben
+r = rechne([eintrag("e1", [[70, 12, 1], [70, 12, 2], [70, 12, 1]])], platz(BEREICH));
+pruefe("RIR 1/2/1 (Ø 1,3): steigern", r.v.art === "steigern" && r.felder[0] === 72.5, r.v.art);
+r = rechne([eintrag("e1", [[70, 12, 1], [70, 12, 1], [70, 12, 1]])], platz(BEREICH));
+pruefe("RIR 1/1/1 (Ø genau 1, Grenze): steigern, gehalten wird erst unter 1", r.v.art === "steigern" && r.felder[0] === 72.5, r.v.art);
 r = rechne([eintrag("e1", [[70, 12, 1], [70, 12, 1], [70, 12, 0]])], platz(BEREICH));
-pruefe("Ziel erreicht, aber RIR im Schnitt unter 2: halten mit Hinweis", r.v.art === "haltenRir" && r.felder[0] === 70 && r.text.indexOf("modus.haltenRir") === 0, r.v.art + r.text);
-r = rechne([eintrag("e1", [[70, 12, 1], [70, 12], [70, 12]])], platz(BEREICH));
-pruefe("Sätze ohne RIR zählen nicht mit: RIR 1 im einen Satz reicht für halten", r.v.art === "haltenRir", r.v.art);
+pruefe("RIR 1/1/0 (Ø 0,7): halten mit Hinweis", r.v.art === "haltenRir" && r.felder[0] === 70 && r.text.indexOf("modus.haltenRir") === 0, r.v.art + r.text);
+r = rechne([eintrag("e1", [[70, 12, 0], [70, 12, 0], [70, 12, 0]])], platz(BEREICH));
+pruefe("RIR 0/0/0: halten", r.v.art === "haltenRir", r.v.art);
+r = rechne([eintrag("e1", [[70, 12, 0], [70, 12], [70, 12]])], platz(BEREICH));
+pruefe("Nur eine RIR-Angabe (0), Rest leer: eine Angabe reicht nicht, steigern", r.v.art === "steigern", r.v.art);
+r = rechne([eintrag("e1", [[70, 12, 0], [70, 12, 0], [70, 12]])], platz(BEREICH));
+pruefe("Zwei Angaben 0/0, eine leer: halten (Leeres zählt nicht)", r.v.art === "haltenRir", r.v.art);
+r = rechne([eintrag("e1", [[70, 12, 0], [70, 12, 4], [70, 12]])], platz(BEREICH));
+pruefe("Gemischt 0/4/leer (Ø 2): steigern", r.v.art === "steigern", r.v.art);
+r = rechne([eintrag("e1", [[70, 10, 1], [70, 12, 2], [70, 12, 1]])], platz(BEREICH));
+pruefe("Ziel noch nicht in allen Sätzen erreicht, RIR 1/2/1: halten (Wdh.-Regel, nicht RIR)", r.v.art === "halten", r.v.art);
+r = rechne([eintrag("e1", [[70, 12, 0]])], platz({ von: 8, bis: 12, saetze: 1 }));
+pruefe("Nur ein Arbeitssatz mit RIR 0: halten", r.v.art === "haltenRir", r.v.art);
 r = rechne([eintrag("e1", [[70, 12], [70, 12], [70, 12]])], platz(BEREICH));
 pruefe("Ohne RIR wie bisher: steigern", r.v.art === "steigern", r.v.art);
 r = rechne([eintrag("e2", [[70, 7], [70, 6], [70, 6]], 3), eintrag("e1", [[70, 7], [70, 7], [70, 6]], 7)], platz(BEREICH));

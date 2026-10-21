@@ -39,7 +39,7 @@ const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
   return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
 };
-const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
+const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_RIR_MIN_SAETZE", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
 
 // Baut die Funktionen mit diesen Einträgen, Einstellungen und Sprache. Die Übungen sind die echten aus der uebungen.js.
 function umgebung(eintraege, einstellungen, sprache) {

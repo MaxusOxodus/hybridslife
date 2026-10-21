@@ -53,6 +53,8 @@ function bauen(sprache, einheitWahl) {
   const protokoll = { tausch: [], seiten: [] };
   const code = konstanteHolen("WOCHEN_ZIELE") + konstanteHolen("LBS_JE_KG")
     + "function einheit() { return einheitWahl; }"
+    // Seit Version 169 holen die Ringe persönliche Ziele, hier die festen
+    + "function wochenZiele() { return WOCHEN_ZIELE; }"
     + "function ausKg(kg) { return einheit() === 'lbs' ? kg * LBS_JE_KG : kg; }"
     + "function gebiet() { return sprache === 'de' ? 'de-DE' : 'en-US'; }"
     + "function txt(s, w) { let t = TEXTE[s][sprache]; for (const k in (w || {})) t = t.replace('{' + k + '}', w[k]); return t; }"

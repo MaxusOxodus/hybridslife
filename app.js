@@ -35,6 +35,9 @@
   // Ziele einer Woche für die Ringe auf Home (seit Version 137): Workouts (Trainingstage), Volumen in kg und Wiederholungen.
   // Sie stehen nur hier und sollen sich später einstellen lassen. In lbs wird das Volumen umgerechnet und auf volle 1.000 gerundet.
   const WOCHEN_ZIELE = { workouts: 5, volumen: 15000, wdh: 320 };
+  // Persönliche Ziele (wochenZiele, seit Version 169): Schnitt aus so vielen Wochen mit Training, so weit zurück gesucht
+  const ZIEL_SCHNITT_WOCHEN = 4;
+  const ZIEL_SUCH_WOCHEN = 8;
 
   // Die Sprache der App als Kürzel, z. B. "de" oder "en". Sie gilt für die Texte der Oberfläche
   // und für die Namen der Übungen und Muskelgruppen. Der richtige Wert kommt weiter unten,
@@ -2806,6 +2809,13 @@
     return GRUPPE_NACH_ID[muskel] ? muskel : null;
   }
 
+  // Wie viele harte Sätze ein Eintrag hat (auch für die XP, seit Version 169)
+  function harteSaetzeVon(e) {
+    return arbeitsSaetzeVon(e).filter(function (s) {
+      return s.wdh >= 1 && s.wdh <= HARTER_SATZ_WDH && (typeof s.rir !== "number" || s.rir <= HARTER_SATZ_RIR);
+    }).length;
+  }
+
   // Harte Sätze je Muskelgruppe in der Woche ab montag (Date, 0 Uhr). Ergebnis: { brust: 9, trizeps: 4.5, ... }
   function harteSaetzeWoche(liste, montag) {
     const von = montag.getTime();
@@ -2820,9 +2830,7 @@
       if (zeit < von || zeit >= bis) {
         continue;
       }
-      const n = arbeitsSaetzeVon(e).filter(function (s) {
-        return s.wdh >= 1 && s.wdh <= HARTER_SATZ_WDH && (typeof s.rir !== "number" || s.rir <= HARTER_SATZ_RIR);
-      }).length;
+      const n = harteSaetzeVon(e);
       if (n === 0) {
         continue;
       }
@@ -3163,7 +3171,7 @@
     const workouts = wochenZahlen(trainingstage(), montagDerWoche(new Date())).workouts;
     const zahl = element("span", "konstanz-fuss-zahl");
     zahl.appendChild(element("b", "", String(workouts)));
-    zahl.appendChild(document.createTextNode(" / " + txt("konstanz.workouts", { n: WOCHEN_ZIELE.workouts })));
+    zahl.appendChild(document.createTextNode(" / " + txt("konstanz.workouts", { n: wochenZiele().workouts })));
     fuss.appendChild(zahl);
     bereich.appendChild(fuss);
   }
@@ -12952,16 +12960,51 @@
 
   // Alles, was die drei Ringe zeigen: Wert und Ziel in der gewählten Einheit, Texte, Name und Icon.
   // Das Volumen ist gerundet wie in volumenText, sein Ziel steht in kg und wird in lbs auf volle 1.000 gerundet.
-  function wochenRingDaten(zahlen) {
+  // Persönliche Wochenziele (seit Version 169, Forschung AP9, F11): Workouts = Tage im Coach, sonst Trainingstage im
+  // Wochenplan, sonst WOCHEN_ZIELE. Volumen und Wdh. = Schnitt der letzten ZIEL_SCHNITT_WOCHEN Wochen mit Training
+  // (gesucht in den ZIEL_SUCH_WOCHEN Wochen vor dieser), gerundet auf 1.000 kg bzw. 10 Wdh.; ohne solche Wochen WOCHEN_ZIELE.
+  function wochenZiele() {
+    const imPlan = wochenplan.filter(function (id) { return Boolean(id); }).length;
+    const ziele = { workouts: coach.tage || imPlan || WOCHEN_ZIELE.workouts, volumen: WOCHEN_ZIELE.volumen, wdh: WOCHEN_ZIELE.wdh };
+    const schnitt = wochenSchnitt(trainingstage(), montagDerWoche(new Date()));
+    if (schnitt) {
+      ziele.volumen = Math.max(1000, Math.round(schnitt.volumen / 1000) * 1000);
+      ziele.wdh = Math.max(10, Math.round(schnitt.wdh / 10) * 10);
+    }
+    return ziele;
+  }
+
+  // Der Schnitt der letzten ZIEL_SCHNITT_WOCHEN Wochen mit Training vor der Woche ab montag, höchstens
+  // ZIEL_SUCH_WOCHEN Wochen zurück. Ohne Woche mit Training: null.
+  function wochenSchnitt(tage, montag) {
+    const wochen = [];
+    for (let i = 1; i <= ZIEL_SUCH_WOCHEN && wochen.length < ZIEL_SCHNITT_WOCHEN; i++) {
+      const z = wochenZahlen(tage, new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7 * i));
+      if (z.workouts > 0) {
+        wochen.push(z);
+      }
+    }
+    if (wochen.length === 0) {
+      return null;
+    }
+    return {
+      volumen: wochen.reduce(function (s, z) { return s + z.volumen; }, 0) / wochen.length,
+      wdh: wochen.reduce(function (s, z) { return s + z.wdh; }, 0) / wochen.length
+    };
+  }
+
+  // ziele: { workouts, volumen (kg), wdh }, ohne Angabe WOCHEN_ZIELE (seit Version 169 kommen sie aus wochenZiele)
+  function wochenRingDaten(zahlen, ziele) {
+    const z = ziele || WOCHEN_ZIELE;
     const lbs = einheit() === "lbs";
     const daten = {
       volumen: {
         wert: lbs ? Math.round(ausKg(zahlen.volumen)) : zahlen.volumen,
-        ziel: lbs ? Math.round(ausKg(WOCHEN_ZIELE.volumen) / 1000) * 1000 : WOCHEN_ZIELE.volumen,
+        ziel: lbs ? Math.round(ausKg(z.volumen) / 1000) * 1000 : z.volumen,
         name: txt("verlauf.volumen"), langName: txt("verlauf.volumen"), einheit: einheit(), icon: "gewicht"
       },
-      workouts: { wert: zahlen.workouts, ziel: WOCHEN_ZIELE.workouts, name: txt("profil.workouts"), langName: txt("profil.workouts"), einheit: txt("profil.workouts"), icon: "person" },
-      wdh: { wert: zahlen.wdh, ziel: WOCHEN_ZIELE.wdh, name: txt("wdh"), langName: txt("wiederholungen"), einheit: txt("wdh"), icon: "hantel" }
+      workouts: { wert: zahlen.workouts, ziel: z.workouts, name: txt("profil.workouts"), langName: txt("profil.workouts"), einheit: txt("profil.workouts"), icon: "person" },
+      wdh: { wert: zahlen.wdh, ziel: z.wdh, name: txt("wdh"), langName: txt("wiederholungen"), einheit: txt("wdh"), icon: "hantel" }
     };
     Object.keys(daten).forEach(function (art) {
       const d = daten[art];
@@ -13009,7 +13052,7 @@
   // Kopf mit Symbol, Titel der Wochenleiste und Pfeil zur Statistik. Links der große Ring, rechts sein Ziel und die zwei kleinen.
   // Ein Tipp auf einen kleinen Ring tauscht ihn mit dem großen (wochenTauschen). Das Profil zeigt die Woche weiter mit wochenZahlenFeld.
   function wochenRingeFeld(zahlen, titel) {
-    const daten = wochenRingDaten(zahlen);
+    const daten = wochenRingDaten(zahlen, wochenZiele());
     const feld = element("div", "wochen-ringe");
 
     const kopf = element("div", "wochen-karte-kopf");
@@ -13257,7 +13300,8 @@
   // XP: je Trainingstag 100, je Rekord 50, je bewegter Tonne 10. Nichts davon wird gespeichert, alles kommt aus den Einträgen.
   const XP_JE_TRAINING = 100;
   const XP_JE_REKORD = 50;
-  const XP_JE_TONNE = 10;
+  // Seit Version 169 (Forschung AP9) statt 10 XP je bewegter Tonne: XP je hartem Satz (harteSaetzeVon), Tonnage belohnte viele leichte Wdh.
+  const XP_JE_HARTER_SATZ = 5;
   // Level L beginnt bei LEVEL_XP × L × (L − 1) / 2 XP: Level 2 bei 500, Level 3 bei 1.500, Level 4 bei 3.000 …
   const LEVEL_XP = 500;
 
@@ -13295,7 +13339,8 @@
     }
 
     // Level mit dünnem Balken
-    const xp = zahlen.workouts * XP_JE_TRAINING + anzahlRekorde * XP_JE_REKORD + Math.floor(zahlen.gewicht / 1000) * XP_JE_TONNE;
+    const harte = eintraege.reduce(function (summe, e) { return summe + harteSaetzeVon(e); }, 0);
+    const xp = zahlen.workouts * XP_JE_TRAINING + anzahlRekorde * XP_JE_REKORD + harte * XP_JE_HARTER_SATZ;
     const l = levelStand(xp);
     let level = document.getElementById("profil-level");
     if (!level) {
@@ -14037,7 +14082,7 @@
     inhalt.appendChild(karte);
 
     inhalt.appendChild(element("h2", "abschnitt", txt("home.dieseWoche")));
-    const daten = wochenRingDaten(wochenZahlen(profilTage, montag));
+    const daten = wochenRingDaten(wochenZahlen(profilTage, montag), wochenZiele());
     const kacheln = element("div", "statistik-woche-kacheln");
     [["workouts", "hantel", "blau"], ["wdh", "wiederholen", "tuerkis"], ["volumen", "gewicht", "lila"]].forEach(function (k) {
       const d = daten[k[0]];
@@ -17003,10 +17048,10 @@
   function wochenberichtDaten(heute) {
     const montag = montagDerWoche(new Date(heute));
     const letzte = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7);
-    const davor = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 14);
     const tage = trainingstage();
     const zahlen = wochenZahlen(tage, letzte);
-    const vorher = wochenZahlen(tage, davor);
+    // Verglichen wird seit Version 169 mit dem Schnitt der Wochen mit Training davor, nicht nur mit einer Woche
+    const vorher = wochenSchnitt(tage, letzte) || { volumen: 0 };
     const listen = trainierteUebungen().map(function (u) {
       return verlaufPunkte(u.name, u.id, "rang");
     });
@@ -17016,7 +17061,7 @@
     return {
       woche: letzte.getTime(),
       workouts: zahlen.workouts,
-      ziel: coach.tage || WOCHEN_ZIELE.workouts,
+      ziel: wochenZiele().workouts,
       volumen: zahlen.volumen,
       veraenderung: vorher.volumen > 0 ? zahlen.volumen / vorher.volumen - 1 : null,
       rekorde: rekordeWoche
@@ -17082,7 +17127,7 @@
           kacheln.appendChild(k);
         };
         kachel(daten.workouts + " / " + daten.ziel, txt("rueckblick.trainings"), daten.workouts >= daten.ziel ? "plus" : "metall");
-        kachel(daten.veraenderung === null ? volumenText(daten.volumen) : prozentText(daten.veraenderung), txt("wochenbericht.volumen"), daten.veraenderung !== null && daten.veraenderung > 0 ? "plus" : "metall");
+        kachel(daten.veraenderung === null ? volumenText(daten.volumen) : prozentText(daten.veraenderung), txt(daten.veraenderung === null ? "wochenbericht.volumen" : "wochenbericht.volumenSchnitt"), daten.veraenderung !== null && daten.veraenderung > 0 ? "plus" : "metall");
         kachel(String(daten.rekorde), txt("wochenbericht.rekorde"), daten.rekorde > 0 ? "rekord" : "metall");
         inhalt.appendChild(kacheln);
         inhalt.appendChild(seitenLabel(txt("wochenbericht.empfehlung")));

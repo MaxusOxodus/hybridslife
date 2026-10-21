@@ -60,7 +60,9 @@ const PLAUSIBEL_TAGE = 14;
 // ---------- Fortschritts-Rang ----------
 
 // Schwellen für die Steigerung gegenüber dem Startwert: 0.10 heißt 10 % mehr
-const FORTSCHRITT_SCHWELLEN = [0, 0.10, 0.25, 0.50, 0.80, 1.20, 1.60];
+// Seit Version 169 (Forschung AP9): realistischere Stufen, vorher 0,10 / 0,25 / 0,50 / 0,80 / 1,20 / 1,60. Fortgeschrittene legen
+// im Jahr eher um 10 % zu, Anfänger im ersten Jahr um 30–50 % (Steele u. a. 2023, Latella u. a. 2020)
+const FORTSCHRITT_SCHWELLEN = [0, 0.05, 0.10, 0.20, 0.30, 0.45, 0.60];
 
 // Der Startwert ist das beste 1RM aus den ersten so vielen Tagen mit der Übung.
 // Einen Fortschritts-Rang gibt es ab so vielen Trainingstagen mit ihr.

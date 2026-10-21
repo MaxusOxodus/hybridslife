@@ -35,7 +35,7 @@ const f = new Function(uebungen
   + "function arbeitsSaetzeVon(e) { return e.einzelsaetze.filter(function (s) { return !s.aufwaermen; }); }"
   + "function gruppeIdVon(id, gruppe) { return gruppe || ''; }"
   + ["HARTER_SATZ_RIR", "HARTER_SATZ_WDH", "HILFS_ANTEIL"].map(konstanteHolen).join("")
-  + ["muskelGruppeVon", "harteSaetzeWoche"].map(funktionHolen).join("")
+  + ["harteSaetzeVon", "muskelGruppeVon", "harteSaetzeWoche"].map(funktionHolen).join("")
   + "return { harteSaetzeWoche };")();
 
 const MONTAG = new Date(2026, 9, 19);

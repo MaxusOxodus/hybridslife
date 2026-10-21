@@ -2817,7 +2817,7 @@
   // Harte Sätze je Muskelgruppe und Woche (seit Version 167, Forschung AP5, Vault „Korund Forschung 17“ F1):
   // Arbeitssätze mit 1 bis HARTER_SATZ_WDH Wdh. (ohne Aufwärmsätze). Der Hauptmuskel zählt 1,
   // jede andere Muskelgruppe aus hilfs HILFS_ANTEIL (Pelland et al. 2026). Bereich je Muskel und Woche nach ACSM 2026, eine Orientierung.
-  // Seit Version 180 ohne die Bedingung „RIR bis 4“: Sie hat nie gegriffen (Eingabe 0 bis 3 und 4+, rirLesen macht alles über 4
+  // Seit Version 179 ohne die Bedingung „RIR bis 4“: Sie hat nie gegriffen (Eingabe 0 bis 3 und 4+, rirLesen macht alles über 4
   // zu „ohne RIR“). Die Zählung (und damit die XP) ist dieselbe wie vorher. Wie nah ein Satz am Versagen war, misst Korund nicht.
   const HARTER_SATZ_WDH = 30;
   const HILFS_ANTEIL = 0.5;
@@ -5421,14 +5421,11 @@
       return null;
     }
     const frueher = fruehereArbeit(u, hatDatum(letzter) ? new Date(letzter.datum).getTime() : 0, letzter);
-    if (frueher.length < AUFFAELLIG_MIN_VERGLEICH) {
+    const mitte = gewichtAbweichung(u, alt, frueher);
+    if (mitte === null) {
       return null;
     }
-    const mitte = median(frueher.map(arbeitsGewicht));
     const passt = function (g) { return g < mitte * AUFFAELLIG_FAKTOR && g > mitte / AUFFAELLIG_FAKTOR; };
-    if (passt(alt)) {
-      return null;
-    }
     const gut = frueher.filter(function (e) { return passt(arbeitsGewicht(e)); })[0];
     return gut ? { eintrag: gut, gewicht: arbeitsGewicht(gut), original: alt } : null;
   }
@@ -5451,12 +5448,28 @@
     if (!(gewicht > 0) || u.saetze.some(function (s) { return s.gewicht === gewicht; })) {
       return null;
     }
-    const frueher = fruehereArbeit(u, Date.now(), null);
+    return gewichtAbweichung(u, gewicht, fruehereArbeit(u, Date.now(), null));
+  }
+
+  // Gemeinsame Regel für Vorschlag und Rückfrage: der Median der früheren Arbeitsgewichte, wenn gewicht auffällig davon
+  // abweicht, sonst null. Auffällig heißt: mindestens AUFFAELLIG_FAKTOR mehr oder weniger und (seit der Prüfung zu Version 179)
+  // mehr als zwei Schritte der Übung Unterschied, damit Korunds eigene Vorschläge bei leichten Gewichten (5 → 2,5 kg senken,
+  // 2 → 4 kg steigern) nicht als Tippfehler gelten. Hatte schon der neueste frühere Eintrag ein ähnliches Gewicht, ist der
+  // Sprung bestätigt (ein echter Sprung wird so nur einmal zurückgehalten).
+  function gewichtAbweichung(u, gewicht, frueher) {
     if (frueher.length < AUFFAELLIG_MIN_VERGLEICH) {
       return null;
     }
     const mitte = median(frueher.map(arbeitsGewicht));
-    return gewicht >= mitte * AUFFAELLIG_FAKTOR || gewicht <= mitte / AUFFAELLIG_FAKTOR ? mitte : null;
+    const weit = function (g) { return g >= mitte * AUFFAELLIG_FAKTOR || g <= mitte / AUFFAELLIG_FAKTOR; };
+    if (!weit(gewicht) || Math.abs(ausKg(gewicht) - ausKg(mitte)) <= 2 * steigerungSchritt(u)) {
+      return null;
+    }
+    const neuester = arbeitsGewicht(frueher[0]);
+    if (neuester < gewicht * AUFFAELLIG_FAKTOR && neuester > gewicht / AUFFAELLIG_FAKTOR && weit(neuester)) {
+      return null;
+    }
+    return mitte;
   }
 
   // Der Eintrag dieser Übung vor dem letzten (für "zweimal unter dem Ziel"), ohne den des laufenden Trainings.
@@ -12012,11 +12025,13 @@
     document.getElementById("daten-meldung").textContent = text;
   }
 
-  // Was das Cloud-Backup nicht hochlädt (seit Version 178, Datenminimierung): Körperfett, Notizen, Rückblick-Antworten
-  // und die Einstellungen, die eine Wiederherstellung nicht übernimmt (darunter Einschränkungen, Zielgewicht, Auszeiten).
+  // Was das Cloud-Backup nicht hochlädt (seit Version 178, Datenminimierung): Körperfett, Notizen, Rückblick-Antworten,
+  // die Auszeiten (Krank ist eine Gesundheitsangabe; der Import übernimmt sie aus einer Datei, aus der Cloud fehlen sie, die
+  // Serie kann auf einem neuen Gerät dadurch kürzer sein) und die Einstellungen, die der Import ohnehin nicht übernimmt
+  // (darunter Einschränkungen, Zielgewicht, Geräte).
   // Die Backup-Datei bleibt vollständig. Beim Holen aus der Cloud behält die App diese Werte auf dem Gerät.
   const CLOUD_OHNE = ["koerperfett", "notizen", "rueckblick", "einstellungen"];
-  // Die Einstellungen, die ins Cloud-Backup kommen: nur, was der Import auch übernimmt (einstellungenBereinigen), ohne Auszeiten
+  // Die Einstellungen, die ins Cloud-Backup kommen: was der Import übernimmt (einstellungenBereinigen), außer den Auszeiten
   const CLOUD_EINSTELLUNGEN = ["pauseSekunden", "gewichtEinheit", "laengeEinheit", "sprache", "design", "kraftUebung", "rangMerker"];
 
   // Der Inhalt des Cloud-Backups: wie die Backup-Datei, aber ohne die Felder aus CLOUD_OHNE. Sie fehlen ganz, statt leer
@@ -17203,7 +17218,7 @@
       if (stand === "unter") {
         unter++;
       }
-      // Bei Ziel Kraft gleicht der Plan „zu wenig“ absichtlich nicht aus (coachVolumenAnpassen), deshalb steht dort kein „darunter“ (seit Version 180)
+      // Bei Ziel Kraft gleicht der Plan „zu wenig“ absichtlich nicht aus (coachVolumenAnpassen), deshalb steht dort kein „darunter“ (seit Version 179)
       const wort = stand === "unter" && a.ziel === "kraft" ? "" : " · " + txt("coach.saetze." + stand);
       liste.appendChild(seitenZeile(GRUPPE_NACH_ID[g][sprache], zahlText(x) + wort, null, { leise: stand !== "im" }));
     });

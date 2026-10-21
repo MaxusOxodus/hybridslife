@@ -36,7 +36,7 @@ const ECHT = ["satzZiel", "zaehltSeiten", "einseitig", "kurzhantel", "steigerung
 // Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
 // Seit Version 179: Basis ohne Zukunft und Entlastung, auffälliges Gewicht
-ECHT.push("fruehereArbeit", "vorschlagEintrag", "eintragInZukunft", "arbeitsGewicht", "inEntlastung", "entlastungsZeitraeume", "vorschlagAuffaellig", "median", "entlastungGewicht");
+ECHT.push("gewichtAbweichung", "fruehereArbeit", "vorschlagEintrag", "eintragInZukunft", "arbeitsGewicht", "inEntlastung", "entlastungsZeitraeume", "vorschlagAuffaellig", "median", "entlastungGewicht");
 const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
   return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);

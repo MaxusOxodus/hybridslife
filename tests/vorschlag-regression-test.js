@@ -39,7 +39,7 @@ const ECHT = ["satzZiel", "zaehltSeiten", "einseitig", "kurzhantel", "steigerung
   "letzterEintrag", "gleicheUebung", "saetzeVon", "rirLesen", "wdhBis", "hatDatum", "istEigengewicht", "einheit", "ausKg", "zuKg",
   "istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "entlastungGewicht", "median", "punkteLuecke", "coachStillstaende",
   "coachStillstaendeGemeldet", "verlaufPunkte", "tagSchluessel", "inEntlastung", "entlastungsZeitraeume", "entlastungsEintragIds", "eintragInZukunft",
-  "vorschlagAuffaellig", "arbeitsGewicht", "vorschlagEintrag", "fruehereArbeit", "gewichtUngewoehnlich", "entlastungBeenden", "coachBereinigen", "coachZahl"];
+  "vorschlagAuffaellig", "arbeitsGewicht", "vorschlagEintrag", "fruehereArbeit", "gewichtUngewoehnlich", "gewichtAbweichung", "entlastungBeenden", "coachBereinigen", "coachZahl"];
 const KONST = ["STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_RIR_MIN_SAETZE", "STEIGERN_MAX_ANTEIL",
   "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "WIEDEREINSTIEG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN", "ENTLASTUNG_GEWICHT",
   "ENTLASTUNG_DAUER_TAGE", "STILLSTAND_JETZT_TAGE", "STILLSTAND_VORHER_TAGE", "STILLSTAND_MIN_PUNKTE", "STILLSTAND_MAX_LUECKE_TAGE",
@@ -226,6 +226,32 @@ for (const [name, ein, coach] of [["mit Merker", verlauf(0.005, true, true), coa
   pruefe("Knopf „Satz fertig“ geht über die Rückfrage", /onclick="satzFertigPruefen\(\)"/.test(index) && !/onclick="satzFertig\(\)"/.test(index));
   const pruefen = funktionHolen("satzFertigPruefen");
   pruefe("Rückfrage: „Ja, speichern“ speichert, „Korrigieren“ nicht, Aufwärmsätze ohne Rückfrage", /aktion: satzFertig \}/.test(pruefen) && /ungewoehnlichKorrigieren"\), art: "leise" \}/.test(pruefen) && /aufwaermenGewaehlt \? null/.test(pruefen));
+}
+
+// ---- 7b: Befunde der unabhängigen Prüfung: eigene Vorschläge bei leichten Gewichten und echte Sprünge ----
+{
+  const K = "bankdruecken-lh";
+  // Bankdrücken 5 kg zweimal unter Ziel → Korund schlägt 2,5 kg vor; das ist kein Tippfehler
+  const ein = [eintrag("a", K, N, 0, [[5, 6], [5, 6]]), eintrag("b", K, N, 3, [[5, 6], [5, 6]])];
+  const v = vorschlag({ eintraege: ein, jetzt: START + 5 * TAG }, platz(K, N, 8, 10, 2));
+  pruefe("Senken 5 → 2,5 kg", v.art === "senken" && v.gewicht === 2.5, v.art + " " + v.gewicht);
+  const app = umgebung({ eintraege: ein, jetzt: START + 5 * TAG });
+  pruefe("Eintragen des eigenen Vorschlags 2,5 kg: keine Rückfrage", app.gewichtUngewoehnlich(platz(K, N, 8, 10, 2), 2.5) === null);
+  const danach = ein.concat([eintrag("c", K, N, 5, [[2.5, 9], [2.5, 9]])]);
+  const v2 = vorschlag({ eintraege: danach, jetzt: START + 7 * TAG }, platz(K, N, 8, 10, 2));
+  pruefe("Nach dem Senken nicht „auffällig“", v2.art !== "auffaellig", v2.art + " " + v2.gewicht);
+  // Seitheben 2 kg × 17 → steigern 4 kg: keine Rückfrage
+  const S = "seitheben";
+  const sh = [eintrag("x", S, "Seitheben", 0, [[2, 17]]), eintrag("y", S, "Seitheben", 3, [[2, 17]])];
+  pruefe("Seitheben 2 → 4 kg: keine Rückfrage", umgebung({ eintraege: sh, jetzt: START + 5 * TAG }).gewichtUngewoehnlich(platz(S, "Seitheben", 12, 15, 1), 4) === null);
+  // Echter Sprung 20 → 45 kg: einmal nachgefragt, danach bestätigt
+  const sprung = [0, 3, 7, 10, 14].map((t, i) => eintrag("s" + i, K, N, t, [[20, 10]])).concat([eintrag("j1", K, N, 17, [[45, 10]])]);
+  const vs = vorschlag({ eintraege: sprung, jetzt: START + 19 * TAG }, platz(K, N, 8, 10, 1));
+  pruefe("Erster echter Sprung: Vorschlag vorsichtig (20 kg)", vs.art === "auffaellig" && vs.gewicht === 20, vs.art + " " + vs.gewicht);
+  pruefe("Zweites Mal 45 kg eintragen: keine Rückfrage mehr", umgebung({ eintraege: sprung, jetzt: START + 19 * TAG }).gewichtUngewoehnlich(platz(K, N, 8, 10, 1), 45) === null);
+  const zweimal = sprung.concat([eintrag("j2", K, N, 20, [[45, 10]])]);
+  const vz = vorschlag({ eintraege: zweimal, jetzt: START + 22 * TAG }, platz(K, N, 8, 10, 1));
+  pruefe("Nach zwei Einheiten mit 45 kg: normaler Vorschlag", vz.art === "steigern" && vz.gewicht === 47.5, vz.art + " " + vz.gewicht);
 }
 
 // ---- 8: Zukunftsdaten ----

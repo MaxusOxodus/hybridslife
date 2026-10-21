@@ -16968,6 +16968,7 @@
     inhalt.appendChild(element("p", "seiten-text", txt("saetze.ziel", { von: ziel.von, bis: ziel.bis }) + "."
       + (plan.angeglichen > 0 ? " " + txt("coach.saetzeAngeglichen") : "")
       + (unter > 0 && a.ziel !== "kraft" ? " " + txt("coach.saetzeMehr") : "")));
+    inhalt.appendChild(warumKnopf("warum.saetze", { von: ziel.von, bis: ziel.bis }));
   }
 
   // Öffnet den Plan in der Vorschau der Vorlagen im Training-Tab (Tauschen je Übung, Übernehmen)

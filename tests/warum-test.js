@@ -26,10 +26,10 @@ arten.forEach(a => {
   const t = TEXTE["warum.art." + a];
   pruefe("Text für " + a, t && t.de && t.en, a);
 });
-["warum.titel", "warum.knopf", "warum.vorschlag", "warum.entlastung", "warum.stillstand", "warum.erholung"].forEach(k => {
+["warum.titel", "warum.knopf", "warum.vorschlag", "warum.entlastung", "warum.stillstand", "warum.erholung", "warum.saetze"].forEach(k => {
   pruefe("Text " + k, TEXTE[k] && TEXTE[k].de && TEXTE[k].en, k);
 });
-const ehrlich = Object.keys(TEXTE).filter(k => k.indexOf("warum.art.") === 0 || ["warum.entlastung", "warum.stillstand", "warum.erholung"].indexOf(k) !== -1)
+const ehrlich = Object.keys(TEXTE).filter(k => k.indexOf("warum.art.") === 0 || ["warum.entlastung", "warum.stillstand", "warum.erholung", "warum.saetze"].indexOf(k) !== -1)
   .filter(k => !/Quelle|Erfahrungswert|kann Korund|schlägt Korund/.test(TEXTE[k].de));
 pruefe("Jede Erklärung nennt eine Quelle oder sagt, dass es ein Erfahrungswert ist", ehrlich.length === 0, ehrlich.join(", "));
 

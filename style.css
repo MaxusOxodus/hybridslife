@@ -4320,16 +4320,58 @@ button.einst-zeile:first-child {
   display: flex;
 }
 
+/* Prüfung beim Start (seit Version 164): deckt die ganze App ab, auch Dialoge (40) und die Einführung (50, 51) */
+#start-ebene {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: none;
+  padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--hintergrund);
+}
+
+#start-ebene.offen {
+  display: flex;
+}
+
+/* margin: auto statt align-items: center, so bleibt eine hohe Box oben nicht abgeschnitten und die Ebene scrollt */
+#start-box {
+  margin: auto;
+}
+
+.start-frage {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  line-height: 1.35;
+}
+
+.start-frage input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--akzent);
+}
+
 #dialog,
 #frage,
-#frage-knoepfe {
+#frage-knoepfe,
+#start-box,
+#start-inhalt,
+#start-knoepfe {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
 #dialog,
-#frage {
+#frage,
+#start-box {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -4341,14 +4383,16 @@ button.einst-zeile:first-child {
 }
 
 #dialog h2,
-#frage h2 {
+#frage h2,
+#start-box h2 {
   margin: 0;
   font-size: 22px;
   font-weight: 700;
 }
 
 #dialog-text,
-#frage-text {
+#frage-text,
+#start-text {
   margin: 0 0 8px;
   color: var(--text-leise);
 }

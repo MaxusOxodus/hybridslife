@@ -162,7 +162,7 @@ pruefe("Keine Übung doppelt an einem Tag", f.coachPlanBauen(antworten({ tage: 5
 pruefe("Backup-Version 13 mit Feld coach", /version: 13,/.test(funktionHolen("backupText")) && /coach: coach,/.test(funktionHolen("backupText")));
 pruefe("Import: Ersetzen übernimmt, Ergänzen nur ohne eigene Antworten", /importCoach !== null && \(art === "ersetzen" \|\| Object\.keys\(coach\)\.length === 0\)/.test(quelle));
 pruefe("Import bereinigt", /importCoach = coachBereinigen\(daten\.coach\)/.test(quelle));
-pruefe("Schlüssel in EINFUEHRUNG_APP_SCHLUESSEL", /"cloudZuletzt", "coach"\]/.test(einfuehrung));
+pruefe("Schlüssel in EINFUEHRUNG_APP_SCHLUESSEL", /EINFUEHRUNG_APP_SCHLUESSEL = \[[^\]]*"coach"/.test(einfuehrung));
 pruefe("Übernehmen nimmt die Pause des Plans", /pause: slot\.pause \? uebungPauseLesen\(slot\.pause\) : null/.test(funktionHolen("vorlageUebernehmen")));
 const TEXTE = new Function(texte + "; return TEXTE;")();
 const coachTexte = Object.keys(TEXTE).filter(k => k.indexOf("coach.") === 0);

@@ -167,6 +167,11 @@
   // Der früheste Geburtstag, den das Feld annimmt
   const GEBURTSTAG_MIN = "1920-01-01";
 
+  // Korund ist ab diesem Alter (seit Version 164, Forschung AP3). Jünger: Sperrseite beim Start (startPruefungZeigen)
+  const MINDESTALTER = 16;
+  // Die drei Gesundheitsfragen beim Start, Texte unter "start.frage.1" bis "start.frage.3"
+  const START_FRAGEN = 3;
+
   // So viele Trainingstage zeigt der Verlauf im Profil sofort, der Rest steckt hinter "Mehr anzeigen"
   const VERLAUF_ANZAHL = 30;
 
@@ -12387,6 +12392,121 @@
     return jahre;
   }
 
+  // ---------- Prüfung beim Start: Alter und Gesundheitsfragen (seit Version 164) ----------
+
+  // Die Antworten auf die Gesundheitsfragen stehen nur auf diesem Gerät unter dem eigenen Schlüssel "screening"
+  // ({ am: ms, ja: [Nummern der Fragen mit Ja] }), nie im Backup und nie in der Cloud (Gesundheitsdaten).
+  function screeningBeantwortet() {
+    try {
+      const s = JSON.parse(localStorage.getItem("screening"));
+      return !!s && typeof s.am === "number";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Muss die Ebene beim Start kommen? Ohne Geburtstag, unter MINDESTALTER oder ohne beantwortete Fragen.
+  function startPruefungNoetig() {
+    const alter = alterAus(profil.geburtstag);
+    return alter === null || alter < MINDESTALTER || !screeningBeantwortet();
+  }
+
+  // Die Ebene über allem (#start-ebene, z-index über Dialogen und Einführung). Sie geht erst zu, wenn das Alter passt
+  // und die Fragen beantwortet sind. Unter MINDESTALTER bleibt sie stehen, alle Daten bleiben unverändert.
+  function startPruefungZeigen() {
+    const ebene = document.getElementById("start-ebene");
+    const inhalt = document.getElementById("start-inhalt");
+    const knoepfe = document.getElementById("start-knoepfe");
+
+    function seite(titel, text, knopfText, aktion) {
+      document.getElementById("start-titel").textContent = titel;
+      document.getElementById("start-text").textContent = text;
+      inhalt.innerHTML = "";
+      knoepfe.innerHTML = "";
+      const knopf = element("button", "dialog-btn haupt", knopfText);
+      knopf.onclick = aktion;
+      knoepfe.appendChild(knopf);
+    }
+    function schliessen() {
+      ebene.classList.remove("offen");
+    }
+    function weiter() {
+      if (screeningBeantwortet()) {
+        schliessen();
+      } else {
+        fragen();
+      }
+    }
+    function alter() {
+      seite(txt("start.alterTitel"), txt("start.alterText", { n: MINDESTALTER }), txt("start.weiter"), function () {
+        const wert = feld.value;
+        if (!geburtstagGueltig(wert)) {
+          meldung.textContent = txt("start.alterUngueltig");
+          return;
+        }
+        if (alterAus(wert) < MINDESTALTER) {
+          sperre();
+          return;
+        }
+        profil.geburtstag = wert;
+        profilSichern();
+        profilAnzeigen();
+        weiter();
+      });
+      const feld = element("input", "datum-feld");
+      feld.id = "start-feld-geburt";
+      feld.type = "date";
+      feld.min = GEBURTSTAG_MIN;
+      feld.max = datumFeldText(new Date());
+      feld.value = profil.geburtstag;
+      feld.setAttribute("aria-label", txt("start.alterTitel"));
+      const meldung = element("p", "meldung form-meldung", "");
+      meldung.setAttribute("role", "alert");
+      inhalt.appendChild(feld);
+      inhalt.appendChild(meldung);
+    }
+    function sperre() {
+      seite(txt("start.sperreTitel", { n: MINDESTALTER }), txt("start.sperreText"), txt("start.alterAendern"), alter);
+    }
+    function fragen() {
+      const kaestchen = [];
+      seite(txt("start.fragenTitel"), txt("start.fragenText"), txt("start.weiter"), function () {
+        const ja = [];
+        kaestchen.forEach(function (k, i) {
+          if (k.checked) {
+            ja.push(i + 1);
+          }
+        });
+        sicherSpeichern("screening", { am: Date.now(), ja: ja });
+        if (ja.length > 0) {
+          seite(txt("start.hinweisTitel"), txt("start.hinweisText"), txt("start.verstanden"), schliessen);
+        } else {
+          schliessen();
+        }
+      });
+      for (let i = 1; i <= START_FRAGEN; i++) {
+        const zeile = element("label", "start-frage");
+        const k = element("input", "");
+        k.type = "checkbox";
+        k.id = "start-frage-" + i;
+        zeile.appendChild(k);
+        zeile.appendChild(element("span", "", txt("start.frage." + i)));
+        inhalt.appendChild(zeile);
+        kaestchen.push(k);
+      }
+    }
+
+    ebene.classList.add("offen");
+    const jahre = alterAus(profil.geburtstag);
+    if (jahre === null) {
+      alter();
+    } else if (jahre < MINDESTALTER) {
+      sperre();
+    } else {
+      fragen();
+    }
+  }
+
   // Die Angaben zur Person für den Coach und das Rang-System, alle von einer Stelle:
   // geschlecht: "m", "w", "d" oder "" (keine Angabe)
   // alter:      in ganzen Jahren, aus dem Geburtstag berechnet, null ohne Geburtstag
@@ -17867,6 +17987,11 @@ trainingBeimStartPruefen();
 
 // Neue Ränge und Abzeichen seit dem letzten Öffnen melden. Beim allerersten Mal wird nur gemerkt, was schon erreicht ist.
 rangPruefen(true);
+
+// Alter und Gesundheitsfragen (seit Version 164): Die Ebene liegt über allen Dialogen, was darunter aufgeht, wartet
+if (startPruefungNoetig()) {
+  startPruefungZeigen();
+}
 
 // Der Start ist durch: Jetzt erscheinen die Meldungen zu kaputten Einträgen und zu fehlgeschlagenem Speichern
 startFertig = true;

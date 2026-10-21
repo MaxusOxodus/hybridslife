@@ -138,8 +138,10 @@
   // Höhe eines Wertes im Rad in Pixeln. Muss zur Höhe von .rad-wert im CSS passen.
   const RAD_HOEHE = 44;
 
-  // So viele Trainingstage braucht eine Woche, damit sie für die Serie zählt
+  // So viele Trainingstage braucht eine Woche, damit sie für die Serie zählt (ohne Plan, und höchstens so viele)
   const SERIE_TAGE_PRO_WOCHE = 3;
+  // Seit Version 170 (Forschung F10): Wer weniger Tage plant, braucht nur so viele, aber mindestens diese
+  const SERIE_TAGE_MIN = 2;
 
   // Aktivitäts-Raster im Profil: so viele Wochen zeigt es (53 sind gut ein Jahr)
   const RASTER_WOCHEN = 53;
@@ -2722,6 +2724,17 @@
 
   // Die Zahlen über alle Einträge: Workouts (Tage mit mindestens einem Eintrag), verschiedene Übungen,
   // das bewegte Gesamtgewicht in kg und die Serie in Wochen. Fortschritt und Profil zeigen dieselben Zahlen.
+  // So viele Trainingstage braucht eine Woche für die Serie (seit Version 170): die geplanten Tage
+  // (Plan mit Korund, sonst Wochenplan), mindestens SERIE_TAGE_MIN, höchstens SERIE_TAGE_PRO_WOCHE; ohne Plan SERIE_TAGE_PRO_WOCHE.
+  // Höchstens 3, damit eine alte Serie mit einem größeren Plan nicht kleiner wird.
+  function serieMinTage() {
+    const geplant = coach.tage || wochenplan.filter(function (id) { return Boolean(id); }).length;
+    if (!geplant) {
+      return SERIE_TAGE_PRO_WOCHE;
+    }
+    return Math.min(SERIE_TAGE_PRO_WOCHE, Math.max(SERIE_TAGE_MIN, geplant));
+  }
+
   function gesamtZahlen() {
     const trainingstage = {};    // jeder Tag mit mindestens einem Eintrag
     const tageProWoche = {};     // Anzahl Trainingstage je Woche (Schlüssel: Montag)
@@ -2760,7 +2773,7 @@
 
     // Serie: Wochen in Folge mit genug Trainingstagen, mit Pausenwochen (serieBerechnen in der raenge.js).
     // Die laufende Woche zählt erst, wenn sie vorbei ist. Sie unterbricht die Serie aber nicht.
-    const serie = serieBerechnen(tageProWoche, montagDerWoche(new Date()).getTime(), SERIE_TAGE_PRO_WOCHE, auszeitMontage());
+    const serie = serieBerechnen(tageProWoche, montagDerWoche(new Date()).getTime(), serieMinTage(), auszeitMontage());
 
     return {
       workouts: anzahlTage, uebungen: anzahlUebungen, gewicht: gesamtgewicht,
@@ -2774,7 +2787,7 @@
     document.getElementById("stat-gewicht").textContent = volumenText(zahlen.gewicht);
     document.getElementById("stat-uebungen").textContent = zahlen.uebungen;
     document.getElementById("stat-serie").textContent = zahlen.serie;
-    document.getElementById("stat-serie-titel").textContent = txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE });
+    document.getElementById("stat-serie-titel").textContent = txt("fortschritt.serie", { n: serieMinTage() });
 
     konstanzAnzeigen();
     koerpergewichtAnzeigen();
@@ -6981,6 +6994,36 @@
     ansicht.insertBefore(haken, ansicht.firstChild);
   }
 
+  // Seit Version 170: Ist das Training ein Comeback (comebacks), steht über der Dauer „Willkommen zurück“.
+  // Das Element baut die app.js, nur die korund.css zeigt es (style.css blendet .fertig-comeback aus).
+  function comebackAnzeigen(liste) {
+    const alt = document.getElementById("fertig-comeback");
+    if (alt) {
+      alt.remove();
+    }
+    if (liste.length === 0 || !hatDatum(liste[0])) {
+      return;
+    }
+    const d = new Date(liste[0].datum);
+    const tag = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const treffer = comebacks().filter(function (c) { return c.zeit === tag; })[0];
+    if (!treffer) {
+      return;
+    }
+    const karte = element("div", "karte fertig-comeback");
+    karte.id = "fertig-comeback";
+    const symbol = element("span", "fertig-comeback-symbol farbe-orange");
+    symbol.setAttribute("aria-hidden", "true");
+    symbol.innerHTML = symbolSvg("flamme");
+    karte.appendChild(symbol);
+    const text = element("div", "fertig-comeback-text");
+    text.appendChild(element("div", "fertig-comeback-titel", txt("fertig.comeback")));
+    text.appendChild(element("div", "fertig-comeback-info", txt("fertig.comebackText", { n: treffer.pause, xp: XP_JE_COMEBACK })));
+    karte.appendChild(text);
+    const dauer = document.getElementById("fertig-dauer-karte");
+    dauer.parentNode.insertBefore(karte, dauer);
+  }
+
   // Der Bericht nach dem Training (seit Version 131), unter "Geschafft!" in dieser Reihenfolge: die Dauer,
   // der Gesamt-Kraftrang (mit Schild, wenn er mit diesem Training eine Stufe gestiegen ist), die neuen Rekorde
   // und was bis zur nächsten Stufe fehlt. Die Kacheln Übungen, Sätze und Bewegtes Gewicht darunter füllt
@@ -6994,6 +7037,7 @@
     document.getElementById("fertig-dauer").textContent = minuten === null ? "" : dauerText(minuten);
     fertigHakenAnlegen();
     document.getElementById("fertig-dauer-karte").classList.toggle("versteckt", minuten === null);
+    comebackAnzeigen(liste);
 
     const ids = [];
     for (let i = 0; i < liste.length; i++) {
@@ -13302,6 +13346,25 @@
   const XP_JE_REKORD = 50;
   // Seit Version 169 (Forschung AP9) statt 10 XP je bewegter Tonne: XP je hartem Satz (harteSaetzeVon), Tonnage belohnte viele leichte Wdh.
   const XP_JE_HARTER_SATZ = 5;
+  // Comeback (seit Version 170, Forschung F10): ein Trainingstag nach mindestens so vielen Tagen ohne Training
+  const COMEBACK_PAUSE_TAGE = 7;
+  const XP_JE_COMEBACK = 50;
+
+  // Die Comebacks als Liste { zeit, pause }: zeit = 0 Uhr des Trainingstags, pause = Tage ohne Training davor.
+  // Der erste Trainingstag überhaupt ist kein Comeback. Nichts wird gespeichert.
+  function comebacks() {
+    const tage = trainingstage();
+    const zeiten = Object.keys(tage).map(function (k) { return tage[k].datum.getTime(); }).sort(function (a, b) { return a - b; });
+    const liste = [];
+    for (let i = 1; i < zeiten.length; i++) {
+      // Gerundet, weil Tage mit Zeitumstellung 23 oder 25 Stunden haben
+      const pause = Math.round((zeiten[i] - zeiten[i - 1]) / TAG_MS) - 1;
+      if (pause >= COMEBACK_PAUSE_TAGE) {
+        liste.push({ zeit: zeiten[i], pause: pause });
+      }
+    }
+    return liste;
+  }
   // Level L beginnt bei LEVEL_XP × L × (L − 1) / 2 XP: Level 2 bei 500, Level 3 bei 1.500, Level 4 bei 3.000 …
   const LEVEL_XP = 500;
 
@@ -13340,7 +13403,8 @@
 
     // Level mit dünnem Balken
     const harte = eintraege.reduce(function (summe, e) { return summe + harteSaetzeVon(e); }, 0);
-    const xp = zahlen.workouts * XP_JE_TRAINING + anzahlRekorde * XP_JE_REKORD + harte * XP_JE_HARTER_SATZ;
+    const xp = zahlen.workouts * XP_JE_TRAINING + anzahlRekorde * XP_JE_REKORD + harte * XP_JE_HARTER_SATZ
+      + comebacks().length * XP_JE_COMEBACK;
     const l = levelStand(xp);
     let level = document.getElementById("profil-level");
     if (!level) {
@@ -14035,7 +14099,7 @@
     }
     const serie = element("div", "karte");
     serie.appendChild(element("div", "routine-name", txtAnzahl("profil.serieText", gesamtZahlen().serie)));
-    serie.appendChild(element("div", "routine-info", txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE })));
+    serie.appendChild(element("div", "routine-info", txt("fortschritt.serie", { n: serieMinTage() })));
     inhalt.appendChild(serie);
 
     // Diese Woche: dieselben Zahlen wie auf Home
@@ -14062,7 +14126,7 @@
     zahl.appendChild(element("b", "", String(serie)));
     zahl.appendChild(element("span", "", " " + txt(serie === 1 ? "statistik.serieWoche" : "statistik.serieWochen")));
     text.appendChild(zahl);
-    text.appendChild(element("div", "seiten-klein", txt("fortschritt.serie", { n: SERIE_TAGE_PRO_WOCHE })));
+    text.appendChild(element("div", "seiten-klein", txt("fortschritt.serie", { n: serieMinTage() })));
     kopf.appendChild(text);
     karte.appendChild(kopf);
     // Die letzten Wochen, die älteste links, diese Woche rechts. Voll: Ziel der Serie erreicht, halb: trainiert, aber zu wenig.
@@ -14070,9 +14134,9 @@
     for (let i = STATISTIK_SERIE_WOCHEN - 1; i >= 0; i--) {
       const m = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7 * i);
       const n = wochenZahlen(profilTage, m).workouts;
-      const woche = element("div", "statistik-woche" + (n >= SERIE_TAGE_PRO_WOCHE ? " voll" : n > 0 ? " halb" : "") + (i === 0 ? " jetzt" : ""));
+      const woche = element("div", "statistik-woche" + (n >= serieMinTage() ? " voll" : n > 0 ? " halb" : "") + (i === 0 ? " jetzt" : ""));
       const balken = element("span", "statistik-woche-balken");
-      balken.style.setProperty("--anteil", Math.min(1, n / SERIE_TAGE_PRO_WOCHE));
+      balken.style.setProperty("--anteil", Math.min(1, n / serieMinTage()));
       woche.appendChild(balken);
       woche.appendChild(element("span", "statistik-woche-name", i === 0 ? txt("statistik.jetzt") : String(kalenderwoche(m))));
       woche.setAttribute("aria-label", txt("statistik.wocheAria", { kw: kalenderwoche(m), n: n }));
@@ -14917,7 +14981,7 @@
 
     if (serie === 0) {
       karte.appendChild(rangKopf(null, txt("rang.konstanz"), txt("rang.keineSerie")));
-      karte.appendChild(element("div", "routine-info", txt("rang.konstanzLeer", { n: SERIE_TAGE_PRO_WOCHE })));
+      karte.appendChild(element("div", "routine-info", txt("rang.konstanzLeer", { n: serieMinTage() })));
       return karte;
     }
 
@@ -15494,8 +15558,8 @@
     zahl.appendChild(element("small", "", txt(zahlen.serie === 1 ? "serie.woche" : "serie.wochen")));
     karte.appendChild(zahl);
     const diese = jeWoche[montag.getTime()] || 0;
-    const fehlt = SERIE_TAGE_PRO_WOCHE - diese;
-    karte.appendChild(element("div", "seiten-klein", txt("serie.regel", { n: SERIE_TAGE_PRO_WOCHE }) + " " + (fehlt > 0 ? txtAnzahl("serie.fehlt", fehlt) : txt("serie.geschafft"))));
+    const fehlt = serieMinTage() - diese;
+    karte.appendChild(element("div", "seiten-klein", txt("serie.regel", { n: serieMinTage() }) + " " + (fehlt > 0 ? txtAnzahl("serie.fehlt", fehlt) : txt("serie.geschafft"))));
     karte.appendChild(element("div", "seiten-trenn"));
     const fuss = element("div", "seiten-kopfzeile seiten-klein");
     const links = element("span", "");
@@ -15514,7 +15578,7 @@
     for (let w = 0; w < SERIE_LISTE_WOCHEN; w++) {
       const m = new Date(montag.getFullYear(), montag.getMonth(), montag.getDate() - 7 * w);
       const anzahl = jeWoche[m.getTime()] || 0;
-      const auszeit = anzahl < SERIE_TAGE_PRO_WOCHE ? auszeitArtInWoche(m) : "";
+      const auszeit = anzahl < serieMinTage() ? auszeitArtInWoche(m) : "";
       const zeile = element("div", "serie-woche");
       zeile.appendChild(element("span", "serie-kw", txt("serie.kw", { n: kalenderwoche(m) })));
       const striche = element("span", "serie-striche");
@@ -15522,7 +15586,7 @@
         striche.appendChild(element("i", i < anzahl ? (auszeit ? "frei" : "an") : ""));
       }
       zeile.appendChild(striche);
-      let ende = anzahl >= SERIE_TAGE_PRO_WOCHE ? "✓" : "–";
+      let ende = anzahl >= serieMinTage() ? "✓" : "–";
       if (w === 0) {
         ende = txt("serie.laeuft");
       } else if (auszeit) {
@@ -18151,7 +18215,7 @@
     for (let i = 1; i <= FAQ_ANZAHL; i++) {
       const frage = element("details", "karte faq");
       frage.appendChild(element("summary", "", txt("faq." + i + ".frage")));
-      frage.appendChild(element("p", "", txt("faq." + i + ".antwort", { n: SERIE_TAGE_PRO_WOCHE })));
+      frage.appendChild(element("p", "", txt("faq." + i + ".antwort", { n: serieMinTage() })));
       liste.appendChild(frage);
     }
   }

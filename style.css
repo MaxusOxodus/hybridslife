@@ -496,6 +496,11 @@ h1 {
   display: none;
 }
 
+/* Seit Version 170: „Willkommen zurück“ im Bericht, nur die korund.css zeigt es */
+.fertig-comeback {
+  display: none;
+}
+
 #rang-hinweis.sichtbar {
   display: flex;
   animation: seite-einblenden 0.3s ease-out;

@@ -519,6 +519,8 @@ const TEXTE = {
   "fertig.uebersprungen": { de: "{n} übersprungen", en: "{n} skipped" },
   "fertig.dauer": { de: "Dauer", en: "Duration" },
   "fertig.aufstieg": { de: "Aufgestiegen", en: "Ranked up" },
+  "fertig.comeback": { de: "Willkommen zurück", en: "Welcome back" },
+  "fertig.comebackText": { de: "Nach {n} Tagen Pause wieder da. +{xp} XP", en: "Back after {n} days off. +{xp} XP" },
   "fertig.rekorde": { de: "Neue Rekorde (geschätztes 1RM)", en: "New records (estimated 1RM)" },
   "fertig.hoechster": { de: "Höchster Rang erreicht", en: "Highest rank reached" },
   "zeit.titel": { de: "Zeitverlauf", en: "Timeline" },

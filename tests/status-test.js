@@ -82,7 +82,7 @@ function wochen(tage) {
   // statusSetzen: speichert nur die Einstellungen
   const f = funktionHolen("statusSetzen");
   pruefe("statusSetzen ändert keine Trainingsdaten", !/eintraege|trainings\b|routinen|wochenplan/.test(f));
-  pruefe("Serie rechnet mit Auszeiten", quelle.indexOf("SERIE_TAGE_PRO_WOCHE, auszeitMontage())") !== -1);
+  pruefe("Serie rechnet mit Auszeiten", quelle.indexOf("serieMinTage(), auszeitMontage())") !== -1);
   for (const k of ["status.titel", "status.text", "status.aktiv", "status.krank", "status.urlaub", "status.wiederAktiv", "home.status.krank", "home.status.urlaub"]) {
     pruefe("Text " + k, TEXTE[k] && TEXTE[k].de && TEXTE[k].en);
   }

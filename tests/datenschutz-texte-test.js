@@ -51,13 +51,17 @@ Object.keys(TEXTE).filter(function (k) {
 ["ueber.lokal", "faq.1.antwort"].forEach(function (k) {
   const t = TEXTE[k];
   pruefe(k + ": ohne Cloud-Backup auf dem Gerät", /Ohne Cloud-Backup/.test(t.de) && /[Ww]ithout cloud backup/.test(t.en));
-  pruefe(k + ": Server in der EU", /in der EU/.test(t.de) && /in the EU/.test(t.en));
-  pruefe(k + ": alle Daten samt Körperdaten", /Körpergewicht, Körperfett, Profil und Einschränkungen/.test(t.de) && /body weight, body fat, profile and limitations/.test(t.en));
+  // Seit Version 178: Die Region ist nur eine Angabe der Einrichtung (aus der App nicht prüfbar), Dienstleister außerhalb der EU
+  // werden genannt, und das Cloud-Backup enthält kein Körperfett, keine Notizen und keine Einschränkungen mehr (cloudDaten)
+  pruefe(k + ": Region als Angabe der Einrichtung, Dienstleister außerhalb der EU", /Supabase/.test(t.de) && /laut Einrichtung die EU \(Frankfurt\)/.test(t.de) && /außerhalb der EU/.test(t.de) && /Supabase/.test(t.en) && /outside the EU/.test(t.en));
+  pruefe(k + ": nennt, was hochgeladen wird", /Profils \(auch Geburtsdatum und Geschlecht\) und deines Körpergewichts/.test(t.de) && /profile \(including date of birth and gender\) and body weight/.test(t.en));
+  pruefe(k + ": nennt, was auf dem Gerät bleibt", /Körperfett, Notizen, Einschränkungen, Auszeiten und Rückblick-Antworten bleiben auf dem Gerät/.test(t.de) && /Body fat, notes, limitations, time off and review answers stay on the device/.test(t.en));
+  pruefe(k + ": sagt nicht mehr „Servern in der EU“", !/auf Servern in der EU/.test(t.de) && !/on servers in the EU/.test(t.en));
   pruefe(k + ": verschlüsselt, löschbar, andere Nutzer können es nicht lesen", /verschlüsselt/.test(t.de) && /löschbar/.test(t.de) && /Andere Nutzer können es nicht lesen\./.test(t.de) && /encrypted/.test(t.en) && /deleted/.test(t.en) && /Other users cannot read it\./.test(t.en));
 });
 // Die App verspricht nicht, dass nur der Nutzer die Daten lesen kann (der Besitzer des Supabase-Projekts kann es),
 // sondern nur, dass andere Nutzer sie nicht lesen können
-pruefe("cloud.datenschutz: andere Nutzer können es nicht lesen", TEXTE["cloud.datenschutz"].de === "Gespeichert wird dein Backup auf Servern in der EU. Andere Nutzer können es nicht lesen." && TEXTE["cloud.datenschutz"].en === "Your backup is stored on servers in the EU. Other users cannot read it.");
+pruefe("cloud.datenschutz: andere Nutzer können es nicht lesen, Region laut Einrichtung", /Andere Nutzer können es nicht lesen\.$/.test(TEXTE["cloud.datenschutz"].de) && /Other users cannot read it\.$/.test(TEXTE["cloud.datenschutz"].en) && /laut Einrichtung/.test(TEXTE["cloud.datenschutz"].de) && /bleiben auf dem Gerät/.test(TEXTE["cloud.datenschutz"].de));
 dateien.forEach(function (datei) {
   pruefe(datei + " verspricht nicht „nur du kannst es lesen“", !/nur du kannst|nur für dich lesbar|only you can read|readable only by you/i.test(lesen(datei)));
 });

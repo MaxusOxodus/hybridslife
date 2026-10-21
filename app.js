@@ -11564,6 +11564,8 @@
   let importGeloeschte = null;
   let importNotizen = null;
   let importCoach = null;
+  // Was ein Cloud-Backup absichtlich nicht enthält (Feld cloudOhne, seit Version 178). Leer bei einer Backup-Datei.
+  let importOhne = [];
 
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
@@ -11702,7 +11704,7 @@
 
     let text;
     if (art === "ersetzen") {
-      koerpergewicht = importGewichte;
+      koerpergewicht = importOhne.indexOf("koerperfett") !== -1 ? fettVonHierBehalten(importGewichte) : importGewichte;
       text = " " + txt("backup.gewichteErsetzt", { n: koerpergewicht.length });
     } else {
       // Nur Tage hinzufügen, für die es hier noch keine Messung gibt
@@ -11726,6 +11728,30 @@
 
     gewichteSpeichern();
     return text;
+  }
+
+  // Ersetzen mit einem Cloud-Backup ohne Körperfett (seit Version 178): Das Körperfett auf diesem Gerät bleibt.
+  // Am selben Tag kommt es an die Messung aus der Cloud, Tage nur mit Körperfett bleiben als eigene Messung.
+  function fettVonHierBehalten(liste) {
+    const fett = {};
+    koerpergewicht.forEach(function (m) {
+      if (hatDatum(m) && koerperfettVon(m) !== null) {
+        fett[tagSchluessel(new Date(m.datum))] = m;
+      }
+    });
+    const neu = liste.map(function (m) {
+      const tag = tagSchluessel(new Date(m.datum));
+      if (!fett[tag]) {
+        return m;
+      }
+      const mitFett = Object.assign({}, m, { koerperfett: fett[tag].koerperfett });
+      delete fett[tag];
+      return mitFett;
+    });
+    Object.keys(fett).forEach(function (tag) {
+      neu.push({ datum: fett[tag].datum, koerperfett: fett[tag].koerperfett });
+    });
+    return neu;
   }
 
   // Übernimmt die eigenen Übungen aus dem Backup. Gibt den Text für die Meldung zurück.
@@ -11818,6 +11844,39 @@
   // Zeigt eine Meldung unter den Backup-Buttons
   function datenMeldung(text) {
     document.getElementById("daten-meldung").textContent = text;
+  }
+
+  // Was das Cloud-Backup nicht hochlädt (seit Version 178, Datenminimierung): Körperfett, Notizen, Rückblick-Antworten
+  // und die Einstellungen, die eine Wiederherstellung nicht übernimmt (darunter Einschränkungen, Zielgewicht, Auszeiten).
+  // Die Backup-Datei bleibt vollständig. Beim Holen aus der Cloud behält die App diese Werte auf dem Gerät.
+  const CLOUD_OHNE = ["koerperfett", "notizen", "rueckblick", "einstellungen"];
+  // Die Einstellungen, die ins Cloud-Backup kommen: nur, was der Import auch übernimmt (einstellungenBereinigen), ohne Auszeiten
+  const CLOUD_EINSTELLUNGEN = ["pauseSekunden", "gewichtEinheit", "laengeEinheit", "sprache", "design", "kraftUebung", "rangMerker"];
+
+  // Der Inhalt des Cloud-Backups: wie die Backup-Datei, aber ohne die Felder aus CLOUD_OHNE. Sie fehlen ganz, statt leer
+  // geschickt zu werden. Das Körpergewicht steht unter koerpergewichtCloud (nur Gewicht), damit ältere Versionen beim
+  // Ersetzen die Messungen auf dem Gerät nicht durch eine Liste ohne Körperfett ersetzen (sie kennen den Schlüssel nicht).
+  function cloudDaten() {
+    const daten = JSON.parse(backupText());
+    delete daten.notizen;
+    const einstellungenCloud = {};
+    CLOUD_EINSTELLUNGEN.forEach(function (k) {
+      if (daten.einstellungen && daten.einstellungen[k] !== undefined) {
+        einstellungenCloud[k] = daten.einstellungen[k];
+      }
+    });
+    daten.einstellungen = einstellungenCloud;
+    if (daten.coach && typeof daten.coach === "object") {
+      delete daten.coach.rueckblick;
+    }
+    daten.koerpergewichtCloud = (daten.koerpergewicht || []).filter(function (m) {
+      return m && typeof m.gewicht === "number";
+    }).map(function (m) {
+      return { datum: m.datum, gewicht: m.gewicht };
+    });
+    delete daten.koerpergewicht;
+    daten.cloudOhne = CLOUD_OHNE.slice();
+    return daten;
   }
 
   // Der Inhalt der Backup-Datei als JSON-Text
@@ -11991,11 +12050,17 @@
     // Das Körpergewicht gibt es erst in neueren Backups. Übernommen wird, was ein Datum und ein gültiges
     // Gewicht oder Körperfett hat. Bis Backup-Version 8 hatte jeder Eintrag ein Gewicht,
     // ab Version 9 darf einer auch nur das Körperfett haben.
+    importOhne = daten && !Array.isArray(daten) && Array.isArray(daten.cloudOhne) ? daten.cloudOhne : [];
     importGewichte = null;
-    if (daten && !Array.isArray(daten) && Array.isArray(daten.koerpergewicht)) {
+    // Ein Cloud-Backup ab Version 178 hat das Körpergewicht ohne Körperfett unter koerpergewichtCloud
+    let gewichtListe = daten && !Array.isArray(daten) ? daten.koerpergewicht : null;
+    if (!Array.isArray(gewichtListe) && importOhne.indexOf("koerperfett") !== -1 && Array.isArray(daten.koerpergewichtCloud)) {
+      gewichtListe = daten.koerpergewichtCloud;
+    }
+    if (Array.isArray(gewichtListe)) {
       importGewichte = [];
-      for (let i = 0; i < daten.koerpergewicht.length; i++) {
-        const m = daten.koerpergewicht[i];
+      for (let i = 0; i < gewichtListe.length; i++) {
+        const m = gewichtListe[i];
         const mitGewicht = Boolean(m) && typeof m.gewicht === "number" && !isNaN(m.gewicht);
         if (hatDatum(m) && (mitGewicht || koerperfettVon(m) !== null)) {
           const messung = { datum: m.datum };
@@ -12100,6 +12165,10 @@
 
     // Coach: Beim Ersetzen gelten die Antworten aus dem Backup, beim Hinzufügen nur, wenn hier noch keine stehen
     if (importCoach !== null && (art === "ersetzen" || Object.keys(coach).length === 0)) {
+      // Ein Cloud-Backup ab Version 178 hat keine Rückblick-Antworten: die von diesem Gerät bleiben
+      if (importOhne.indexOf("rueckblick") !== -1 && coach.rueckblick) {
+        importCoach.rueckblick = coach.rueckblick;
+      }
       coach = importCoach;
       coachSpeichern();
     }
@@ -12152,6 +12221,7 @@
     importEigene = null;
     importGeloeschte = null;
     importProfil = null;
+    importOhne = [];
     document.getElementById("dialog-hintergrund").classList.remove("offen");
     anzeigen();
     letztesMalAnzeigen();
@@ -12167,6 +12237,7 @@
     importEigene = null;
     importGeloeschte = null;
     importProfil = null;
+    importOhne = [];
     document.getElementById("dialog-hintergrund").classList.remove("offen");
   }
 
@@ -18048,7 +18119,7 @@
 
   function cloudHochladen(nutzer, manuell) {
     const jetzt = new Date().toISOString();
-    return cloudClient().from("backups").upsert({ user_id: nutzer, daten: JSON.parse(backupText()), eintraege: eintraege.length, aktualisiert: jetzt }).then(function (antwort) {
+    return cloudClient().from("backups").upsert({ user_id: nutzer, daten: cloudDaten(), eintraege: eintraege.length, aktualisiert: jetzt }).then(function (antwort) {
       if (antwort.error) {
         throw antwort.error;
       }

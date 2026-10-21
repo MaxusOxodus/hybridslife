@@ -39,9 +39,10 @@ function pruefe(name, ok, info) {
 const KONSTANTEN = ["COACH_ZIELE", "COACH_TAGE", "COACH_MINUTEN", "COACH_ERFAHRUNG", "COACH_SCHWERPUNKTE", "COACH_MAX_SCHWERPUNKT",
   "COACH_MAX_SAETZE", "COACH_MAX_ANFAENGER", "COACH_MIN_SAETZE", "COACH_MIN_PLAETZE", "COACH_KRAFT_PAUSE", "COACH_SATZ_SEKUNDEN",
   "COACH_ZEIT_DRUEBER", "COACH_ZEIT_DRUNTER", "COACH_GRUNDUEBUNGEN", "COACH_AUFTEILUNG", "COACH_AUFTEILUNG_ANFAENGER",
-  "COACH_AUFTEILUNG_ARME", "ERHOLUNG_PARTIEN"];
+  "COACH_AUFTEILUNG_ARME", "ERHOLUNG_PARTIEN", "HILFS_ANTEIL", "SAETZE_ZIEL", "SAETZE_ZIEL_EINSTEIGER", "COACH_AUSGLEICH_RUNDEN"];
 const FUNKTIONEN = ["coachBereinigen", "coachZahl", "coachBasis", "coachPasst", "coachSlotUebung", "coachSlotWerte", "coachDauer",
-  "coachZeitAnpassen", "coachPlanBauen", "erholungPartie", "uebungGruppe"];
+  "coachZeitAnpassen", "coachPlanBauen", "erholungPartie", "uebungGruppe", "muskelGruppeVon", "gruppenAnteile", "coachWochenSaetze",
+  "coachSaetzeZiel", "coachSlotSchwerpunkt", "coachVolumenAbstand", "coachVolumenAnpassen"];
 const f = new Function(lesen("uebungen.js") + lesen("vorlagen.js")
   + "const UEBUNG_NACH_ID = {}; UEBUNGEN.forEach(function (u) { UEBUNG_NACH_ID[u.id] = u; });"
   + "let gesperrt = []; let fehlen = [];"

@@ -2852,17 +2852,26 @@
       if (!haupt) {
         continue;
       }
-      ergebnis[haupt] = (ergebnis[haupt] || 0) + n;
-      const gesehen = [haupt];
-      (u && Array.isArray(u.hilfs) ? u.hilfs : []).forEach(function (m) {
-        const g = muskelGruppeVon(m);
-        if (g && gesehen.indexOf(g) === -1) {
-          gesehen.push(g);
-          ergebnis[g] = (ergebnis[g] || 0) + n * HILFS_ANTEIL;
-        }
+      const anteile = gruppenAnteile(u, haupt);
+      Object.keys(anteile).forEach(function (g) {
+        ergebnis[g] = (ergebnis[g] || 0) + n * anteile[g];
       });
     }
     return ergebnis;
+  }
+
+  // Wie stark ein Satz einer Übung je Muskelgruppe zählt: { brust: 1, trizeps: 0.5, ... } (seit Version 171 eigene Funktion,
+  // genutzt von harteSaetzeWoche und vom Plan mit Korund). haupt ist die Gruppe des Hauptmuskels.
+  function gruppenAnteile(u, haupt) {
+    const anteile = {};
+    anteile[haupt] = 1;
+    (u && Array.isArray(u.hilfs) ? u.hilfs : []).forEach(function (m) {
+      const g = muskelGruppeVon(m);
+      if (g && anteile[g] === undefined) {
+        anteile[g] = HILFS_ANTEIL;
+      }
+    });
+    return anteile;
   }
 
   // Die Karte "Harte Sätze diese Woche" in der Statistik (Look Korund)
@@ -16232,6 +16241,8 @@
   const COACH_SATZ_SEKUNDEN = 45;
   // Spielraum der Zeit in Minuten: zu lang ab Zeit + 5, zu kurz unter Zeit − 10
   const COACH_ZEIT_DRUEBER = 5;
+  // Höchstens so viele Schritte beim Angleichen der Sätze je Muskel (seit Version 171, coachVolumenAnpassen)
+  const COACH_AUSGLEICH_RUNDEN = 60;
   const COACH_ZEIT_DRUNTER = 10;
   // Die Bewegungsmuster mit großen Grundübungen. Alle anderen Plätze sind Isolation und fallen bei Zeitmangel zuerst weg.
   const COACH_GRUNDUEBUNGEN = ["HD", "VD", "SD", "DIPS", "HZB", "HZE", "VZB", "VZE", "KB", "KBP", "BP", "KH", "HUEFT"];
@@ -16487,7 +16498,125 @@
       weg += coachZeitAnpassen(slots, a);
       return { name: tag.name, slots: slots };
     });
-    return { id: "korund", korund: true, basis: basis.id, wochentage: basis.wochentage, tage: tage, fehlt: fehlt, weg: weg };
+    const angeglichen = coachVolumenAnpassen(tage, a);
+    return { id: "korund", korund: true, basis: basis.id, wochentage: basis.wochentage, tage: tage, fehlt: fehlt, weg: weg, angeglichen: angeglichen };
+  }
+
+  // ---------- Plan nach Wochenvolumen (seit Version 171, Forschung AP12) ----------
+  // Harte Sätze je Muskelgruppe in der Woche des Plans, gezählt wie in der Statistik (gruppenAnteile).
+  // Zurück: { werte: { gruppe: Sätze }, haupt: [Gruppen, die ein Platz als Hauptmuskel trainiert] }
+  function coachWochenSaetze(tage) {
+    const werte = {};
+    const haupt = [];
+    tage.forEach(function (tag) {
+      tag.slots.forEach(function (slot) {
+        const u = UEBUNG_NACH_ID[slot.uebungId];
+        const h = u ? muskelGruppeVon(u.haupt) : null;
+        if (!h) {
+          return;
+        }
+        if (haupt.indexOf(h) === -1) {
+          haupt.push(h);
+        }
+        const anteile = gruppenAnteile(u, h);
+        Object.keys(anteile).forEach(function (g) {
+          werte[g] = (werte[g] || 0) + slot.saetze * anteile[g];
+        });
+      });
+    });
+    return { werte: werte, haupt: haupt };
+  }
+
+  function coachSaetzeZiel(a) {
+    return a.erfahrung === "anfaenger" ? SAETZE_ZIEL_EINSTEIGER : SAETZE_ZIEL;
+  }
+
+  // Ob ein Platz zum Schwerpunkt gehört (dort nimmt der Ausgleich nie etwas weg)
+  function coachSlotSchwerpunkt(slot, a) {
+    const u = UEBUNG_NACH_ID[slot.uebungId];
+    return Boolean(u) && a.schwerpunkt.indexOf(erholungPartie(uebungGruppe(u))) !== -1;
+  }
+
+  // Abstand jeder Hauptgruppe zum Zielbereich. Bei Ziel „Kraft“ und bei Gruppen im Schwerpunkt zählt nur „zu viel“ bzw. „zu wenig“ nicht:
+  // Kraft darf weniger Sätze haben, der Schwerpunkt darf mehr haben.
+  function coachVolumenAbstand(tage, a, schwerpunktGruppen) {
+    const ziel = coachSaetzeZiel(a);
+    const w = coachWochenSaetze(tage);
+    const abstand = {};
+    w.haupt.forEach(function (g) {
+      const x = w.werte[g];
+      const unter = a.ziel === "kraft" ? 0 : Math.max(0, ziel.von - x);
+      const ueber = schwerpunktGruppen.indexOf(g) !== -1 ? 0 : Math.max(0, x - ziel.bis);
+      abstand[g] = unter + ueber;
+    });
+    return abstand;
+  }
+
+  // Gleicht die Sätze je Muskel an, ohne die Zeit zu sprengen: je Runde der beste von drei Schritten an einem Tag:
+  // einen Satz von einem Platz zu einem anderen verschieben, einen Satz dazu (nur, wenn Zeit übrig ist) oder einen weg.
+  // Bei Ziel „Kraft“ kommt nie ein Satz dazu, Plätze im Schwerpunkt geben nie etwas ab.
+  // Ein Schritt gilt nur, wenn der Abstand zum Ziel insgesamt kleiner und für keine Gruppe größer wird. Zurück: Zahl der Schritte.
+  function coachVolumenAnpassen(tage, a) {
+    const max = a.erfahrung === "anfaenger" ? COACH_MAX_ANFAENGER : COACH_MAX_SAETZE;
+    const dazuErlaubt = a.ziel !== "kraft";
+    const schwerpunktGruppen = [];
+    tage.forEach(function (tag) {
+      tag.slots.forEach(function (slot) {
+        const u = UEBUNG_NACH_ID[slot.uebungId];
+        if (u && coachSlotSchwerpunkt(slot, a)) {
+          schwerpunktGruppen.push(muskelGruppeVon(u.haupt));
+        }
+      });
+    });
+    function summe(ab) {
+      return Object.keys(ab).reduce(function (s, g) { return s + ab[g]; }, 0);
+    }
+    let schritte = 0;
+    for (let runde = 0; runde < COACH_AUSGLEICH_RUNDEN; runde++) {
+      const vorher = coachVolumenAbstand(tage, a, schwerpunktGruppen);
+      let bester = null;
+      let besterWert = summe(vorher);
+      // Probiert eine Änderung (Liste von { slot, um }) aus und merkt sie, wenn sie besser ist
+      function probieren(slots, aenderung) {
+        // Die Zeit darf nicht über die Grenze steigen (liegt der Tag schon darüber, nicht weiter steigen)
+        const grenze = Math.max(a.minuten + COACH_ZEIT_DRUEBER, coachDauer(slots));
+        aenderung.forEach(function (x) { x.slot.saetze += x.um; });
+        const zeitOk = coachDauer(slots) <= grenze;
+        const nachher = coachVolumenAbstand(tage, a, schwerpunktGruppen);
+        const wert = summe(nachher);
+        const keinerWeiter = Object.keys(nachher).every(function (g) { return nachher[g] <= (vorher[g] || 0) + 1e-9; });
+        aenderung.forEach(function (x) { x.slot.saetze -= x.um; });
+        if (zeitOk && keinerWeiter && wert < besterWert - 1e-9) {
+          bester = aenderung;
+          besterWert = wert;
+        }
+      }
+      tage.forEach(function (tag) {
+        const slots = tag.slots;
+        slots.forEach(function (geber) {
+          const kannGeben = geber.saetze > COACH_MIN_SAETZE && !coachSlotSchwerpunkt(geber, a);
+          if (kannGeben) {
+            probieren(slots, [{ slot: geber, um: -1 }]);
+          }
+          slots.forEach(function (nehmer) {
+            if (!dazuErlaubt || nehmer.saetze >= max) {
+              return;
+            }
+            if (nehmer === geber) {
+              probieren(slots, [{ slot: nehmer, um: 1 }]);
+            } else if (kannGeben) {
+              probieren(slots, [{ slot: geber, um: -1 }, { slot: nehmer, um: 1 }]);
+            }
+          });
+        });
+      });
+      if (!bester) {
+        break;
+      }
+      bester.forEach(function (x) { x.slot.saetze += x.um; });
+      schritte++;
+    }
+    return schritte;
   }
 
   // ---------- Auswahl mit Symbolen (seit Version 151, nur in den Seiten des Looks Korund) ----------
@@ -16763,6 +16892,7 @@
     if (plan.weg > 0) {
       inhalt.appendChild(element("p", "seiten-text", txt("coach.weg", { n: plan.weg })));
     }
+    coachSaetzeAnzeigen(inhalt, plan, a);
     inhalt.appendChild(element("p", "seiten-text", txt("coach.regelnText")));
     unten.appendChild(seitenKnopf(txt("coach.ansehen"), false, function () {
       coachPlanZeigen(plan);
@@ -16772,6 +16902,32 @@
       coachPlanZeigen(plan);
       vorlageUebernehmen();
     }));
+  }
+
+  // Seit Version 171: „Harte Sätze je Woche“ auf der Ergebnisseite, je Hauptgruppe des Plans die Zahl und ob sie im Ziel liegt
+  function coachSaetzeAnzeigen(inhalt, plan, a) {
+    const ziel = coachSaetzeZiel(a);
+    const w = coachWochenSaetze(plan.tage);
+    if (w.haupt.length === 0) {
+      return;
+    }
+    inhalt.appendChild(seitenLabel(txt("coach.saetzeTitel")));
+    const liste = element("div", "karte seiten-liste coach-saetze");
+    let unter = 0;
+    w.haupt.slice().sort(function (x, y) {
+      return w.werte[y] - w.werte[x];
+    }).forEach(function (g) {
+      const x = w.werte[g];
+      const stand = x < ziel.von ? "unter" : x > ziel.bis ? "viel" : "im";
+      if (stand === "unter") {
+        unter++;
+      }
+      liste.appendChild(seitenZeile(GRUPPE_NACH_ID[g][sprache], zahlText(x) + " · " + txt("coach.saetze." + stand), null, { leise: stand !== "im" }));
+    });
+    inhalt.appendChild(liste);
+    inhalt.appendChild(element("p", "seiten-text", txt("saetze.ziel", { von: ziel.von, bis: ziel.bis }) + "."
+      + (plan.angeglichen > 0 ? " " + txt("coach.saetzeAngeglichen") : "")
+      + (unter > 0 && a.ziel !== "kraft" ? " " + txt("coach.saetzeMehr") : "")));
   }
 
   // Öffnet den Plan in der Vorschau der Vorlagen im Training-Tab (Tauschen je Übung, Übernehmen)

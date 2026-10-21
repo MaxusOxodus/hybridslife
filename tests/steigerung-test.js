@@ -40,7 +40,7 @@ const funktionHolenOhneW = funktionHolen;
 funktionHolen = function (name) {
   return (name === "istAufwaermen" ? "\n  let aufwaermenGewaehlt = false; let satzW = false;" : "") + funktionHolenOhneW(name);
 };
-const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
+const KONSTANTEN = ["START_WDH", "STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_MAX_ANTEIL", "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "WIEDEREINSTIEG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN"];
 
 // Baut die Funktionen mit diesen Einträgen und Einstellungen
 function umgebung(eintraege, einstellungen) {
@@ -243,7 +243,23 @@ pruefe("Davor anderes Gewicht: halten", r.v.art === "halten", r.v.art);
 r = rechne([eintrag("e2", [[10, 7], [10, 6]], 3), eintrag("e1", [[10, 7], [10, 6]], 7)], platz(BEREICH));
 pruefe("Senken bei 10 kg: mindestens ein Schritt (7,5)", r.v.art === "senken" && r.felder[0] === 7.5, JSON.stringify(r.felder));
 r = rechne([eintrag("e2", [[70, 7], [70, 6]], 30), eintrag("e1", [[70, 7], [70, 6]], 35)], platz(BEREICH));
-pruefe("Nach mehr als 21 Tagen Pause: nicht senken, halten", r.v.art === "pause", r.v.art);
+pruefe("Nach mehr als 21 Tagen Pause: nicht senken (30 Tage = seit Version 165 Wiedereinstieg)", r.v.art === "wiedereinstieg", r.v.art);
+
+
+// ---------- Seit Version 165: Wiedereinstieg nach langer Pause ----------
+r = rechne([eintrag("e1", [[100, 8], [100, 8], [100, 8]], 25)], platz(BEREICH));
+pruefe("25 Tage Pause: gleiches Gewicht", r.v.art === "pause" && r.felder[0] === 100, r.v.art);
+r = rechne([eintrag("e1", [[100, 8], [100, 8], [100, 8]], 40)], platz(BEREICH));
+pruefe("40 Tage Pause: 90 % = 90 kg", r.v.art === "wiedereinstieg" && r.felder[0] === 90, JSON.stringify(r.felder) + r.v.art);
+pruefe("Wiedereinstieg: Hinweis mit Tagen und Prozent", r.text === 'modus.wiedereinstieg {"tage":40,"prozent":90}', r.text);
+r = rechne([eintrag("e1", [[100, 8]], 70)], platz(BEREICH));
+pruefe("70 Tage Pause: 80 kg", r.v.art === "wiedereinstieg" && r.felder[0] === 80, JSON.stringify(r.felder));
+r = rechne([eintrag("e1", [[100, 8]], 200)], platz(BEREICH));
+pruefe("200 Tage Pause: 70 kg", r.v.art === "wiedereinstieg" && r.felder[0] === 70, JSON.stringify(r.felder));
+r = rechne([eintrag("e1", [[61, 8]], 40)], platz(BEREICH));
+pruefe("Gerundet auf den Schritt: 61 × 0,9 = 54,9 → 55", r.felder[0] === 55, JSON.stringify(r.felder));
+r = rechne([eintrag("e1", [[0, 10]], 40, "klimmzug")], platz(BEREICH, "klimmzug"));
+pruefe("Eigengewicht ohne Zusatz: kein Wiedereinstieg, bleibt pause", r.v.art === "pause", r.v.art);
 
 console.log(pruefungen + " Prüfungen, " + fehler + " Fehler");
 process.exit(fehler ? 1 : 0);

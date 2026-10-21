@@ -128,6 +128,9 @@
   const STEIGERN_MAX_ANTEIL = 0.1;
   const STEIGERN_EXTRA_WDH = 2;
   const SENKEN_ANTEIL = 0.1;
+  // Wiedereinstieg nach langer Pause (seit Version 165, Forschung AP7, F6): ab so vielen Tagen seit dem letzten Training
+  // der Übung startet der Vorschlag mit diesem Anteil des alten Arbeitsgewichts (der längste passende Eintrag gilt)
+  const WIEDEREINSTIEG = [{ ab: 29, anteil: 0.9 }, { ab: 57, anteil: 0.8 }, { ab: 113, anteil: 0.7 }];
 
   // Höhe eines Wertes im Rad in Pixeln. Muss zur Höhe von .rad-wert im CSS passen.
   const RAD_HOEHE = 44;
@@ -5090,6 +5093,19 @@
     }
     if (hatDatum(letzter) && Date.now() - new Date(letzter.datum).getTime() > STEIGERN_PAUSE_TAGE * 24 * 60 * 60 * 1000) {
       vorschlag.art = "pause";
+      // Lange Pause: leichter wieder einsteigen, auf den Schritt gerundet (seit Version 165)
+      const pauseTage = Math.floor((Date.now() - new Date(letzter.datum).getTime()) / (24 * 60 * 60 * 1000));
+      const stufe = WIEDEREINSTIEG.filter(function (w) { return pauseTage >= w.ab; }).pop();
+      if (stufe && alt > 0) {
+        const schritt = steigerungSchritt(u);
+        const leichter = Math.round(ausKg(alt) * stufe.anteil / schritt) * schritt;
+        if (leichter > 0 && leichter < ausKg(alt)) {
+          vorschlag.art = "wiedereinstieg";
+          vorschlag.gewicht = zuKg(leichter);
+          vorschlag.anteil = stufe.anteil;
+          vorschlag.tage = pauseTage;
+        }
+      }
       return vorschlag;
     }
     const erreicht = arbeit.filter(function (s) { return s.wdh >= vorschlag.ziel; }).length;
@@ -5177,6 +5193,9 @@
     }
     if (v.art === "pause") {
       return txt("modus.haltenPause", { tage: STEIGERN_PAUSE_TAGE });
+    }
+    if (v.art === "wiedereinstieg") {
+      return txt("modus.wiedereinstieg", { tage: v.tage, prozent: Math.round(v.anteil * 100) });
     }
     if (v.art === "eigengewicht") {
       return txt("modus.eigengewicht");
@@ -5272,7 +5291,7 @@
         chip.textContent = "↑ " + chip.textContent;
       }
       // Entlastungswoche (seit Version 151) und leichter nach zwei Mal unter dem Ziel (seit Version 163): Pfeil nach unten
-      if (v.art === "entlastung" || v.art === "senken") {
+      if (v.art === "entlastung" || v.art === "senken" || v.art === "wiedereinstieg") {
         chip.textContent = "↓ " + chip.textContent;
       }
       behaelter.appendChild(chip);
@@ -8140,8 +8159,15 @@
 
   // ---------- Home: Erholung (Look Korund, seit Version 143) ----------
 
-  // Nach so vielen Kalendertagen gilt eine Körperpartie als erholt (gestern trainiert = noch nicht, vorgestern = ja)
+  // Nach so vielen Kalendertagen gilt eine Körperpartie als erholt (gestern trainiert = noch nicht, vorgestern = ja).
+  // Seit Version 165 (Forschung AP7, F7) ist das der Standard, mit RIR-Angaben hängt es vom letzten Training ab:
+  // leicht (RIR im Schnitt ab ERHOLUNG_LEICHT.rir, höchstens ERHOLUNG_LEICHT.saetze harte Sätze) 1 Tag,
+  // schwer (mindestens ein Satz mit RIR 0 und ab ERHOLUNG_SCHWER.saetze harten Sätzen) 3 Tage. Ohne RIR immer 2.
   const ERHOLUNG_TAGE = 2;
+  const ERHOLUNG_LEICHT = { tage: 1, rir: 3, saetze: 6 };
+  const ERHOLUNG_SCHWER = { tage: 3, saetze: 10 };
+  // Ein harter Satz für die Erholung: Arbeitssatz mit RIR bis 4 oder ohne RIR
+  const ERHOLUNG_HART_RIR = 4;
   // Partien, die länger nicht trainiert wurden, zählen nicht mit
   const ERHOLUNG_FENSTER_TAGE = 14;
   // Die Körperpartien der Karte und welche Muskelgruppen dazugehören
@@ -8204,9 +8230,56 @@
     return tage;
   }
 
+  // Je Partie, wie viele Kalendertage sie nach ihrem letzten Training braucht (seit Version 165): aus den Arbeitssätzen
+  // aller Einträge der Partie an diesem Tag. tage wie von erholungTage. Ergebnis: { brust: 3, beine: 2, ... }
+  function erholungBedarf(liste, heute, tage) {
+    const heuteTag = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate()).getTime();
+    const saetze = {};
+    for (let i = 0; i < liste.length; i++) {
+      const e = liste[i];
+      if (!hatDatum(e)) {
+        continue;
+      }
+      const partie = erholungPartie(gruppeIdVon(e.uebungId, e.muskelgruppe));
+      if (!partie || tage[partie] === undefined) {
+        continue;
+      }
+      const d = new Date(e.datum);
+      if (Math.round((heuteTag - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / 86400000) !== tage[partie]) {
+        continue;
+      }
+      saetze[partie] = (saetze[partie] || []).concat(arbeitsSaetzeVon(e));
+    }
+    const bedarf = {};
+    Object.keys(saetze).forEach(function (partie) {
+      const hart = saetze[partie].filter(function (s) {
+        return typeof s.rir !== "number" || s.rir <= ERHOLUNG_HART_RIR;
+      });
+      const mitRir = hart.filter(function (s) {
+        return typeof s.rir === "number";
+      });
+      bedarf[partie] = ERHOLUNG_TAGE;
+      if (mitRir.length === 0) {
+        return;
+      }
+      const schnitt = mitRir.reduce(function (summe, s) { return summe + s.rir; }, 0) / mitRir.length;
+      if (hart.length >= ERHOLUNG_SCHWER.saetze && mitRir.some(function (s) { return s.rir === 0; })) {
+        bedarf[partie] = ERHOLUNG_SCHWER.tage;
+      } else if (schnitt >= ERHOLUNG_LEICHT.rir && hart.length <= ERHOLUNG_LEICHT.saetze) {
+        bedarf[partie] = ERHOLUNG_LEICHT.tage;
+      }
+    });
+    return bedarf;
+  }
+
+  // Ist die Partie voraussichtlich erholt? Ohne Bedarf gilt ERHOLUNG_TAGE.
+  function partieErholt(tage, bedarf, id) {
+    return tage[id] >= (bedarf && bedarf[id] !== undefined ? bedarf[id] : ERHOLUNG_TAGE);
+  }
+
   // Die Routine, deren Partien alle erholt sind: zuerst die heute geplante, dann die mit den am längsten erholten Partien.
   // Routinen ohne erkannte Partie zählen nicht. Ohne passende Routine null.
-  function erholungRoutine(tage, liste, geplantId) {
+  function erholungRoutine(tage, liste, geplantId, bedarf) {
     let beste = null;
     let besteWert = -1;
     for (let i = 0; i < liste.length; i++) {
@@ -8224,7 +8297,7 @@
         }
         erkannt++;
         const t = tage[partie] === undefined ? ERHOLUNG_FENSTER_TAGE + 1 : tage[partie];
-        if (t < ERHOLUNG_TAGE) {
+        if (tage[partie] !== undefined && !partieErholt(tage, bedarf, partie)) {
           passt = false;
         }
         wert = Math.min(wert, t);
@@ -8258,6 +8331,7 @@
     }
     bereich.innerHTML = "";
     const tage = erholungTage(eintraege, new Date());
+    const bedarf = erholungBedarf(eintraege, new Date(), tage);
     // Die Partien mit Training in den letzten zwei Wochen, die am längsten erholten zuerst
     const partien = ERHOLUNG_PARTIEN.map(function (p) {
       return p.id;
@@ -8274,10 +8348,10 @@
     bereich.removeAttribute("data-leer");
     titel.removeAttribute("data-leer");
     const erholt = partien.filter(function (id) {
-      return tage[id] >= ERHOLUNG_TAGE;
+      return partieErholt(tage, bedarf, id);
     });
     const muede = partien.filter(function (id) {
-      return tage[id] < ERHOLUNG_TAGE;
+      return !partieErholt(tage, bedarf, id);
     });
     const namen = function (liste) {
       return listeText(liste.map(function (id) {
@@ -8295,9 +8369,9 @@
     const text = element("div", "erholung-text");
     text.appendChild(element("b", "", erholt.length > 0 ? txt(mehrzahl(erholt) ? "erholung.erholt" : "erholung.erholtEins", { wer: namen(erholt) }) : txt("erholung.nochNicht")));
     if (muede.length > 0) {
-      // Am längsten braucht die zuletzt trainierte Partie
-      const rest = ERHOLUNG_TAGE - Math.min.apply(null, muede.map(function (id) {
-        return tage[id];
+      // Die Partie, die am längsten braucht (Bedarf minus Tage seit dem Training)
+      const rest = Math.max.apply(null, muede.map(function (id) {
+        return bedarf[id] - tage[id];
       }));
       text.appendChild(element("div", "erholung-info", txt(mehrzahl(muede) ? "erholung.brauchen" : "erholung.braucht", { wer: namen(muede), tage: txtAnzahl("erholung.tage", rest) })));
     }
@@ -8312,7 +8386,7 @@
       figur.innerHTML = koerperSvg(GRUPPE_NACH_ID[ERHOLUNG_FIGUR[id]]);
       partie.appendChild(figur);
       const name = element("span", "erholung-name");
-      name.appendChild(element("i", "erholung-punkt" + (tage[id] >= ERHOLUNG_TAGE ? " erholt" : "")));
+      name.appendChild(element("i", "erholung-punkt" + (partieErholt(tage, bedarf, id) ? " erholt" : "")));
       name.appendChild(document.createTextNode(txt("partie." + id)));
       partie.appendChild(name);
       let wann = txtAnzahl("erholung.tage", tage[id]);
@@ -8327,7 +8401,7 @@
     bereich.appendChild(liste);
 
     const plan = wochenplan[(new Date().getDay() + 6) % 7];
-    const routine = laufendesTraining ? null : erholungRoutine(tage, routinen, plan);
+    const routine = laufendesTraining ? null : erholungRoutine(tage, routinen, plan, bedarf);
     if (routine) {
       const knopf = element("button", "zweit-btn erholung-start", txt("erholung.starten", { name: routine.name }));
       knopf.type = "button";
@@ -15683,17 +15757,18 @@
 
   // Ein Fokus ist erholt, wenn mindestens eine seiner Partien in den letzten zwei Wochen trainiert wurde
   // und keine davon zu frisch ist (ERHOLUNG_TAGE wie bei der Karte Erholung auf Home)
-  function fokusErholt(fokus, tage) {
+  function fokusErholt(fokus, tage, bedarf) {
     const bekannt = fokus.partien.filter(function (p) {
       return tage[p] !== undefined;
     });
     return bekannt.length > 0 && bekannt.every(function (p) {
-      return tage[p] >= ERHOLUNG_TAGE;
+      return partieErholt(tage, bedarf, p);
     });
   }
 
   function generatorSeiteBauen(inhalt, unten) {
     const tage = erholungTage(eintraege, new Date());
+    const bedarf = erholungBedarf(eintraege, new Date(), tage);
     inhalt.appendChild(seitenLabel(txt("generator.zeit")));
     inhalt.appendChild(seitenUmschalter(GENERATOR_ZEITEN.map(function (m) {
       return { id: m, text: txt("generator.minuten", { m: m }) };
@@ -15712,7 +15787,7 @@
       kachel.setAttribute("aria-pressed", f.id === generator.fokus ? "true" : "false");
       kachel.appendChild(seitenFigur(f.figur));
       const name = element("span", "generator-name");
-      if (fokusErholt(f, tage)) {
+      if (fokusErholt(f, tage, bedarf)) {
         name.appendChild(element("span", "seiten-punkt"));
       }
       name.appendChild(document.createTextNode(txt("fokus." + f.id)));

@@ -453,6 +453,10 @@ const TEXTE = {
     de: "Gleiches Gewicht: Dein letztes Training ist über {tage} Tage her.",
     en: "Same weight: your last session was more than {tage} days ago."
   },
+  "modus.wiedereinstieg": {
+    de: "Leichter einsteigen: Dein letztes Training ist {tage} Tage her, deshalb {prozent} % vom letzten Gewicht. Kraft kommt meist schnell zurück.",
+    en: "Ease back in: your last session was {tage} days ago, so {prozent}% of your last weight. Strength usually comes back quickly."
+  },
   "modus.haltenRir": {
     de: "Gleiches Gewicht: Ziel erreicht, aber mit wenig Reserve (RIR {rir}). Erst sicher wiederholen.",
     en: "Same weight: target hit, but with little in reserve (RIR {rir}). Repeat it solidly first."
@@ -621,8 +625,8 @@ const TEXTE = {
   "home.rekorde": { de: "Neue Rekorde", en: "New records" },
   "home.rekordeMehr": { de: "{name} und {n} weitere", en: "{name} and {n} more" },
   "home.erholung": { de: "Erholung", en: "Recovery" },
-  "erholung.erholt": { de: "{wer} sind erholt", en: "{wer} are recovered" },
-  "erholung.erholtEins": { de: "{wer} ist erholt", en: "{wer} is recovered" },
+  "erholung.erholt": { de: "{wer} sind voraussichtlich erholt", en: "{wer} are probably recovered" },
+  "erholung.erholtEins": { de: "{wer} ist voraussichtlich erholt", en: "{wer} is probably recovered" },
   "erholung.nochNicht": { de: "Noch nichts ganz erholt", en: "Nothing fully recovered yet" },
   "erholung.braucht": { de: "{wer} braucht noch etwa {tage}", en: "{wer} needs about {tage} more" },
   "erholung.brauchen": { de: "{wer} brauchen noch etwa {tage}", en: "{wer} need about {tage} more" },

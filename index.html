@@ -25,13 +25,17 @@
        Sonst würde beim Start kurz das andere Design aufblitzen. Ohne Auswahl folgt die App dem Gerät.
        Dasselbe gilt für den Stil: Das Attribut data-stil schaltet die glass.css ein. "Glass" ist der Standard,
        auch wenn noch nichts gespeichert ist. Nur wer ausdrücklich "Klassisch" gewählt hat, bekommt es nicht. -->
+  <!-- Seit Version 191: alteDesignsBeimStart ist der Schalter SHOW_ALTE_DESIGNS der app.js und muss gleich sein.
+       Mit false gelten immer Glass, Blau und Korund (Stil, Farbe und Look werden gelesen, aber nicht angewendet),
+       so blitzt beim Start nichts Altes auf. Gespeichert bleibt alles, wie es ist. -->
   <script>
+    var alteDesignsBeimStart = false;
     var stilBeimStart = "glass";
     var palette;
     var farbwelt = "blau";
     try {
       var gespeichert = JSON.parse(localStorage.getItem("einstellungen"));
-      if (gespeichert.stil === "klassisch") {
+      if (alteDesignsBeimStart && gespeichert.stil === "klassisch") {
         stilBeimStart = "klassisch";
       }
       var design = gespeichert.design;
@@ -45,7 +49,7 @@
       if (akzent === undefined) {
         akzent = "limette";
       }
-      if (akzent === "limette" || akzent === "rot" || akzent === "pink" || akzent === "lila") {
+      if (alteDesignsBeimStart && (akzent === "limette" || akzent === "rot" || akzent === "pink" || akzent === "lila")) {
         document.documentElement.setAttribute("data-akzent", akzent);
       }
       // Der Look: Ohne Eintrag gilt seit Version 141 "korund". "graphit", "mockup" und "korund" setzen ein Attribut,
@@ -56,7 +60,7 @@
         farbwelt = gespeichert.farbwelt;
       }
     } catch (fehler) {}
-    if (palette === undefined || palette === null || palette === "korund") {
+    if (!alteDesignsBeimStart || palette === undefined || palette === null || palette === "korund") {
       palette = "korund";
     }
     if (palette === "graphit" || palette === "mockup" || palette === "korund") {
@@ -68,11 +72,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=190">
+  <link rel="stylesheet" href="style.css?v=191">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=190">
+  <link rel="stylesheet" href="glass.css?v=191">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=190">
+  <link rel="stylesheet" href="korund.css?v=191">
 </head>
 <body>
 
@@ -1173,17 +1177,18 @@
       <div id="einst-ansicht-design" class="einst-ansicht versteckt">
         <div id="design-auswahl" class="umschalter gross"></div>
         <p class="einst-fuss" data-t="design.hinweis">„System“ folgt der Einstellung deines Geräts.</p>
-        <!-- Der Stil: Klassisch oder Glass. Den Umschalter baut die app.js. -->
-        <h2 class="abschnitt" data-t="stil">Stil</h2>
-        <div id="stil-auswahl" class="umschalter gross"></div>
-        <p class="einst-fuss" data-t="stil.hinweis">„Glass“ zeigt Karten und Leisten als halbtransparentes Glas. Anordnung und Funktionen bleiben gleich.</p>
+        <!-- Der Stil: Klassisch oder Glass. Den Umschalter baut die app.js. Stil, Farbe und Look (data-alte-designs) sind seit Version 191
+             nur mit SHOW_ALTE_DESIGNS in der app.js zu sehen. -->
+        <h2 class="abschnitt" data-t="stil" data-alte-designs>Stil</h2>
+        <div id="stil-auswahl" class="umschalter gross" data-alte-designs></div>
+        <p class="einst-fuss" data-t="stil.hinweis" data-alte-designs>„Glass“ zeigt Karten und Leisten als halbtransparentes Glas. Anordnung und Funktionen bleiben gleich.</p>
         <!-- Die Akzentfarbe: eine Reihe aus Farbpunkten. Die Punkte baut die app.js. -->
-        <h2 class="abschnitt" data-t="akzent">Farbe</h2>
-        <div id="akzent-auswahl" role="group" aria-label="Farbe" data-t-aria="akzent"></div>
+        <h2 class="abschnitt" data-t="akzent" data-alte-designs>Farbe</h2>
+        <div id="akzent-auswahl" data-alte-designs role="group" aria-label="Farbe" data-t-aria="akzent"></div>
         <!-- Der Look: Korund, Schwarz, Graphit oder Mockup. Den Umschalter baut die app.js, in Klassisch ist er gesperrt. -->
-        <h2 class="abschnitt" data-t="palette">Look</h2>
-        <div id="palette-auswahl" class="umschalter gross"></div>
-        <p class="einst-fuss" data-t="palette.hinweis">Der Look gilt nur mit „Glass“ im dunklen Design. „Korund“ ist das neue Design, „Schwarz“ das bisherige. Bei „Graphit“ und „Mockup“ zeigt die gewählte Farbe „Heute“ und deinen Fortschritt.</p>
+        <h2 class="abschnitt" data-t="palette" data-alte-designs>Look</h2>
+        <div id="palette-auswahl" class="umschalter gross" data-alte-designs></div>
+        <p class="einst-fuss" data-t="palette.hinweis" data-alte-designs>Der Look gilt nur mit „Glass“ im dunklen Design. „Korund“ ist das neue Design, „Schwarz“ das bisherige. Bei „Graphit“ und „Mockup“ zeigt die gewählte Farbe „Heute“ und deinen Fortschritt.</p>
         <!-- Die Farbwelt (seit Version 141): nur im Look Korund. Die Zeilen baut die app.js. -->
         <h2 class="abschnitt" data-t="farbwelt">Farbwelt</h2>
         <div id="farbwelt-auswahl" class="karte einst-liste"></div>
@@ -1287,9 +1292,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=190"></script>
-<script src="uebungen.js?v=190"></script>
-<script src="erklaerungen.js?v=190"></script>
+<script src="texte.js?v=191"></script>
+<script src="uebungen.js?v=191"></script>
+<script src="erklaerungen.js?v=191"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1311,15 +1316,15 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=190"></script>
-<script src="bilder.js?v=190"></script>
-<script src="vorlagen.js?v=190"></script>
-<script src="figuren.js?v=190"></script>
+<script src="raenge.js?v=191"></script>
+<script src="bilder.js?v=191"></script>
+<script src="vorlagen.js?v=191"></script>
+<script src="figuren.js?v=191"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
 <!-- Supabase für das Cloud-Backup (seit Version 146). Die Version steht im Dateinamen, deshalb ohne ?v=N -->
 <script src="supabase-2.117.2.js"></script>
-<script src="app.js?v=190"></script>
+<script src="app.js?v=191"></script>
 
 </body>
 </html>

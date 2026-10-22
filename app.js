@@ -12,6 +12,12 @@
   // Mit false sind sie ausgeblendet, mit true wieder da. In der index.html tragen sie das Merkmal data-platzhalter.
   const SHOW_PLATZHALTER = false;
 
+  // Alte Designs (seit Version 191): Mit false sind in Einstellungen → Design die Zeilen Stil, Farbe und Look ausgeblendet,
+  // und die App zeigt immer Glass, Blau und den Look Korund. Gespeichert bleibt, was gewählt war, nichts wird überschrieben.
+  // Mit true gilt wieder die gespeicherte Wahl. Derselbe Schalter steht im Start-Skript der index.html (alteDesignsBeimStart),
+  // beide müssen gleich sein. In der index.html tragen die Zeilen das Merkmal data-alte-designs.
+  const SHOW_ALTE_DESIGNS = false;
+
   // Wischgesten (seit Version 100): Alle Gesten nutzen diese Zahlen. Hier lassen sie sich nach dem Test auf dem Handy ändern.
   // Ab so vielen Pixeln steht fest, in welche Richtung der Finger wischt. Darunter gilt es noch als Tipp.
   const WISCH_SPIEL_PX = 8;
@@ -12816,7 +12822,7 @@
 
   // Der gewählte Stil: "klassisch" oder "glass". Gespeichert werden beide Werte, ohne Eintrag gilt "glass".
   function stil() {
-    if (einstellungen.stil === "klassisch") {
+    if (SHOW_ALTE_DESIGNS && einstellungen.stil === "klassisch") {
       return "klassisch";
     }
     return "glass";
@@ -12863,7 +12869,7 @@
   // Die gewählte Akzentfarbe. Ohne Eintrag oder bei einem unbekannten Wert gilt "blau" (seit Version 121, vorher "limette").
   function akzent() {
     for (let i = 0; i < AKZENT_AUSWAHL.length; i++) {
-      if (AKZENT_AUSWAHL[i].id === einstellungen.akzent) {
+      if (SHOW_ALTE_DESIGNS && AKZENT_AUSWAHL[i].id === einstellungen.akzent) {
         return einstellungen.akzent;
       }
     }
@@ -12924,7 +12930,7 @@
 
   // Der gewählte Look. Ohne Eintrag gilt seit Version 141 "korund", bei einem unbekannten Wert "schwarz".
   function palette() {
-    if (einstellungen.palette === undefined || einstellungen.palette === "korund") {
+    if (!SHOW_ALTE_DESIGNS || einstellungen.palette === undefined || einstellungen.palette === "korund") {
       return "korund";
     }
     if (einstellungen.palette === "graphit" || einstellungen.palette === "mockup") {
@@ -18955,6 +18961,11 @@
     const platzhalter = document.querySelectorAll("[data-platzhalter]");
     for (let i = 0; i < platzhalter.length; i++) {
       platzhalter[i].classList.toggle("versteckt", !SHOW_PLATZHALTER);
+    }
+    // Seit Version 191: Stil, Farbe und Look in Einstellungen → Design nur mit SHOW_ALTE_DESIGNS
+    const alte = document.querySelectorAll("[data-alte-designs]");
+    for (let i = 0; i < alte.length; i++) {
+      alte[i].classList.toggle("versteckt", !SHOW_ALTE_DESIGNS);
     }
   }
 

@@ -130,14 +130,17 @@ const text = e => alle(e).map(k => k.textContent).filter(Boolean).join(" | ");
 }
 {
   // Look Korund: Standard ohne Eintrag, alte Looks bleiben wählbar, korund.css offline im Cache
-  const palette = new Function("einstellungen", funktionHolen("palette") + "return palette();");
+  // Seit Version 191: Mit SHOW_ALTE_DESIGNS (true) gilt die gespeicherte Wahl wie bisher, mit false immer Korund
+  const palette = new Function("einstellungen", "const SHOW_ALTE_DESIGNS = true;" + funktionHolen("palette") + "return palette();");
+  const paletteAus = new Function("einstellungen", "const SHOW_ALTE_DESIGNS = false;" + funktionHolen("palette") + "return palette();");
+  pruefe("Alte Designs aus: Look immer korund", ["schwarz", "graphit", "mockup", "xyz", "korund"].every(function (p) { return paletteAus({ palette: p }) === "korund"; }) && paletteAus({}) === "korund");
   pruefe("Look ohne Eintrag: korund", palette({}) === "korund");
   pruefe("Look korund", palette({ palette: "korund" }) === "korund");
   pruefe("Look schwarz bleibt (Design bis 139)", palette({ palette: "schwarz" }) === "schwarz");
   pruefe("Look graphit bleibt", palette({ palette: "graphit" }) === "graphit");
   pruefe("Look mockup bleibt", palette({ palette: "mockup" }) === "mockup");
   pruefe("Look unbekannt: schwarz", palette({ palette: "xyz" }) === "schwarz");
-  pruefe("Start-Skript: ohne Eintrag korund", /if \(palette === undefined \|\| palette === null \|\| palette === "korund"\)/.test(index));
+  pruefe("Start-Skript: ohne Eintrag korund", /if \(!alteDesignsBeimStart \|\| palette === undefined \|\| palette === null \|\| palette === "korund"\)/.test(index));
   pruefe("korund.css in DATEIEN", sw.indexOf('"korund.css?v=" + VERSION') !== -1);
   pruefe("korund.css mit Versionsnummer in der index.html", /korund\.css\?v=\d+/.test(index));
   pruefe("Jede Korund-Regel zweimal (Dunkel und System)", (korundCss.match(/\[data-palette="korund"\]\[data-design="dunkel"\]/g) || []).length === (korundCss.match(/\[data-palette="korund"\]:not\(\[data-design="hell"\]\)/g) || []).length);

@@ -1,0 +1,168 @@
+{
+  "app": "korund",
+  "version": 13,
+  "exportiert": "2026-10-22T10:00:00.000Z",
+  "_hinweis": "SYNTHETISCHE TESTDATEN Audit Phase 13, keine echten Trainings",
+  "eintraege": [
+    {
+      "id": "p13-t1",
+      "uebung": "Bankdrücken",
+      "uebungId": "bankdruecken-lh",
+      "muskelgruppe": "brust",
+      "datum": "2026-10-12T17:00:00.000Z",
+      "routineId": "",
+      "routineName": "",
+      "einzelsaetze": [
+        {
+          "gewicht": 40,
+          "wdh": 10,
+          "rir": 2
+        },
+        {
+          "gewicht": 40,
+          "wdh": 10,
+          "rir": 2
+        },
+        {
+          "gewicht": 40,
+          "wdh": 10,
+          "rir": 2
+        }
+      ],
+      "saetze": 3,
+      "gewicht": 40,
+      "wdh": 10
+    },
+    {
+      "id": "p13-t2",
+      "uebung": "Bankdrücken",
+      "uebungId": "bankdruecken-lh",
+      "muskelgruppe": "brust",
+      "datum": "2026-10-15T17:00:00.000Z",
+      "routineId": "",
+      "routineName": "",
+      "einzelsaetze": [
+        {
+          "gewicht": 45,
+          "wdh": 8,
+          "rir": 0
+        },
+        {
+          "gewicht": 42.5,
+          "wdh": 8,
+          "rir": 0
+        },
+        {
+          "gewicht": 42.5,
+          "wdh": 8,
+          "rir": 0
+        }
+      ],
+      "saetze": 3,
+      "gewicht": 45,
+      "wdh": 8
+    },
+    {
+      "id": "p13-t4",
+      "uebung": "Bankdrücken",
+      "uebungId": "bankdruecken-lh",
+      "muskelgruppe": "brust",
+      "datum": "2026-10-21T17:00:00.000Z",
+      "routineId": "",
+      "routineName": "",
+      "einzelsaetze": [
+        {
+          "gewicht": 45,
+          "wdh": 6,
+          "rir": 2
+        },
+        {
+          "gewicht": 45,
+          "wdh": 6,
+          "rir": 2
+        }
+      ],
+      "saetze": 2,
+      "gewicht": 45,
+      "wdh": 6
+    },
+    {
+      "id": "p13-t4",
+      "uebung": "Bankdrücken",
+      "uebungId": "bankdruecken-lh",
+      "muskelgruppe": "brust",
+      "datum": "2026-10-21T17:00:00.000Z",
+      "routineId": "",
+      "routineName": "",
+      "einzelsaetze": [
+        {
+          "gewicht": 45,
+          "wdh": 6,
+          "rir": 2
+        },
+        {
+          "gewicht": 45,
+          "wdh": 6,
+          "rir": 2
+        }
+      ],
+      "saetze": 2,
+      "gewicht": 45,
+      "wdh": 6
+    },
+    {
+      "id": "p13-t5",
+      "uebung": "Bankdrücken",
+      "uebungId": "bankdruecken-lh",
+      "muskelgruppe": "brust",
+      "datum": "2026-12-24T17:00:00.000Z",
+      "routineId": "",
+      "routineName": "",
+      "einzelsaetze": [
+        {
+          "gewicht": 47.5,
+          "wdh": 5,
+          "rir": 2
+        }
+      ],
+      "saetze": 1,
+      "gewicht": 47.5,
+      "wdh": 5
+    },
+    {
+      "id": "p13-t6",
+      "uebung": "Bankdrücken",
+      "uebungId": "bankdruecken-lh",
+      "muskelgruppe": "brust",
+      "routineId": "",
+      "routineName": "",
+      "einzelsaetze": [
+        {
+          "gewicht": 30,
+          "wdh": 12
+        }
+      ],
+      "saetze": 1,
+      "gewicht": 30,
+      "wdh": 12
+    },
+    {
+      "id": "p13-t7",
+      "uebung": "Bankdrücken",
+      "uebungId": "bankdruecken-lh",
+      "muskelgruppe": "brust",
+      "datum": "2026-10-20T17:00:00.000Z",
+      "routineId": "",
+      "routineName": "",
+      "einzelsaetze": [
+        {
+          "gewicht": 5000,
+          "wdh": 8
+        }
+      ],
+      "saetze": 1,
+      "gewicht": 5000,
+      "wdh": 8
+    }
+  ]
+}

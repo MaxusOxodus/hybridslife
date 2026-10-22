@@ -1086,6 +1086,12 @@ const TEXTE = {
   "backup.exportiert": { de: "Backup mit {n} Einträgen exportiert.", en: "Backup with {n} entries exported." },
   "backup.nichtLesbar": { de: "Die Datei konnte nicht gelesen werden.", en: "The file could not be read." },
   "backup.ungueltig": { de: "Das ist keine gültige Backup-Datei.", en: "This is not a valid backup file." },
+  "backup.zuGross": { de: "Die Datei ist zu groß für ein Korund-Backup und wurde nicht gelesen.", en: "The file is too large for a Korund backup and was not read." },
+  "backup.pruefung.unmoeglich": { de: "{n} Einträge mit unmöglichen Werten werden nicht übernommen.", en: "{n} entries with impossible values will not be imported." },
+  "backup.pruefung.doppelt": { de: "{n} doppelte Einträge werden nur einmal übernommen.", en: "{n} duplicate entries will be imported only once." },
+  "backup.pruefung.neueIds": { de: "{n} Einträge mit gleicher Kennung bekommen eine neue.", en: "{n} entries with the same ID get a new one." },
+  "backup.pruefung.zukunft": { de: "{n} Einträge liegen in der Zukunft und zählen erst ab ihrem Datum.", en: "{n} entries are in the future and only count from their date." },
+  "backup.pruefung.unbekannt": { de: "{n} Einträge haben Zusatzangaben, die Korund nicht kennt. Sie bleiben auf dem Gerät, gehen aber nicht ins Cloud-Backup.", en: "{n} entries have extra data Korund does not know. It stays on the device but is not included in the cloud backup." },
   "backup.leer": { de: "Das Backup enthält keine Einträge.", en: "The backup contains no entries." },
   "backup.frage": {
     de: "Das Backup enthält {neu} Einträge. Auf diesem Gerät sind {hier} Einträge gespeichert.",

@@ -4325,6 +4325,18 @@ button.einst-zeile:first-child {
   display: flex;
 }
 
+/* Seit Version 183: Mit den Hinweisen der Import-Prüfung kann der Import-Dialog höher als das Fenster sein (320 × 568).
+   Wie bei #start-ebene: Die Ebene scrollt, margin: auto statt Zentrieren, so bleibt oben nichts abgeschnitten.
+   Passt der Dialog ins Fenster, sieht er aus wie vorher. */
+#dialog-hintergrund {
+  overflow-y: auto;
+}
+
+#dialog {
+  flex: none;
+  margin: auto;
+}
+
 /* Prüfung beim Start (seit Version 164): deckt die ganze App ab, auch Dialoge (40) und die Einführung (50, 51) */
 #start-ebene {
   position: fixed;

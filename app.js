@@ -11751,6 +11751,121 @@
   let importCoach = null;
   // Was ein Cloud-Backup absichtlich nicht enthält (Feld cloudOhne, seit Version 178). Leer bei einer Backup-Datei.
   let importOhne = [];
+  // Ergebnis der Prüfung der Einträge (seit Version 183, eintraegePruefen)
+  let importPruefung = null;
+
+  // Import-Prüfung (seit Version 183, Audit Phase 11). Technische Grenzen, keine Trainingsregeln: Die Eingabe der App erlaubt
+  // höchstens 400 kg (880 lbs), 100 Wdh. und keine 100 Sätze. Was weit darüber liegt, kann nur aus einer kaputten oder
+  // veränderten Datei kommen und wird nicht übernommen (die Datei selbst bleibt unverändert).
+  const IMPORT_MAX_ZEICHEN = 20 * 1000 * 1000;
+  const IMPORT_MAX_GEWICHT_KG = 1000;
+  const IMPORT_MAX_WDH = 1000;
+  const IMPORT_MAX_SAETZE = 100;
+  // Die Felder, die die App an einem Eintrag und an einem Satz kennt. Nur sie gehen ins Cloud-Backup (eintragNurBekannt).
+  // Beim Import bleiben andere Felder erhalten (ältere Versionen vor Version 136 sind nicht im Repo, ihre Felder unbekannt),
+  // sie werden nur gezählt und gemeldet.
+  const EINTRAG_FELDER = ["id", "uebung", "uebungId", "muskelgruppe", "datum", "routineId", "routineName", "gewicht", "wdh", "saetze", "einzelsaetze", "entlastung", "trainingId"];
+  const SATZ_FELDER = ["gewicht", "wdh", "rir", "zeit", "aufwaermen"];
+
+  // Eine Zahl, die da ist und außerhalb von 0 bis max liegt. Fehlt sie oder ist sie keine Zahl (z. B. „80kg“ aus alten
+  // Backups), gilt sie nicht als unmöglich: Solche Werte überspringt die App schon immer beim Rechnen.
+  function zahlUnmoeglich(wert, max) {
+    if (wert === undefined || wert === null || wert === "") {
+      return false;
+    }
+    const zahl = Number(String(wert).replace(",", "."));
+    return !isNaN(zahl) && (!isFinite(zahl) || zahl < 0 || zahl > max);
+  }
+
+  // Prüft die Einträge eines Backups. Zurück kommt { gueltig, unmoeglich, doppelt, neueIds, zukunft, unbekannt }:
+  // gueltig = die Einträge zum Übernehmen (dieselben Objekte, nichts wird gekürzt), die übrigen Zahlen sind für die Meldung.
+  function eintraegePruefen(liste) {
+    const ergebnis = { gueltig: [], unmoeglich: 0, doppelt: 0, neueIds: 0, zukunft: 0, unbekannt: 0 };
+    const nachId = {};
+    for (let i = 0; i < liste.length; i++) {
+      const e = liste[i];
+      if (!e || typeof e !== "object" || Array.isArray(e) || typeof e.uebung !== "string") {
+        continue;
+      }
+      const saetze = e.einzelsaetze;
+      const kaputt = (saetze !== undefined && !Array.isArray(saetze))
+        || (Array.isArray(saetze) && (saetze.length > IMPORT_MAX_SAETZE || saetze.some(function (s) {
+          return !s || typeof s !== "object" || zahlUnmoeglich(s.gewicht, IMPORT_MAX_GEWICHT_KG) || zahlUnmoeglich(s.wdh, IMPORT_MAX_WDH);
+        })))
+        || zahlUnmoeglich(e.gewicht, IMPORT_MAX_GEWICHT_KG) || zahlUnmoeglich(e.wdh, IMPORT_MAX_WDH) || zahlUnmoeglich(e.saetze, IMPORT_MAX_SAETZE);
+      if (kaputt) {
+        ergebnis.unmoeglich++;
+        continue;
+      }
+      // Dieselbe id zweimal in der Datei: gleicher Inhalt ist eine Dublette, anderer Inhalt bekommt eine neue id
+      if (typeof e.id === "string" && e.id !== "" && nachId[e.id]) {
+        if (JSON.stringify(nachId[e.id]) === JSON.stringify(e)) {
+          ergebnis.doppelt++;
+          continue;
+        }
+        e.id = neueId("e");
+        ergebnis.neueIds++;
+      }
+      if (typeof e.id === "string" && e.id !== "") {
+        nachId[e.id] = e;
+      }
+      if (eintragInZukunft(e)) {
+        ergebnis.zukunft++;
+      }
+      if (Object.keys(e).some(function (k) { return EINTRAG_FELDER.indexOf(k) === -1; })
+        || (Array.isArray(saetze) && saetze.some(function (s) { return Object.keys(s).some(function (k) { return SATZ_FELDER.indexOf(k) === -1; }); }))) {
+        ergebnis.unbekannt++;
+      }
+      ergebnis.gueltig.push(e);
+    }
+    return ergebnis;
+  }
+
+  // Der Zusatz zur Frage „Ergänzen oder Ersetzen“: was die Prüfung gefunden hat. Ohne Befund leer.
+  function importPruefungText(p) {
+    if (!p) {
+      return "";
+    }
+    let text = "";
+    if (p.unmoeglich > 0) {
+      text += " " + txt("backup.pruefung.unmoeglich", { n: p.unmoeglich });
+    }
+    if (p.doppelt > 0) {
+      text += " " + txt("backup.pruefung.doppelt", { n: p.doppelt });
+    }
+    if (p.neueIds > 0) {
+      text += " " + txt("backup.pruefung.neueIds", { n: p.neueIds });
+    }
+    if (p.zukunft > 0) {
+      text += " " + txt("backup.pruefung.zukunft", { n: p.zukunft });
+    }
+    if (p.unbekannt > 0) {
+      text += " " + txt("backup.pruefung.unbekannt", { n: p.unbekannt });
+    }
+    return text;
+  }
+
+  // Ein Eintrag nur mit den Feldern, die die App kennt (für das Cloud-Backup, seit Version 183)
+  function eintragNurBekannt(e) {
+    const sauber = {};
+    EINTRAG_FELDER.forEach(function (k) {
+      if (e[k] !== undefined) {
+        sauber[k] = e[k];
+      }
+    });
+    if (Array.isArray(e.einzelsaetze)) {
+      sauber.einzelsaetze = e.einzelsaetze.map(function (s) {
+        const satz = {};
+        SATZ_FELDER.forEach(function (k) {
+          if (s && s[k] !== undefined) {
+            satz[k] = s[k];
+          }
+        });
+        return satz;
+      });
+    }
+    return sauber;
+  }
 
   // Prüft eine Routine aus einem Backup und gibt eine saubere Kopie zurück, oder null, wenn sie unbrauchbar ist
   function routineBereinigen(r) {
@@ -12046,6 +12161,8 @@
   function cloudDaten() {
     const daten = JSON.parse(backupText());
     delete daten.notizen;
+    // Seit Version 183: nur bekannte Felder der Einträge (unbekannte Zusatzfelder, z. B. aus importierten Dateien, bleiben auf dem Gerät)
+    daten.eintraege = daten.eintraege.map(eintragNurBekannt);
     const einstellungenCloud = {};
     CLOUD_EINSTELLUNGEN.forEach(function (k) {
       if (daten.einstellungen && daten.einstellungen[k] !== undefined) {
@@ -12164,6 +12281,11 @@
 
   // Prüft den Inhalt der Datei und fragt dann, ob ergänzt oder ersetzt werden soll
   function backupLesen(text) {
+    // Seit Version 183: zu große Dateien gar nicht erst lesen (Schutz vor manipulierten oder kaputten Dateien)
+    if (typeof text !== "string" || text.length > IMPORT_MAX_ZEICHEN) {
+      datenMeldung(txt("backup.zuGross"));
+      return;
+    }
     let daten;
     try {
       daten = JSON.parse(text);
@@ -12184,14 +12306,9 @@
       return;
     }
 
-    // Nur Einträge übernehmen, die einen Übungsnamen haben
-    importEintraege = [];
-    for (let i = 0; i < liste.length; i++) {
-      const e = liste[i];
-      if (e && typeof e === "object" && typeof e.uebung === "string") {
-        importEintraege.push(e);
-      }
-    }
+    // Nur Einträge übernehmen, die einen Übungsnamen haben und keine unmöglichen Werte (seit Version 183, eintraegePruefen)
+    importPruefung = eintraegePruefen(liste);
+    importEintraege = importPruefung.gueltig;
     // Einträge aus älteren Backups kennen nur den Übungsnamen: die feste ID ergänzen
     listeZuordnen(importEintraege, "uebung");
     // Ebenso fehlt ihnen die eigene id des Eintrags
@@ -12303,6 +12420,7 @@
     }
 
     let dialogText = txt("backup.frage", { neu: importEintraege.length, hier: eintraege.length });
+    dialogText += importPruefungText(importPruefung);
     if (importRoutinen !== null) {
       dialogText += " " + txt("backup.frageRoutinen", { neu: importRoutinen.length, hier: routinen.length });
     }
@@ -12380,6 +12498,11 @@
           vorhanden[schluessel]--;
           uebersprungen++;
         } else {
+          // Seit Version 183: Gibt es die id hier schon (anderer Inhalt, z. B. auf einem Gerät bearbeitet), bekommt der
+          // Eintrag aus dem Backup eine neue id. Beide bleiben erhalten, aber keine id steht doppelt da.
+          if (eintragFinden(importEintraege[i].id)) {
+            importEintraege[i].id = neueId("e");
+          }
           eintraege.push(importEintraege[i]);
           hinzugefuegt++;
         }
@@ -12409,6 +12532,7 @@
     importGeloeschte = null;
     importProfil = null;
     importOhne = [];
+    importPruefung = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
     anzeigen();
     letztesMalAnzeigen();
@@ -12425,6 +12549,7 @@
     importGeloeschte = null;
     importProfil = null;
     importOhne = [];
+    importPruefung = null;
     document.getElementById("dialog-hintergrund").classList.remove("offen");
   }
 

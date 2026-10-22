@@ -40,7 +40,9 @@ const ECHT = ["notizenBereinigen", "gespeichertLesen", "sicherSpeichern", "speic
   "selbstNameUebertragen", "selbstLoeschenFragen", "gleicheUebung", "tagSchluessel", "saetzeVon", "hatDatum",
   "istEigengewicht", "koerperZusatz", "verlaufPunkte", "eintragInZukunft", "besterSatzIndex", "trainierteUebungen", "koerperfettVon",
   "gewichteSpeichern", "gewichtMessungen", "koerpergewichtAm", "trainingBereinigen", "gewichteImportieren",
-  "eigeneImportieren", "backupText", "backupLesen", "eintragSchluessel", "importAusfuehren"];
+  "eigeneImportieren", "backupText", "backupLesen", "eintragSchluessel", "importAusfuehren",
+  // Seit Version 183: Prüfung beim Import
+  "eintraegePruefen", "importPruefungText", "zahlUnmoeglich", "eintragFinden"];
 
 // Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
@@ -83,9 +85,9 @@ function umgebung(inhalt) {
     + "const UEBUNG_NACH_ID = {}; const GRUPPE_NACH_ID = {}; const FESTER_NAME = Object.create(null);"
     + "for (let i = 0; i < MUSKELGRUPPEN.length; i++) { GRUPPE_NACH_ID[MUSKELGRUPPEN[i].id] = MUSKELGRUPPEN[i]; }"
     + "for (let i = 0; i < UEBUNGEN.length; i++) { UEBUNG_NACH_ID[UEBUNGEN[i].id] = UEBUNGEN[i]; }"
-    + konstanteHolen("SELBST_PRAEFIX") + konstanteHolen("SELBST_NAME_MAX") + konstanteHolen("KRAFT_TAGE") + konstanteHolen("ZUKUNFT_TOLERANZ_MS")
+    + konstanteHolen("SELBST_PRAEFIX") + konstanteHolen("SELBST_NAME_MAX") + konstanteHolen("KRAFT_TAGE") + konstanteHolen("ZUKUNFT_TOLERANZ_MS") + konstanteHolen("IMPORT_MAX_ZEICHEN") + konstanteHolen("IMPORT_MAX_GEWICHT_KG") + konstanteHolen("IMPORT_MAX_WDH") + konstanteHolen("IMPORT_MAX_SAETZE") + konstanteHolen("EINTRAG_FELDER") + konstanteHolen("SATZ_FELDER")
     + konstanteHolen("FETT_MIN") + konstanteHolen("FETT_MAX")
-    + "let eintraege = []; let routinen = []; let wochenplan = []; let trainings = []; let koerpergewicht = [];"
+    + "let importPruefung = null; let eintraege = []; let routinen = []; let wochenplan = []; let trainings = []; let koerpergewicht = [];"
     + "let eigeneUebungen = []; let selbstListe = []; let geloeschteEigengewicht = [];"
     + "let bearbeiteteRoutine = null; let laufendesTraining = null; let selbstBearbeitet = null;"
     + "let gewaehlteUebungId = ''; let gewaehlteUebung = ''; let gewaehlteGruppe = '';"

@@ -251,6 +251,35 @@ try {
     pruefe("Zukunft: Eintrag bleibt gespeichert und im Backup", await page.evaluate(() => eintraege.some((x) => x.id === "z") && JSON.parse(backupText()).eintraege.some((x) => x.id === "z")));
     await ctx.close();
   }
+  // ======== Import-Prüfung (Phase 11, Priorität B) ========
+  if (teil("import")) {
+    for (const breite of [320, 390]) {
+      for (const sprache of ["de", "en"]) {
+        const { ctx, page, fehler } = await seite(browser, breite, sprache);
+        const datei = JSON.stringify({ app: "korund", version: 13, eintraege: [
+          e("i1", 1, [satz(90, 8)]), e("i2", 1, [satz(5000, 8)]), e("i1", 1, [satz(90, 8)]),
+          e("i3", -40, [satz(95, 5)]), e("i4", 4, [Object.assign(satz(70, 8), { puls: 150 })], { fremd: "x" })] });
+        await page.evaluate((t) => backupLesen(t), datei);
+        await page.waitForTimeout(300);
+        const d = await page.evaluate(() => { const h = document.getElementById("dialog-hintergrund"); const t = document.getElementById("dialog-text"); return { offen: h.classList.contains("offen"), text: t.textContent, ueber: t.scrollWidth > t.clientWidth + 1 }; });
+        await foto(page, "import-" + breite + "-" + sprache);
+        pruefe(breite + "-" + sprache + " Import: Frage nennt unmögliche Werte, Dublette, Zukunft, Zusatzangaben", d.offen && /1 Einträge mit unmöglichen|1 entries with impossible/.test(d.text) && /doppelte|duplicate/.test(d.text) && /Zukunft|future/.test(d.text) && /Zusatzangaben|extra data/.test(d.text) && !d.ueber, d.text);
+        // Beide Knöpfe lassen sich antippen: nach dem Scrollen liegt an ihrer Mitte wirklich der Knopf (kein Scheintest)
+        const knopf = await page.evaluate(() => [...document.querySelectorAll("#dialog-hintergrund .dialog-btn")].every((b) => {
+          b.scrollIntoView({ block: "center" });
+          const r = b.getBoundingClientRect();
+          return r.height > 0 && r.top >= 0 && r.bottom <= window.innerHeight && document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === b;
+        }));
+        pruefe(breite + "-" + sprache + " Import: Knöpfe erreichbar", knopf);
+        await page.click("button[onclick=\"importAusfuehren('ersetzen')\"]");
+        await page.waitForTimeout(300);
+        const r = await page.evaluate(() => ({ ids: eintraege.map((x) => x.id).sort().join(","), fremd: (eintraege.filter((x) => x.id === "i4")[0] || {}).fremd, cloud: JSON.stringify(cloudDaten().eintraege) }));
+        pruefe(breite + "-" + sprache + " Import: 3 Einträge übernommen, Zusatzfeld lokal da, nicht in der Cloud", r.ids === "i1,i3,i4" && r.fremd === "x" && !/fremd|puls/.test(r.cloud), JSON.stringify(r).slice(0, 200));
+        pruefe(breite + "-" + sprache + " Import: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
+        await ctx.close();
+      }
+    }
+  }
 } finally {
   await browser.close();
   server.close();

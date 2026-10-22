@@ -34,8 +34,10 @@ function pruefe(name, ok) {
 }
 
 const ECHT = ["cloudDaten", "backupText", "backupLesen", "importAusfuehren", "gewichteImportieren", "fettVonHierBehalten",
-  "einstellungenBereinigen", "einstellungenUebernehmen", "eintragSchluessel", "hatDatum", "koerperfettVon", "tagSchluessel", "pauseLesen"];
-const KONST = ["CLOUD_OHNE", "CLOUD_EINSTELLUNGEN", "AUSZEIT_ARTEN", "PAUSE_SCHRITT", "PAUSE_MAX"];
+  "einstellungenBereinigen", "einstellungenUebernehmen", "eintragSchluessel", "hatDatum", "koerperfettVon", "tagSchluessel", "pauseLesen",
+  // Seit Version 183: Prüfung beim Import und bekannte Felder im Cloud-Backup
+  "eintraegePruefen", "importPruefungText", "zahlUnmoeglich", "eintragNurBekannt", "eintragInZukunft", "eintragFinden", "neueId"];
+const KONST = ["CLOUD_OHNE", "CLOUD_EINSTELLUNGEN", "AUSZEIT_ARTEN", "PAUSE_SCHRITT", "PAUSE_MAX", "IMPORT_MAX_ZEICHEN", "IMPORT_MAX_GEWICHT_KG", "IMPORT_MAX_WDH", "IMPORT_MAX_SAETZE", "EINTRAG_FELDER", "SATZ_FELDER", "ZUKUNFT_TOLERANZ_MS"];
 
 // Baut ein Gerät mit eigenem Stand. Die Attrappen tun nichts, außer was der Test braucht.
 function geraet(stand) {
@@ -44,7 +46,7 @@ function geraet(stand) {
     + "let coach = " + JSON.stringify(stand.coach || {}) + "; let routinen = []; let wochenplan = [null,null,null,null,null,null,null]; let trainings = [];"
     + "let koerpergewicht = " + JSON.stringify(stand.koerpergewicht || []) + "; let einstellungen = " + JSON.stringify(stand.einstellungen || {}) + ";"
     + "let importEintraege = []; let importRoutinen = null; let importWochenplan = null; let importTrainings = null; let importGewichte = null;"
-    + "let importEinstellungen = null; let importProfil = null; let importEigene = null; let importGeloeschte = null; let importNotizen = null; let importCoach = null; let importOhne = [];"
+    + "let importEinstellungen = null; let importProfil = null; let importEigene = null; let importGeloeschte = null; let importNotizen = null; let importCoach = null; let importOhne = []; let importPruefung = null;"
     + "const FETT_MIN = 3; const FETT_MAX = 60;"
     + "const document = { getElementById: function () { return { textContent: '', classList: { add: function () {}, remove: function () {} } }; } };"
     + "function txt(k) { return k; } function datenMeldung() {} function listeZuordnen() {} function eintragIdsErgaenzen() {}"

@@ -42,7 +42,7 @@ const ECHT = ["notizenBereinigen", "gespeichertLesen", "sicherSpeichern", "speic
   "gewichteSpeichern", "gewichtMessungen", "koerpergewichtAm", "trainingBereinigen", "gewichteImportieren",
   "eigeneImportieren", "backupText", "backupLesen", "eintragSchluessel", "importAusfuehren",
   // Seit Version 183: Prüfung beim Import
-  "eintraegePruefen", "importPruefungText", "zahlUnmoeglich", "eintragFinden"];
+  "eintraegePruefen", "inhaltText", "importPruefungText", "zahlUnmoeglich", "eintragFinden"];
 
 // Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");

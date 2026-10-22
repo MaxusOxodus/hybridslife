@@ -11780,10 +11780,24 @@
     return !isNaN(zahl) && (!isFinite(zahl) || zahl < 0 || zahl > max);
   }
 
-  // Prüft die Einträge eines Backups. Zurück kommt { gueltig, unmoeglich, doppelt, neueIds, zukunft, unbekannt }:
+  // Der Inhalt eines Eintrags als Text, unabhängig von der Reihenfolge der Felder (seit Version 186): Das Cloud-Backup
+  // (eintragNurBekannt) und ältere Versionen ordnen die Felder anders, derselbe Eintrag muss trotzdem gleich aussehen.
+  function inhaltText(wert) {
+    if (Array.isArray(wert)) {
+      return "[" + wert.map(inhaltText).join(",") + "]";
+    }
+    if (wert && typeof wert === "object") {
+      return "{" + Object.keys(wert).sort().filter(function (k) { return wert[k] !== undefined; }).map(function (k) {
+        return JSON.stringify(k) + ":" + inhaltText(wert[k]);
+      }).join(",") + "}";
+    }
+    return wert === undefined ? "null" : JSON.stringify(wert);
+  }
+
+  // Prüft die Einträge eines Backups. Zurück kommt { gueltig, unmoeglich, doppelt, neueIds, zukunft, ohneDatum, unbekannt }:
   // gueltig = die Einträge zum Übernehmen (dieselben Objekte, nichts wird gekürzt), die übrigen Zahlen sind für die Meldung.
   function eintraegePruefen(liste) {
-    const ergebnis = { gueltig: [], unmoeglich: 0, doppelt: 0, neueIds: 0, zukunft: 0, unbekannt: 0 };
+    const ergebnis = { gueltig: [], unmoeglich: 0, doppelt: 0, neueIds: 0, zukunft: 0, ohneDatum: 0, unbekannt: 0 };
     const nachId = {};
     for (let i = 0; i < liste.length; i++) {
       const e = liste[i];
@@ -11802,10 +11816,11 @@
         continue;
       }
       // Dieselbe id mehrmals in der Datei: gleicher Inhalt wie eine schon gesehene Fassung ist eine Dublette, anderer Inhalt
-      // bekommt eine neue id (seit Version 184 gegen jede Fassung dieser id, nicht nur die erste)
+      // bekommt eine neue id (seit Version 184 gegen jede Fassung dieser id, nicht nur die erste; seit Version 186 unabhängig
+      // von der Reihenfolge der Felder)
       const id = typeof e.id === "string" ? e.id : "";
       if (id !== "" && nachId[id]) {
-        const inhalt = JSON.stringify(e);
+        const inhalt = inhaltText(e);
         if (nachId[id].indexOf(inhalt) !== -1) {
           ergebnis.doppelt++;
           continue;
@@ -11814,10 +11829,14 @@
         e.id = neueId("e");
         ergebnis.neueIds++;
       } else if (id !== "") {
-        nachId[id] = [JSON.stringify(e)];
+        nachId[id] = [inhaltText(e)];
       }
       if (eintragInZukunft(e)) {
         ergebnis.zukunft++;
+      }
+      // Ohne gültiges Datum (seit Version 186 gemeldet): Der Eintrag bleibt, wie er ist, und steht im Log unter „Ohne Datum“
+      if (!hatDatum(e)) {
+        ergebnis.ohneDatum++;
       }
       if (Object.keys(e).some(function (k) { return EINTRAG_FELDER.indexOf(k) === -1; })
         || (Array.isArray(saetze) && saetze.some(function (s) { return s && Object.keys(s).some(function (k) { return SATZ_FELDER.indexOf(k) === -1; }); }))) {
@@ -11845,6 +11864,9 @@
     }
     if (p.zukunft > 0) {
       text += " " + txt("backup.pruefung.zukunft", { n: p.zukunft });
+    }
+    if (p.ohneDatum > 0) {
+      text += " " + txt("backup.pruefung.ohneDatum", { n: p.ohneDatum });
     }
     if (p.unbekannt > 0) {
       text += " " + txt("backup.pruefung.unbekannt", { n: p.unbekannt });
@@ -12512,22 +12534,46 @@
 
       let hinzugefuegt = 0;
       let uebersprungen = 0;
+      let abweichend = 0;
+      const umbenannt = {};
       for (let i = 0; i < importEintraege.length; i++) {
-        const schluessel = eintragSchluessel(importEintraege[i]);
-        if (vorhanden[schluessel] > 0) {
-          vorhanden[schluessel]--;
-          uebersprungen++;
-        } else {
-          // Seit Version 183: Gibt es die id hier schon (anderer Inhalt, z. B. auf einem Gerät bearbeitet), bekommt der
-          // Eintrag aus dem Backup eine neue id. Beide bleiben erhalten, aber keine id steht doppelt da.
-          if (eintragFinden(importEintraege[i].id)) {
-            importEintraege[i].id = neueId("e");
+        const neu = importEintraege[i];
+        const schluessel = eintragSchluessel(neu);
+        // Seit Version 186: Gleiche id, gleiche Übung und gleiches Datum ist derselbe Eintrag, nur auf einem anderen Gerät
+        // bearbeitet (RIR, ein Satz). Ergänzen behält die Fassung dieses Geräts und meldet die andere (backup.abweichend),
+        // vorher kam er mit geändertem Satzgewicht ein zweites Mal dazu. „Ersetzen“ übernimmt die Fassung aus dem Backup.
+        const hier = eintragFinden(neu.id);
+        const derselbe = Boolean(hier) && hier.uebung === neu.uebung && String(hier.datum || "") === String(neu.datum || "");
+        if (vorhanden[schluessel] > 0 || derselbe) {
+          if (vorhanden[schluessel] > 0) {
+            vorhanden[schluessel]--;
           }
-          eintraege.push(importEintraege[i]);
+          uebersprungen++;
+          if (derselbe && inhaltText(hier) !== inhaltText(neu)) {
+            abweichend++;
+          }
+        } else {
+          // Seit Version 183: Gibt es die id hier schon für einen anderen Eintrag (andere Übung oder anderes Datum), bekommt
+          // der aus dem Backup eine neue id. Beide bleiben erhalten, keine id steht doppelt da. Seit Version 186 zeigen
+          // die neuen Trainingseinheiten aus dem Backup auf die neue id (umbenannt).
+          if (hier) {
+            const id = neueId("e");
+            umbenannt[neu.id] = id;
+            neu.id = id;
+          }
+          eintraege.push(neu);
           hinzugefuegt++;
         }
       }
+      if (importTrainings !== null && Object.keys(umbenannt).length > 0) {
+        importTrainings.forEach(function (t) {
+          t.eintragIds = t.eintragIds.map(function (id) { return umbenannt[id] || id; });
+        });
+      }
       meldung = txt("backup.ergaenzt", { neu: hinzugefuegt, alt: uebersprungen });
+      if (abweichend > 0) {
+        meldung += " " + txt("backup.abweichend", { n: abweichend });
+      }
     }
     datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art) + eigeneText);
 

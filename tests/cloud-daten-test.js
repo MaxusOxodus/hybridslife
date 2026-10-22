@@ -36,7 +36,7 @@ function pruefe(name, ok) {
 const ECHT = ["cloudDaten", "backupText", "backupLesen", "importAusfuehren", "gewichteImportieren", "fettVonHierBehalten",
   "einstellungenBereinigen", "einstellungenUebernehmen", "eintragSchluessel", "hatDatum", "koerperfettVon", "tagSchluessel", "pauseLesen",
   // Seit Version 183: Prüfung beim Import und bekannte Felder im Cloud-Backup
-  "eintraegePruefen", "importPruefungText", "zahlUnmoeglich", "eintragNurBekannt", "eintragInZukunft", "eintragFinden", "neueId"];
+  "eintraegePruefen", "inhaltText", "importPruefungText", "zahlUnmoeglich", "eintragNurBekannt", "eintragInZukunft", "eintragFinden", "neueId"];
 const KONST = ["CLOUD_OHNE", "CLOUD_EINSTELLUNGEN", "AUSZEIT_ARTEN", "PAUSE_SCHRITT", "PAUSE_MAX", "IMPORT_MAX_ZEICHEN", "IMPORT_MAX_GEWICHT_KG", "IMPORT_MAX_WDH", "IMPORT_MAX_SAETZE", "EINTRAG_FELDER", "SATZ_FELDER", "ZUKUNFT_TOLERANZ_MS"];
 
 // Baut ein Gerät mit eigenem Stand. Die Attrappen tun nichts, außer was der Test braucht.

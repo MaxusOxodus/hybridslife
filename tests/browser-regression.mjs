@@ -286,6 +286,36 @@ try {
       }
     }
   }
+  // ======== Datenintegrität beim Ergänzen (Phase 12): derselbe Eintrag, auf einem anderen Gerät bearbeitet ========
+  if (teil("integritaet")) {
+    for (const breite of [320, 390]) {
+      for (const sprache of ["de", "en"]) {
+        const { ctx, page, fehler } = await seite(browser, breite, sprache);
+        // Eintrag c von diesem Gerät, auf einem anderen Gerät ein Satz auf 105 kg geändert, dazu ein neuer Eintrag
+        const anders = e("c", 2, [satz(105, 10, 0), satz(102.5, 10, 2), satz(102.5, 10, 2)]);
+        const datei = JSON.stringify({ app: "korund", version: 13, eintraege: BASIS.eintraege.slice(0, 2).concat([anders, e("neu", 1, [satz(90, 8)]), Object.assign(e("od", 1, [satz(50, 8)]), { datum: "kaputt" })]) });
+        const vorher = await page.evaluate(() => ({ n: eintraege.length }));
+        await page.evaluate((t) => backupLesen(t), datei);
+        await page.waitForTimeout(200);
+        const frage = await page.evaluate(() => document.getElementById("dialog-text").textContent);
+        pruefe(breite + "-" + sprache + " Integrität: Frage nennt Eintrag ohne Datum", /kein gültiges Datum|no valid date/.test(frage), frage);
+        await page.click("button[onclick=\"importAusfuehren('ergaenzen')\"]");
+        await page.waitForTimeout(300);
+        const r = await page.evaluate(() => ({ n: eintraege.length, c: JSON.stringify(eintraege.filter((x) => x.id === "c")), ids: eintraege.map((x) => x.id), text: document.getElementById("daten-meldung").textContent, ohne: document.getElementById("log-liste") ? document.getElementById("log-liste").textContent : "" }));
+        pruefe(breite + "-" + sprache + " Integrität: nur neue Einträge dazu (2), c nicht doppelt", r.n === vorher.n + 2 && r.ids.filter((x) => x === "c").length === 1 && new Set(r.ids).size === r.ids.length, JSON.stringify(r.ids));
+        pruefe(breite + "-" + sprache + " Integrität: Fassung dieses Geräts von c bleibt", /102\.5/.test(r.c) && !/105/.test(r.c), r.c);
+        pruefe(breite + "-" + sprache + " Integrität: Meldung nennt die andere Fassung", /anderen Fassung|different version/.test(r.text), r.text);
+        // Die Meldung steht in Einstellungen → Daten: dort ganz zu sehen, nichts läuft seitlich hinaus
+        await page.evaluate(() => { einstOeffnen(); document.getElementById("daten-meldung").scrollIntoView({ block: "center" }); });
+        await page.waitForTimeout(400);
+        const m = await page.evaluate(() => { const el = document.getElementById("daten-meldung"); const b = el.getBoundingClientRect(); return { ueber: el.scrollWidth > el.clientWidth + 1, innen: b.left >= 0 && b.right <= window.innerWidth && b.height > 0 }; });
+        pruefe(breite + "-" + sprache + " Integrität: Meldung passt ins Fenster", !m.ueber && m.innen, JSON.stringify(m));
+        await foto(page, "integritaet-" + breite + "-" + sprache);
+        pruefe(breite + "-" + sprache + " Integrität: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
+        await ctx.close();
+      }
+    }
+  }
   // ======== Gym-Spiel (Phase 12): Einträge in der Zukunft verbuchen erst, wenn ihr Datum erreicht ist ========
   // Das Spiel liest „eintraege“ selbst (appAbgleich, __gymSync) und verbucht Tage dauerhaft in stand.verarbeitet.
   // Die Uhr der Seite wird mit page.clock verstellt, nur Date ändert sich, nichts wird im echten Spielstand gespeichert.

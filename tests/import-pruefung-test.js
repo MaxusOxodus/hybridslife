@@ -34,7 +34,7 @@ function pruefe(name, ok, info) {
 }
 
 const ECHT = ["cloudDaten", "backupText", "backupLesen", "importAusfuehren", "gewichteImportieren", "fettVonHierBehalten", "eintragNurBekannt",
-  "eintraegePruefen", "importPruefungText", "zahlUnmoeglich", "eintragInZukunft", "eintragFinden", "neueId",
+  "eintraegePruefen", "inhaltText", "importPruefungText", "zahlUnmoeglich", "eintragInZukunft", "eintragFinden", "neueId",
   "einstellungenBereinigen", "einstellungenUebernehmen", "eintragSchluessel", "hatDatum", "koerperfettVon", "tagSchluessel", "pauseLesen"];
 const KONST = ["CLOUD_OHNE", "CLOUD_EINSTELLUNGEN", "AUSZEIT_ARTEN", "PAUSE_SCHRITT", "PAUSE_MAX", "IMPORT_MAX_ZEICHEN", "IMPORT_MAX_GEWICHT_KG",
   "IMPORT_MAX_WDH", "IMPORT_MAX_SAETZE", "EINTRAG_FELDER", "SATZ_FELDER", "ZUKUNFT_TOLERANZ_MS"];
@@ -82,7 +82,8 @@ const ok = (id, extra) => Object.assign({ id: id, uebung: "Bankdrücken", uebung
   const g = geraet({});
   g.backupLesen(JSON.stringify({ app: "gymstead", version: 9, eintraege: alt }));
   pruefe("Alte und gültige Einträge: alle 5 werden angeboten", g.offen() === 5, g.offen());
-  pruefe("Ohne Befund kein Zusatz in der Frage", g.dialog().indexOf("backup.pruefung") === -1, g.dialog());
+  // Seit Version 186 meldet die Frage nur den Eintrag ohne Datum (er wird trotzdem übernommen), sonst nichts
+  pruefe("Ohne Befund kein Zusatz in der Frage (außer „ohne Datum“)", g.dialog().replace(/ backup\.pruefung\.ohneDatum\{"n":1\}/, "").indexOf("backup.pruefung") === -1 && /ohneDatum\{"n":1\}/.test(g.dialog()), g.dialog());
   g.importAusfuehren("ersetzen");
   pruefe("Ersetzen übernimmt alle 5 unverändert", g.stand().length === 5 && g.stand()[1].gewicht === "80kg" && g.stand()[0].datum === tag(400));
   pruefe("Bekannte Felder gehen vollständig ins Cloud-Backup", g.cloudDaten().eintraege.every((e, i) => gleich(e, alt[i])));
@@ -130,12 +131,15 @@ const ok = (id, extra) => Object.assign({ id: id, uebung: "Bankdrücken", uebung
   pruefe("Keine id doppelt, die abweichende Fassung ist erhalten", new Set(ids).size === 3 && g.stand().some((e) => e.gewicht === 85), ids.join(","));
 }
 {
-  // Ergänzen: gleiche id wie auf dem Gerät, aber anderer Inhalt (auf einem Gerät bearbeitet): beide bleiben, neue id
+  // Ergänzen: gleiche id wie auf dem Gerät, aber anderer Inhalt. Seit Version 186: Ist es derselbe Eintrag (gleiche Übung,
+  // gleiches Datum, auf einem Gerät bearbeitet), bleibt die Fassung des Geräts und die Meldung nennt die andere (vorher kam er
+  // ein zweites Mal dazu). Ein anderer Eintrag mit derselben id bekommt wie seit Version 183 eine neue id.
   const g = geraet({ eintraege: [ok("x1")] });
-  g.backupLesen(JSON.stringify({ eintraege: [ok("x1", { gewicht: 90, einzelsaetze: [{ gewicht: 90, wdh: 8 }] }), ok("x1")] }));
+  g.backupLesen(JSON.stringify({ eintraege: [ok("x1", { gewicht: 90, einzelsaetze: [{ gewicht: 90, wdh: 8 }] }), ok("x1"), ok("x1", { datum: tag(7) })] }));
   g.importAusfuehren("ergaenzen");
   const s = g.stand();
-  pruefe("Ergänzen bei gleicher id: nichts geht verloren, keine id doppelt", s.length === 2 && s[0].id === "x1" && s[0].gewicht === 80 && s[1].gewicht === 90 && s[1].id !== "x1", s.map((e) => e.id + ":" + e.gewicht).join(","));
+  pruefe("Ergänzen bei gleicher id: derselbe Eintrag nicht doppelt, ein anderer mit neuer id, keine id doppelt", s.length === 2 && s[0].id === "x1" && s[0].gewicht === 80 && s[1].datum === tag(7) && s[1].id !== "x1", s.map((e) => e.id + ":" + e.gewicht).join(","));
+  pruefe("Ergänzen bei gleicher id: die Meldung nennt die abweichende Fassung", /backup\.abweichend\{"n":1\}/.test(g.meldungen[g.meldungen.length - 1]), g.meldungen.join("|"));
 }
 
 {

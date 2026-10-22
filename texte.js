@@ -1091,6 +1091,7 @@ const TEXTE = {
   "backup.pruefung.doppelt": { de: "{n} doppelte Einträge werden nur einmal übernommen.", en: "{n} duplicate entries will be imported only once." },
   "backup.pruefung.neueIds": { de: "{n} Einträge mit gleicher Kennung bekommen eine neue.", en: "{n} entries with the same ID get a new one." },
   "backup.pruefung.zukunft": { de: "{n} Einträge liegen in der Zukunft und zählen erst ab ihrem Datum.", en: "{n} entries are in the future and only count from their date." },
+  "backup.pruefung.ohneDatum": { de: "{n} Einträge haben kein gültiges Datum. Sie werden übernommen und stehen im Log unter „Ohne Datum“.", en: "{n} entries have no valid date. They are imported and listed in the log under “No date”." },
   "backup.pruefung.unbekannt": { de: "{n} Einträge haben Zusatzangaben, die Korund nicht kennt. Sie bleiben auf dem Gerät, gehen aber nicht ins Cloud-Backup.", en: "{n} entries have extra data Korund does not know. It stays on the device but is not included in the cloud backup." },
   "backup.leer": { de: "Das Backup enthält keine Einträge.", en: "The backup contains no entries." },
   "backup.frage": {
@@ -1105,6 +1106,7 @@ const TEXTE = {
     de: "{n} Einträge aus dem Backup wiederhergestellt. Die vorherigen wurden ersetzt.",
     en: "{n} entries restored from the backup. The previous ones were replaced."
   },
+  "backup.abweichend": { de: "{n} davon gibt es hier in einer anderen Fassung (z. B. auf einem anderen Gerät bearbeitet). Behalten wurde die Fassung dieses Geräts, mit „Ersetzen“ kommt die aus dem Backup.", en: "{n} of them exist here in a different version (e.g. edited on another device). This device’s version was kept; “Replace” uses the one from the backup." },
   "backup.ergaenzt": { de: "{neu} Einträge hinzugefügt, {alt} waren schon vorhanden.", en: "{neu} entries added, {alt} already existed." },
   "backup.routinenErsetzt": { de: "{n} Routinen und der Wochenplan wurden wiederhergestellt.", en: "{n} routines and the weekly plan were restored." },
   "backup.routinenErgaenzt": { de: "{n} Routinen hinzugefügt.", en: "{n} routines added." },

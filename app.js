@@ -12475,8 +12475,62 @@
     return JSON.stringify([e.uebung, String(e.gewicht), String(e.wdh), String(e.saetze), e.datum || ""]);
   }
 
+  // Was „Ersetzen“ mit diesem Backup auf dem Gerät ersetzt (seit Version 189, Audit Phase 13, F3). Einträge und Trainingseinheiten
+  // immer (ohne Einheiten im Backup werden die des Geräts geleert, trainingsImportieren), alles andere nur, wenn es im Backup steht.
+  // Nie angefasst werden u. a. Stil, Akzent, Look, Farbwelt, Zielgewicht, Geräte, Einschränkungen, Gesundheitsfragen, das laufende
+  // Training und der Spielstand des Gym-Spiels; Körperfett und Rückblick-Antworten bleiben bei einem Cloud-Backup auf dem Gerät.
+  function ersetzenUmfang() {
+    const teile = ["eintraege", "trainings"];
+    if (importRoutinen !== null) {
+      teile.push("routinen");
+    }
+    if (importEigene !== null) {
+      teile.push("eigene");
+    }
+    if (importGewichte !== null) {
+      teile.push("gewicht");
+    }
+    if (importNotizen !== null) {
+      teile.push("notizen");
+    }
+    if (importCoach !== null) {
+      teile.push("coach");
+    }
+    if (importProfil !== null) {
+      teile.push("profil");
+    }
+    if (importEinstellungen !== null) {
+      teile.push("einstellungen");
+    }
+    return teile;
+  }
+
+  // Die Rückfrage vor dem Ersetzen: Der Import-Dialog geht zu, „Abbrechen“ holt ihn unverändert zurück (dann geht auch „Ergänzen“),
+  // erst „Endgültig ersetzen“ ändert Daten
+  function ersetzenFragen() {
+    const werte = { hier: eintraege.length, neu: importEintraege.length };
+    const teile = ersetzenUmfang().map(function (teil) {
+      return txt("backup.ersetzenTeil." + teil, werte);
+    });
+    const liste = teile.slice(0, -1).join(", ") + txt("backup.ersetzenUnd") + teile[teile.length - 1];
+    document.getElementById("dialog-hintergrund").classList.remove("offen");
+    frageZeigen(txt("backup.ersetzenTitel"), txt("backup.ersetzenText", Object.assign({ liste: liste }, werte)), [
+      { text: txt("abbrechen"), art: "haupt", aktion: function () {
+        document.getElementById("dialog-hintergrund").classList.add("offen");
+      } },
+      { text: txt("backup.ersetzenJa"), art: "gefahr", aktion: function () {
+        importAusfuehren("ersetzen", true);
+      } }
+    ]);
+  }
+
   // Übernimmt die Einträge aus dem Backup. art ist "ergaenzen" oder "ersetzen".
-  function importAusfuehren(art) {
+  // Seit Version 189: „Ersetzen“ nur mit bestaetigt === true (aus ersetzenFragen), sonst kommt die Rückfrage und nichts ändert sich
+  function importAusfuehren(art, bestaetigt) {
+    if (art === "ersetzen" && bestaetigt !== true) {
+      ersetzenFragen();
+      return;
+    }
     // Die Einstellungen werden nur beim Ersetzen übernommen. Sie kommen zuerst,
     // damit die Meldung danach schon in der Sprache aus dem Backup erscheint.
     if (art === "ersetzen" && importEinstellungen !== null) {

@@ -160,7 +160,7 @@ function umgebung(inhalt) {
     + "    };"
     + "  },"
     + "  backup: function () { return backupText(); },"
-    + "  importieren: function (text, art) { backupLesen(text); importAusfuehren(art); },"
+    + "  importieren: function (text, art) { backupLesen(text); importAusfuehren(art, true); },"
     + "  eintraege: function () { return eintraege; }"
     + "};";
 

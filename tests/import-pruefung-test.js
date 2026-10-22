@@ -84,7 +84,7 @@ const ok = (id, extra) => Object.assign({ id: id, uebung: "Bankdrücken", uebung
   pruefe("Alte und gültige Einträge: alle 5 werden angeboten", g.offen() === 5, g.offen());
   // Seit Version 186 meldet die Frage nur den Eintrag ohne Datum (er wird trotzdem übernommen), sonst nichts
   pruefe("Ohne Befund kein Zusatz in der Frage (außer „ohne Datum“)", g.dialog().replace(/ backup\.pruefung\.ohneDatum\{"n":1\}/, "").indexOf("backup.pruefung") === -1 && /ohneDatum\{"n":1\}/.test(g.dialog()), g.dialog());
-  g.importAusfuehren("ersetzen");
+  g.importAusfuehren("ersetzen", true);
   pruefe("Ersetzen übernimmt alle 5 unverändert", g.stand().length === 5 && g.stand()[1].gewicht === "80kg" && g.stand()[0].datum === tag(400));
   pruefe("Bekannte Felder gehen vollständig ins Cloud-Backup", g.cloudDaten().eintraege.every((e, i) => gleich(e, alt[i])));
   pruefe("Reine Liste (sehr altes Backup) wird weiter angenommen", (function () { const h = geraet({}); h.backupLesen(JSON.stringify([ok("x")])); return h.offen() === 1; })());
@@ -126,7 +126,7 @@ const ok = (id, extra) => Object.assign({ id: id, uebung: "Bankdrücken", uebung
   g.backupLesen(JSON.stringify({ eintraege: [a, b, c, ok("d2")] }));
   pruefe("Gleiche id und gleicher Inhalt: einmal; gleiche id, anderer Inhalt: neue id", g.offen() === 3, g.offen());
   pruefe("Die Frage nennt Dublette und neue id", /pruefung\.doppelt\{"n":1\}/.test(g.dialog()) && /pruefung\.neueIds\{"n":1\}/.test(g.dialog()), g.dialog());
-  g.importAusfuehren("ersetzen");
+  g.importAusfuehren("ersetzen", true);
   const ids = g.stand().map((e) => e.id);
   pruefe("Keine id doppelt, die abweichende Fassung ist erhalten", new Set(ids).size === 3 && g.stand().some((e) => e.gewicht === 85), ids.join(","));
 }
@@ -159,7 +159,7 @@ const ok = (id, extra) => Object.assign({ id: id, uebung: "Bankdrücken", uebung
   g.backupLesen(JSON.stringify({ eintraege: [zukunft, bald, fremd] }));
   pruefe("Zukunft: angeboten (nicht verworfen), gemeldet nur der Eintrag über 24 h", g.offen() === 3 && /pruefung\.zukunft\{"n":1\}/.test(g.dialog()), g.dialog());
   pruefe("Unbekannte Felder werden gemeldet", /pruefung\.unbekannt\{"n":1\}/.test(g.dialog()), g.dialog());
-  g.importAusfuehren("ersetzen");
+  g.importAusfuehren("ersetzen", true);
   const f = g.stand().filter((e) => e.id === "f1")[0];
   pruefe("Unbekannte Felder bleiben auf dem Gerät erhalten", f.notizIntern === "privat" && f.einzelsaetze[0].puls === 150);
   const c = JSON.stringify(g.cloudDaten().eintraege);

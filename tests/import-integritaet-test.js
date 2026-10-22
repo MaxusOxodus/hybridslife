@@ -68,7 +68,7 @@ function geraet(stand) {
 function importieren(g, backup, art) {
   g.backupLesen(typeof backup === "string" ? backup : JSON.stringify(backup));
   const frage = g.dialog();
-  g.importAusfuehren(art);
+  g.importAusfuehren(art, true); // Ersetzen ausdrücklich bestätigt (seit Version 189)
   return { frage: frage, meldung: g.meldungen[g.meldungen.length - 1] || "" };
 }
 const ordnen = (x) => Array.isArray(x) ? x.map(ordnen) : x && typeof x === "object" ? Object.keys(x).sort().reduce((o, k) => { o[k] = ordnen(x[k]); return o; }, {}) : x;

@@ -4337,6 +4337,18 @@ button.einst-zeile:first-child {
   margin: auto;
 }
 
+/* Seit Version 189: Auch die Rückfrage kann höher als das Fenster sein (Rückfrage vor dem Ersetzen bei 320 × 568).
+   Dieselbe Lösung wie beim Import-Dialog: die Ebene scrollt, die Box steht mit margin: auto. Passt sie ins Fenster, sieht sie aus
+   wie vorher. */
+#frage-hintergrund {
+  overflow-y: auto;
+}
+
+#frage {
+  flex: none;
+  margin: auto;
+}
+
 /* Prüfung beim Start (seit Version 164): deckt die ganze App ab, auch Dialoge (40) und die Einführung (50, 51) */
 #start-ebene {
   position: fixed;

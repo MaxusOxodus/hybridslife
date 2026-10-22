@@ -106,7 +106,7 @@ function geraetB() {
 }
 const B = geraetB();
 B.backupLesen(JSON.stringify(nutz));
-B.importAusfuehren("ersetzen");
+B.importAusfuehren("ersetzen", true);
 const b = B.stand();
 pruefe("Ersetzen: Einträge aus der Cloud", b.eintraege.length === 1 && b.eintraege[0].id === "e1");
 pruefe("Ersetzen: Notizen von B bleiben", b.notizen.kniebeuge === "B-Notiz" && !b.notizen["bankdruecken-lh"]);
@@ -131,7 +131,7 @@ pruefe("Ergänzen: Coach und Rückblick von B unverändert", b2.coach.ziel === "
 // ---- Altes Voll-Backup (Datei oder Cloud bis Version 177) lädt wie bisher ----
 const B3 = geraetB();
 B3.backupLesen(A.backupText());
-B3.importAusfuehren("ersetzen");
+B3.importAusfuehren("ersetzen", true);
 const b3 = B3.stand();
 pruefe("Voll-Backup Ersetzen: Körperfett und Notizen aus dem Backup wie bisher", b3.koerpergewicht.length === 3 && b3.koerpergewicht[0].koerperfett === 18 && b3.notizen["bankdruecken-lh"] === "Schulter zwickt" && b3.coach.rueckblick.energie === "muede");
 

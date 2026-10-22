@@ -279,6 +279,9 @@ try {
         pruefe(breite + "-" + sprache + " Import: Knöpfe erreichbar", knopf);
         await page.click("button[onclick=\"importAusfuehren('ersetzen')\"]");
         await page.waitForTimeout(300);
+        // Seit Version 189: Ersetzen erst nach der Rückfrage (zweiter Knopf „Endgültig ersetzen“)
+        await page.locator("#frage-knoepfe .dialog-btn.gefahr").click();
+        await page.waitForTimeout(300);
         const r = await page.evaluate(() => ({ ids: eintraege.map((x) => x.id).sort().join(","), fremd: (eintraege.filter((x) => x.id === "i4")[0] || {}).fremd, cloud: JSON.stringify(cloudDaten().eintraege) }));
         pruefe(breite + "-" + sprache + " Import: 3 Einträge übernommen, Zusatzfeld lokal da, nicht in der Cloud", r.ids === "i1,i3,i4" && r.fremd === "x" && !/fremd|puls/.test(r.cloud), JSON.stringify(r).slice(0, 200));
         pruefe(breite + "-" + sprache + " Import: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
@@ -314,6 +317,65 @@ try {
         pruefe(breite + "-" + sprache + " Integrität: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
         await ctx.close();
       }
+    }
+  }
+  // ======== Ersetzen nur nach Bestätigung (Phase 13, F3, seit Version 189) ========
+  if (teil("ersetzen")) {
+    const faelle = [[320, "de", "dunkel", "glass"], [320, "en", "dunkel", "glass"], [320, "de", "hell", "klassisch"], [320, "en", "hell", "klassisch"], [390, "de", "dunkel", "glass"], [390, "en", "hell", "klassisch"]];
+    for (const [breite, sprache, design, stil] of faelle) {
+      const n = breite + "-" + sprache + "-" + design + "-" + stil;
+      const { ctx, page, fehler } = await seite(browser, breite, sprache, { einstellungen: { design, stil } });
+      const datei = JSON.stringify({ app: "korund", version: 13, profil: { name: "Backup" }, eintraege: [e("v1", 20, [satz(70, 8)]), e("v2", 18, [satz(72, 8)])],
+        routinen: [{ id: "rb", name: "Routine Backup", uebungen: [] }], wochenplan: ["", "", "", "", "", "", ""], trainings: [], notizen: { x: "y" }, coach: { ziel: "muskel" },
+        eigeneUebungen: [], koerpergewicht: [{ datum: iso(19), gewicht: 70 }], einstellungen: { sprache: sprache } });
+      const speicher = () => page.evaluate(() => JSON.stringify(Object.keys(localStorage).sort().filter((k) => !/^cloud|^korundCloud/.test(k)).map((k) => [k, localStorage.getItem(k)])));
+      const vorher = await speicher();
+      await page.evaluate(() => einstOeffnen());
+      await page.evaluate((t) => backupLesen(t), datei);
+      await page.waitForTimeout(250);
+      await page.click("button[onclick=\"importAusfuehren('ersetzen')\"]");
+      await page.waitForTimeout(300);
+      const r = await page.evaluate(() => {
+        const h = document.getElementById("frage-hintergrund"), box = document.getElementById("frage").getBoundingClientRect();
+        const knoepfe = [...document.querySelectorAll("#frage-knoepfe .dialog-btn")];
+        return { offen: h.classList.contains("offen"), import: document.getElementById("dialog-hintergrund").classList.contains("offen"),
+          titel: document.getElementById("frage-titel").textContent, text: document.getElementById("frage-text").textContent, knoepfe: knoepfe.map((b) => b.textContent + "|" + b.className),
+          // Ist die Rückfrage höher als das Fenster, scrollt die Ebene: Titel, Text und beide Knöpfe müssen nach dem Scrollen ganz zu sehen sein
+          passt: box.left >= 0 && box.right <= innerWidth && [document.getElementById("frage-titel"), document.getElementById("frage-text")].concat(knoepfe).every((el) => {
+            el.scrollIntoView({ block: "nearest" }); const x = el.getBoundingClientRect(); return x.top >= 0 && x.bottom <= innerHeight + 0.5 || x.height > innerHeight; }),
+          tippbar: knoepfe.every((b) => { b.scrollIntoView({ block: "center" }); const x = b.getBoundingClientRect(); return x.height >= 40 && document.elementFromPoint(x.left + x.width / 2, x.top + x.height / 2) === b; }) };
+      });
+      await foto(page, "ersetzen-" + n);
+      pruefe(n + " Ersetzen: Rückfrage offen, Import-Dialog zu", r.offen && !r.import, JSON.stringify(r).slice(0, 160));
+      pruefe(n + " Ersetzen: Text nennt Gerät, Umfang und dass es nicht rückgängig geht", sprache === "de" ? /diesem Gerät/.test(r.titel + r.text) && /Trainingseinträge \(\d+ hier, 2 im Backup\)/.test(r.text) && /Routinen und Wochenplan/.test(r.text) && /nicht rückgängig/.test(r.text) : /this device/.test(r.titel + r.text) && /workout entries \(\d+ here, 2 in the backup\)/.test(r.text) && /routines and the weekly plan/.test(r.text) && /cannot be undone/.test(r.text), r.text);
+      pruefe(n + " Ersetzen: Abbrechen und Endgültig ersetzen", r.knoepfe.length === 2 && /^(Abbrechen|Cancel)\|.*haupt/.test(r.knoepfe[0]) && /^(Endgültig ersetzen|Replace permanently)\|.*gefahr/.test(r.knoepfe[1]), r.knoepfe.join(" / "));
+      pruefe(n + " Ersetzen: Rückfrage ganz lesbar (ggf. scrollen), beide Knöpfe tippbar", r.passt && r.tippbar, JSON.stringify({ passt: r.passt, tippbar: r.tippbar }));
+      pruefe(n + " Ersetzen: vor der Bestätigung nichts gespeichert", await speicher() === vorher);
+      // Abbrechen: nichts geändert, Import-Dialog wieder da, „Ergänzen“ ohne Rückfrage
+      await page.locator("#frage-knoepfe .dialog-btn").first().click();
+      await page.waitForTimeout(250);
+      const nachAbbruch = await page.evaluate(() => ({ import: document.getElementById("dialog-hintergrund").classList.contains("offen"), frage: document.getElementById("frage-hintergrund").classList.contains("offen") }));
+      pruefe(n + " Abbrechen: nichts geändert, Import-Dialog wieder offen", nachAbbruch.import && !nachAbbruch.frage && await speicher() === vorher, JSON.stringify(nachAbbruch));
+      // Jetzt bewusst ersetzen
+      await page.click("button[onclick=\"importAusfuehren('ersetzen')\"]");
+      await page.waitForTimeout(250);
+      await page.locator("#frage-knoepfe .dialog-btn.gefahr").click();
+      await page.waitForTimeout(350);
+      const d = await page.evaluate(() => ({ ids: eintraege.map((x) => x.id).join(), routinen: routinen.map((x) => x.id).join(), stil: einstellungen.stil, design: einstellungen.design, meldung: document.getElementById("daten-meldung").textContent }));
+      pruefe(n + " Endgültig ersetzen: Einträge und Routinen aus dem Backup, Stil bleibt", d.ids === "v1,v2" && d.routinen === "rb" && d.stil === stil && d.design === design && /2/.test(d.meldung), JSON.stringify(d));
+      pruefe(n + " Ersetzen: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
+      await ctx.close();
+    }
+    // Ergänzen fragt nicht nach
+    {
+      const { ctx, page } = await seite(browser, 390, "de");
+      await page.evaluate((t) => backupLesen(t), JSON.stringify({ eintraege: [e("w1", 30, [satz(50, 8)])] }));
+      await page.waitForTimeout(200);
+      await page.click("button[onclick=\"importAusfuehren('ergaenzen')\"]");
+      await page.waitForTimeout(300);
+      const r = await page.evaluate(() => ({ frage: document.getElementById("frage-hintergrund").classList.contains("offen"), n: eintraege.length }));
+      pruefe("Ergänzen: ohne Rückfrage wie bisher", !r.frage && r.n === BASIS.eintraege.length + 1, JSON.stringify(r));
+      await ctx.close();
     }
   }
   // ======== Gym-Spiel (Phase 12): Einträge in der Zukunft verbuchen erst, wenn ihr Datum erreicht ist ========

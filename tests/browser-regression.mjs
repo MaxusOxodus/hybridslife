@@ -269,7 +269,7 @@ try {
         await page.waitForTimeout(300);
         const d = await page.evaluate(() => { const h = document.getElementById("dialog-hintergrund"); const t = document.getElementById("dialog-text"); return { offen: h.classList.contains("offen"), text: t.textContent, ueber: t.scrollWidth > t.clientWidth + 1 }; });
         await foto(page, "import-" + breite + "-" + sprache);
-        pruefe(breite + "-" + sprache + " Import: Frage nennt unmögliche Werte, Dublette, Zukunft, Zusatzangaben", d.offen && /1 Einträge mit unmöglichen|1 entries with impossible/.test(d.text) && /doppelte|duplicate/.test(d.text) && /Zukunft|future/.test(d.text) && /Zusatzangaben|extra data/.test(d.text) && !d.ueber, d.text);
+        pruefe(breite + "-" + sprache + " Import: Frage nennt unmögliche Werte, Dublette, Zukunft, Zusatzangaben", d.offen && /1 Eintrag mit unmöglichen Werten wird|1 entry with impossible values will/.test(d.text) && !/1 Einträge|1 entries/.test(d.text) && /doppelte|duplicate/.test(d.text) && /Zukunft|future/.test(d.text) && /Zusatzangaben|extra data/.test(d.text) && !d.ueber, d.text);
         // Beide Knöpfe lassen sich antippen: nach dem Scrollen liegt an ihrer Mitte wirklich der Knopf (kein Scheintest)
         const knopf = await page.evaluate(() => [...document.querySelectorAll("#dialog-hintergrund .dialog-btn")].every((b) => {
           b.scrollIntoView({ block: "center" });

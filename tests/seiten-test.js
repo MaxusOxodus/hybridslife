@@ -42,7 +42,7 @@ const a = new Function(uebungenQuelle
   + "const PAUSE_SCHRITT = 15; const PAUSE_MAX = 600; let idZaehler = 0;"
   + "function idErgaenzen() {}"
   + "function txt(s, w) { return s + (w ? \" \" + JSON.stringify(w) : \"\"); }"
-  + "function txtAnzahl(s, n) { return s + \" \" + n; }"
+  + "function txtAnzahl(s, n, w) { return w ? txt(s, w) : s + \" \" + n; }"
   + konstanteHolen("EINSEITIG_NAME")
   + ECHT.map(funktionHolen).join("")
   + "return { " + ECHT.join(", ") + " };")();
@@ -96,8 +96,8 @@ pruefe("Einzeln ohne Satz-Ziel: ein Satz erledigt", a.uebungErledigt(mitSaetzen(
 pruefe("Stand Einzeln fertig", a.uebungStandText(mitSaetzen(einzeln, 6)).startsWith("stand.fertig"));
 
 // ---------- Ziel-Text ----------
-pruefe("Ziel-Text Zusammen", a.zielText(rudern) === 'ziel.beides {"saetze":3,"wdh":"8–12"}', a.zielText(rudern));
-pruefe("Ziel-Text Einzeln je Seite", a.zielText(einzeln) === 'ziel.beidesSeiten {"saetze":3,"wdh":"8–12"}', a.zielText(einzeln));
+pruefe("Ziel-Text Zusammen", a.zielText(rudern) === 'ziel.beides {"saetze":3,"wdh":"chip.wdh {\\"wdh\\":\\"8–12\\"}"}', a.zielText(rudern));
+pruefe("Ziel-Text Einzeln je Seite", a.zielText(einzeln) === 'ziel.beidesSeiten {"saetze":3,"wdh":"chip.wdh {\\"wdh\\":\\"8–12\\"}"}', a.zielText(einzeln));
 pruefe("Ziel-Text Einzeln nur Sätze", a.zielText(Object.assign({}, einzeln, { zielWdh: null, zielWdhMax: null })) === 'ziel.saetzeSeiten {"saetze":3}');
 
 // ---------- Kopieren (Editor, Duplizieren) und Import ----------

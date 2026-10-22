@@ -45,7 +45,7 @@ function umgebung(sprache, routinen, laufend) {
     + "const routinen = " + JSON.stringify(routinen || []) + ";"
     + "let laufendesTraining = " + JSON.stringify(laufend || null) + ";"
     + "function txt(s, w) { let t = TEXTE[s][sprache]; for (const k in (w || {})) t = t.split('{' + k + '}').join(w[k]); return t; }"
-    + "function txtAnzahl(s, n) { return n + ' Sätze'; }"
+    + funktionHolen("txtAnzahl")
     + "function element(tag, klasse, text) { return { tag, className: klasse, text: text === undefined ? '' : String(text), kinder: [], appendChild(k) { this.kinder.push(k); } }; }"
     + konstanteHolen("EINSEITIG_NAME")
     + ECHT.map(funktionHolen).join("")

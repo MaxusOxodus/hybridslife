@@ -49,7 +49,7 @@ function geraet(stand) {
     + "let importEinstellungen = null; let importProfil = null; let importEigene = null; let importGeloeschte = null; let importNotizen = null; let importCoach = null; let importOhne = []; let importPruefung = null;"
     + "const FETT_MIN = 3; const FETT_MAX = 60;"
     + "const document = { getElementById: function () { return { textContent: '', classList: { add: function () {}, remove: function () {} } }; } };"
-    + "function txt(k) { return k; } function datenMeldung() {} function listeZuordnen() {} function eintragIdsErgaenzen() {}"
+    + "function txt(k) { return k; } function txtAnzahl(k) { return k; } function datenMeldung() {} function listeZuordnen() {} function eintragIdsErgaenzen() {}"
     + "function coachBereinigen(c) { return JSON.parse(JSON.stringify(c)); } function notizenBereinigen(n) { return JSON.parse(JSON.stringify(n)); }"
     + "function profilBereinigen(p) { return JSON.parse(JSON.stringify(p)); } function trainingBereinigen(t) { return t; } function routineBereinigen(r) { return r; }"
     + "function spracheBekannt(s) { return s === 'de' || s === 'en'; } function kraftUebungBereinigen() { return null; } function rangMerkerBereinigen(m) { return m; }"

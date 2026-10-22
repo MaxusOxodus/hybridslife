@@ -50,7 +50,7 @@ function umgebung(eintraege, einstellungen, sprache) {
     + "let laufendesTraining = null; const geloeschteEigengewicht = []; let coach = {}; const TAG_MS = 86400000;"
     + "const UEBUNG_NACH_ID = {}; for (const u of UEBUNGEN) UEBUNG_NACH_ID[u.id] = u;"
     + "function gebiet() { return " + JSON.stringify(sprache === "en" ? "en-US" : "de-DE") + "; }"
-    + "function txt(schluessel, werte) { return schluessel + (werte ? \" \" + JSON.stringify(werte) : \"\"); }";
+    + "function txt(schluessel, werte) { return schluessel + (werte ? \" \" + JSON.stringify(werte) : \"\"); } function txtAnzahl(schluessel, n, werte) { return txt(schluessel, werte || { n: n }); }";
   for (const k of KONSTANTEN) {
     code += konstanteHolen(k);
   }

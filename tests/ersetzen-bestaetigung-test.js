@@ -35,7 +35,7 @@ function pruefe(name, ok, info) {
   }
 }
 
-const ECHT = ["backupLesen", "importAusfuehren", "ersetzenFragen", "ersetzenUmfang", "eintraegePruefen", "importPruefungText", "zahlUnmoeglich",
+const ECHT = ["txtAnzahl", "backupLesen", "importAusfuehren", "ersetzenFragen", "ersetzenUmfang", "eintraegePruefen", "importPruefungText", "zahlUnmoeglich",
   "eintragInZukunft", "eintragFinden", "neueId", "inhaltText", "eintragNurBekannt", "eintragIdsErgaenzen", "einstellungenBereinigen",
   "einstellungenUebernehmen", "eintragSchluessel", "hatDatum", "tagSchluessel", "pauseLesen", "trainingsImportieren", "trainingBereinigen",
   "routinenImportieren", "routineFinden", "gewichteImportieren", "fettVonHierBehalten", "koerperfettVon", "eigeneImportieren", "profilUebernehmen"];

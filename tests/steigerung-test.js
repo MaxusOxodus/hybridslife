@@ -51,7 +51,7 @@ function umgebung(eintraege, einstellungen) {
     + "let laufendesTraining = null; const geloeschteEigengewicht = []; let coach = {}; const TAG_MS = 86400000;"
     + "const UEBUNG_NACH_ID = { klimmzug: { bereich: \"eigen\" }, bankdruecken: { bereich: \"frei\" } };"
     + "function gebiet() { return \"de-DE\"; }"
-    + "function txt(schluessel, werte) { return schluessel + (werte ? \" \" + JSON.stringify(werte) : \"\"); }";
+    + "function txt(schluessel, werte) { return schluessel + (werte ? \" \" + JSON.stringify(werte) : \"\"); } function txtAnzahl(schluessel, n, werte) { return txt(schluessel, werte || { n: n }); }";
   for (const k of KONSTANTEN) {
     code += konstanteHolen(k);
   }

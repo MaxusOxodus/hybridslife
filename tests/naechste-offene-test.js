@@ -63,7 +63,7 @@ function umgebung() {
     + "const window = { scrollTo: function () {} };"
     + "const document = { getElementById: elementHolen };"
     + "function feldWert() { return 10; } function gewichtFeldWert() { return 50; }"
-    + "function txt(schluessel, werte) { return werte && werte.name ? schluessel + ':' + werte.name : schluessel; }"
+    + "function txt(schluessel, werte) { return werte && werte.name ? schluessel + ':' + werte.name : schluessel; } function txtAnzahl(schluessel, n, werte) { return txt(schluessel, werte || { n: n }); }"
     + "function anzeigeName(name) { return name; } function pauseText() { return '1:30'; }"
     + "function pauseDauer(u) { return 90; }"
     + "function pauseStarten(s) { protokoll.pausen.push({ sekunden: s, index: laufendesTraining.index }); protokoll.pauseRest = s * 1000; }"

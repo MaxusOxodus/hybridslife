@@ -51,7 +51,7 @@ function geraet(stand) {
     + "let importEinstellungen = null; let importProfil = null; let importEigene = null; let importGeloeschte = null; let importNotizen = null; let importCoach = null; let importOhne = []; let importPruefung = null;"
     + "const FETT_MIN = 3; const FETT_MAX = 60; const meldungen = []; const elemente = {};"
     + "const document = { getElementById: function (id) { if (!elemente[id]) { elemente[id] = { textContent: '', classList: { add: function () {}, remove: function () {} } }; } return elemente[id]; } };"
-    + "function txt(k, w) { return k + (w ? JSON.stringify(w) : ''); } function datenMeldung(t) { meldungen.push(t); } function listeZuordnen() {}"
+    + "function txt(k, w) { return k + (w ? JSON.stringify(w) : ''); } function txtAnzahl(k, n, w) { return txt(k, Object.assign({ n: n }, w || {})); } function datenMeldung(t) { meldungen.push(t); } function listeZuordnen() {}"
     + "function coachBereinigen(c) { return JSON.parse(JSON.stringify(c)); } function notizenBereinigen(n) { return n; } function profilBereinigen(p) { return p; }"
     + "function routineBereinigen(r) { return r; } function spracheBekannt() { return false; } function kraftUebungBereinigen() { return null; }"
     + "function rangMerkerBereinigen(m) { return m; } function statusAnzeigen() {} function einstellungenSpeichern() {} function designAnwenden() {} function designAnzeigen() {}"

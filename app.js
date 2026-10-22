@@ -891,6 +891,8 @@
 
   // Dasselbe für Texte mit Einzahl und Mehrzahl: Bei genau 1 gilt der Schlüssel mit ".eins",
   // sonst der mit ".viele". Die Anzahl steht im Text als {n}.
+  // Seit Version 190 (Audit Phase 13, F4): Gibt es kein ".viele", ist der Schlüssel selbst die Mehrzahl, und ohne ".eins"
+  // bleibt es bei der Mehrzahl. So bekommt ein vorhandener Text nur ein ".eins" dazu, Schlüssel und Aufrufe bleiben gleich.
   function txtAnzahl(schluessel, anzahl, werte) {
     const alle = { n: anzahl };
     if (werte) {
@@ -898,10 +900,11 @@
         alle[name] = werte[name];
       });
     }
-    if (Number(anzahl) === 1) {
+    const viele = TEXTE[schluessel + ".viele"] ? schluessel + ".viele" : schluessel;
+    if (Number(anzahl) === 1 && (TEXTE[schluessel + ".eins"] || viele !== schluessel)) {
       return txt(schluessel + ".eins", alle);
     }
-    return txt(schluessel + ".viele", alle);
+    return txt(viele, alle);
   }
 
   // Setzt die festen Texte der index.html in der eingestellten Sprache ein. Jedes Element nennt seinen
@@ -2690,7 +2693,7 @@
       }
     }
     if (alleGleich) {
-      return txtAnzahl("eintrag.gleich", e.saetze, { wdh: e.wdh, gewicht: gewichtText(e.gewicht) });
+      return txtAnzahl("eintrag.gleich", e.saetze, { wdhText: txtAnzahl("chip.wdh", e.wdh, { wdh: e.wdh }), gewicht: gewichtText(e.gewicht) });
     }
 
     const teile = [];
@@ -3194,12 +3197,12 @@
     bereich.innerHTML = "";
     const kopf = element("div", "konstanz-kopf");
     kopf.appendChild(element("span", "konstanz-titel", txt("konstanz.titel")));
-    kopf.appendChild(element("span", "konstanz-zahl", txt("konstanz.serie", { n: gesamtZahlen().serie })));
+    kopf.appendChild(element("span", "konstanz-zahl", txtAnzahl("konstanz.serie", gesamtZahlen().serie)));
     bereich.appendChild(kopf);
 
     const raster = element("div", "konstanz-raster");
     raster.setAttribute("role", "img");
-    raster.setAttribute("aria-label", txt("konstanz.tage30", { n: anzahl }));
+    raster.setAttribute("aria-label", txtAnzahl("konstanz.tage30", anzahl));
     for (let i = 0; i < letzte.length; i++) {
       raster.appendChild(element("span", "konstanz-feld stufe-" + letzte[i].stufe + (letzte[i].heute ? " heute" : "")));
     }
@@ -3304,13 +3307,13 @@
       seiten = "Seiten";
     }
     if (uebung.zielSaetze && uebung.zielWdh) {
-      return txt("ziel.beides" + seiten, { saetze: uebung.zielSaetze, wdh: wdh });
+      return txtAnzahl("ziel.beides" + seiten, uebung.zielSaetze, { saetze: uebung.zielSaetze, wdh: txtAnzahl("chip.wdh", wdh, { wdh: wdh }) });
     }
     if (uebung.zielSaetze) {
-      return txt("ziel.saetze" + seiten, { saetze: uebung.zielSaetze });
+      return txtAnzahl("ziel.saetze" + seiten, uebung.zielSaetze, { saetze: uebung.zielSaetze });
     }
     if (uebung.zielWdh) {
-      return txt("ziel.wdh", { wdh: wdh });
+      return txtAnzahl("ziel.wdh", wdh, { wdh: wdh });
     }
     return "";
   }
@@ -5514,7 +5517,7 @@
     }
     if (v.art === "steigern") {
       const schritt = "+" + zahlText(steigerungSchritt(u)) + " " + einheit();
-      return txt("modus.steigern", { schritt: schritt, gewicht: gewichtText(v.alt), wdh: v.ziel });
+      return txtAnzahl("modus.steigern", v.ziel, { schritt: schritt, gewicht: gewichtText(v.alt), wdh: v.ziel });
     }
     if (v.art === "pause") {
       return txt("modus.haltenPause", { tage: STEIGERN_PAUSE_TAGE });
@@ -5537,7 +5540,7 @@
     if (v.art === "senken") {
       return txt("modus.senken", { schritt: "−" + zahlText(Math.round((ausKg(v.alt) - ausKg(v.gewicht)) * 100) / 100) + " " + einheit(), wdh: u.zielWdh });
     }
-    return txt("modus.halten", { wdh: v.ziel });
+    return txtAnzahl("modus.halten", v.ziel, { wdh: v.ziel });
   }
 
   // ---------- Notizen je Übung (seit Version 141) ----------
@@ -5586,14 +5589,14 @@
     const behaelter = document.getElementById("modus-chips");
     behaelter.innerHTML = "";
     if (u.zielSaetze) {
-      behaelter.appendChild(element("span", "modus-chip", txt(zaehltSeiten(u) ? "chip.saetzeSeiten" : "chip.saetze", { n: u.zielSaetze })));
+      behaelter.appendChild(element("span", "modus-chip", txtAnzahl(zaehltSeiten(u) ? "chip.saetzeSeiten" : "chip.saetze", u.zielSaetze)));
     }
     if (u.zielWdh) {
       let wdh = String(u.zielWdh);
       if (wdhBis(u)) {
         wdh += "–" + wdhBis(u);
       }
-      behaelter.appendChild(element("span", "modus-chip", txt("chip.wdh", { wdh: wdh })));
+      behaelter.appendChild(element("span", "modus-chip", txtAnzahl("chip.wdh", wdh, { wdh: wdh })));
     }
     // Einseitige Übung (seit Version 141): Ein Tipp schaltet für dieses Training zwischen "Beide" und "Einzeln" (R/L) um
     if (einseitig(u.uebungId, u.name)) {
@@ -5684,9 +5687,9 @@
     const seiten = zaehltSeiten(u);
     let satzText = txt("modus.satz", { n: satzNummer(gemacht, seiten) });
     if (zielErreicht && gemacht === ziel && seiten) {
-      satzText = txt("modus.zielGeschafftSeiten", { n: u.zielSaetze, ziel: u.zielSaetze });
+      satzText = txtAnzahl("modus.zielGeschafftSeiten", u.zielSaetze, { ziel: u.zielSaetze });
     } else if (zielErreicht && gemacht === ziel) {
-      satzText = txt("modus.zielGeschafft", { n: gemacht, ziel: ziel });
+      satzText = txtAnzahl("modus.zielGeschafft", ziel, { n: gemacht, ziel: ziel });
     } else if (zielErreicht) {
       satzText = txt("modus.geschafft", { n: gemacht });
     } else if (gemacht < ziel) {
@@ -5819,7 +5822,7 @@
       teile.push(gewichtText(gewicht));
     }
     if (wdh !== "") {
-      teile.push(txt("chip.wdh", { wdh: wdh }));
+      teile.push(txtAnzahl("chip.wdh", wdh, { wdh: wdh }));
     }
     text.appendChild(element("div", "naechstes-ziel", teile.join(" × ")));
     karte.appendChild(text);
@@ -6976,9 +6979,9 @@
     }
     // Bei "Einzeln": der letzte gemachte Satz mit Seite und das Ziel je Seite, z. B. "2 L von 3 Sätzen"
     if (zaehltSeiten(u)) {
-      return txt("stand.xVonY", { x: satzNummer(gemacht - 1, true), y: u.zielSaetze });
+      return txtAnzahl("stand.xVonY", u.zielSaetze, { x: satzNummer(gemacht - 1, true), y: u.zielSaetze });
     }
-    return txt("stand.xVonY", { x: gemacht, y: satzZiel(u) });
+    return txtAnzahl("stand.xVonY", satzZiel(u), { x: gemacht, y: satzZiel(u) });
   }
 
   // Look Korund (seit Version 142): die Teile einer Zeile in der Übersicht wie im Entwurf.
@@ -11854,22 +11857,22 @@
     }
     let text = "";
     if (p.unmoeglich > 0) {
-      text += " " + txt("backup.pruefung.unmoeglich", { n: p.unmoeglich });
+      text += " " + txtAnzahl("backup.pruefung.unmoeglich", p.unmoeglich);
     }
     if (p.doppelt > 0) {
-      text += " " + txt("backup.pruefung.doppelt", { n: p.doppelt });
+      text += " " + txtAnzahl("backup.pruefung.doppelt", p.doppelt);
     }
     if (p.neueIds > 0) {
-      text += " " + txt("backup.pruefung.neueIds", { n: p.neueIds });
+      text += " " + txtAnzahl("backup.pruefung.neueIds", p.neueIds);
     }
     if (p.zukunft > 0) {
-      text += " " + txt("backup.pruefung.zukunft", { n: p.zukunft });
+      text += " " + txtAnzahl("backup.pruefung.zukunft", p.zukunft);
     }
     if (p.ohneDatum > 0) {
-      text += " " + txt("backup.pruefung.ohneDatum", { n: p.ohneDatum });
+      text += " " + txtAnzahl("backup.pruefung.ohneDatum", p.ohneDatum);
     }
     if (p.unbekannt > 0) {
-      text += " " + txt("backup.pruefung.unbekannt", { n: p.unbekannt });
+      text += " " + txtAnzahl("backup.pruefung.unbekannt", p.unbekannt);
     }
     return text;
   }
@@ -11943,7 +11946,7 @@
           wochenplan[i] = String(importWochenplan[i] || "");
         }
       }
-      text = " " + txt("backup.routinenErsetzt", { n: routinen.length });
+      text = " " + txtAnzahl("backup.routinenErsetzt", routinen.length);
     } else {
       // Nur Routinen hinzufügen, die es hier noch nicht gibt (erkannt an der id)
       let hinzugefuegt = 0;
@@ -11961,7 +11964,7 @@
           }
         }
       }
-      text = " " + txt("backup.routinenErgaenzt", { n: hinzugefuegt });
+      text = " " + txtAnzahl("backup.routinenErgaenzt", hinzugefuegt);
     }
 
     wochenplanBereinigen();
@@ -12001,7 +12004,7 @@
       // Die bisherigen Einheiten gehören zu den ersetzten Einträgen und gehen mit ihnen
       trainings = importTrainings || [];
       if (importTrainings !== null) {
-        text = " " + txt("backup.trainingsErsetzt", { n: trainings.length });
+        text = " " + txtAnzahl("backup.trainingsErsetzt", trainings.length);
       }
     } else if (importTrainings !== null) {
       // Nur Einheiten hinzufügen, die es hier noch nicht gibt (erkannt an der id)
@@ -12017,7 +12020,7 @@
           hinzugefuegt++;
         }
       }
-      text = " " + txt("backup.trainingsErgaenzt", { n: hinzugefuegt });
+      text = " " + txtAnzahl("backup.trainingsErgaenzt", hinzugefuegt);
     }
 
     sicherSpeichern("trainings", trainings);
@@ -12034,7 +12037,7 @@
     let text;
     if (art === "ersetzen") {
       koerpergewicht = importOhne.indexOf("koerperfett") !== -1 ? fettVonHierBehalten(importGewichte) : importGewichte;
-      text = " " + txt("backup.gewichteErsetzt", { n: koerpergewicht.length });
+      text = " " + txtAnzahl("backup.gewichteErsetzt", koerpergewicht.length);
     } else {
       // Nur Tage hinzufügen, für die es hier noch keine Messung gibt
       const vorhanden = {};
@@ -12052,7 +12055,7 @@
           hinzugefuegt++;
         }
       }
-      text = " " + txt("backup.gewichteErgaenzt", { n: hinzugefuegt });
+      text = " " + txtAnzahl("backup.gewichteErgaenzt", hinzugefuegt);
     }
 
     gewichteSpeichern();
@@ -12100,7 +12103,7 @@
     // auch wenn sie im Backup anders heißt.
     const anzahl = eigeneUebungenAufnehmen(importEigene);
     eigeneUebungenSpeichern();
-    return " " + txt(schluessel, { n: anzahl });
+    return " " + txtAnzahl(schluessel, anzahl);
   }
 
   // Prüft die Einstellungen aus einem Backup und gibt nur zurück, was gültig ist
@@ -12247,7 +12250,7 @@
     if (istIOS && navigator.canShare && navigator.canShare({ files: [datei] })) {
       navigator.share({ files: [datei] }).then(function () {
         backupDatumMerken();
-        datenMeldung(txt("backup.exportiert", { n: eintraege.length }));
+        datenMeldung(txtAnzahl("backup.exportiert", eintraege.length));
       }).catch(function (fehler) {
         // AbortError heißt nur: Das Teilen-Menü wurde ohne Auswahl geschlossen
         if (fehler.name !== "AbortError") {
@@ -12264,7 +12267,7 @@
   function dateiHerunterladen(datei) {
     dateiSpeichern(datei);
     backupDatumMerken();
-    datenMeldung(txt("backup.exportiert", { n: eintraege.length }));
+    datenMeldung(txtAnzahl("backup.exportiert", eintraege.length));
   }
 
   // Normaler Download einer Datei über einen unsichtbaren Link. Mehr passiert hier nicht:
@@ -12461,10 +12464,10 @@
       return;
     }
 
-    let dialogText = txt("backup.frage", { neu: importEintraege.length, hier: eintraege.length });
+    let dialogText = txtAnzahl("backup.frage", importEintraege.length, { hier: txtAnzahl("backup.frageHier", eintraege.length) });
     dialogText += importPruefungText(importPruefung);
     if (importRoutinen !== null) {
-      dialogText += " " + txt("backup.frageRoutinen", { neu: importRoutinen.length, hier: routinen.length });
+      dialogText += " " + txtAnzahl("backup.frageRoutinen", importRoutinen.length, { hier: txtAnzahl("backup.frageRoutinenHier", routinen.length) });
     }
     document.getElementById("dialog-text").textContent = dialogText;
     document.getElementById("dialog-hintergrund").classList.add("offen");
@@ -12577,7 +12580,7 @@
     let meldung;
     if (art === "ersetzen") {
       eintraege = importEintraege;
-      meldung = txt("backup.ersetzt", { n: eintraege.length });
+      meldung = txtAnzahl("backup.ersetzt", eintraege.length);
     } else {
       // Zählen, wie oft es jeden Eintrag schon gibt. Nur was darüber hinausgeht, kommt dazu.
       const vorhanden = {};
@@ -12626,9 +12629,9 @@
           t.eintragIds = t.eintragIds.map(function (id) { return umbenannt[id] || id; });
         });
       }
-      meldung = txt("backup.ergaenzt", { neu: hinzugefuegt, alt: uebersprungen });
+      meldung = txtAnzahl("backup.ergaenzt", hinzugefuegt, { alt: txtAnzahl("backup.ergaenztAlt", uebersprungen) });
       if (abweichend > 0) {
-        meldung += " " + txt("backup.abweichend", { n: abweichend });
+        meldung += " " + txtAnzahl("backup.abweichend", abweichend);
       }
     }
     datenMeldung(meldung + routinenImportieren(art) + trainingsImportieren(art) + gewichteImportieren(art) + eigeneText);
@@ -13952,7 +13955,7 @@
       info.appendChild(element("span", "profil-rang", rangName(stand.kraft.gesamt)));
     }
     if (zahlen.serie > 0) {
-      const serie = element("button", "profil-serie", txt("profil.serieKurz", { n: zahlen.serie }));
+      const serie = element("button", "profil-serie", txtAnzahl("profil.serieKurz", zahlen.serie));
       serie.type = "button";
       serie.onclick = serieSeiteOeffnen;
       info.appendChild(serie);
@@ -18553,7 +18556,7 @@
   }
 
   function cloudUeberschreibenFragen(alt, nutzer, nachAnmeldung) {
-    const text = txt("cloud.mehrInCloud", { n: alt.eintraege, datum: datumMitJahr(new Date(alt.aktualisiert)), hier: eintraege.length });
+    const text = txtAnzahl("cloud.mehrInCloud", alt.eintraege, { datum: datumMitJahr(new Date(alt.aktualisiert)), hier: txtAnzahl("cloud.mehrInCloudHier", eintraege.length) });
     const holen = { text: txt("cloud.holen"), art: "haupt", aktion: cloudHolen };
     const ueberschreiben = { text: txt("cloud.ueberschreiben"), art: "gefahr", aktion: function () {
       cloudBeschaeftigt(true);
@@ -18576,7 +18579,7 @@
       cloudBeschaeftigt(false);
       einstWerteAnzeigen();
       if (manuell) {
-        cloudMeldung(txt("cloud.gesichert", { n: eintraege.length }));
+        cloudMeldung(txtAnzahl("cloud.gesichert", eintraege.length));
       }
     });
   }

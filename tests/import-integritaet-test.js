@@ -137,6 +137,14 @@ const volumen = (liste) => liste.reduce((s, e) => s + (Array.isArray(e.einzelsae
   pruefe("C Anderer Eintrag mit gleicher id: beide bleiben, neue id für den aus dem Backup", s.length === 2 && s[0].id === "d1" && s[1].uebung === "Kniebeuge" && s[1].id !== "d1", s.map((e) => e.id + ":" + e.uebung).join(","));
 }
 
+{
+  // C2 nur die Übung anders (gleiche id, gleiches Datum) und C3 nur das Datum anders: jeweils ein anderer Eintrag
+  const g = geraet({ eintraege: [ok("d2"), ok("d3")] });
+  importieren(g, { eintraege: [ok("d2", { uebung: "Rudern", uebungId: "rudern-lh" }), ok("d3", { datum: tag(8) })] }, "ergaenzen");
+  const s = g.stand();
+  pruefe("C2/C3 Nur Übung oder nur Datum anders: beide kommen mit neuer id dazu", s.length === 4 && s[2].uebung === "Rudern" && s[3].datum === tag(8) && new Set(s.map((e) => e.id)).size === 4, s.map((e) => e.id + ":" + e.uebung).join(","));
+}
+
 // ---- D: trainings[].eintragIds folgen einer neuen id ----
 {
   const lokal = ok("t1");

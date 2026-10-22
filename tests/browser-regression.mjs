@@ -324,8 +324,8 @@ try {
     const T0 = jetzt;
     const tagIso = (t) => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
     const eintrag = (id, zeit, kg) => ({ id, uebung: "Bankdrücken", uebungId: "bankdruecken-lh", muskelgruppe: "brust", datum: new Date(zeit).toISOString(), einzelsaetze: [{ gewicht: kg, wdh: 8 }], saetze: 1, gewicht: kg, wdh: 8 });
-    async function spielSeite(lokal, zeit) {
-      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "de-DE" });
+    async function spielSeite(lokal, zeit, zone) {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "de-DE", timezoneId: zone || undefined });
       await ctx.route(/supabase\.co/, (r) => r.abort());
       await ctx.addInitScript((d) => {
         if (!sessionStorage.getItem("gesetzt")) {
@@ -413,6 +413,21 @@ try {
       const r = await f.evaluate(() => window.__gym.stand().verarbeitet.slice());
       pruefe("Spiel im Gym-Tab: 3 vergangene Tage verbucht, Zukunft nicht", r.length === 3 && !r.includes(tagIso(jetztPlus3())), JSON.stringify(r));
       pruefe("Spiel im Gym-Tab: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
+      await ctx.close();
+    }
+    // 7. Zeitzonen und Zeitumstellung: Ende der Sommerzeit in Europa (25.10.2026), Datumsgrenze und Westküste. Der Spieltag ist
+    //    der Kalendertag des Eintrags in der Zone des Geräts, die 24 Stunden sind echte Stunden (Date.now), keine Kalendertage.
+    for (const zone of ["Europe/Berlin", "Pacific/Kiritimati", "America/Los_Angeles"]) {
+      const T = Date.parse("2026-10-24T22:30:00Z");
+      const alt = eintrag("z1", T - 2 * TAG, 60), spaet = eintrag("z2", T + 30 * 3600000, 62);
+      const { ctx, page, fehler } = await spielSeite({ eintraege: [alt, spaet] }, T, zone);
+      const schluessel = await page.evaluate((zeiten) => zeiten.map((t) => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }), [T - 2 * TAG, T + 30 * 3600000]);
+      const a = await sync(page);
+      pruefe("Spiel " + zone + ": 30 h voraus nicht verbucht, der alte Tag schon", a.verarbeitet.includes(schluessel[0]) && !a.verarbeitet.includes(schluessel[1]) && a.verarbeitet.length === 1, JSON.stringify(a.verarbeitet));
+      await page.clock.setSystemTime(T + 7 * 3600000);
+      const b = await sync(page);
+      pruefe("Spiel " + zone + ": nach 7 h (23 h voraus) verbucht, als Kalendertag der Zone", b.verarbeitet.includes(schluessel[1]) && b.verarbeitet.length === 2, JSON.stringify(b.verarbeitet) + " erwartet " + schluessel[1]);
+      pruefe("Spiel " + zone + ": keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
       await ctx.close();
     }
     // 4. Wochenzahl des Spiels (Truhe, Serie) zählt nur Tage bis heute, auch wenn ein alter Spielstand einen späteren Tag dieser Woche hat

@@ -217,7 +217,9 @@ try {
         level: (document.getElementById("profil-level") || {}).textContent || "",
         comebacks: comebacks().length,
         letztesMal: letztesMalText("Bankdrücken", "bankdruecken-lh"),
-        verlauf: verlaufPunkte("Bankdrücken", "bankdruecken-lh", "rang").length
+        verlauf: verlaufPunkte("Bankdrücken", "bankdruecken-lh", "rang").length,
+        // Home-Karte „Letztes Training“ (letztesTraining, Mutation N6)
+        letztesTraining: (function () { const l = letztesTraining(); return l ? new Date(l.datum).toISOString().slice(0, 10) + "|" + l.eintraege.length : null; })()
       });
     };
     const zukunft = e("z", -30, [satz(200, 5), satz(200, 5), satz(200, 5)]);

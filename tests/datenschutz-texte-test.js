@@ -79,6 +79,16 @@ const index = lesen("index.html");
 const ersatz = /data-t="ueber\.lokal">([^<]*)</.exec(index);
 pruefe("Ersatztext ueber.lokal in der index.html passt", !!ersatz && TEXTE["ueber.lokal"].de.indexOf(ersatz[1]) === 0);
 
+// Seit Version 188 (Audit Phase 13, Befund F1): cloud.automatisch darf nicht sagen, die Cloud sichere dasselbe wie der
+// Backup-Export. Seit Version 178 lädt cloudDaten() weniger hoch; der Text nennt, was auf dem Gerät bleibt (wie cloud.datenschutz).
+const automatisch = TEXTE["cloud.automatisch"];
+pruefe("cloud.automatisch: nicht mehr „dasselbe wie beim Backup-Export“", !/dasselbe wie beim Backup-Export|gleiche wie beim Backup-Export/i.test(automatisch.de) && !/same as the backup export/i.test(automatisch.en));
+pruefe("cloud.automatisch: weniger als der Backup-Export", /weniger als beim Backup-Export/.test(automatisch.de) && /less than the backup export/.test(automatisch.en));
+pruefe("cloud.automatisch: nennt, was auf dem Gerät bleibt", /Körperfett, Notizen, Einschränkungen, Auszeiten, Rückblick-Antworten und die meisten Einstellungen bleiben auf dem Gerät/.test(automatisch.de) && /body fat, notes, limitations, time off, review answers and most settings stay on the device/.test(automatisch.en));
+pruefe("cloud.automatisch: verweist auf „Backup exportieren“", automatisch.de.indexOf("„" + TEXTE["backup.exportieren"].de + "“") !== -1 && automatisch.en.indexOf("“" + TEXTE["backup.exportieren"].en + "”") !== -1);
+const automatischErsatz = /data-t="cloud\.automatisch">([^<]*)</.exec(lesen("index.html"));
+pruefe("Ersatztext cloud.automatisch in der index.html passt", !!automatischErsatz && automatischErsatz[1] === automatisch.de);
+
 // Jeder Schlüssel, den die index.html auf der Seite Cloud-Backup nennt, steht in der texte.js
 const cloudSeite = index.slice(index.indexOf('id="einst-ansicht-cloud"'), index.indexOf('id="einst-ansicht-profil"'));
 (cloudSeite.match(/data-t(?:-platzhalter)?="[^"]+"/g) || []).forEach(function (treffer) {

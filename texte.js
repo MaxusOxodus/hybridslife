@@ -1049,7 +1049,7 @@ const TEXTE = {
   "cloud.angemeldetAls": { de: "Angemeldet als", en: "Signed in as" },
   "cloud.jetzt": { de: "Jetzt sichern", en: "Back up now" },
   "cloud.holen": { de: "Aus der Cloud holen", en: "Restore from cloud" },
-  "cloud.automatisch": { de: "Nach jedem Training sichert Korund von selbst. Gesichert wird dasselbe wie beim Backup-Export.", en: "Korund backs up by itself after every workout. It saves the same as the backup export." },
+  "cloud.automatisch": { de: "Nach jedem Training sichert Korund von selbst. Gesichert wird weniger als beim Backup-Export: Körperfett, Notizen, Einschränkungen, Auszeiten, Rückblick-Antworten und die meisten Einstellungen bleiben auf dem Gerät. Diese Daten enthält nur die Datei von „Backup exportieren“.", en: "Korund backs up by itself after every workout. This saves less than the backup export: body fat, notes, limitations, time off, review answers and most settings stay on the device. Only the file from “Export backup” contains them." },
   "cloud.abmelden": { de: "Abmelden", en: "Sign out" },
   "cloud.abmeldenTitel": { de: "Abmelden?", en: "Sign out?" },
   "cloud.abmeldenText": { de: "Deine Daten bleiben auf diesem Gerät und dein Backup in der Cloud. Nach dem Abmelden sichert Korund nicht mehr automatisch.", en: "Your data stays on this device and your backup stays in the cloud. After signing out, Korund no longer backs up automatically." },

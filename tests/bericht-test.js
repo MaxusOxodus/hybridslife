@@ -33,7 +33,7 @@ funktionHolen = function (name) {
 function umgebung(eintraege) {
   let code = raenge
     + "const eintraege = " + JSON.stringify(eintraege) + ";"
-    + "const sprache = \"de\"; const geloeschteEigengewicht = []; const ZUKUNFT_TOLERANZ_MS = 86400000;"
+    + "const sprache = \"de\"; const geloeschteEigengewicht = [];" + /\n  const ZUKUNFT_TOLERANZ_MS = [^\n]*\n/.exec(quelle)[0]
     + "const UEBUNG_NACH_ID = { bankdruecken: { de: \"Bankdrücken\", en: \"Bench press\", bereich: \"frei\" }, kniebeuge: { de: \"Kniebeuge\", en: \"Squat\", bereich: \"frei\" } };"
     + "function koerpergewichtAm() { return null; }";
   for (const f of ECHT) {

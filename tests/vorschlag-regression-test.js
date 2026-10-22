@@ -297,6 +297,17 @@ for (const [name, ein, coach] of [["mit Merker", verlauf(0.005, true, true), coa
   pruefe("Zukunftseinträge verschieben den Vergleich nicht", umgebung({ eintraege: zukunft, jetzt: START + 5 * TAG }).gewichtUngewoehnlich(platz(B, N, 8, 10, 1), 40) === null);
 }
 
+// Phase 11 (Mutation M16): Senken zählt eine Entlastungseinheit nicht als zweiten Fehlversuch. Bei 5 kg ergibt die
+// Entlastung (90 %, auf 2,5 kg gerundet) wieder 5 kg, dieselbe Last wie davor.
+{
+  const ein = [eintrag("a", B, N, 0, [[5, 10], [5, 10]]), eintrag("d", B, N, 3, [[5, 6]], { entlastung: true }), eintrag("n", B, N, 10, [[5, 6], [5, 6]])];
+  const v = vorschlag({ eintraege: ein, coach: { letzteEntlastung: START + 8 * TAG, letzteEntlastungVon: START + 2 * TAG }, jetzt: START + 12 * TAG }, platz(B, N, 8, 10, 2));
+  pruefe("Senken: Entlastungseinheit zählt nicht als Fehlversuch (5 kg bleibt)", v.art === "halten" && v.gewicht === 5, v.art + " " + v.gewicht);
+  const ohneEnt = [eintrag("a", B, N, 0, [[5, 10], [5, 10]]), eintrag("d", B, N, 3, [[5, 6]]), eintrag("n", B, N, 10, [[5, 6], [5, 6]])];
+  const v2 = vorschlag({ eintraege: ohneEnt, jetzt: START + 12 * TAG }, platz(B, N, 8, 10, 2));
+  pruefe("Gegenprobe: zwei echte Fehlversuche mit 5 kg → senken", v2.art === "senken", v2.art + " " + v2.gewicht);
+}
+
 // ---- 8: Zukunftsdaten ----
 {
   const ein = [eintrag("z", B, N, 40, [[60, 10], [60, 10], [60, 10]]), eintrag("g", B, N, 9, [[80, 10], [80, 10], [80, 10]])];

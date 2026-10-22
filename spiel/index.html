@@ -1069,8 +1069,12 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     const eintraege = Array.isArray(daten) ? daten : daten && daten.eintraege;
     if (!Array.isArray(eintraege) || !eintraege.length) return leise ? null : toast("Keine Trainings", "In der Datei sind keine Einträge");
     const tage = {}, best = {}, grenze = Date.now() + ZUKUNFT_TOLERANZ_MS;
+    // Ein Tag wird nur als Ganzes verbucht: Liegt einer seiner Einträge hinter der Grenze, wartet der ganze Tag (sonst
+    // wäre er mit den frühen Einträgen verbucht und ein späterer Rekord bekäme nie Kristall und Ruf)
+    const warten = {};
+    eintraege.forEach(e => { const d = new Date(e && e.datum); if (!isNaN(d) && d.getTime() > grenze) warten[iso(d)] = true; });
     eintraege.slice().sort((a, b) => String(a.datum).localeCompare(String(b.datum))).forEach(e => {
-      const d = new Date(e.datum); if (isNaN(d) || d.getTime() > grenze) return; const t = iso(d);
+      const d = new Date(e.datum); if (isNaN(d) || warten[iso(d)]) return; const t = iso(d);
       const tg = tage[t] = tage[t] || { gruppen: [], familien: [], rekord: false };
       const g = gruppeAus(e); if (g.partie && !tg.gruppen.includes(g.partie)) tg.gruppen.push(g.partie); if (g.familie && !tg.familien.includes(g.familie)) tg.familien.push(g.familie);
       // Rekord wie in Korund: bestes geschätztes 1RM (1–10 Wdh., ohne Aufwärmsätze), die erste Ausführung zählt nicht

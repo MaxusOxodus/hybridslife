@@ -12549,7 +12549,9 @@
             vorhanden[schluessel]--;
           }
           uebersprungen++;
-          if (derselbe && inhaltText(hier) !== inhaltText(neu)) {
+          // Verglichen werden nur die bekannten Felder: Das Cloud-Backup lässt unbekannte Felder weg und macht aus null-Sätzen
+          // leere, das eigene Cloud-Backup zurückzuholen ist keine andere Fassung
+          if (derselbe && inhaltText(eintragNurBekannt(hier)) !== inhaltText(eintragNurBekannt(neu))) {
             abweichend++;
           }
         } else {

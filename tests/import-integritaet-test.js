@@ -127,6 +127,13 @@ const volumen = (liste) => liste.reduce((s, e) => s + (Array.isArray(e.einzelsae
   pruefe("B3 Zweimal ergänzen ändert beim zweiten Mal nichts", g.stand().length === n && n === 2, n + " → " + g.stand().length);
 }
 
+{
+  // B4 eigenes Cloud-Backup per Ergänzen zurückholen: unbekannte Felder und null-Sätze fehlen dort, das ist keine andere Fassung
+  const g = geraet({ eintraege: [ok("e1", { altFeld: 1 }), ok("e2", { einzelsaetze: [{ gewicht: 80, wdh: 8 }, null] })] });
+  const r = importieren(g, JSON.stringify(g.cloudDaten()), "ergaenzen");
+  pruefe("B4 Cloud zurückholen: nichts dazu, keine „andere Fassung“", g.stand().length === 2 && !/abweichend/.test(r.meldung) && g.stand()[0].altFeld === 1, r.meldung);
+}
+
 // ---- C: gleiche id, aber ein anderer Eintrag (andere Übung oder anderes Datum, z. B. ältere id-Vergabe): beide bleiben ----
 {
   const lokal = ok("d1");

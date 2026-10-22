@@ -408,12 +408,34 @@ try {
       await page.evaluate(() => seiteZeigen("gym"));
       const rahmen = page.frameLocator("#gym-spiel");
       await rahmen.locator("body").waitFor({ timeout: 15000 });
-      const f = page.frames().find((x) => /spiel\/index\.html/.test(x.url()));
+      // Der Frame ist nicht immer sofort in page.frames(): kurz warten, bis er da ist
+      let f = null;
+      for (let i = 0; i < 100 && !f; i++) {
+        f = page.frames().find((x) => /spiel\/index\.html/.test(x.url()));
+        if (!f) await page.waitForTimeout(100);
+      }
       await f.waitForFunction(() => window.__gym && window.__gym.stand().demo === false, null, { timeout: 15000 });
       const r = await f.evaluate(() => window.__gym.stand().verarbeitet.slice());
       pruefe("Spiel im Gym-Tab: 3 vergangene Tage verbucht, Zukunft nicht", r.length === 3 && !r.includes(tagIso(jetztPlus3())), JSON.stringify(r));
       pruefe("Spiel im Gym-Tab: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
       await ctx.close();
+    }
+    // 8. Ein Tag liegt teils vor, teils hinter der Grenze (Befund der Durchsicht): er wird erst als Ganzes verbucht,
+    //    sonst fehlten Kristall und Ruf eines späteren Rekords für immer
+    {
+      const T = Date.parse("2026-10-22T10:00:00Z");
+      const morgenFrueh = Date.parse("2026-10-23T08:00:00Z"), morgenSpaet = Date.parse("2026-10-23T12:00:00Z");
+      const liste = [eintrag("g1", T - 2 * TAG, 60), Object.assign(eintrag("g2", morgenFrueh, 100), { uebung: "Kniebeuge", uebungId: "kniebeuge-lh", muskelgruppe: "beine" }), eintrag("g3", morgenSpaet, 80)];
+      const einmal = await spielSeite({ eintraege: liste }, morgenSpaet + 3600000, "Europe/Berlin");
+      const a = await sync(einmal.page);
+      await einmal.ctx.close();
+      const zweimal = await spielSeite({ eintraege: liste }, T, "Europe/Berlin");
+      const b0 = await sync(zweimal.page);
+      await zweimal.page.clock.setSystemTime(morgenSpaet + 3600000);
+      const b = await sync(zweimal.page);
+      await zweimal.ctx.close();
+      pruefe("Spiel: Tag an der Grenze nicht zum Teil verbucht", !b0.verarbeitet.includes("2026-10-23"), JSON.stringify(b0.verarbeitet));
+      pruefe("Spiel: Tag an der Grenze gibt denselben Lohn wie ein Abgleich danach", b.kristalle === a.kristalle && b.ruf === a.ruf && b.splitter === a.splitter, JSON.stringify([a.kristalle, a.ruf, b.kristalle, b.ruf]));
     }
     // 7. Zeitzonen und Zeitumstellung: Ende der Sommerzeit in Europa (25.10.2026), Datumsgrenze und Westküste. Der Spieltag ist
     //    der Kalendertag des Eintrags in der Zone des Geräts, die 24 Stunden sind echte Stunden (Date.now), keine Kalendertage.

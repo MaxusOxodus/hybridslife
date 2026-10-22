@@ -24,7 +24,8 @@ pruefe("Spiel kennt ZUKUNFT_TOLERANZ_MS", typeof wert(spiel) === "number");
 pruefe("Beide Grenzen gleich", wert(app) === wert(spiel), wert(app) + " / " + wert(spiel));
 const imp = spiel.slice(spiel.indexOf("function importieren("), spiel.indexOf("function infoBauen("));
 pruefe("importieren rechnet die Grenze aus Date.now() und ZUKUNFT_TOLERANZ_MS", /grenze = Date\.now\(\) \+ ZUKUNFT_TOLERANZ_MS/.test(imp));
-pruefe("importieren überspringt Einträge jenseits der Grenze", /d\.getTime\(\) > grenze\) return;/.test(imp));
+pruefe("importieren merkt Tage mit Einträgen jenseits der Grenze", /d\.getTime\(\) > grenze\) warten\[iso\(d\)\] = true/.test(imp));
+pruefe("importieren überspringt diese Tage ganz", /isNaN\(d\) \|\| warten\[iso\(d\)\]\) return;/.test(imp));
 const woche = spiel.slice(spiel.indexOf("function wochenDaten("), spiel.indexOf("function serieWochen("));
 pruefe("wochenDaten zählt nur Tage bis heute", /iso\(d\) <= heute\(\)/.test(woche));
 

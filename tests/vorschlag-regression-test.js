@@ -38,12 +38,12 @@ function konstanteHolen(name, src) {
 const ECHT = ["satzZiel", "zaehltSeiten", "einseitig", "kurzhantel", "steigerungSchritt", "steigerungVorschlag", "vorletzterEintrag",
   "letzterEintrag", "gleicheUebung", "saetzeVon", "rirLesen", "wdhBis", "hatDatum", "istEigengewicht", "einheit", "ausKg", "zuKg",
   "istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "entlastungGewicht", "median", "punkteLuecke", "coachStillstaende",
-  "coachStillstaendeGemeldet", "verlaufPunkte", "tagSchluessel", "inEntlastung", "entlastungsZeitraeume", "entlastungsEintragIds", "eintragInZukunft",
+  "coachStillstaendeGemeldet", "coachAbfall", "verlaufPunkte", "tagSchluessel", "inEntlastung", "entlastungsZeitraeume", "entlastungsEintragIds", "eintragInZukunft",
   "vorschlagAuffaellig", "arbeitsGewicht", "vorschlagEintrag", "fruehereArbeit", "gewichtUngewoehnlich", "gewichtAbweichung", "entlastungBeenden", "coachBereinigen", "coachZahl"];
 const KONST = ["STEIGERN_PAUSE_TAGE", "KURZHANTEL_SCHRITT_KG", "STEIGERN_MIN_RIR", "STEIGERN_RIR_MIN_SAETZE", "STEIGERN_MAX_ANTEIL",
   "STEIGERN_EXTRA_WDH", "SENKEN_ANTEIL", "WIEDEREINSTIEG", "KURZHANTEL_NAME", "LBS_JE_KG", "GEWICHT_EINHEITEN", "ENTLASTUNG_GEWICHT",
   "ENTLASTUNG_DAUER_TAGE", "STILLSTAND_JETZT_TAGE", "STILLSTAND_VORHER_TAGE", "STILLSTAND_MIN_PUNKTE", "STILLSTAND_MAX_LUECKE_TAGE",
-  "STILLSTAND_BESTAETIGT_TAGE", "ZUKUNFT_TOLERANZ_MS", "AUFFAELLIG_FAKTOR", "AUFFAELLIG_VERGLEICH", "AUFFAELLIG_MIN_VERGLEICH",
+  "STILLSTAND_BESTAETIGT_TAGE", "ABFALL_EINHEITEN", "ABFALL_BEZUG_TAGE", "ENTLASTUNG_ABFALL", "ZUKUNFT_TOLERANZ_MS", "AUFFAELLIG_FAKTOR", "AUFFAELLIG_VERGLEICH", "AUFFAELLIG_MIN_VERGLEICH",
   "COACH_ZIELE", "COACH_TAGE", "COACH_MINUTEN", "COACH_ERFAHRUNG", "COACH_SCHWERPUNKTE", "COACH_MAX_SCHWERPUNKT",
   "COACH_MAX_ENTSCHEIDUNGEN", "COACH_MAX_BEWERTUNGEN", "COACH_ENTSCHEIDUNG_ARTEN"];
 
@@ -71,7 +71,7 @@ function umgebung(opt) {
     + uebungenQuelle + ";const UEBUNG_NACH_ID = {}; UEBUNGEN.forEach(function (u) { UEBUNG_NACH_ID[u.id] = u; }); const ALTE_IDS_X = 0;"
     + funktionHolen("epley1RM", raenge) + funktionHolen("rangSatzGueltig", raenge) + konstanteHolen("RANG_WDH_MIN", raenge) + konstanteHolen("RANG_WDH_MAX", raenge)
     + KONST.map((k) => konstanteHolen(k)).join("") + ECHT.map((f) => funktionHolen(f)).join("")
-    + "return { steigerungVorschlag, coachStillstaende, coachStillstaendeGemeldet, gewichtUngewoehnlich, entlastungBeenden, coachBereinigen, kurzhantel,"
+    + "return { steigerungVorschlag, coachStillstaende, coachStillstaendeGemeldet, coachAbfall, gewichtUngewoehnlich, entlastungBeenden, coachBereinigen, kurzhantel,"
     + " neu: function (e) { eintraege.push(e); }, coach: function () { return coach; }, setzeTraining: function (t) { laufendesTraining = t; } };";
   return new Function("Date", code)(FakeDate);
 }
@@ -173,6 +173,9 @@ for (const [name, ein, coach] of [["mit Merker", verlauf(0.005, true, true), coa
   }
   pruefe("Kein Stillstand nach der Entlastung (" + name + ")", tage.every((n) => n === 0), tage.join(""));
 }
+// Hinweis (Phase 10): Die drei Prüfungen oben bestehen auch ohne den Ausschluss, weil zwei leichte Einheiten den Median
+// von acht kaum bewegen. Sie zeigen nur, dass nach der Entlastung nichts gemeldet wird. Die empfindlichen Prüfungen
+// (schlagen ohne den Ausschluss fehl) stehen darunter unter „Ausschluss wirkt“.
 // Ohne Ausschluss (kein Merker, kein Zeitraum) zieht die leichte Woche den Median: hier zur Information, nicht gefordert
 {
   const ein = verlauf(0.005, true, false);
@@ -182,6 +185,35 @@ for (const [name, ein, coach] of [["mit Merker", verlauf(0.005, true, true), coa
     tage.push(umgebung({ eintraege: ein, coach: {}, jetzt: jetzt }).coachStillstaende(jetzt).length);
   }
   console.log("Info: Stillstand ohne Ausschluss der Entlastungswoche an den Prüftagen 78..96: " + tage.join(""));
+}
+// Ausschluss wirkt (seit Phase 10): Fälle, in denen die Entlastungswoche ohne Ausschluss eine Meldung auslöst
+{
+  // Stillstand: 8 Wochen 2× 100 kg, dann 2 Wochen 2× 102,5 kg, dann eine Entlastungswoche mit 4 Einheiten zu 92,5 kg.
+  // Ohne Ausschluss: Median der letzten 28 Tage (4× 92,5, 4× 102,5) = 97,5 ≤ 100 → Stillstand. Mit Ausschluss: 102,5 > 100.
+  const ein = [];
+  for (let w = 0; w < 8; w++) for (const wt of [0, 3]) ein.push(eintrag("v" + w + wt, B, N, w * 7 + wt, [[100, 8], [100, 8]]));
+  for (let w = 8; w < 10; w++) for (const wt of [0, 3]) ein.push(eintrag("n" + w + wt, B, N, w * 7 + wt, [[102.5, 8], [102.5, 8]]));
+  const deload = [70, 71, 73, 75];
+  const jetzt = START + 77 * TAG + 12 * 3600e3;
+  const coach = { letzteEntlastung: START + 77 * TAG - 3600e3, letzteEntlastungVon: START + 70 * TAG - 3600e3 };
+  const mitMerker = ein.concat(deload.map((t) => eintrag("d" + t, B, N, t, [[92.5, 8], [92.5, 8]], { entlastung: true })));
+  const ohneMerker = ein.concat(deload.map((t) => eintrag("d" + t, B, N, t, [[92.5, 8], [92.5, 8]])));
+  pruefe("Gegenprobe: ohne Merker und ohne Zeitraum gäbe es einen Stillstand", umgebung({ eintraege: ohneMerker, coach: {}, jetzt: jetzt }).coachStillstaende(jetzt).length === 1);
+  pruefe("Ausschluss wirkt beim Stillstand (Merker)", umgebung({ eintraege: mitMerker, coach: {}, jetzt: jetzt }).coachStillstaende(jetzt).length === 0);
+  pruefe("Ausschluss wirkt beim Stillstand (nur Zeitraum, alter Eintrag ohne Merker)", umgebung({ eintraege: ohneMerker, coach: coach, jetzt: jetzt }).coachStillstaende(jetzt).length === 0);
+}
+{
+  // Abfall: 8 Wochen 2× 100 kg, dann die Entlastungswoche mit 2 Einheiten zu 90 kg. Ohne Ausschluss sind die letzten
+  // zwei Einheiten ≤ 95 % des Medians → Abfall. Mit Ausschluss zählen die letzten normalen Einheiten → kein Abfall.
+  const ein = [];
+  for (let w = 0; w < 8; w++) for (const wt of [0, 3]) ein.push(eintrag("v" + w + wt, B, N, w * 7 + wt, [[100, 8], [100, 8]]));
+  const jetzt = START + 60 * TAG + 20 * 3600e3;
+  const coach = { entlastung: { von: START + 56 * TAG - 3600e3, bis: START + 63 * TAG - 3600e3 } };
+  const mitMerker = ein.concat([56, 59].map((t) => eintrag("d" + t, B, N, t, [[90, 8], [90, 8]], { entlastung: true })));
+  const ohneMerker = ein.concat([56, 59].map((t) => eintrag("d" + t, B, N, t, [[90, 8], [90, 8]])));
+  pruefe("Gegenprobe: ohne Merker und ohne Zeitraum gäbe es einen Abfall", umgebung({ eintraege: ohneMerker, coach: {}, jetzt: jetzt }).coachAbfall(jetzt) === 1);
+  pruefe("Ausschluss wirkt beim Abfall (Merker)", umgebung({ eintraege: mitMerker, coach: {}, jetzt: jetzt }).coachAbfall(jetzt) === 0);
+  pruefe("Ausschluss wirkt beim Abfall (nur Zeitraum der laufenden Entlastung)", umgebung({ eintraege: ohneMerker, coach: coach, jetzt: jetzt }).coachAbfall(jetzt) === 0);
 }
 // Echtes Plateau (immer 100 kg, 14 Wochen, keine Entlastung): wird weiter gemeldet
 {
@@ -252,6 +284,17 @@ for (const [name, ein, coach] of [["mit Merker", verlauf(0.005, true, true), coa
   const zweimal = sprung.concat([eintrag("j2", K, N, 20, [[45, 10]])]);
   const vz = vorschlag({ eintraege: zweimal, jetzt: START + 22 * TAG }, platz(K, N, 8, 10, 1));
   pruefe("Nach zwei Einheiten mit 45 kg: normaler Vorschlag", vz.art === "steigern" && vz.gewicht === 47.5, vz.art + " " + vz.gewicht);
+}
+
+// Weitere Grenzfälle aus den Mutationstests (Phase 10)
+{
+  // Nur ein früherer Eintrag: zu wenig Vergleich, auch wenn er stark abweicht (AUFFAELLIG_MIN_VERGLEICH = 2)
+  const zwei = [eintrag("a", B, N, 0, [[40, 10]]), eintrag("b", B, N, 3, [[400, 10]])];
+  pruefe("Ein früherer Eintrag reicht nicht für „auffällig“", vorschlag({ eintraege: zwei, jetzt: START + 5 * TAG }, platz(B, N, 8, 10, 1)).art !== "auffaellig");
+  pruefe("Ein früherer Eintrag reicht nicht für die Rückfrage", umgebung({ eintraege: zwei.slice(0, 1), jetzt: START + 5 * TAG }).gewichtUngewoehnlich(platz(B, N, 8, 10, 1), 400) === null);
+  // Einträge in der Zukunft zählen auch beim Vergleich nicht (fruehereArbeit): sonst wären 40 kg „ungewöhnlich“
+  const zukunft = [eintrag("a", B, N, 0, [[40, 10]]), eintrag("b", B, N, 3, [[40, 10]]), eintrag("z1", B, N, 40, [[400, 10]]), eintrag("z2", B, N, 41, [[400, 10]]), eintrag("z3", B, N, 42, [[400, 10]])];
+  pruefe("Zukunftseinträge verschieben den Vergleich nicht", umgebung({ eintraege: zukunft, jetzt: START + 5 * TAG }).gewichtUngewoehnlich(platz(B, N, 8, 10, 1), 40) === null);
 }
 
 // ---- 8: Zukunftsdaten ----

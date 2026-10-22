@@ -54,7 +54,7 @@ Object.keys(TEXTE).filter(function (k) {
   // Seit Version 178: Die Region ist nur eine Angabe der Einrichtung (aus der App nicht prüfbar), Dienstleister außerhalb der EU
   // werden genannt, und das Cloud-Backup enthält kein Körperfett, keine Notizen und keine Einschränkungen mehr (cloudDaten)
   pruefe(k + ": Region als Angabe der Einrichtung, Dienstleister außerhalb der EU", /Supabase/.test(t.de) && /laut Einrichtung die EU \(Frankfurt\)/.test(t.de) && /außerhalb der EU/.test(t.de) && /Supabase/.test(t.en) && /outside the EU/.test(t.en));
-  pruefe(k + ": nennt, was hochgeladen wird", /Profils \(Name, auch Geburtsdatum und Geschlecht\) und deines Körpergewichts/.test(t.de) && /Coach-Angaben/.test(t.de) && /profile \(name, including date of birth and gender\) and body weight/.test(t.en) && /According to the setup/.test(t.en));
+  pruefe(k + ": nennt, was hochgeladen wird", /Profils \(Name, Benutzername, Aktivitätsniveau, auch Geburtsdatum und Geschlecht\) und deines Körpergewichts/.test(t.de) && /Uhrzeit und Reserve\/RIR/.test(t.de) && /Coach-Angaben und -Bewertungen/.test(t.de) && /einiger Einstellungen/.test(t.de) && /deine E-Mail/.test(t.de) && /älteren Korund-Version/.test(t.de) && /profile \(name, username, activity level, including date of birth and gender\) and body weight/.test(t.en) && /your email/.test(t.en) && /older Korund version/.test(t.en) && /According to the setup/.test(t.en));
   pruefe(k + ": nennt, was auf dem Gerät bleibt", /Körperfett, Notizen, Einschränkungen, Auszeiten und Rückblick-Antworten bleiben auf dem Gerät/.test(t.de) && /Body fat, notes, limitations, time off and review answers stay on the device/.test(t.en));
   pruefe(k + ": sagt nicht mehr „Servern in der EU“", !/auf Servern in der EU/.test(t.de) && !/on servers in the EU/.test(t.en));
   pruefe(k + ": verschlüsselt, löschbar, andere Nutzer können es nicht lesen", /verschlüsselt/.test(t.de) && /löschbar/.test(t.de) && /Andere Nutzer können es nicht lesen\./.test(t.de) && /encrypted/.test(t.en) && /deleted/.test(t.en) && /Other users cannot read it\./.test(t.en));
@@ -64,6 +64,10 @@ Object.keys(TEXTE).filter(function (k) {
 pruefe("cloud.datenschutz: andere Nutzer können es nicht lesen, Region laut Einrichtung", /Andere Nutzer können es nicht lesen\.$/.test(TEXTE["cloud.datenschutz"].de) && /Other users cannot read it\.$/.test(TEXTE["cloud.datenschutz"].en) && /laut Einrichtung/.test(TEXTE["cloud.datenschutz"].de) && /bleiben auf dem Gerät/.test(TEXTE["cloud.datenschutz"].de));
 dateien.forEach(function (datei) {
   pruefe(datei + " verspricht nicht „nur du kannst es lesen“", !/nur du kannst|nur für dich lesbar|only you can read|readable only by you/i.test(lesen(datei)));
+});
+// Seit Phase 10 (Version 181): Die kurzen Texte nennen dieselbe Liste dessen, was auf dem Gerät bleibt, wie ueber.lokal
+["cloud.datenschutz", "cloud.nurHierAn"].forEach(function (k) {
+  pruefe(k + ": nennt alle fünf Felder, die nicht hochgeladen werden", /Körperfett, Notizen, Einschränkungen, Auszeiten und Rückblick-Antworten/.test(TEXTE[k].de) && /body fat, notes, limitations, time off and review answers/i.test(TEXTE[k].en));
 });
 const cloudErsatz = /data-t="cloud\.datenschutz">([^<]*)</.exec(lesen("index.html"));
 pruefe("Ersatztext cloud.datenschutz in der index.html passt", !!cloudErsatz && cloudErsatz[1] === TEXTE["cloud.datenschutz"].de);

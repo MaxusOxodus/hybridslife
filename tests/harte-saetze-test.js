@@ -33,9 +33,9 @@ const f = new Function(uebungen
   + "const GRUPPE_NACH_ID = {}; MUSKELGRUPPEN.forEach(function (g) { GRUPPE_NACH_ID[g.id] = g; });"
   + "function hatDatum(e) { return typeof e.datum === 'string'; }"
   + "function gruppeIdVon(id, gruppe) { return gruppe || ''; }"
-  + ["HARTER_SATZ_WDH", "HILFS_ANTEIL"].map(konstanteHolen).join("")
+  + ["HARTER_SATZ_WDH", "HILFS_ANTEIL", "ZUKUNFT_TOLERANZ_MS"].map(konstanteHolen).join("")
   // Seit Version 179 der echte Weg der Sätze (saetzeVon mit rirLesen) statt einer Attrappe
-  + ["istAufwaermen", "rirLesen", "saetzeVon", "arbeitsSaetzeVon", "harteSaetzeVon", "muskelGruppeVon", "gruppenAnteile", "harteSaetzeWoche"].map(funktionHolen).join("")
+  + ["eintragInZukunft", "istAufwaermen", "rirLesen", "saetzeVon", "arbeitsSaetzeVon", "harteSaetzeVon", "muskelGruppeVon", "gruppenAnteile", "harteSaetzeWoche"].map(funktionHolen).join("")
   + "return { harteSaetzeWoche };")();
 
 const MONTAG = new Date(2026, 9, 19);
@@ -51,6 +51,15 @@ pruefe("Aufwärmen, 40 Wdh. und 0 Wdh. zählen nicht, RIR 4 (Eingabe „4+“) z
 // Seit Version 179: Die RIR-Angabe ändert die Zählung nicht (die Bedingung „RIR bis 4“ hat mit echten Daten nie gegriffen)
 r = f.harteSaetzeWoche([eintrag(1, "pause-smith-machine-bench-press", [satz(8, 5), satz(8, 9), satz(8, 0)])], MONTAG);
 pruefe("RIR 5 und 9 aus einem Import werden zu „ohne RIR“ und zählen: 3 harte Sätze", r.brust === 3, JSON.stringify(r));
+// Seit Version 184: Einträge mehr als 24 h in der Zukunft zählen nicht, auch nicht in dieser Woche
+{
+  const heute = new Date();
+  const montag = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate() - ((heute.getDay() + 6) % 7));
+  const inZweiTagen = { datum: new Date(Date.now() + 2 * 86400000).toISOString(), uebungId: "pause-smith-machine-bench-press", muskelgruppe: "", einzelsaetze: [satz(8), satz(8)] };
+  const jetzt = { datum: new Date().toISOString(), uebungId: "pause-smith-machine-bench-press", muskelgruppe: "", einzelsaetze: [satz(8)] };
+  const w = f.harteSaetzeWoche([inZweiTagen, jetzt], montag);
+  pruefe("Zukunftseintrag zählt nicht als harter Satz der Woche", (w.brust || 0) === 1, JSON.stringify(w));
+}
 pruefe("Code ohne RIR-Bedingung und ohne HARTER_SATZ_RIR", !/HARTER_SATZ_RIR/.test(quelle) && /return s\.wdh >= 1 && s\.wdh <= HARTER_SATZ_WDH;/.test(funktionHolen("harteSaetzeVon")));
 pruefe("Hilfetext sagt ehrlich, dass Korund die Anstrengung nicht misst", /misst Korund nicht/.test(texte) && !/höchstens 4 Wdh\. Reserve/.test(texte) && !/kaum noch zusätzlich/.test(texte) && !/du hörst kurz vor Schluss auf/.test(texte));
 r = f.harteSaetzeWoche([eintrag(-1, "pause-smith-machine-bench-press", [satz(8)]), eintrag(7, "pause-smith-machine-bench-press", [satz(8)])], MONTAG);

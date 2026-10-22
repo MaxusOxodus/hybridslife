@@ -2851,7 +2851,8 @@
     const ergebnis = {};
     for (let i = 0; i < liste.length; i++) {
       const e = liste[i];
-      if (!hatDatum(e)) {
+      // Seit Version 184 ohne Einträge in der Zukunft (siehe trainingstage)
+      if (!hatDatum(e) || eintragInZukunft(e)) {
         continue;
       }
       const zeit = new Date(e.datum).getTime();
@@ -3048,7 +3049,8 @@
     let summe = 0;
     for (let i = 0; i < eintraege.length; i++) {
       const e = eintraege[i];
-      if (!hatDatum(e) || new Date(e.datum).getTime() < grenze) {
+      // Seit Version 184 ohne Einträge in der Zukunft
+      if (!hatDatum(e) || new Date(e.datum).getTime() < grenze || eintragInZukunft(e)) {
         continue;
       }
       const partie = erholungPartie(gruppeIdVon(e.uebungId, e.muskelgruppe));
@@ -3672,7 +3674,7 @@
     let zuletzt = null;
     for (let i = 0; i < eintraege.length; i++) {
       const e = eintraege[i];
-      if (e && e.routineId === routine.id && hatDatum(e)) {
+      if (e && e.routineId === routine.id && hatDatum(e) && !eintragInZukunft(e)) {
         const datum = new Date(e.datum);
         if (!zuletzt || datum > zuletzt) {
           zuletzt = datum;
@@ -10137,7 +10139,8 @@
     const grenze = Date.now() - KRAFT_TAGE * 86400000;
     for (let i = 0; i < eintraege.length; i++) {
       const e = eintraege[i];
-      if (!e || typeof e.uebung !== "string" || e.uebung.trim() === "") {
+      // Seit Version 184 ohne Einträge in der Zukunft
+      if (!e || typeof e.uebung !== "string" || e.uebung.trim() === "" || eintragInZukunft(e)) {
         continue;
       }
       let schluessel = "name:" + e.uebung.trim().toLowerCase();
@@ -11787,33 +11790,37 @@
       if (!e || typeof e !== "object" || Array.isArray(e) || typeof e.uebung !== "string") {
         continue;
       }
+      // einzelsaetze null und einzelne null-Sätze überspringt saetzeVon beim Rechnen, sie kosten nicht den ganzen Eintrag
       const saetze = e.einzelsaetze;
-      const kaputt = (saetze !== undefined && !Array.isArray(saetze))
+      const kaputt = (saetze !== undefined && saetze !== null && !Array.isArray(saetze))
         || (Array.isArray(saetze) && (saetze.length > IMPORT_MAX_SAETZE || saetze.some(function (s) {
-          return !s || typeof s !== "object" || zahlUnmoeglich(s.gewicht, IMPORT_MAX_GEWICHT_KG) || zahlUnmoeglich(s.wdh, IMPORT_MAX_WDH);
+          return s !== null && (typeof s !== "object" || zahlUnmoeglich(s.gewicht, IMPORT_MAX_GEWICHT_KG) || zahlUnmoeglich(s.wdh, IMPORT_MAX_WDH));
         })))
         || zahlUnmoeglich(e.gewicht, IMPORT_MAX_GEWICHT_KG) || zahlUnmoeglich(e.wdh, IMPORT_MAX_WDH) || zahlUnmoeglich(e.saetze, IMPORT_MAX_SAETZE);
       if (kaputt) {
         ergebnis.unmoeglich++;
         continue;
       }
-      // Dieselbe id zweimal in der Datei: gleicher Inhalt ist eine Dublette, anderer Inhalt bekommt eine neue id
-      if (typeof e.id === "string" && e.id !== "" && nachId[e.id]) {
-        if (JSON.stringify(nachId[e.id]) === JSON.stringify(e)) {
+      // Dieselbe id mehrmals in der Datei: gleicher Inhalt wie eine schon gesehene Fassung ist eine Dublette, anderer Inhalt
+      // bekommt eine neue id (seit Version 184 gegen jede Fassung dieser id, nicht nur die erste)
+      const id = typeof e.id === "string" ? e.id : "";
+      if (id !== "" && nachId[id]) {
+        const inhalt = JSON.stringify(e);
+        if (nachId[id].indexOf(inhalt) !== -1) {
           ergebnis.doppelt++;
           continue;
         }
+        nachId[id].push(inhalt);
         e.id = neueId("e");
         ergebnis.neueIds++;
-      }
-      if (typeof e.id === "string" && e.id !== "") {
-        nachId[e.id] = e;
+      } else if (id !== "") {
+        nachId[id] = [JSON.stringify(e)];
       }
       if (eintragInZukunft(e)) {
         ergebnis.zukunft++;
       }
       if (Object.keys(e).some(function (k) { return EINTRAG_FELDER.indexOf(k) === -1; })
-        || (Array.isArray(saetze) && saetze.some(function (s) { return Object.keys(s).some(function (k) { return SATZ_FELDER.indexOf(k) === -1; }); }))) {
+        || (Array.isArray(saetze) && saetze.some(function (s) { return s && Object.keys(s).some(function (k) { return SATZ_FELDER.indexOf(k) === -1; }); }))) {
         ergebnis.unbekannt++;
       }
       ergebnis.gueltig.push(e);
@@ -12265,6 +12272,13 @@
     if (!datei) {
       return;
     }
+    // Seit Version 184: sehr große Dateien gar nicht erst einlesen (die Grenze in backupLesen greift erst danach).
+    // Ein Zeichen kann in UTF-8 bis zu 4 Byte haben, deshalb das Vierfache.
+    if (datei.size > IMPORT_MAX_ZEICHEN * 4) {
+      datenMeldung(txt("backup.zuGross"));
+      feld.value = "";
+      return;
+    }
 
     const leser = new FileReader();
     leser.onload = function () {
@@ -12282,7 +12296,11 @@
   // Prüft den Inhalt der Datei und fragt dann, ob ergänzt oder ersetzt werden soll
   function backupLesen(text) {
     // Seit Version 183: zu große Dateien gar nicht erst lesen (Schutz vor manipulierten oder kaputten Dateien)
-    if (typeof text !== "string" || text.length > IMPORT_MAX_ZEICHEN) {
+    if (typeof text !== "string") {
+      datenMeldung(txt("backup.ungueltig"));
+      return;
+    }
+    if (text.length > IMPORT_MAX_ZEICHEN) {
       datenMeldung(txt("backup.zuGross"));
       return;
     }
@@ -12415,7 +12433,9 @@
       importEigene = null;
       importGeloeschte = null;
       importProfil = null;
-      datenMeldung(txt("backup.leer"));
+      // Seit Version 184: Hat die Prüfung alles verworfen, steht der Grund mit da
+      datenMeldung(txt("backup.leer") + importPruefungText(importPruefung));
+      importPruefung = null;
       return;
     }
 
@@ -18037,7 +18057,7 @@
   function rueckblickSaetze(start) {
     const saetze = {};
     eintraege.forEach(function (e) {
-      if (!hatDatum(e) || new Date(e.datum).getTime() < start) {
+      if (!hatDatum(e) || new Date(e.datum).getTime() < start || eintragInZukunft(e)) {
         return;
       }
       const partie = erholungPartie(gruppeIdVon(e.uebungId, e.muskelgruppe));

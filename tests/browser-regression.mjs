@@ -218,6 +218,10 @@ try {
         comebacks: comebacks().length,
         letztesMal: letztesMalText("Bankdrücken", "bankdruecken-lh"),
         verlauf: verlaufPunkte("Bankdrücken", "bankdruecken-lh", "rang").length,
+        // Seit Version 184: harte Sätze in der Woche des Zukunftseintrags, trainierte Übungen, „zuletzt“ der Routine
+        harteZukunftswoche: JSON.stringify(harteSaetzeWoche(eintraege, montagDerWoche(new Date(Date.now() + 30 * 86400000)))),
+        trainiert: trainierteUebungen().map((u) => u.name).join(","),
+        routineZuletzt: routineZuletzt(routinen[0]),
         // Home-Karte „Letztes Training“ (letztesTraining, Mutation N6)
         letztesTraining: (function () { const l = letztesTraining(); return l ? new Date(l.datum).toISOString().slice(0, 10) + "|" + l.eintraege.length : null; })()
       });

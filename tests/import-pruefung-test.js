@@ -94,15 +94,28 @@ const ok = (id, extra) => Object.assign({ id: id, uebung: "Bankdrücken", uebung
   const kaputt = [
     ok("k1", { gewicht: 5000 }), ok("k2", { wdh: 99999 }), ok("k3", { saetze: 1000000 }), ok("k4", { einzelsaetze: "viele" }),
     ok("k5", { einzelsaetze: Array.from({ length: 500 }, () => ({ gewicht: 50, wdh: 5 })) }), ok("k6", { einzelsaetze: [{ gewicht: -5, wdh: 5 }] }),
-    ok("k7", { einzelsaetze: [{ gewicht: "1e309", wdh: 5 }] }), ok("k8", { einzelsaetze: [null] }), ok("k9", { einzelsaetze: [{ gewicht: 60, wdh: 5000 }] }),
+    ok("k7", { einzelsaetze: [{ gewicht: "1e309", wdh: 5 }] }), ok("k9", { einzelsaetze: [{ gewicht: 60, wdh: 5000 }] }),
     { uebung: 5 }, null, "text", [1, 2], ok("gut", { datum: tag(1) })
   ];
   const g = geraet({ eintraege: [ok("lokal")] });
   g.backupLesen(JSON.stringify({ eintraege: kaputt }));
   pruefe("Unmögliche Werte: nur der gültige Eintrag wird angeboten", g.offen() === 1, g.offen());
-  pruefe("Die Frage nennt 9 Einträge mit unmöglichen Werten", /backup\.pruefung\.unmoeglich\{"n":9\}/.test(g.dialog()), g.dialog());
+  pruefe("Die Frage nennt 8 Einträge mit unmöglichen Werten", /backup\.pruefung\.unmoeglich\{"n":8\}/.test(g.dialog()), g.dialog());
   g.importAusfuehren("ergaenzen");
   pruefe("Ergänzen: lokaler Eintrag bleibt, der gültige kommt dazu", g.stand().length === 2 && g.stand()[0].id === "lokal" && g.stand()[1].id === "gut");
+}
+
+// ---- Seit Version 184: null bei einzelsaetze oder an einem Satz kostet nicht den ganzen Eintrag ----
+{
+  const g = geraet({});
+  g.backupLesen(JSON.stringify({ eintraege: [ok("n1", { einzelsaetze: null }), ok("n2", { einzelsaetze: [null, { gewicht: 80, wdh: 8 }] })] }));
+  pruefe("einzelsaetze null und ein null-Satz: beide Einträge bleiben", g.offen() === 2 && g.dialog().indexOf("backup.pruefung") === -1, g.dialog());
+}
+// ---- Seit Version 184: alles verworfen → die Meldung nennt den Grund ----
+{
+  const g = geraet({});
+  g.backupLesen(JSON.stringify({ eintraege: [ok("x", { gewicht: 5000 })] }));
+  pruefe("Alles verworfen: „keine Einträge“ mit Grund", g.meldungen.some((m) => /^backup\.leer.*pruefung\.unmoeglich/.test(m)), g.meldungen.join("|"));
 }
 
 // ---- Dubletten und gleiche ids ----
@@ -123,6 +136,14 @@ const ok = (id, extra) => Object.assign({ id: id, uebung: "Bankdrücken", uebung
   g.importAusfuehren("ergaenzen");
   const s = g.stand();
   pruefe("Ergänzen bei gleicher id: nichts geht verloren, keine id doppelt", s.length === 2 && s[0].id === "x1" && s[0].gewicht === 80 && s[1].gewicht === 90 && s[1].id !== "x1", s.map((e) => e.id + ":" + e.gewicht).join(","));
+}
+
+{
+  // Seit Version 184: [x1:A, x1:B, x1:B] → A und einmal B (vorher wurde B zweimal übernommen)
+  const A = ok("x1"), B1 = ok("x1", { gewicht: 85, einzelsaetze: [{ gewicht: 85, wdh: 8 }] }), B2 = ok("x1", { gewicht: 85, einzelsaetze: [{ gewicht: 85, wdh: 8 }] });
+  const g = geraet({});
+  g.backupLesen(JSON.stringify({ eintraege: [A, B1, B2] }));
+  pruefe("Dublette einer späteren Fassung derselben id wird erkannt", g.offen() === 2 && /pruefung\.doppelt\{"n":1\}/.test(g.dialog()), g.dialog());
 }
 
 // ---- Zukunft und unbekannte Felder ----
@@ -149,7 +170,7 @@ const ok = (id, extra) => Object.assign({ id: id, uebung: "Bankdrücken", uebung
   const h = geraet({});
   h.backupLesen("{kaputt");
   pruefe("Kaputtes JSON: wie bisher „ungültig“", h.meldungen.indexOf("backup.ungueltig") !== -1);
-  pruefe("Kein Text (null): Meldung statt Absturz", (function () { try { h.backupLesen(null); return true; } catch (e) { return false; } })());
+  pruefe("Kein Text (null): „ungültig“ statt Absturz oder „zu groß“", (function () { try { h.meldungen.length = 0; h.backupLesen(null); return h.meldungen[0] === "backup.ungueltig"; } catch (e) { return false; } })());
 }
 
 // ---- Gleiches Schema für Datei und Cloud: ein Cloud-Backup läuft durch dieselbe Prüfung ----

@@ -942,7 +942,7 @@ const TEXTE = {
   "palette.mockup": { de: "Mockup", en: "Mockup" },
   "palette.korund": { de: "Korund", en: "Korund" },
   "farbwelt": { de: "Farbwelt", en: "Color world" },
-  "farbwelt.hinweis": { de: "Die Farbwelt gilt im Look „Korund“. Sie färbt Fortschritt, Knöpfe und das K auf Home.", en: "The color world applies to the “Korund” look. It colors progress, buttons and the K on Home." },
+  "farbwelt.hinweis": { de: "Die Farbwelt gilt im dunklen Design, auch bei „System“ mit dunklem Gerät. Sie färbt Fortschritt, Knöpfe und das K auf Home.", en: "The color world applies in the dark design, also with “System” on a dark device. It colors progress, buttons and the K on Home." },
   "farbwelt.blau": { de: "Stahlblau", en: "Steel Blue" },
   "farbwelt.aurora": { de: "Aurora", en: "Aurora" },
   "farbwelt.volt": { de: "Volt", en: "Volt" },

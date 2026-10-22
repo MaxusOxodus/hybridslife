@@ -20,7 +20,7 @@ function funktionHolen(name) {
 }
 
 const ECHT = ["einheitMinuten", "verlaufPunkte", "berichtRekorde", "gleicheUebung", "hatDatum", "saetzeVon", "rirLesen",
-  "tagSchluessel", "koerperZusatz", "istEigengewicht", "anzeigeName", "uebungName"];
+  "tagSchluessel", "koerperZusatz", "istEigengewicht", "anzeigeName", "uebungName", "eintragInZukunft"];
 
 // Seit Version 141: Aufwärmsätze (W). Die Helfer laufen echt, die zwei Merker der Seite stehen davor.
 ECHT.push("istAufwaermen", "arbeitsAnzahl", "arbeitsSaetzeVon", "wKnopfAnzeigen", "arbeitsIndex", "satzKennung", "satzKennungElement");
@@ -33,7 +33,7 @@ funktionHolen = function (name) {
 function umgebung(eintraege) {
   let code = raenge
     + "const eintraege = " + JSON.stringify(eintraege) + ";"
-    + "const sprache = \"de\"; const geloeschteEigengewicht = [];"
+    + "const sprache = \"de\"; const geloeschteEigengewicht = []; const ZUKUNFT_TOLERANZ_MS = 86400000;"
     + "const UEBUNG_NACH_ID = { bankdruecken: { de: \"Bankdrücken\", en: \"Bench press\", bereich: \"frei\" }, kniebeuge: { de: \"Kniebeuge\", en: \"Squat\", bereich: \"frei\" } };"
     + "function koerpergewichtAm() { return null; }";
   for (const f of ECHT) {

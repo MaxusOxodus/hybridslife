@@ -2361,7 +2361,7 @@
   function anzeigen() {
     const liste = document.getElementById("liste");
     liste.innerHTML = "";
-    const tage = trainingstage();
+    const tage = trainingstage(true);
 
     // Ist ein Tag angetippt, zeigt die Liste nur dessen Trainings
     if (gewaehlterTag) {
@@ -2547,7 +2547,8 @@
 
         for (let i = 0; i < eintraege.length; i++) {
           const e = eintraege[i];
-          if (gleicheUebung(e, name, id) && (!ohneId || e.id !== ohneId)) {
+          // Seit Version 182 ohne Einträge in der Zukunft („Letztes Mal“, Vorbelegung, Letzte Trainingsergebnisse)
+          if (gleicheUebung(e, name, id) && (!ohneId || e.id !== ohneId) && !eintragInZukunft(e)) {
             let zeit = 0;
             if (e.datum && !isNaN(new Date(e.datum))) {
               zeit = new Date(e.datum).getTime();
@@ -2754,6 +2755,10 @@
 
     for (let i = 0; i < eintraege.length; i++) {
       const e = eintraege[i];
+      // Seit Version 182: Einträge in der Zukunft zählen nicht (siehe trainingstage)
+      if (eintragInZukunft(e)) {
+        continue;
+      }
 
       const name = e.uebung.trim().toLowerCase();
       let schluessel = "name:" + name;
@@ -6533,7 +6538,7 @@
       homeAnzeigen();
     }
     if (document.getElementById("tag-sheet").classList.contains("offen")) {
-      if (trainingstage()[tagSheetSchluessel]) {
+      if (trainingstage(true)[tagSheetSchluessel]) {
         tagSheetFuellen(tagSheetSchluessel);
       } else {
         zusatzSheetsSchliessen();
@@ -8372,7 +8377,7 @@
     // Der Tag mit den neuesten Einträgen
     let letzterTag = null;
     for (let i = 0; i < eintraege.length; i++) {
-      if (hatDatum(eintraege[i])) {
+      if (hatDatum(eintraege[i]) && !eintragInZukunft(eintraege[i])) {
         const datum = new Date(eintraege[i].datum);
         if (letzterTag === null || datum > letzterTag) {
           letzterTag = datum;
@@ -8383,7 +8388,7 @@
     // Die neueste gespeicherte Trainingseinheit, von der es noch Einträge gibt
     const nachId = {};
     for (let i = 0; i < eintraege.length; i++) {
-      if (eintraege[i] && eintraege[i].id) {
+      if (eintraege[i] && eintraege[i].id && !eintragInZukunft(eintraege[i])) {
         nachId[eintraege[i].id] = eintraege[i];
       }
     }
@@ -9977,7 +9982,8 @@
 
     for (let i = 0; i < eintraege.length; i++) {
       const e = eintraege[i];
-      if (!hatDatum(e) || typeof e.uebung !== "string" || !gleicheUebung(e, name, id)) {
+      // Seit Version 182 ohne Einträge in der Zukunft (Rekorde, Ränge, Verlauf, Stillstand)
+      if (!hatDatum(e) || typeof e.uebung !== "string" || !gleicheUebung(e, name, id) || eintragInZukunft(e)) {
         continue;
       }
       if (ohneEintragId && (e.id === ohneEintragId || (Array.isArray(ohneEintragId) && ohneEintragId.indexOf(e.id) !== -1))) {
@@ -13214,11 +13220,14 @@
 
   // Alle Trainingstage: zu jedem Kalendertag sein Datum, seine Einträge und die Summen
   // der Sätze, der Wiederholungen und des bewegten Gewichts in kg
-  function trainingstage() {
+  // Seit Version 182: Einträge mehr als ZUKUNFT_TOLERANZ_MS in der Zukunft (Import, falsche Uhr; in der App lässt sich kein
+  // Tag in der Zukunft wählen) zählen nicht, bis ihr Datum erreicht ist. Nur das Log und das Tag-Sheet zeigen sie
+  // (mitZukunft = true), damit man sie sehen und löschen kann. Gelöscht oder geändert wird nichts.
+  function trainingstage(mitZukunft) {
     const tage = {};
     for (let i = 0; i < eintraege.length; i++) {
       const e = eintraege[i];
-      if (!hatDatum(e)) {
+      if (!hatDatum(e) || (!mitZukunft && eintragInZukunft(e))) {
         continue;
       }
       const datum = new Date(e.datum);
@@ -13703,7 +13712,7 @@
     }
 
     // Level mit dünnem Balken
-    const harte = eintraege.reduce(function (summe, e) { return summe + harteSaetzeVon(e); }, 0);
+    const harte = eintraege.reduce(function (summe, e) { return summe + (eintragInZukunft(e) ? 0 : harteSaetzeVon(e)); }, 0);
     const xp = zahlen.workouts * XP_JE_TRAINING + anzahlRekorde * XP_JE_REKORD + harte * XP_JE_HARTER_SATZ
       + comebacks().length * XP_JE_COMEBACK;
     const l = levelStand(xp);
@@ -14135,7 +14144,7 @@
   // und unter jedem Training "Training löschen". Jeder Satz ist eine Reihe, Antippen öffnet das Bearbeiten.
   function tagSheetFuellen(schluessel) {
     const datum = schluesselDatum(schluessel);
-    const tag = trainingstage()[schluessel];
+    const tag = trainingstage(true)[schluessel];
     const heute = tagSchluessel(new Date());
     tagSheetSchluessel = schluessel;
     document.getElementById("tag-sheet-titel").textContent = tagTextMitJahr(datum);

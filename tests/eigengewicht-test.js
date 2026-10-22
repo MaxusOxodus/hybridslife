@@ -38,7 +38,7 @@ const ECHT = ["notizenBereinigen", "gespeichertLesen", "sicherSpeichern", "speic
   "eigeneUebungBereinigen", "eigeneUebungenAufnehmen", "eigeneUebungenEintragen", "eigeneUebungenSpeichern",
   "uebungMitNamen", "bereichName", "jedeGespeicherteUebung", "gespeicherteUebungenSichern", "eigeneUebungZuweisen",
   "selbstNameUebertragen", "selbstLoeschenFragen", "gleicheUebung", "tagSchluessel", "saetzeVon", "hatDatum",
-  "istEigengewicht", "koerperZusatz", "verlaufPunkte", "besterSatzIndex", "trainierteUebungen", "koerperfettVon",
+  "istEigengewicht", "koerperZusatz", "verlaufPunkte", "eintragInZukunft", "besterSatzIndex", "trainierteUebungen", "koerperfettVon",
   "gewichteSpeichern", "gewichtMessungen", "koerpergewichtAm", "trainingBereinigen", "gewichteImportieren",
   "eigeneImportieren", "backupText", "backupLesen", "eintragSchluessel", "importAusfuehren"];
 
@@ -83,7 +83,7 @@ function umgebung(inhalt) {
     + "const UEBUNG_NACH_ID = {}; const GRUPPE_NACH_ID = {}; const FESTER_NAME = Object.create(null);"
     + "for (let i = 0; i < MUSKELGRUPPEN.length; i++) { GRUPPE_NACH_ID[MUSKELGRUPPEN[i].id] = MUSKELGRUPPEN[i]; }"
     + "for (let i = 0; i < UEBUNGEN.length; i++) { UEBUNG_NACH_ID[UEBUNGEN[i].id] = UEBUNGEN[i]; }"
-    + konstanteHolen("SELBST_PRAEFIX") + konstanteHolen("SELBST_NAME_MAX") + konstanteHolen("KRAFT_TAGE")
+    + konstanteHolen("SELBST_PRAEFIX") + konstanteHolen("SELBST_NAME_MAX") + konstanteHolen("KRAFT_TAGE") + konstanteHolen("ZUKUNFT_TOLERANZ_MS")
     + konstanteHolen("FETT_MIN") + konstanteHolen("FETT_MAX")
     + "let eintraege = []; let routinen = []; let wochenplan = []; let trainings = []; let koerpergewicht = [];"
     + "let eigeneUebungen = []; let selbstListe = []; let geloeschteEigengewicht = [];"

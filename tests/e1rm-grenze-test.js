@@ -36,6 +36,7 @@ const f = new Function("let eintraege = [];"
   + "function arbeitsSaetzeVon(e) { return e.einzelsaetze.filter(function (s) { return !s.aufwaermen; }); }"
   + "function koerperZusatz() { return 0; }"
   + "function tagSchluessel(d) { return d.toISOString().slice(0, 10); }"
+  + konstanteHolen(quelle, "ZUKUNFT_TOLERANZ_MS") + funktionHolen(quelle, "eintragInZukunft", "  ")
   + funktionHolen(quelle, "verlaufPunkte", "  ")
   + "return { verlaufPunkte, setze: function (e) { eintraege = e; } };")();
 

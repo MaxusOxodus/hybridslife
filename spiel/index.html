@@ -241,6 +241,9 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   const $ = id => document.getElementById(id);
   const zahl = n => Math.round(n).toLocaleString("de-DE");
   const TAG = 86400000;
+  // Einträge mehr als 24 Stunden in der Zukunft verbucht das Spiel erst, wenn ihr Datum erreicht ist (Audit Phase 12).
+  // Dieselbe Grenze wie ZUKUNFT_TOLERANZ_MS in der app.js, ein Test prüft, dass beide gleich sind.
+  const ZUKUNFT_TOLERANZ_MS = 24 * 60 * 60 * 1000;
 
   // ---------- Symbole ----------
   const ICON = {
@@ -603,7 +606,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   function itemZustand(key) { const t = itemTage(key); if (t === null) return "deko"; return t <= 7 ? "glaenzt" : "staubt"; }
   function wochenDaten(datum) {
     const m = montag(ausIso(datum)), w = { tage: 0, gruppen: {}, rekorde: 0, montag: iso(m) };
-    for (let i = 0; i < 7; i++) { const d = new Date(m); d.setDate(d.getDate() + i); const t = stand.tage[iso(d)]; if (t) { w.tage++; t.gruppen.forEach(g => w.gruppen[g] = true); if (t.rekord) w.rekorde++; } }
+    for (let i = 0; i < 7; i++) { const d = new Date(m); d.setDate(d.getDate() + i); const t = iso(d) <= heute() ? stand.tage[iso(d)] : null; if (t) { w.tage++; t.gruppen.forEach(g => w.gruppen[g] = true); if (t.rekord) w.rekorde++; } }
     return w;
   }
   function serieWochen() {
@@ -1065,9 +1068,9 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   function importieren(daten, leise) {
     const eintraege = Array.isArray(daten) ? daten : daten && daten.eintraege;
     if (!Array.isArray(eintraege) || !eintraege.length) return leise ? null : toast("Keine Trainings", "In der Datei sind keine Einträge");
-    const tage = {}, best = {};
+    const tage = {}, best = {}, grenze = Date.now() + ZUKUNFT_TOLERANZ_MS;
     eintraege.slice().sort((a, b) => String(a.datum).localeCompare(String(b.datum))).forEach(e => {
-      const d = new Date(e.datum); if (isNaN(d)) return; const t = iso(d);
+      const d = new Date(e.datum); if (isNaN(d) || d.getTime() > grenze) return; const t = iso(d);
       const tg = tage[t] = tage[t] || { gruppen: [], familien: [], rekord: false };
       const g = gruppeAus(e); if (g.partie && !tg.gruppen.includes(g.partie)) tg.gruppen.push(g.partie); if (g.familie && !tg.familien.includes(g.familie)) tg.familien.push(g.familie);
       // Rekord wie in Korund: bestes geschätztes 1RM (1–10 Wdh., ohne Aufwärmsätze), die erste Ausführung zählt nicht
@@ -1077,6 +1080,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
       if (rm > 0) { if (best[key] !== undefined && rm > best[key] + 1e-9) tg.rekord = true; best[key] = Math.max(best[key] || 0, rm); }
     });
     Object.keys(tage).forEach(t => { if (!tage[t].gruppen.length) tage[t].gruppen = ["brust"]; });
+    // Nur Einträge in der Zukunft oder ohne gültiges Datum: nichts zu verbuchen, die Demo bleibt
+    if (!Object.keys(tage).length) return leise ? null : toast("Noch keine Trainings", "Trainings in der Zukunft zählen erst an ihrem Tag");
     const warDemo = stand.demo;
     if (warDemo) { const neu = startStand(); neu.demo = false; neu.tage = {}; neu.verarbeitet = []; neu.splitter = 300; neu.kristalle = 1; neu.ruf = 0; stand = neu; }
     let summe = { splitter: 0, kristalle: 0, tage: 0, rekorde: 0 };
@@ -2812,7 +2817,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     liste.forEach((o, i) => { const b = besucher[i], l = ANKER[o.userData.item.key], a = l.find(x => x.b === bew) || l[0]; besucherFrei(b); o.userData.besetzt = b; b.ziel = o; b.anker = a; b.ankerWelt = raum.worldToLocal(o.localToWorld(new THREE.Vector3(a.pos[0], a.pos[1], a.pos[2]))); b.m.w.position.copy(b.ankerWelt); b.m.w.rotation.y = o.rotation.y + a.blick; b.zustand = "trainieren"; b.saetze = 99; b.satz = 0; b.satzZeit = -999; b.pause = 0; einsteigen(b); });
     return liste.length;
   }
-  window.__gym = { alleUeben, blick, kameraAnpassen, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), zustaende: () => objekte.map(o => [o.userData.item.key, o.userData.zustand, !!o.userData.halo, o.userData.halo && o.userData.halo.material.opacity]), stand: () => stand, eintragen: (g, r) => trainingEintragen(heute(), g, r, null), importieren: importieren, neuBauen: () => { raumBauen(false); kopfZeigen(); ueberZeigen(); }, phase: v => { testPhase = v; }, fokus: () => { const v = new THREE.Vector3(); besucher[0].m.becken.getWorldPosition(v); v.y = Math.max(.5, v.y); blick.fokus = v; },
+  window.__gym = { alleUeben, blick, kameraAnpassen, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), zustaende: () => objekte.map(o => [o.userData.item.key, o.userData.zustand, !!o.userData.halo, o.userData.halo && o.userData.halo.material.opacity]), stand: () => stand, eintragen: (g, r) => trainingEintragen(heute(), g, r, null), importieren: importieren, woche: () => wochenDaten(heute()), neuBauen: () => { raumBauen(false); kopfZeigen(); ueberZeigen(); }, phase: v => { testPhase = v; }, fokus: () => { const v = new THREE.Vector3(); besucher[0].m.becken.getWorldPosition(v); v.y = Math.max(.5, v.y); blick.fokus = v; },
     objekt: () => objekte[0], bilder: () => bilderGezeichnet,
     fokusGehend: () => { const b = besucher.find(x => x.zustand === "gehen" || x.zustand === "heim" || x.zustand === "warten") || besucher[0]; if (!b) return; const v = new THREE.Vector3(); b.m.becken.getWorldPosition(v); blick.fokus = v; blick.winkel = blick.ziel = b.m.w.rotation.y + Math.PI / 4 + .6; },
     bildschirm: id => { const o = objekte.find(x => x.userData.item.id === id); if (!o) return null; const v = new THREE.Vector3(); o.getWorldPosition(v); v.y = .6; v.project(kamera); const r = canvas.getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; },

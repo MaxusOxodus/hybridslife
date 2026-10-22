@@ -286,6 +286,117 @@ try {
       }
     }
   }
+  // ======== Gym-Spiel (Phase 12): Einträge in der Zukunft verbuchen erst, wenn ihr Datum erreicht ist ========
+  // Das Spiel liest „eintraege“ selbst (appAbgleich, __gymSync) und verbucht Tage dauerhaft in stand.verarbeitet.
+  // Die Uhr der Seite wird mit page.clock verstellt, nur Date ändert sich, nichts wird im echten Spielstand gespeichert.
+  if (teil("spiel")) {
+    const SPIEL = ORT.replace("index.html", "spiel/index.html");
+    const T0 = jetzt;
+    const tagIso = (t) => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+    const eintrag = (id, zeit, kg) => ({ id, uebung: "Bankdrücken", uebungId: "bankdruecken-lh", muskelgruppe: "brust", datum: new Date(zeit).toISOString(), einzelsaetze: [{ gewicht: kg, wdh: 8 }], saetze: 1, gewicht: kg, wdh: 8 });
+    async function spielSeite(lokal, zeit) {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "de-DE" });
+      await ctx.route(/supabase\.co/, (r) => r.abort());
+      await ctx.addInitScript((d) => {
+        if (!sessionStorage.getItem("gesetzt")) {
+          localStorage.clear();
+          for (const k of Object.keys(d)) localStorage.setItem(k, JSON.stringify(d[k]));
+          sessionStorage.setItem("gesetzt", "1");
+        }
+      }, lokal);
+      const page = await ctx.newPage();
+      const fehler = [];
+      page.on("pageerror", (err) => fehler.push(err.message));
+      await page.clock.setSystemTime(zeit);
+      await page.goto(SPIEL);
+      await page.waitForFunction(() => window.__gymSync && window.__gym, null, { timeout: 15000 });
+      return { ctx, page, fehler };
+    }
+    const sync = (page) => page.evaluate(() => { window.__gymSync(); const s = window.__gym.stand(); return { verarbeitet: s.verarbeitet.slice().sort(), tage: Object.keys(s.tage).sort(), splitter: s.splitter, ruf: s.ruf, kristalle: s.kristalle, demo: s.demo }; });
+    const vergangen = [eintrag("s1", T0 - 5 * TAG, 60), eintrag("s2", T0 - 2 * TAG, 65)];
+    const zukunft = eintrag("sz", T0 + 3 * TAG, 70);
+    const zTag = tagIso(T0 + 3 * TAG);
+    const jetztPlus3 = () => T0 + 3 * TAG;
+
+    // 1. Frischer Spielstand (Demo): Der Zukunftstag wird nicht verbucht und nicht als Spieltag angelegt
+    {
+      const { ctx, page, fehler } = await spielSeite({ eintraege: vergangen.concat([zukunft]) }, T0);
+      const a = await sync(page);
+      pruefe("Spiel: vergangene Tage verbucht", a.verarbeitet.includes(tagIso(T0 - 5 * TAG)) && a.verarbeitet.includes(tagIso(T0 - 2 * TAG)) && !a.demo, JSON.stringify(a.verarbeitet));
+      pruefe("Spiel: Tag in der Zukunft nicht verbucht", !a.verarbeitet.includes(zTag) && !a.tage.includes(zTag), JSON.stringify(a.verarbeitet));
+      const b = await sync(page);
+      pruefe("Spiel: zweiter Abgleich ändert nichts", b.splitter === a.splitter && b.ruf === a.ruf && b.verarbeitet.length === a.verarbeitet.length, a.splitter + " → " + b.splitter);
+      // Das Datum ist erreicht: jetzt wird der Tag genau einmal verbucht
+      await page.clock.setSystemTime(T0 + 3 * TAG + 3600000);
+      const c = await sync(page);
+      pruefe("Spiel: am Tag selbst wird er verbucht", c.verarbeitet.includes(zTag) && c.splitter > b.splitter, c.splitter + " / " + JSON.stringify(c.verarbeitet));
+      const d = await sync(page);
+      pruefe("Spiel: und nur einmal", d.splitter === c.splitter && d.verarbeitet.filter((t) => t === zTag).length === 1, d.splitter);
+      pruefe("Spiel: Einträge der App unverändert (nur gelesen)", await page.evaluate(() => JSON.parse(localStorage.getItem("eintraege")).length === 3));
+      pruefe("Spiel: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
+      await ctx.close();
+    }
+    // 2. Grenze 24 Stunden wie in der App (ZUKUNFT_TOLERANZ_MS): 23 h voraus zählt, 25 h voraus nicht
+    {
+      const nah = eintrag("n1", T0 + 23 * 3600000, 60), fern = eintrag("n2", T0 + 49 * 3600000, 60);
+      const { ctx, page } = await spielSeite({ eintraege: vergangen.concat([nah, fern]) }, T0);
+      const a = await sync(page);
+      pruefe("Spiel: 23 h voraus zählt (wie in der App)", a.verarbeitet.includes(tagIso(T0 + 23 * 3600000)), JSON.stringify(a.verarbeitet));
+      pruefe("Spiel: 49 h voraus zählt nicht", !a.verarbeitet.includes(tagIso(T0 + 49 * 3600000)), JSON.stringify(a.verarbeitet));
+      await ctx.close();
+    }
+    // 3. Bestehender Spielstand, der einen Zukunftstag schon verbucht hat (vor dieser Änderung): nichts wird zurückgenommen,
+    //    nichts doppelt verbucht, der Tag bleibt im Spielstand
+    {
+      const { ctx, page } = await spielSeite({ eintraege: vergangen.concat([zukunft]) }, T0);
+      // so stand es vor der Änderung: ein echtes Gym (keine Demo), der Zukunftstag schon verbucht und belohnt
+      const vorher = await page.evaluate((zt) => {
+        const s = window.__gym.stand();
+        s.demo = false; s.tage = {}; s.verarbeitet = []; s.splitter = 500; s.ruf = 40; s.kristalle = 1;
+        s.tage[zt] = { gruppen: ["brust"], familien: [], rekord: false };
+        s.verarbeitet.push(zt);
+        localStorage.setItem("korund-gym-v2", JSON.stringify(s));
+        return { splitter: s.splitter, ruf: s.ruf };
+      }, zTag);
+      const a = await sync(page);
+      pruefe("Spiel alt: verbuchter Zukunftstag bleibt, Belohnung nicht zurückgenommen", a.verarbeitet.includes(zTag) && a.tage.includes(zTag) && a.splitter >= vorher.splitter, JSON.stringify(a));
+      await page.clock.setSystemTime(T0 + 3 * TAG + 3600000);
+      const b = await sync(page);
+      pruefe("Spiel alt: am Tag selbst nicht doppelt verbucht", b.splitter === a.splitter && b.verarbeitet.filter((t) => t === zTag).length === 1, a.splitter + " → " + b.splitter);
+      await ctx.close();
+    }
+    // 5. Nur ein Eintrag in der Zukunft: die Demo bleibt, nichts wird verbucht
+    {
+      const { ctx, page } = await spielSeite({ eintraege: [zukunft] }, T0);
+      const a = await sync(page);
+      pruefe("Spiel: nur Zukunft, Demo bleibt", a.demo === true && !a.verarbeitet.includes(zTag), JSON.stringify(a).slice(0, 160));
+      await ctx.close();
+    }
+    // 6. Echter Weg in der App: Gym-Tab öffnen (gymSpielZeigen → iframe → __gymSync)
+    {
+      const { ctx, page, fehler } = await seite(browser, 390, "de", { eintraege: BASIS.eintraege.concat([e("zz", -3, [satz(100, 8)])]) });
+      await page.evaluate(() => seiteZeigen("gym"));
+      const rahmen = page.frameLocator("#gym-spiel");
+      await rahmen.locator("body").waitFor({ timeout: 15000 });
+      const f = page.frames().find((x) => /spiel\/index\.html/.test(x.url()));
+      await f.waitForFunction(() => window.__gym && window.__gym.stand().demo === false, null, { timeout: 15000 });
+      const r = await f.evaluate(() => window.__gym.stand().verarbeitet.slice());
+      pruefe("Spiel im Gym-Tab: 3 vergangene Tage verbucht, Zukunft nicht", r.length === 3 && !r.includes(tagIso(jetztPlus3())), JSON.stringify(r));
+      pruefe("Spiel im Gym-Tab: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
+      await ctx.close();
+    }
+    // 4. Wochenzahl des Spiels (Truhe, Serie) zählt nur Tage bis heute, auch wenn ein alter Spielstand einen späteren Tag dieser Woche hat
+    {
+      // Mittwoch dieser Woche, 12 Uhr: ein Tag am Freitag derselben Woche liegt sicher in ihr
+      const d = new Date(T0); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + 2);
+      const mi = d.getTime(), fr = mi + 2 * TAG;
+      const { ctx, page } = await spielSeite({ eintraege: [eintrag("w1", mi - 3600000, 60)] }, mi);
+      await sync(page);
+      const w = await page.evaluate((ft) => { const s = window.__gym.stand(); s.tage[ft] = { gruppen: ["beine"], familien: [], rekord: true }; s.verarbeitet.push(ft); return window.__gym.woche ? window.__gym.woche() : null; }, tagIso(fr));
+      pruefe("Spiel: Wochenzahl ohne späteren Tag dieser Woche", w && w.tage === 1 && !w.gruppen.beine && w.rekorde === 0, JSON.stringify(w));
+      await ctx.close();
+    }
+  }
 } finally {
   await browser.close();
   server.close();

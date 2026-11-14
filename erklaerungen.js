@@ -151,7 +151,7 @@ const ERKLAERUNGEN = {
     schritte: {
       de: [
         { titel: "Ausgangsposition", text: "Leg dich so auf die Bank, dass die Augen unter der Stange liegen. Die Füße stehen fest am Boden. Greif die Stange etwas breiter als schulterbreit." },
-        { titel: "Schultern fixieren", text: "Zieh die Schulterblätter zusammen und nach unten, als würdest du sie in die Bank drücken. Das schützt die Schultern. Der obere Rücken bleibt die ganze Übung über fest auf der Bank." },
+        { titel: "Schultern fixieren", text: "Zieh die Schulterblätter zusammen und nach unten, als würdest du sie in die Bank drücken. So bleibt die Schulter in einer stabilen Position. Der obere Rücken bleibt die ganze Übung über fest auf der Bank." },
         { titel: "Absenken", text: "Heb die Stange aus dem Ständer und senk sie kontrolliert zur Brust, etwa auf Höhe der unteren Brust. Die Ellbogen zeigen schräg nach unten, nicht im rechten Winkel zur Seite." },
         { titel: "Drücken", text: "Drück die Stange kraftvoll nach oben, bis die Arme fast gestreckt sind." }
       ],

@@ -155,6 +155,8 @@ try {
         const nach = await page.evaluate(() => ({ n: eintraege.length, frage: document.getElementById("frage-hintergrund").classList.contains("offen"), g: eintraege[eintraege.length - 1].einzelsaetze[0].gewicht }));
         pruefe(tag + " 105 kg: ohne Rückfrage gespeichert", nach.n === vor + 1 && !nach.frage && nach.g === 105, JSON.stringify(nach));
         await page.evaluate(() => { if (typeof pauseUeberspringen === "function") pauseUeberspringen(); });
+        // Seit Version 193 zählt ein Tipp auf „Satz fertig“ erst 600 ms nach dem letzten Satz (Doppeltipp-Sperre)
+        await page.waitForTimeout(650);
         await page.fill("#t-feld-gewicht", "10");
         await page.fill("#t-feld-wdh", "10");
         await page.click("button[onclick='satzFertigPruefen()']");
@@ -523,6 +525,150 @@ try {
       await sync(page);
       const w = await page.evaluate((ft) => { const s = window.__gym.stand(); s.tage[ft] = { gruppen: ["beine"], familien: [], rekord: true }; s.verarbeitet.push(ft); return window.__gym.woche ? window.__gym.woche() : null; }, tagIso(fr));
       pruefe("Spiel: Wochenzahl ohne späteren Tag dieser Woche", w && w.tage === 1 && !w.gruppen.beine && w.rekorde === 0, JSON.stringify(w));
+      await ctx.close();
+    }
+  }
+
+  // ======== Audit 14.11.2026 (Version 193): K-02, K-03, K-04, K-06, K-07, K-11, K-21 ========
+  if (teil("audit193")) {
+    const satzKnopf = "button[onclick='satzFertigPruefen()']";
+    const modusStarten = async (page) => { await page.evaluate(() => { seiteZeigen("training"); routineStarten(routinen[0]); }); await page.waitForTimeout(500); };
+    const saetzeHeute = (page) => page.evaluate(() => { const t = laufendesTraining; const u = t && t.uebungen[t.index]; return u ? u.saetze.length : -1; });
+    const pauseLaeuft = (page) => page.evaluate(() => !!pause);
+    // K-04: Doppeltipp auf „Satz fertig“ (echte Maus, zweiter Tipp trifft, was nach dem ersten dort liegt)
+    for (const abstand of [40, 120, 250]) {
+      const { ctx, page, fehler } = await seite(browser, 390, "de");
+      await modusStarten(page);
+      await page.fill("#t-feld-gewicht", "100"); await page.fill("#t-feld-wdh", "8");
+      const box = await page.locator(satzKnopf).first().boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.waitForTimeout(abstand);
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.waitForTimeout(300);
+      pruefe("Doppeltipp " + abstand + " ms: ein Satz, Pause läuft weiter", (await saetzeHeute(page)) === 1 && (await pauseLaeuft(page)), String(await saetzeHeute(page)) + " / " + (await pauseLaeuft(page)));
+      await page.waitForTimeout(700);
+      await page.evaluate(() => pauseUeberspringenTipp());
+      pruefe("Doppeltipp " + abstand + " ms: nach der Sperre geht Überspringen", !(await pauseLaeuft(page)));
+      pruefe("Doppeltipp " + abstand + " ms: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
+      await ctx.close();
+    }
+    // K-04 mit „Keine Pause“: zwei schnelle Tipps speichern nur einen Satz
+    {
+      const r = JSON.parse(JSON.stringify(BASIS.routinen)); r[0].uebungen[0].pause = 0;
+      const { ctx, page } = await seite(browser, 390, "de", { routinen: r });
+      await modusStarten(page);
+      await page.fill("#t-feld-gewicht", "100"); await page.fill("#t-feld-wdh", "8");
+      const box = await page.locator(satzKnopf).first().boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.waitForTimeout(150);
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.waitForTimeout(300);
+      pruefe("Keine Pause, Doppeltipp: ein Satz", (await saetzeHeute(page)) === 1, await saetzeHeute(page));
+      await page.waitForTimeout(700);
+      await page.locator(satzKnopf).first().click();
+      await page.waitForTimeout(300);
+      pruefe("Keine Pause: nach der Sperre zählt der nächste Tipp", (await saetzeHeute(page)) === 2, await saetzeHeute(page));
+      await ctx.close();
+    }
+    // K-06: leere und ungültige Felder speichern nichts, auch wenn das Feld beim Tippen auf den Knopf den Fokus verliert
+    for (const [name, gewicht, wdh] of [["Gewicht leer", "", "8"], ["Wdh. leer", "100", ""], ["Gewicht −50", "-50", "8"], ["0 Wdh.", "100", "0"]]) {
+      const { ctx, page, fehler } = await seite(browser, 390, "de");
+      await modusStarten(page);
+      await page.fill("#t-feld-gewicht", gewicht); await page.fill("#t-feld-wdh", wdh);
+      await page.focus(wdh === "" || wdh === "0" ? "#t-feld-wdh" : "#t-feld-gewicht");
+      await page.locator(satzKnopf).first().click();
+      await page.waitForTimeout(300);
+      const r = await page.evaluate(() => ({ titel: document.getElementById("frage-hintergrund").classList.contains("offen") ? document.getElementById("frage-titel").textContent : "", n: eintraege.length }));
+      pruefe("Eingabe " + name + ": kein Satz, Hinweis", (await saetzeHeute(page)) === 0 && r.n === 3 && r.titel === "Eingabe prüfen", JSON.stringify(r));
+      pruefe("Eingabe " + name + ": keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
+      await ctx.close();
+    }
+    {
+      const { ctx, page } = await seite(browser, 390, "en");
+      await modusStarten(page);
+      await page.fill("#t-feld-gewicht", "102,5"); await page.fill("#t-feld-wdh", "8");
+      await page.locator(satzKnopf).first().click();
+      await page.waitForTimeout(300);
+      const g = await page.evaluate(() => laufendesTraining.uebungen[0].saetze.map((x) => x.gewicht).join(","));
+      pruefe("Eingabe 102,5 × 8: wird wie bisher gespeichert", g === "102.5", g);
+      await ctx.close();
+    }
+    // K-03: zwei Tabs. Tab 2 speichert, Tab 1 lädt neu oder fragt, danach schreibt Tab 1 auf dem neuen Stand
+    {
+      const { ctx, page } = await seite(browser, 390, "de");
+      const zwei = await ctx.newPage();
+      await zwei.goto(ORT); await zwei.waitForTimeout(800);
+      await page.evaluate(() => { window.__alterStand = true; });
+      await zwei.evaluate(() => { eintraege.push({ id: "tab2", uebung: "Bankdrücken", uebungId: "bankdruecken-lh", muskelgruppe: "brust", datum: new Date().toISOString(), einzelsaetze: [{ gewicht: 100, wdh: 8 }], saetze: 1, gewicht: 100, wdh: 8 }); sicherSpeichern("eintraege", eintraege); });
+      await page.waitForTimeout(600);
+      const a = await page.evaluate(() => ({ neu: !window.__alterStand, titel: document.getElementById("frage-hintergrund").classList.contains("offen") ? document.getElementById("frage-titel").textContent : "" }));
+      pruefe("Zwei Tabs: Tab 1 lädt neu oder fragt", a.neu || a.titel === "In einem anderen Fenster geändert", JSON.stringify(a));
+      if (!a.neu) {
+        await page.click("#frage-knoepfe button.haupt");
+        await page.waitForTimeout(1000);
+      }
+      await page.evaluate(() => { eintraege.push({ id: "tab1", uebung: "Bankdrücken", uebungId: "bankdruecken-lh", muskelgruppe: "brust", datum: new Date().toISOString(), einzelsaetze: [{ gewicht: 100, wdh: 9 }], saetze: 1, gewicht: 100, wdh: 9 }); sicherSpeichern("eintraege", eintraege); });
+      const ids = await page.evaluate(() => JSON.parse(localStorage.getItem("eintraege")).map((x) => x.id).join(","));
+      pruefe("Zwei Tabs: beide Einträge bleiben (5)", ids.split(",").length === 5 && ids.includes("tab1") && ids.includes("tab2"), ids);
+      // Das Gym-Spiel (eigener Schlüssel) löst nichts aus
+      await page.evaluate(() => { window.__alterStand = true; });
+      await zwei.evaluate(() => localStorage.setItem("korund-gym-v2", JSON.stringify({ test: Date.now() })));
+      await page.waitForTimeout(500);
+      const b = await page.evaluate(() => ({ alt: !!window.__alterStand, offen: document.getElementById("frage-hintergrund").classList.contains("offen") }));
+      pruefe("Zwei Tabs: Spielstand löst nichts aus", b.alt && !b.offen, JSON.stringify(b));
+      await ctx.close();
+    }
+    // K-02 Variante A: helles Gerät ohne Wahl und mit gespeichertem „hell“ startet dunkel, die Wahl bleibt gespeichert
+    for (const wahl of [undefined, "hell", "dunkel"]) {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "de-DE", colorScheme: "light" });
+      await ctx.route(/supabase\.co/, (r) => r.abort());
+      const daten = Object.assign({}, BASIS); daten.einstellungen = Object.assign({ sprache: "de" }, BASIS.einstellungen);
+      if (wahl) daten.einstellungen.design = wahl;
+      await ctx.addInitScript((d) => { if (!sessionStorage.getItem("gesetzt")) { localStorage.clear(); for (const k of Object.keys(d)) localStorage.setItem(k, JSON.stringify(d[k])); sessionStorage.setItem("gesetzt", "1"); } }, daten);
+      const page = await ctx.newPage();
+      await page.goto(ORT); await page.waitForTimeout(800);
+      const r = await page.evaluate(() => { seiteZeigen("training"); routineStarten(routinen[0]); const w = document.getElementById("modus-w"); einstOeffnen(); einstZeigen("design");
+        return { attr: document.documentElement.getAttribute("data-design"), korund: lookKorund(), w: !!w && w.offsetParent !== null, wahl: !document.getElementById("design-auswahl").classList.contains("versteckt"), gespeichert: JSON.parse(localStorage.getItem("einstellungen")).design, hinweis: document.querySelector("[data-nur-dunkel]").offsetParent !== null }; });
+      pruefe("Hell aus (" + wahl + "): dunkel, Look Korund, W sichtbar, keine Design-Wahl, Hinweis ohne System", r.attr === "dunkel" && r.korund && r.w && !r.wahl && r.hinweis, JSON.stringify(r));
+      pruefe("Hell aus (" + wahl + "): gespeicherte Wahl unverändert", r.gespeichert === wahl, String(r.gespeichert));
+      await ctx.close();
+    }
+    // K-07: Statistik im Profil ohne Überlauf bei 320 px, auch mit sechsstelligem Volumen
+    for (const sprache of ["de", "en"]) {
+      const viel = BASIS.eintraege.map((x) => Object.assign({}, x, { datum: new Date().toISOString(), id: x.id + "v", einzelsaetze: x.einzelsaetze.map((s) => ({ gewicht: 400, wdh: 100 })) }));
+      const { ctx, page } = await seite(browser, 320, sprache, { eintraege: BASIS.eintraege.concat(viel) });
+      const r = await page.evaluate(() => { seiteZeigen("profil"); profilReiter = "statistik"; profilReiterAnzeigen();
+        const w = [...document.querySelectorAll(".statistik-kachel-wert")]; return { breite: document.documentElement.scrollWidth, text: w.map((x) => x.textContent).join(" | "), raus: w.filter((x) => x.getBoundingClientRect().right > x.closest(".statistik-kachel").getBoundingClientRect().right - 4).length }; });
+      pruefe("320-" + sprache + " Profil-Statistik ohne Überlauf (" + r.text + ")", r.breite === 320 && r.raus === 0, JSON.stringify(r));
+      await ctx.close();
+    }
+    // K-21: Gym-Tab ohne Netz zeigt einen Hinweis (Service Worker), mit Netz lädt das Spiel beim nächsten Öffnen
+    {
+      const { ctx, page, fehler } = await seite(browser, 390, "de");
+      await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+      await page.reload(); await page.waitForTimeout(1200);
+      await ctx.setOffline(true);
+      await page.evaluate(() => seiteZeigen("gym")); await page.waitForTimeout(1500);
+      const a = await page.evaluate(() => { const f = document.getElementById("gym-spiel"); return { off: !!(f.contentWindow && f.contentWindow.__gymOffline), text: f.contentDocument ? f.contentDocument.body.innerText.slice(0, 30) : "" }; });
+      pruefe("Gym offline: Hinweis statt leerer Fläche", a.off && /Internet/.test(a.text), JSON.stringify(a));
+      await ctx.setOffline(false);
+      await page.evaluate(() => { seiteZeigen("home"); seiteZeigen("gym"); }); await page.waitForTimeout(3500);
+      const b = await page.evaluate(() => { const f = document.getElementById("gym-spiel"); return { off: !!(f.contentWindow && f.contentWindow.__gymOffline), sync: !!(f.contentWindow && f.contentWindow.__gymSync) }; });
+      pruefe("Gym wieder online: Spiel lädt", !b.off && b.sync, JSON.stringify(b));
+      pruefe("Gym offline/online: keine JS-Fehler", fehler.length === 0, fehler.join(" | "));
+      await ctx.close();
+    }
+    // K-11: Gym-Name mit HTML wird als Text gezeigt
+    {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const page = await ctx.newPage();
+      await page.goto(ORT.replace("index.html", "spiel/index.html")); await page.waitForTimeout(2500);
+      await page.evaluate(() => document.querySelectorAll("button").forEach((x) => { if (/^Gym$/i.test(x.textContent.trim())) x.click(); }));
+      await page.waitForTimeout(800);
+      const feld = page.locator("input[placeholder='Mein Gym']");
+      await feld.fill("<i id=xss>x</i>"); await feld.press("Tab"); await page.waitForTimeout(800);
+      const r = await page.evaluate(() => ({ html: !!document.getElementById("xss"), text: document.body.innerText.includes("<i id=xss>x</i>") }));
+      pruefe("Spiel: Gym-Name mit HTML als Text", !r.html && r.text, JSON.stringify(r));
       await ctx.close();
     }
   }

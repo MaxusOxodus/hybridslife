@@ -18,6 +18,12 @@
   // beide müssen gleich sein. In der index.html tragen die Zeilen das Merkmal data-alte-designs.
   const SHOW_ALTE_DESIGNS = false;
 
+  // Helles Design (seit Version 193, Audit K-02, Variante A): Der Look Korund gibt es bisher nur dunkel. Mit false startet
+  // die App immer dunkel, und die Wahl Dunkel/Hell/System ist in Einstellungen → Design ausgeblendet (Merkmal data-hell).
+  // Gespeichert bleibt, was gewählt war (einstellungen.design), nichts wird überschrieben. Mit true gilt wieder die Wahl.
+  // Derselbe Schalter steht im Start-Skript der index.html (hellBeimStart), beide müssen gleich sein.
+  const SHOW_HELL = false;
+
   // Wischgesten (seit Version 100): Alle Gesten nutzen diese Zahlen. Hier lassen sie sich nach dem Test auf dem Handy ändern.
   // Ab so vielen Pixeln steht fest, in welche Richtung der Finger wischt. Darunter gilt es noch als Tipp.
   const WISCH_SPIEL_PX = 8;
@@ -37,6 +43,10 @@
   const WISCH_SEITE_PX = 50;
   // So nah am linken oder rechten Bildschirmrand (in Pixeln) beginnt keine seitliche Geste: Dort wischt Safari zurück
   const WISCH_RAND_PX = 24;
+
+  // Doppeltipp-Sperre (seit Version 193): So lange nach „Satz fertig“ (in Millisekunden) zählt ein Tipp auf „Satz fertig“
+  // oder „Pause überspringen“ nicht. Sonst landet der zweite Tipp eines Doppeltipps auf dem Knopf, der jetzt dort liegt.
+  const SATZ_SPERRE_MS = 600;
 
   // Ziele einer Woche für die Ringe auf Home (seit Version 137): Workouts (Trainingstage), Volumen in kg und Wiederholungen.
   // Sie stehen nur hier und sollen sich später einstellen lassen. In lbs wird das Volumen umgerechnet und auf volle 1.000 gerundet.
@@ -374,6 +384,32 @@
       return false;
     }
   }
+
+  // Zwei offene Tabs (seit Version 193, Audit K-03): Jeder Tab hält die Daten im Speicher der Seite und schreibt beim
+  // Speichern die ganze Liste zurück. Ändert ein anderer Tab einen dieser Schlüssel, wäre der Stand hier veraltet und
+  // der nächste Satz hier würde den des anderen Tabs überschreiben. Deshalb: Ist dieser Tab nicht zu sehen, lädt er
+  // still neu (alle Daten liegen im Speicher), sonst fragt er mit nur einem Knopf „Neu laden“.
+  // Das Gym-Spiel (eigener Schlüssel) und die Cloud-Anmeldung (supabase-js erneuert sie selbst) zählen nicht.
+  const ANDERER_TAB_SCHLUESSEL = ["eintraege", "routinen", "wochenplan", "laufendesTraining", "einstellungen", "profil",
+    "trainings", "koerpergewicht", "eigeneUebungen", "geloeschteEigengewicht", "notizen", "coach"];
+  let andererTabGemeldet = false;
+
+  window.addEventListener("storage", function (ereignis) {
+    if (ereignis.storageArea !== localStorage || (ereignis.key !== null && ANDERER_TAB_SCHLUESSEL.indexOf(ereignis.key) < 0)) {
+      return;
+    }
+    if (document.hidden) {
+      location.reload();
+      return;
+    }
+    if (andererTabGemeldet) {
+      return;
+    }
+    andererTabGemeldet = true;
+    frageZeigen(txt("andererTab.titel"), txt("andererTab.text"), [
+      { text: txt("andererTab.neuLaden"), art: "haupt", aktion: function () { location.reload(); } }
+    ]);
+  });
 
   // Meldet, dass das Speichern nicht geklappt hat: beim ersten Mal mit einem Dialog, danach nur mit dem kleinen Hinweis
   function speicherFehlerMelden() {
@@ -1477,7 +1513,12 @@
       }, 0);
     };
     // Nach dem Verlassen steht im Feld, was wirklich gilt (z. B. die Obergrenze statt 999)
+    // Ausnahme Trainingsmodus (seit Version 193, Audit K-06): Leer, keine Zahl oder unter dem Minimum bleibt stehen,
+    // damit „Satz fertig“ es bemerkt (satzFertigPruefen) und nicht still einen anderen Wert speichert.
     feld.onblur = function () {
+      if (id.indexOf("t-feld-") === 0 && !feldEingabeGueltig(id)) {
+        return;
+      }
       feldSetzen(id, feldWert(id));
     };
     feld.onkeydown = function (ereignis) {
@@ -1500,6 +1541,12 @@
       gerundet = Math.round(zahl * 100) / 100;
     }
     return Math.max(felder[id].min, Math.min(gerundet, felder[id].max));
+  }
+
+  // Steht im Feld eine Zahl, die nicht unter dem Minimum liegt? (Über dem Maximum wird wie bisher begrenzt.)
+  function feldEingabeGueltig(id) {
+    const text = String(document.getElementById(id).value).trim().replace(",", ".");
+    return text !== "" && !isNaN(Number(text)) && Number(text) >= felder[id].min;
   }
 
   // Der Wert des Feldes als Zahl. Steht gerade nichts Gültiges darin, gilt der letzte gültige Wert.
@@ -5941,6 +5988,14 @@
   // Der Knopf „Satz fertig“ (seit Version 179): Ist das Gewicht eines Arbeitssatzes ungewöhnlich (gewichtUngewoehnlich),
   // fragt die App erst nach. „Ja, speichern“ speichert wie immer, „Korrigieren“ lässt die Felder stehen. Nichts wird geändert.
   function satzFertigPruefen() {
+    if (satzGesperrt()) {
+      return;
+    }
+    // Leeres oder ungültiges Feld (seit Version 193, Audit K-06): nichts speichern, Bescheid sagen
+    if (!feldEingabeGueltig("t-feld-gewicht") || !feldEingabeGueltig("t-feld-wdh")) {
+      frageZeigen(txt("satz.ungueltigTitel"), txt("satz.ungueltigText"), [{ text: txt("ok"), art: "haupt" }]);
+      return;
+    }
     const u = laufendesTraining.uebungen[laufendesTraining.index];
     const gewicht = gewichtFeldWert("t-feld-gewicht");
     const ueblich = aufwaermenGewaehlt ? null : gewichtUngewoehnlich(u, gewicht);
@@ -5954,9 +6009,18 @@
     ]);
   }
 
+  // Zeitpunkt des letzten „Satz fertig“ (nur im Speicher der Seite), für die Doppeltipp-Sperre
+  let satzFertigZeit = 0;
+
+  function satzGesperrt() {
+    const seit = Date.now() - satzFertigZeit;
+    return seit >= 0 && seit < SATZ_SPERRE_MS;
+  }
+
   function satzFertig() {
     const t = laufendesTraining;
     const u = t.uebungen[t.index];
+    satzFertigZeit = Date.now();
 
     // rir steht nur im Satz, wenn es angegeben wurde. zeit hält fest, wann der Satz fertig war.
     const satz = { gewicht: gewichtFeldWert("t-feld-gewicht"), wdh: feldWert("t-feld-wdh") };
@@ -8961,6 +9025,13 @@
     }
     pauseMerken();
     pauseAnzeigen();
+  }
+
+  // Die Knöpfe „Überspringen“, „Pause überspringen“ und ✕ (seit Version 193): kurz nach „Satz fertig“ zählt der Tipp nicht
+  function pauseUeberspringenTipp() {
+    if (!satzGesperrt()) {
+      pauseUeberspringen();
+    }
   }
 
   // Beendet die Pause sofort, ohne Ton
@@ -12767,6 +12838,9 @@
 
   // Das gewählte Design: "dunkel", "hell" oder "system" (die App folgt dem Gerät)
   function design() {
+    if (!SHOW_HELL) {
+      return "dunkel";
+    }
     if (einstellungen.design === "dunkel" || einstellungen.design === "hell") {
       return einstellungen.design;
     }
@@ -18950,6 +19024,11 @@
       return;
     }
     try {
+      // Kam beim letzten Mal nur der Hinweis ohne Netz (sw.js, seit Version 193), wird das Spiel neu geladen
+      if (fenster.contentWindow && fenster.contentWindow.__gymOffline) {
+        fenster.setAttribute("src", "spiel/index.html?v=" + appVersion());
+        return;
+      }
       if (fenster.contentWindow && fenster.contentWindow.__gymSync) {
         fenster.contentWindow.__gymSync();
       }
@@ -18961,6 +19040,15 @@
     const platzhalter = document.querySelectorAll("[data-platzhalter]");
     for (let i = 0; i < platzhalter.length; i++) {
       platzhalter[i].classList.toggle("versteckt", !SHOW_PLATZHALTER);
+    }
+    // Seit Version 193: Dunkel/Hell/System nur mit SHOW_HELL, ohne es ein eigener Hinweis unter der Farbwelt
+    const hell = document.querySelectorAll("[data-hell]");
+    for (let i = 0; i < hell.length; i++) {
+      hell[i].classList.toggle("versteckt", !SHOW_HELL);
+    }
+    const nurDunkel = document.querySelectorAll("[data-nur-dunkel]");
+    for (let i = 0; i < nurDunkel.length; i++) {
+      nurDunkel[i].classList.toggle("versteckt", SHOW_HELL);
     }
     // Seit Version 191: Stil, Farbe und Look in Einstellungen → Design nur mit SHOW_ALTE_DESIGNS
     const alte = document.querySelectorAll("[data-alte-designs]");

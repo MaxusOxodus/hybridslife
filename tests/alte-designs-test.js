@@ -41,14 +41,15 @@ pruefe("acht Elemente markiert", markiert.length === 8, markiert.length);
 
 // Das Start-Skript mit einem nachgebauten document und localStorage
 const startSkript = /<script>\s*(var alteDesignsBeimStart[\s\S]*?)<\/script>/.exec(index)[1];
-function start(einstellungen, schalter) {
+function start(einstellungen, schalter, hell) {
   const attribute = {};
   const document = { documentElement: {
     setAttribute: function (k, v) { attribute[k] = v; },
     removeAttribute: function (k) { delete attribute[k]; }
   } };
   const localStorage = { getItem: function () { return einstellungen === null ? null : JSON.stringify(einstellungen); } };
-  const quelle = startSkript.replace("var alteDesignsBeimStart = false;", "var alteDesignsBeimStart = " + schalter + ";");
+  const quelle = startSkript.replace("var alteDesignsBeimStart = false;", "var alteDesignsBeimStart = " + schalter + ";")
+    .replace("var hellBeimStart = false;", "var hellBeimStart = " + (hell === true) + ";");
   new Function("document", "localStorage", quelle)(document, localStorage);
   return attribute;
 }
@@ -92,8 +93,11 @@ FAELLE.forEach(function (fall) {
   const e = fall.e || {};
   const welt = ["aurora", "volt", "gold", "puls"].indexOf(e.farbwelt) !== -1 ? e.farbwelt : "blau";
   pruefe(fall.name + ": Start Farbwelt", a["data-farbwelt"] === welt, JSON.stringify(a));
+  // Seit Version 193 (hellBeimStart = false): immer dunkel, egal was gespeichert ist; mit true wie gespeichert
+  pruefe(fall.name + ": Start Hell/Dunkel/System (immer dunkel)", a["data-design"] === "dunkel", JSON.stringify(a));
   const designErwartet = e.design === "dunkel" || e.design === "hell" ? e.design : undefined;
-  pruefe(fall.name + ": Start Hell/Dunkel/System", a["data-design"] === designErwartet, JSON.stringify(a));
+  const mitHell = start(fall.e, false, true);
+  pruefe(fall.name + ": Start mit hellBeimStart wie gespeichert", mitHell["data-design"] === designErwartet, JSON.stringify(mitHell));
 
   // Die app.js setzt danach dieselben Werte (kein Wechsel nach dem Start)
   const w = appWerte(e, false);

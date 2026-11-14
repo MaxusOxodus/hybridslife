@@ -557,7 +557,7 @@ const UEBUNGEN = [
   { id: "step-ups", de: "Step-ups", en: "Step-Up", bereich: "eigen", haupt: "po", hilfs: ["quadrizeps"], auch: ["quadrizeps"] },
   { id: "curtsy-lunge-eigen", de: "Curtsy Lunge", en: "Curtsy Lunge", bereich: "eigen", haupt: "po", hilfs: ["abduktoren"], auch: [] },
   { id: "single-leg-glute-bridge", de: "Glute Bridge einbeinig", en: "Single-Leg Glute Bridge", bereich: "eigen", haupt: "po", hilfs: [], auch: [] },
-  { id: "hip-thrust-eigen", de: "Hip Thrust", en: "Hip Thrust", bereich: "eigen", haupt: "po", hilfs: [], auch: [] },
+  { id: "hip-thrust-eigen", de: "Hip Thrust (Eigengewicht)", en: "Hip Thrust (Bodyweight)", bereich: "eigen", haupt: "po", hilfs: [], auch: [] },
   { id: "single-leg-hip-thrust", de: "Hip Thrust einbeinig", en: "Single-Leg Hip Thrust", bereich: "eigen", haupt: "po", hilfs: [], auch: [] },
 
   // ---------- Adduktoren: Maschine ----------

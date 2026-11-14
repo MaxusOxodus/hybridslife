@@ -30,6 +30,8 @@
        so blitzt beim Start nichts Altes auf. Gespeichert bleibt alles, wie es ist. -->
   <script>
     var alteDesignsBeimStart = false;
+    // Seit Version 193: hellBeimStart ist der Schalter SHOW_HELL der app.js und muss gleich sein. Mit false startet die App immer dunkel.
+    var hellBeimStart = false;
     var stilBeimStart = "glass";
     var palette;
     var farbwelt = "blau";
@@ -39,7 +41,7 @@
         stilBeimStart = "klassisch";
       }
       var design = gespeichert.design;
-      if (design === "dunkel" || design === "hell") {
+      if (hellBeimStart && (design === "dunkel" || design === "hell")) {
         document.documentElement.setAttribute("data-design", design);
       }
       // Die Akzentfarbe: Ohne Eintrag oder bei einem unbekannten Wert gilt Blau (ohne Attribut).
@@ -60,6 +62,9 @@
         farbwelt = gespeichert.farbwelt;
       }
     } catch (fehler) {}
+    if (!hellBeimStart) {
+      document.documentElement.setAttribute("data-design", "dunkel");
+    }
     if (!alteDesignsBeimStart || palette === undefined || palette === null || palette === "korund") {
       palette = "korund";
     }
@@ -72,11 +77,11 @@
     }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=192">
+  <link rel="stylesheet" href="style.css?v=193">
   <!-- Das Design "Glass": der Standard. Wirkt nicht, wenn in den Einstellungen "Klassisch" gewählt ist -->
-  <link rel="stylesheet" href="glass.css?v=192">
+  <link rel="stylesheet" href="glass.css?v=193">
   <!-- Der Look "Korund" mit seinen Farbwelten (seit Version 141). Wirkt nur mit Glass im dunklen Design und data-palette="korund" -->
-  <link rel="stylesheet" href="korund.css?v=192">
+  <link rel="stylesheet" href="korund.css?v=193">
 </head>
 <body>
 
@@ -165,8 +170,8 @@
         <div class="rad-titel" data-t="wdh">Wdh.</div>
         <input id="feld-wdh" class="zahl-feld" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen" data-t-aria="wiederholungen">
         <div class="schnell">
-          <button onclick="feldAendern('feld-wdh', -1)" aria-label="Eine Wiederholung weniger" data-t-aria="wdh.weniger">−1</button>
-          <button onclick="feldAendern('feld-wdh', 1)" aria-label="Eine Wiederholung mehr" data-t-aria="wdh.mehr">+1</button>
+          <button onclick="feldAendern('feld-wdh', -1)" aria-label="−1 Wiederholung" data-t-aria="wdh.weniger">−1</button>
+          <button onclick="feldAendern('feld-wdh', 1)" aria-label="+1 Wiederholung" data-t-aria="wdh.mehr">+1</button>
         </div>
       </div>
       <div>
@@ -343,8 +348,8 @@
             <div class="rad-titel" data-t="wdh">Wdh.</div>
             <input id="t-feld-wdh" class="zahl-feld gross" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen" data-t-aria="wiederholungen">
             <div class="schnell">
-              <button onclick="feldAendern('t-feld-wdh', -1)" aria-label="Eine Wiederholung weniger" data-t-aria="wdh.weniger">−1</button>
-              <button onclick="feldAendern('t-feld-wdh', 1)" aria-label="Eine Wiederholung mehr" data-t-aria="wdh.mehr">+1</button>
+              <button onclick="feldAendern('t-feld-wdh', -1)" aria-label="−1 Wiederholung" data-t-aria="wdh.weniger">−1</button>
+              <button onclick="feldAendern('t-feld-wdh', 1)" aria-label="+1 Wiederholung" data-t-aria="wdh.mehr">+1</button>
             </div>
           </div>
         </div>
@@ -367,10 +372,10 @@
         <div class="karten-knoepfe">
           <button class="knopf" onclick="pauseAendern(-15)">−15 s</button>
           <button class="knopf" onclick="pauseAendern(15)">+15 s</button>
-          <button class="knopf" onclick="pauseUeberspringen()" data-t="ueberspringen">Überspringen</button>
+          <button class="knopf" onclick="pauseUeberspringenTipp()" data-t="ueberspringen">Überspringen</button>
         </div>
         <!-- Look Korund (seit Version 142): "Pause überspringen" unten am Rand. Sonst ausgeblendet. -->
-        <button id="modus-pause-weiter" class="speichern-btn gross modus-pause-weiter" type="button" onclick="pauseUeberspringen()" data-t="pause.ueberspringen">Pause überspringen</button>
+        <button id="modus-pause-weiter" class="speichern-btn gross modus-pause-weiter" type="button" onclick="pauseUeberspringenTipp()" data-t="pause.ueberspringen">Pause überspringen</button>
         <p id="modus-naechstes" class="modus-ziel"></p>
         <!-- Look Korund (seit Version 142): die Karte "Als Nächstes" mit Figur, Name und Ziel. Sonst ausgeblendet. -->
         <div id="modus-als-naechstes" class="karte modus-als-naechstes"></div>
@@ -608,7 +613,7 @@
     <span id="pause-leiste-rest"></span>
     <button class="pause-leiste-zeit" onclick="pauseAendern(-15)">−15 s</button>
     <button class="pause-leiste-zeit" onclick="pauseAendern(15)">+15 s</button>
-    <button onclick="pauseUeberspringen()" aria-label="Pause beenden" data-t-aria="pause.beenden">✕</button>
+    <button onclick="pauseUeberspringenTipp()" aria-label="Pause beenden" data-t-aria="pause.beenden">✕</button>
   </div>
 
   <!-- Hinweis auf eine neue Version: erscheint über der Navigationsleiste -->
@@ -738,7 +743,7 @@
       <span id="erklaerung-titel" class="sheet-titel"></span>
       <button onclick="erklaerungSchliessen()" aria-label="Schließen" data-t-aria="schliessen">✕</button>
     </div>
-    <div id="erklaerung-inhalt" class="zusatz-inhalt"></div>
+    <div id="erklaerung-inhalt" class="zusatz-inhalt" tabindex="0"></div>
   </div>
 
   <!-- Sheet: Körpergewicht oder Körperfett eintragen. Titel und was zu sehen ist, stellt die app.js beim Öffnen ein. -->
@@ -891,8 +896,8 @@
           <div class="rad-titel" data-t="wdh">Wdh.</div>
           <input id="s-feld-wdh" class="zahl-feld" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-label="Wiederholungen" data-t-aria="wiederholungen">
           <div class="schnell">
-            <button onclick="feldAendern('s-feld-wdh', -1)" aria-label="Eine Wiederholung weniger" data-t-aria="wdh.weniger">−1</button>
-            <button onclick="feldAendern('s-feld-wdh', 1)" aria-label="Eine Wiederholung mehr" data-t-aria="wdh.mehr">+1</button>
+            <button onclick="feldAendern('s-feld-wdh', -1)" aria-label="−1 Wiederholung" data-t-aria="wdh.weniger">−1</button>
+            <button onclick="feldAendern('s-feld-wdh', 1)" aria-label="+1 Wiederholung" data-t-aria="wdh.mehr">+1</button>
           </div>
         </div>
       </div>
@@ -1022,7 +1027,7 @@
             <span class="einst-titel" data-t="einst.eintraege">Einträge ansehen</span>
             <span class="einst-pfeil" aria-hidden="true">›</span>
           </button>
-          <input id="backup-datei" class="unsichtbar" type="file" accept=".json,application/json" onchange="backupDateiGewaehlt(this)">
+          <input id="backup-datei" class="unsichtbar" type="file" aria-label="Backup importieren" data-t-aria="backup.importieren" accept=".json,application/json" onchange="backupDateiGewaehlt(this)">
         </div>
         <p id="daten-meldung" class="einst-fuss"></p>
         <p id="backup-nur-hier" class="einst-fuss" data-t="backup.nurHier">Deine Daten liegen nur auf diesem Gerät. Ein Backup schützt sie.</p>
@@ -1175,8 +1180,9 @@
 
       <!-- Unterseite: Design -->
       <div id="einst-ansicht-design" class="einst-ansicht versteckt">
-        <div id="design-auswahl" class="umschalter gross"></div>
-        <p class="einst-fuss" data-t="design.hinweis">„System“ folgt der Einstellung deines Geräts.</p>
+        <!-- Dunkel/Hell/System (data-hell) seit Version 193 nur mit SHOW_HELL in der app.js zu sehen -->
+        <div id="design-auswahl" class="umschalter gross" data-hell></div>
+        <p class="einst-fuss" data-t="design.hinweis" data-hell>„System“ folgt der Einstellung deines Geräts.</p>
         <!-- Der Stil: Klassisch oder Glass. Den Umschalter baut die app.js. Stil, Farbe und Look (data-alte-designs) sind seit Version 191
              nur mit SHOW_ALTE_DESIGNS in der app.js zu sehen. -->
         <h2 class="abschnitt" data-t="stil" data-alte-designs>Stil</h2>
@@ -1192,7 +1198,8 @@
         <!-- Die Farbwelt (seit Version 141): nur im Look Korund. Die Zeilen baut die app.js. -->
         <h2 class="abschnitt" data-t="farbwelt">Farbwelt</h2>
         <div id="farbwelt-auswahl" class="karte einst-liste"></div>
-        <p class="einst-fuss" data-t="farbwelt.hinweis">Die Farbwelt gilt im dunklen Design, auch bei „System“ mit dunklem Gerät. Sie färbt Fortschritt, Knöpfe und das K auf Home.</p>
+        <p class="einst-fuss" data-t="farbwelt.hinweis" data-hell>Die Farbwelt gilt im dunklen Design, auch bei „System“ mit dunklem Gerät. Sie färbt Fortschritt, Knöpfe und das K auf Home.</p>
+        <p class="einst-fuss versteckt" data-t="farbwelt.hinweisNurDunkel" data-nur-dunkel>Die Farbwelt färbt Fortschritt, Knöpfe und das K auf Home.</p>
       </div>
 
       <!-- Unterseite: Sprache -->
@@ -1292,9 +1299,9 @@
   </div>
 
 <!-- Erst die Texte, die Übungsdaten und die Übungsbilder, dann die App, die alles benutzt -->
-<script src="texte.js?v=192"></script>
-<script src="uebungen.js?v=192"></script>
-<script src="erklaerungen.js?v=192"></script>
+<script src="texte.js?v=193"></script>
+<script src="uebungen.js?v=193"></script>
+<script src="erklaerungen.js?v=193"></script>
 <script src="erklaerungen-brust.js"></script>
 <script src="erklaerungen-latissimus.js"></script>
 <script src="erklaerungen-trizeps.js"></script>
@@ -1316,15 +1323,15 @@
 <script src="erklaerungen-abduktoren.js"></script>
 <script src="erklaerungen-adduktoren.js"></script>
 <script src="erklaerungen-ganzkoerper.js"></script>
-<script src="raenge.js?v=192"></script>
-<script src="bilder.js?v=192"></script>
-<script src="vorlagen.js?v=192"></script>
-<script src="figuren.js?v=192"></script>
+<script src="raenge.js?v=193"></script>
+<script src="bilder.js?v=193"></script>
+<script src="vorlagen.js?v=193"></script>
+<script src="figuren.js?v=193"></script>
 <!-- Die Einführung (Rundgang durch die App). Sie steht ohne ?v=N da, wie die erklaerungen-*.js -->
 <script src="einfuehrung.js"></script>
 <!-- Supabase für das Cloud-Backup (seit Version 146). Die Version steht im Dateinamen, deshalb ohne ?v=N -->
 <script src="supabase-2.117.2.js"></script>
-<script src="app.js?v=192"></script>
+<script src="app.js?v=193"></script>
 
 </body>
 </html>

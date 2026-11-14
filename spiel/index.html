@@ -832,7 +832,7 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
   function ausbauPreis(stufe) { return stufe === 1 ? { splitter: 150 * (stand.stufe + 1) } : { splitter: 300 * (stand.stufe + 1), kristalle: 1 }; }
   function ausbau() { stand.ausbau = stand.ausbau || {}; return stand.ausbau[stand.stufe] = stand.ausbau[stand.stufe] || { boden: 0, licht: 0, wand: 0 }; }
   function gymSheet(kopf, inhalt, sheet) {
-    kopf.innerHTML = "<b>" + gymName() + "</b><span class='label'>" + zahl(ausstrahlung()) + " Ausstrahlung</span>";
+    kopf.innerHTML = "<b></b><span class='label'>" + zahl(ausstrahlung()) + " Ausstrahlung</span>"; kopf.querySelector("b").textContent = gymName();
     const chips = document.createElement("div"); chips.className = "chips eng";
     [["uebersicht", "Übersicht"], ["ausbau", "Ausbau"], ["stufen", "Stufen"], ["stil", "Stil"]].forEach(c => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.setAttribute("aria-pressed", String(gymTab === c[0])); b.textContent = c[1]; b.onclick = () => { gymTab = c[0]; ueberZeigen(); }; chips.appendChild(b); });
     sheet.insertBefore(chips, inhalt);
@@ -964,7 +964,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
     reiter = null; auswahl = null; markieren(null); reiterZeigen(); ueberZeigen();
     document.body.classList.add("foto");
     const o = document.createElement("div"); o.className = "foto-ebene";
-    o.innerHTML = '<div class="foto-titel"><span class="label">' + STUFEN[stand.stufe].name + " · " + abdeckung().size + ' / 20 Muskelgruppen</span><b>' + gymName() + '</b></div><div class="foto-knoepfe"><button type="button" class="klein-knopf" id="foto-bild">' + ICON.kamera + 'Bild</button><button type="button" class="klein-knopf leise" id="foto-ende">Fertig</button></div>';
+    o.innerHTML = '<div class="foto-titel"><span class="label">' + STUFEN[stand.stufe].name + " · " + abdeckung().size + ' / 20 Muskelgruppen</span><b></b></div><div class="foto-knoepfe"><button type="button" class="klein-knopf" id="foto-bild">' + ICON.kamera + 'Bild</button><button type="button" class="klein-knopf leise" id="foto-ende">Fertig</button></div>';
+    o.querySelector(".foto-titel b").textContent = gymName();
     $("app").appendChild(o); foto = { start: performance.now(), ebene: o, zoom: blick.zoom };
     o.querySelector("#foto-ende").onclick = fotomodusEnde;
     o.querySelector("#foto-bild").onclick = () => {
@@ -1147,7 +1148,8 @@ body.foto .oben, body.foto .unten { opacity: 0; pointer-events: none; transition
 
   function toast(gross, klein) {
     const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status");
-    t.innerHTML = "<b>" + gross + "</b><span>" + (klein || "") + "</span>";
+    // Als Text, nicht als HTML (seit Version 193, Audit K-11): gross kann der selbst gewählte Gym-Name sein
+    t.innerHTML = "<b></b><span></span>"; t.querySelector("b").textContent = gross; t.querySelector("span").textContent = klein || "";
     $("app").appendChild(t); setTimeout(() => t.remove(), 2500);
   }
   function fliegen(art, vonEl, n) {

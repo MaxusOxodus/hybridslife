@@ -8407,14 +8407,15 @@
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche-name { color: var(--text-aus); font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche.jetzt .statistik-woche-name { color: #FF9F45; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-woche-kacheln { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; margin: 0; padding: 14px 12px; animation: korund-karte-rein 0.4s ease both; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; container-type: inline-size; margin: 0; padding: 14px 12px; animation: korund-karte-rein 0.4s ease both; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel .status-symbol { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 8px; border-radius: 50%; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel .status-symbol svg { width: 18px; height: 18px; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.farbe-blau .status-symbol { background: rgba(110, 168, 255, 0.15); color: #7EB0FF; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.farbe-tuerkis .status-symbol { background: rgba(95, 212, 196, 0.15); color: #5FD4C4; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel.farbe-lila .status-symbol { background: rgba(169, 139, 255, 0.16); color: #A98BFF; }
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-wert { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-wert span { color: var(--text-leise); font-size: 13px; font-weight: 600; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-wert { font-size: 21px; font-size: min(21px, 23cqw); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-wert span { color: var(--text-leise); font-size: 13px; font-weight: 600; display: block; }
+:root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel .seiten-klein { margin-bottom: auto; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel .seiten-klein { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-balken { width: 100%; height: 4px; margin-top: 10px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
 :root[data-stil="glass"][data-palette="korund"][data-design="dunkel"] .statistik-kachel-balken span { display: block; height: 100%; border-radius: 2px; transform-origin: left; animation: korund-wachsen-breit 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;  }
@@ -8447,14 +8448,15 @@
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche-name { color: var(--text-aus); font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche.jetzt .statistik-woche-name { color: #FF9F45; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-woche-kacheln { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; margin: 0; padding: 14px 12px; animation: korund-karte-rein 0.4s ease both; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; container-type: inline-size; margin: 0; padding: 14px 12px; animation: korund-karte-rein 0.4s ease both; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel .status-symbol { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 8px; border-radius: 50%; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel .status-symbol svg { width: 18px; height: 18px; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.farbe-blau .status-symbol { background: rgba(110, 168, 255, 0.15); color: #7EB0FF; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.farbe-tuerkis .status-symbol { background: rgba(95, 212, 196, 0.15); color: #5FD4C4; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel.farbe-lila .status-symbol { background: rgba(169, 139, 255, 0.16); color: #A98BFF; }
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-wert { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-wert span { color: var(--text-leise); font-size: 13px; font-weight: 600; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-wert { font-size: 21px; font-size: min(21px, 23cqw); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-wert span { color: var(--text-leise); font-size: 13px; font-weight: 600; display: block; }
+  :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel .seiten-klein { margin-bottom: auto; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel .seiten-klein { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-balken { width: 100%; height: 4px; margin-top: 10px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
   :root[data-stil="glass"][data-palette="korund"]:not([data-design="hell"]) .statistik-kachel-balken span { display: block; height: 100%; border-radius: 2px; transform-origin: left; animation: korund-wachsen-breit 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;  }
